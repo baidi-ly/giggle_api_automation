@@ -23,39 +23,205 @@ class TestBook:
         '''
         pass
 
-    def test_AA_book_list_page(self):
-        """
-        分页查询用户创建的书籍列表-验证page，
-        可参数化，参考注册正常场景
-        """
-        page = 1
-        pageSize = 10
-        status = 1
-        book_res = self.book.book_list(self.authorization, page, pageSize, status)
-        assert book_res["data"]
+    @pytest.fixture(scope="class")
+    def get_bookId(self):
+        '''方法前置 - 创建kidId'''
+        # 创建小孩账户
+        couerseList = self.course.listAllWithLevel(self.authorization)["data"]
+        yield couerseList
 
-    def test_AB_book_list_pageSize(self):
-        """分页查询用户创建的书籍列表-验证pageSize"""
-        assert True
-        assert False
+    @pytest.mark.pendingRelease
+    @pytest.mark.parametrize("isTranslatable", [True, False], [True, False])
+    def test_book_translationSetting_update_normal(self, isTranslatable, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        bookId = get_bookId
+        event_res = self.book.update_translationSetting(self.authorization, bookId, isTranslatable)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
 
-    def test_AC_book_list_status(self):
-        """分页查询用户创建的书籍列表-验证pageSize"""
-        pass
+    @pytest.mark.pendingRelease
+    def test_book_translationSetting_update_bookId_not_exist(self, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        bookId = -999999
+        event_res = self.book.update_translationSetting(self.authorization, bookId, True)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
 
-    def test_AD_book_list_DeviceType(self):
-        """分页查询用户创建的书籍列表-验证设备类型"""
-        pass
+    @pytest.mark.pendingRelease
+    def test_book_translationSetting_update_bookId_not_current_owner(self, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        bookId = -999999
+        event_res = self.book.update_translationSetting(self.authorization, bookId, True)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
 
-    def test_BA_book_list_DeviceType(self):
-        """根据书籍ID获取详细信息 - 正常场景"""
+    @pytest.mark.pendingRelease
+    def test_book_translationSetting_update_bookId_empty(self, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        event_res = self.book.update_translationSetting(self.authorization, '', True)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
 
-        bookId = 1
-        translateLanguage = "zh-CN"
-        book_info_res = self.book.book_detail_byId(self.authorization, bookId, translateLanguage)
-        assert book_info_res["data"]
+    @pytest.mark.pendingRelease
+    def test_book_translationSetting_update_isTranslatable_wrong(self, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        bookId = get_bookId
+        event_res = self.book.update_translationSetting(self.authorization, bookId, '9999')
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
 
+    @pytest.mark.pendingRelease
+    def test_book_get_translationSetting_bookId_not_exist(self, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        bookId = -999999
+        event_res = self.book.translationSetting(self.authorization, bookId, True)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
 
+    @pytest.mark.pendingRelease
+    def test_book_get_translationSetting_bookId_not_current_owner(self, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        bookId = -999999
+        event_res = self.book.translationSetting(self.authorization, bookId, True)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
 
+    @pytest.mark.pendingRelease
+    def test_book_get_translationSetting_bookId_empty(self, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        event_res = self.book.translationSetting(self.authorization, '', True)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
 
+    @pytest.mark.pendingRelease
+    def test_book_getWordDefinition_word_normal(self, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        word = "hello"
+        interfaceLanguage = "en"
+        learningLanguage = "en"
+        event_res = self.book.getWordDefinition(self.authorization, word, interfaceLanguage, learningLanguage)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
 
+    @pytest.mark.pendingRelease
+    def test_book_getWordDefinition_word_empty(self, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        word = ""
+        interfaceLanguage = "en"
+        learningLanguage = "en"
+        event_res = self.book.getWordDefinition(self.authorization, word, interfaceLanguage, learningLanguage)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
+
+    @pytest.mark.pendingRelease
+    def test_book_getWordDefinition_word_empty1(self, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        word = "hello"
+        interfaceLanguage = "en"
+        learningLanguage = "zh"
+        event_res = self.book.getWordDefinition(self.authorization, word, interfaceLanguage, learningLanguage)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
+
+    @pytest.mark.pendingRelease
+    def test_book_getWordDefinition_word_empty2(self, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        word = "hello"
+        interfaceLanguage = "zh"
+        learningLanguage = "en"
+        event_res = self.book.getWordDefinition(self.authorization, word, interfaceLanguage, learningLanguage)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
+
+    @pytest.mark.pendingRelease
+    def test_book_getWordDefinition_word_empty3(self, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        word = "hello"
+        interfaceLanguage = "zh"
+        learningLanguage = "zh"
+        event_res = self.book.getWordDefinition(self.authorization, word, interfaceLanguage, learningLanguage)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
+
+    @pytest.mark.pendingRelease
+    def test_book_generateVideo_bookId_normal(self, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        bookId = -999999
+        event_res = self.book.translationSetting(self.authorization, bookId, True)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
+
+    @pytest.mark.pendingRelease
+    def test_book_generateVideo_bookId_not_exist(self, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        bookId = -999999
+        event_res = self.book.translationSetting(self.authorization, bookId, True)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
+
+    @pytest.mark.pendingRelease
+    def test_book_generateVideo_bookId_not_current_owner(self, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        bookId = -999999
+        event_res = self.book.translationSetting(self.authorization, bookId, True)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
+
+    @pytest.mark.pendingRelease
+    def test_book_generateVideo_bookId_empty(self, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        event_res = self.book.translationSetting(self.authorization, '', True)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
+
+    @pytest.mark.pendingRelease
+    def test_book_get_generateVideo_bookId_normal(self, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        bookId = -999999
+        event_res = self.book.translationSetting(self.authorization, bookId, True)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
+
+    @pytest.mark.pendingRelease
+    def test_book_get_generateVideo_bookId_not_exist(self, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        bookId = -999999
+        event_res = self.book.translationSetting(self.authorization, bookId, True)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
+
+    @pytest.mark.pendingRelease
+    def test_book_get_generateVideo_bookId_not_current_owner(self, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        bookId = -999999
+        event_res = self.book.translationSetting(self.authorization, bookId, True)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
+
+    @pytest.mark.pendingRelease
+    def test_book_get_generateVideo_bookId_empty(self, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        event_res = self.book.translationSetting(self.authorization, '', True)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"

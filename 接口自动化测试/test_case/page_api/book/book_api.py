@@ -21,7 +21,7 @@ class BookApi(BaseAPI):
         # Update Date:  v.18.0  2025-09-08
         # updater: Baidi
         # Update Details:  1. 新增参数: `includeBookCover`, `bookCoverSize`
-        url = f"https://{base_url}/book/series/list"
+        url = f"https://{base_url}/api/book/series/list"
         payload = {
             "includeBookCover": includeBookCover,
             "bookCoverSize": bookCoverSize
@@ -34,7 +34,7 @@ class BookApi(BaseAPI):
         response = response.json()
         return response
 
-    def update_translationSetting(self, authorization, bookId, DeviceType="web"):
+    def update_translationSetting(self, authorization, bookId, isTranslatable, DeviceType="web"):
         """
         更新故事书的翻译设置
         :param bookId: 书籍id
@@ -42,10 +42,13 @@ class BookApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-05
         # Creator: Baidi
-        url = f"https://{base_url}/book/{bookId}/translationSetting"
+        url = f"https://{base_url}/api/api/book/{bookId}/translationSetting"
+        payload = {
+            "isTranslatable": isTranslatable
+        }
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
-        response = requests.request("POST", url, headers=headers)
+        response = requests.request("POST", url, headers=headers, params=payload)
         error_msg = "更新故事书的翻译设置"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
@@ -59,7 +62,7 @@ class BookApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-05
         # Creator: Baidi
-        url = f"https://{base_url}/book/{bookId}/translationSetting"
+        url = f"https://{base_url}/api/api/book/{bookId}/translationSetting"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
         response = requests.request("GET", url, headers=headers)
@@ -68,7 +71,7 @@ class BookApi(BaseAPI):
         response = response.json()
         return response
 
-    def getWordDefinition(self, authorization, DeviceType="web"):
+    def getWordDefinition(self, authorization, word, interfaceLanguage, learningLanguage, DeviceType="web"):
         """
         获取故事书内单词释义
         :param:
@@ -76,10 +79,15 @@ class BookApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-05
         # Creator: Baidi
-        url = f"https://{base_url}/book/getWordDefinition"
+        url = f"https://{base_url}/api/book/getWordDefinition"
+        payload = {
+            "word": word,
+            "interfaceLanguage": interfaceLanguage,
+            "learningLanguage": learningLanguage
+        }
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
-        response = requests.request("GET", url, headers=headers)
+        response = requests.request("GET", url, headers=headers, params=payload)
         error_msg = "获取故事书内单词释义"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
@@ -93,7 +101,7 @@ class BookApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-05
         # Creator: Baidi
-        url = f"https://{base_url}/book/generateVideo"
+        url = f"https://{base_url}/api/book/generateVideo"
         payload = {
             "bookId": bookId,
         }
@@ -113,7 +121,7 @@ class BookApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-05
         # Creator: Baidi
-        url = f"https://{base_url}/book/generateVideo"
+        url = f"https://{base_url}/api/book/generateVideo"
         payload = {
             "bookId": bookId,
         }
@@ -133,7 +141,7 @@ class BookApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-05
         # Creator: Baidi
-        url = f"https://{base_url}/book/{bookId}/tormsToGlossary"
+        url = f"https://{base_url}/api/book/{bookId}/tormsToGlossary"
         payload = {
             "bookId": bookId,
         }
@@ -153,7 +161,7 @@ class BookApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-08
         # Creator: Baidi
-        url = f"https://{base_url}/book/recommend/bookAndCourse"
+        url = f"https://{base_url}/api/book/recommend/bookAndCourse"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
         response = requests.request("GET", url, headers=headers)
@@ -170,7 +178,7 @@ class BookApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-08
         # Creator: Baidi
-        url = f"https://{base_url}/book/recomment/newUserBookRules"
+        url = f"https://{base_url}/api/book/recomment/newUserBookRules"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
         response = requests.request("GET", url, headers=headers)
@@ -187,7 +195,7 @@ class BookApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-08
         # Creator: Baidi
-        url = f"https://{base_url}/book/recomment/newUserBookRules"
+        url = f"https://{base_url}/api/book/recomment/newUserBookRules"
         timestamp = str(int(time.time() * 1000))
         payload = {
             "ruleIds": ruleIds
@@ -200,3 +208,20 @@ class BookApi(BaseAPI):
         response = response.json()
         return response
 
+    def termsToGlossary(self, authorization, bookId, DeviceType="web"):
+        """
+        设置新用户推荐书籍规则
+        :param:
+        :return:
+        """
+        # Create Data:  v.18.0  2025-09-09
+        # Creator: Baidi
+        url = f"https://{base_url}/api/book/{bookId}/termsToGlossary"
+        timestamp = str(int(time.time() * 1000))
+
+        headers = self.request_header(timestamp, authorization, DeviceType)
+        response = requests.request("POST", url, headers=headers)
+        error_msg = "设置新用户推荐书籍规则"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response

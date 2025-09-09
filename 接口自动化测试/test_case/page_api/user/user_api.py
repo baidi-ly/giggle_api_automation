@@ -35,13 +35,13 @@ class UserApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-05
         # Creator: Baidi
-        url = f"https://{base_url}/user/videoWhitelist/"
+        url = f"https://{base_url}/api/user/videoWhitelist/"
         payload = {
             "userIds": userIds
         }
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
-        response = requests.request("GET", url, headers=headers, params=payload)
+        response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "视频白名单用户全量更新"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
