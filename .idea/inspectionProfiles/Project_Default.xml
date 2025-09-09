@@ -1,0 +1,21 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <list>
+          <option value="paramiko" />
+          <option value="XlsxWriter" />
+          <option value="PyExecJS" />
+          <option value="Faker" />
+          <option value="pytest-assume" />
+          <option value="pywin32" />
+          <option value="PyMySQL" />
+          <option value="pycryptodome" />
+          <option value="wget" />
+          <option value="python-docx" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
