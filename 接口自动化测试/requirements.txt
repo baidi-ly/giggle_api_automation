@@ -1,0 +1,10 @@
+paramiko==2.10.5
+XlsxWriter==3.0.3
+PyExecJS==1.5.1
+Faker==13.13.0
+pytest-assume==2.4.3
+pywin32==306
+PyMySQL==1.0.2
+pycryptodome==3.20.0
+wget==3.2
+python-docx==1.1.0
