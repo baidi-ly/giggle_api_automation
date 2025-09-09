@@ -1,5 +1,6 @@
 import hashlib
 import os
+import re
 from urllib import parse
 import requests
 import time
@@ -354,3 +355,9 @@ class BaseAPI:
         }
         headers.update(kwargs)
         return headers
+
+    def check_str_type(self, _string):  # 正则表达式判断是否为中文字符
+        if bool(re.search('[\u4e00-\u9fff]', _string)):
+            return "zh"
+        elif bool(re.search('[a-zA-Z]', _string)):
+            return "en"

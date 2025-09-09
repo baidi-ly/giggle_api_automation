@@ -10,6 +10,63 @@ base_url = BaseAPI().baseurl()
 class BookApi(BaseAPI):
     """书籍接口"""
 
+
+    def createOrModifyBook(self, authorization, bookName, category, seriesId, storyType, DeviceType="web", **kwargs):
+        """
+        创建(带bookId)/修改一本书籍
+        :param bookId: 书籍id
+        :return:
+        """
+        # Create Data:  v.?  2025-09-09
+        # Creator: Baidi
+
+        url = f"https://{base_url}/api/book/createOrModifyBook"
+        payload = {
+            "bookName": bookName,
+            "category": category,
+            "description": '',
+            "file": "",
+            "language": "zh",
+            "maxAge": 10,
+            "minAge": 2,
+            "seriesId": seriesId,
+            "storyType": storyType,
+        }
+        payload.update(kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "创建(带bookId)/修改一本书籍"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def book_list(self, authorization, searchKey="", DeviceType="web", **kwargs):
+        """
+        列出当前用户创建的书籍列表
+        :param bookId: 书籍id
+        :return:
+        """
+        # Create Data:  v.?  2025-09-09
+        # Creator: Baidi
+
+        url = f"https://{base_url}/api/book/list"
+        payload = {
+            "page": 0,
+            "pageSize": 10,
+            "sortBy": "createTime",
+            "sortDirection": "desc",
+            "status": ""
+        }
+        payload.update(kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "列出当前用户创建的书籍列表"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
     def series_list(self, authorization, includeBookCover, bookCoverSize, DeviceType="web"):
         """
         更新故事书的翻译设置
@@ -34,7 +91,7 @@ class BookApi(BaseAPI):
         response = response.json()
         return response
 
-    def update_translationSetting(self, authorization, bookId, isTranslatable, DeviceType="web"):
+    def update_translationSetting(self, authorization, bookId, isTranslatable=True, DeviceType="web", code=200):
         """
         更新故事书的翻译设置
         :param bookId: 书籍id
@@ -42,7 +99,7 @@ class BookApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-05
         # Creator: Baidi
-        url = f"https://{base_url}/api/api/book/{bookId}/translationSetting"
+        url = f"https://{base_url}/api/book/{bookId}/translationSetting"
         payload = {
             "isTranslatable": isTranslatable
         }
@@ -50,11 +107,12 @@ class BookApi(BaseAPI):
         headers = self.request_header(timestamp, authorization, DeviceType)
         response = requests.request("POST", url, headers=headers, params=payload)
         error_msg = "更新故事书的翻译设置"
-        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        response = response.json()
-        return response
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        if response.status_code != 403:
+            response = response.json()
+            return response
 
-    def translationSetting(self, authorization, bookId, DeviceType="web"):
+    def translationSetting(self, authorization, bookId, DeviceType="web", code=200):
         """
         获取故事书的翻译设置
         :param bookId: 书籍id
@@ -62,14 +120,15 @@ class BookApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-05
         # Creator: Baidi
-        url = f"https://{base_url}/api/api/book/{bookId}/translationSetting"
+        url = f"https://{base_url}/api/book/{bookId}/translationSetting"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
         response = requests.request("GET", url, headers=headers)
         error_msg = "获取故事书的翻译设置"
-        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        response = response.json()
-        return response
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        if code != 403:
+            response = response.json()
+            return response
 
     def getWordDefinition(self, authorization, word, interfaceLanguage, learningLanguage, DeviceType="web"):
         """
@@ -113,7 +172,7 @@ class BookApi(BaseAPI):
         response = response.json()
         return response
 
-    def get_generateVideos(self, authorization, bookId, DeviceType="web"):
+    def get_generateVideos(self, authorization, bookId, DeviceType="web", code=200):
         """
         获取故事书id获取AI视频信息
         :param bookId: 书籍id
@@ -129,7 +188,7 @@ class BookApi(BaseAPI):
         headers = self.request_header(timestamp, authorization, DeviceType)
         response = requests.request("GET", url, headers=headers, params=payload)
         error_msg = "获取故事书内单词释义"
-        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
 
