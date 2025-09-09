@@ -10,6 +10,23 @@ base_url = BaseAPI().baseurl()
 class CourseApi(BaseAPI):
     """书籍接口"""
 
+    def listAllWithLevel(self, authorization, DeviceType="web"):
+        """
+        获取所有课程，并按级别分组（分批循环查询全部数据，每批次500条）
+        :param:
+        :return:
+        """
+        # Create Data:
+        # Creator: Baidi
+        url = f"https://{base_url}/api/course/listAllWithLevel"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "获取所有课程，并按级别分组（分批循环查询全部数据，每批次500条）"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
     def blockedCourseIds(self, authorization, DeviceType="web"):
         """
         获取屏蔽的课程ID列表
@@ -18,7 +35,7 @@ class CourseApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-08
         # Creator: Baidi
-        url = f"https://{base_url}/course/blockedCourseIds"
+        url = f"https://{base_url}/api/course/blockedCourseIds"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
         response = requests.request("GET", url, headers=headers)

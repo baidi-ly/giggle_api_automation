@@ -10,7 +10,7 @@ base_url = BaseAPI().baseurl()
 class InteractionApi(BaseAPI):
     """交互事件接口"""
 
-    def update_translationSetting(self, authorization, eventName, courseId, lessonType, DeviceType="web"):
+    def event(self, authorization, courses, DeviceType="web"):
         """
         上报用户交互事件
         :param eventName: 事件名
@@ -20,15 +20,9 @@ class InteractionApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-05
         # Creator: Baidi
-        url = f"https://{base_url}/interaction/event"
+        url = f"https://{base_url}/api/interaction/event"
         timestamp = str(int(time.time() * 1000))
-        payload = {
-            "eventName": eventName,
-            "params": {
-                "courseId": courseId,
-                "lessonType": lessonType
-            }
-        }
+        payload = courses
         headers = self.request_header(timestamp, authorization, DeviceType)
         response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "上报用户交互事件"

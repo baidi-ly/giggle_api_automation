@@ -22,16 +22,17 @@ class LearningApi(BaseAPI):
         # Update Date:
         # updater:
         # Update Details:
-        url = f"https://{base_url}/learning/stats/{kidId}"
+        url = f"https://{base_url}/api/learning/stats/{kidId}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
         response = requests.request("GET", url, headers=headers)
         error_msg = "获取孩子学习统计数据"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        response = response.json()
-        return response
+        if code != 401:
+            response = response.json()
+            return response
 
-    def daily_learning(self, kidId, authorization="", DeviceType="web"):
+    def daily_learning(self, kidId, authorization="", DeviceType="web", code=200):
         """
         获取孩子今日学习详情
         :param:
@@ -42,17 +43,17 @@ class LearningApi(BaseAPI):
         # Update Date:
         # updater:
         # Update Details:
-        url = f"https://{base_url}/learning/daily/{kidId}"
+        url = f"https://{base_url}/api/learning/daily/{kidId}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
         response = requests.request("GET", url, headers=headers)
         error_msg = "获取孩子今日学习详情"
-        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        response = response.json()
-        assert "data" in response,  f"{error_msg}返回结果没有data数据，url->{url}，response->{response}"
-        return response["data"]
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        if code != 401:
+            response = response.json()
+            return response
 
-    def daily_learning_report(self, authorization, kidId, date='', DeviceType="web"):
+    def daily_learning_report(self, kidId, date='', authorization="", DeviceType="web"):
         """
         生成指定孩子的学习情况报表数据
         :param:
@@ -63,7 +64,7 @@ class LearningApi(BaseAPI):
         # Update Date:
         # updater:
         # Update Details:
-        url = f"https://{base_url}/learning/daily-report/{kidId}"
+        url = f"https://{base_url}/api/learning/daily-report/{kidId}"
         payload = {
             "date": date
         }
@@ -73,8 +74,7 @@ class LearningApi(BaseAPI):
         error_msg = "生成指定孩子的学习情况报表数据"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
-        assert "data" in response,  f"{error_msg}返回结果没有data数据，url->{url}，response->{response}"
-        return response["data"]
+        return response
 
     def weekly_learning(self, kidId, authorization="", startDate="", endDate="", DeviceType="web"):
         """
@@ -87,7 +87,7 @@ class LearningApi(BaseAPI):
         # Update Date:
         # updater:
         # Update Details:
-        url = f"https://{base_url}/learning/weekly/{kidId}"
+        url = f"https://{base_url}/api/learning/weekly/{kidId}"
         payload = {
             "startDate": startDate,
             "endDate": endDate
@@ -112,7 +112,7 @@ class LearningApi(BaseAPI):
         # Update Date:
         # updater:
         # Update Details:
-        url = f"https://{base_url}/learning/weekly-report/{kidId}"
+        url = f"https://{base_url}/api/learning/weekly-report/{kidId}"
         payload = {
             "startDate": startDate,
             "endDate": endDate
@@ -124,8 +124,7 @@ class LearningApi(BaseAPI):
         error_msg = "获取指定孩子一周的学习报告"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
-        assert "data" in response,  f"{error_msg}返回结果没有data数据，url->{url}，response->{response}"
-        return response["data"]
+        return response
 
     def daily_storybook_report(self, kidId, date="", authorization="", DeviceType="web"):
         """
@@ -138,7 +137,7 @@ class LearningApi(BaseAPI):
         # Update Date:
         # updater:
         # Update Details:
-        url = f"https://{base_url}/learning/daily-report/storybook/{kidId}"
+        url = f"https://{base_url}/api/learning/daily-report/storybook/{kidId}"
         payload = {
             "date": date
         }
@@ -149,10 +148,9 @@ class LearningApi(BaseAPI):
         error_msg = "生成故事书报告"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
-        assert "data" in response,  f"{error_msg}返回结果没有data数据，url->{url}，response->{response}"
-        return response["data"]
+        return response
 
-    def daily_challenge_report(self, authorization, kidId, DeviceType="web"):
+    def daily_challenge_report(self, kidId, date="", authorization="", DeviceType="web"):
         """
         生成挑战课报告
         :param:
@@ -163,17 +161,20 @@ class LearningApi(BaseAPI):
         # Update Date:
         # updater:
         # Update Details:
-        url = f"https://{base_url}/learning/daily-report/challenge/{kidId}"
+        url = f"https://{base_url}/api/learning/daily-report/challenge/{kidId}"
+        payload = {
+            "date": date
+        }
+
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
-        response = requests.request("GET", url, headers=headers)
+        response = requests.request("GET", url, headers=headers, params=payload)
         error_msg = "生成挑战课报告"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
-        assert "data" in response,  f"{error_msg}返回结果没有data数据，url->{url}，response->{response}"
-        return response["data"]
+        return response
 
-    def daily_flashcard_report(self, authorization, kidId, DeviceType="web"):
+    def daily_flashcard_report(self, kidId, date="", authorization="", DeviceType="web"):
         """
         生成闪卡报告
         :param:
@@ -184,36 +185,20 @@ class LearningApi(BaseAPI):
         # Update Date:
         # updater:
         # Update Details:
-        url = f"https://{base_url}/learning/daily-report/flashcard/{kidId}"
-        timestamp = str(int(time.time() * 1000))
-        headers = self.request_header(timestamp, authorization, DeviceType)
-        response = requests.request("GET", url, headers=headers)
-        error_msg = "生成闪卡报告"
-        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        response = response.json()
-        assert "data" in response,  f"{error_msg}返回结果没有data数据，url->{url}，response->{response}"
-        return response["data"]
+        url = f"https://{base_url}/api/learning/daily-report/flashcard/{kidId}"
+        payload = {
+            "date": date
+        }
 
-    def daily_flashcard_report(self, authorization, kidId, DeviceType="web"):
-        """
-        生成闪卡报告
-        :param:
-        :return:
-        """
-        # Create Data:  v.18.0  2025-09-05
-        # Creator: Baidi
-        # Update Date:
-        # updater:
-        # Update Details:
-        url = f"https://{base_url}/learning/daily-report/flashcard/{kidId}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
-        response = requests.request("GET", url, headers=headers)
+        response = requests.request("GET", url, headers=headers, params=payload)
         error_msg = "生成闪卡报告"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
-        assert "data" in response,  f"{error_msg}返回结果没有data数据，url->{url}，response->{response}"
-        return response["data"]
+        return response
+
+
 
 
 
