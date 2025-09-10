@@ -27,7 +27,7 @@ class SystemApi(BaseAPI):
         response = response.json()
         return response
 
-    def info(self, authorization, DeviceType="web"):
+    def info(self, authorization, DeviceType="web", code=200):
         """
         系统信息检查
         :param:
@@ -44,7 +44,7 @@ class SystemApi(BaseAPI):
         response = response.json()
         return response
 
-    def ping(self, authorization, DeviceType="web"):
+    def ping(self, authorization, DeviceType="web", code=200):
         """
         简单的ping检查
         :param:
@@ -57,6 +57,6 @@ class SystemApi(BaseAPI):
         headers = self.request_header(timestamp, authorization, DeviceType)
         response = requests.request("GET", url, headers=headers)
         error_msg = "简单的ping检查"
-        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
