@@ -67,22 +67,29 @@ class BookApi(BaseAPI):
         response = response.json()
         return response
 
-    def series_list(self, authorization, includeBookCover, bookCoverSize, DeviceType="web"):
+    def series_list(self, authorization, DeviceType="web", **kwargs):
         """
         更新故事书的翻译设置
         :param bookId: 书籍id
         :return:
         """
-        # Create Data:  创建基线，创建时间
-        # Creator: 接口作者
+        # Create Data:  ?  2025-09-08
+        # Creator: Baidi
         # Update Date:  v.18.0  2025-09-08
         # updater: Baidi
         # Update Details:  1. 新增参数: `includeBookCover`, `bookCoverSize`
         url = f"https://{base_url}/api/book/series/list"
         payload = {
-            "includeBookCover": includeBookCover,
-            "bookCoverSize": bookCoverSize
+            "includeBookCover": False,
+            "includeBookCount": False,
+            "bookCoverSize": 3,
+            "page": 0,
+            "size": 10,
+            "total": False,
+            "translateLanguage": "en",
+            "visibleOnly": True
         }
+        payload.update(kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
         response = requests.request("GET", url, headers=headers, params=payload)
@@ -166,7 +173,7 @@ class BookApi(BaseAPI):
         }
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
-        response = requests.request("POST", url, headers=headers, json=payload)
+        response = requests.request("POST", url, headers=headers, params=payload)
         error_msg = "获取故事书内单词释义"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
@@ -212,7 +219,7 @@ class BookApi(BaseAPI):
         response = response.json()
         return response
 
-    def recommend_bookAndCourse(self, authorization, DeviceType="web"):
+    def recommend_bookAndCourse(self, authorization, age, courseNum=3, translateLanguage="en", DeviceType="web"):
         """
         推荐体验课与故事书
         :param:
@@ -221,15 +228,20 @@ class BookApi(BaseAPI):
         # Create Data:  v.18.0  2025-09-08
         # Creator: Baidi
         url = f"https://{base_url}/api/book/recommend/bookAndCourse"
+        payload = {
+            "age": age,
+            "courseNum": courseNum,
+            "translateLanguage": translateLanguage
+        }
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
-        response = requests.request("GET", url, headers=headers)
+        response = requests.request("GET", url, headers=headers, params=payload)
         error_msg = "推荐体验课与故事书"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
 
-    def recommend_newUserBookRules(self, authorization, DeviceType="web"):
+    def recommend_newUserBookRules(self, authorization, DeviceType="web", code=200):
         """
         获取新用户推荐书籍规则
         :param:
@@ -242,11 +254,11 @@ class BookApi(BaseAPI):
         headers = self.request_header(timestamp, authorization, DeviceType)
         response = requests.request("GET", url, headers=headers)
         error_msg = "获取新用户推荐书籍规则"
-        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
 
-    def update_recommend_newUserBookRules(self, authorization, ruleIds, DeviceType="web"):
+    def update_recommend_newUserBookRules(self, authorization, rules='', DeviceType="web", **kwargs):
         """
         设置新用户推荐书籍规则
         :param:
@@ -255,12 +267,13 @@ class BookApi(BaseAPI):
         # Create Data:  v.18.0  2025-09-08
         # Creator: Baidi
         url = f"https://{base_url}/api/book/recomment/newUserBookRules"
-        timestamp = str(int(time.time() * 1000))
         payload = {
-            "ruleIds": ruleIds
+            "rules": rules
         }
-
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
+
         response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "设置新用户推荐书籍规则"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"

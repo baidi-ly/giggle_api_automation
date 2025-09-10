@@ -26,7 +26,7 @@ class InitAPI(object):
         http.mount("http://", adapter)
         return http
 
-    def register(self, username, email, password, verifyCode, inviteByCode, DeviceType="web"):
+    def register(self, username, email, password, verifyCode, inviteByCode, bindAccount='', DeviceType="web"):
         """
         用户注册接口
         :param username: 用户名，3-20位字符
@@ -37,18 +37,19 @@ class InitAPI(object):
         :param inviteByCode: 设备类型
         :return:
         """
-        # Create Data:  创建基线，创建时间
-        # Creator: 接口作者
-        # Update Date:  修改基线，修改时间
-        # updater: 接口维护人员
-        # Update Details:  接口维护详情
+        # Create Data:  ?  2025-09-05
+        # Creator: Baidi
+        # Update Date:  v.18.0  2025-09-08
+        # updater: Baidi
+        # Update Details:  1. 新增 `bindAccount` 字段
         url = "https://{0}/api/user/register".format(base_url)
         payload = {
             "username": username,
             "email": email,
             "password": password,
             "verifyCode": verifyCode,
-            "inviteByCode": inviteByCode
+            "inviteByCode": inviteByCode,
+            'bindAccount': bindAccount
         }
         headers = {
             "DeviceId": "TEST_DEVICE_001",

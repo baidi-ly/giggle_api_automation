@@ -59,11 +59,9 @@ class BaseAPI:
         :param kwargs: 其他参数如token: 可选，第三方登录token
         :return:
         """
-        # Create Data:  创建基线，创建时间
-        # Creator: 接口作者
-        # Update Date:  修改基线，修改时间
-        # updater: 接口维护人员
-        # Update Details:  接口维护详情
+        # Create Data:  ?  2025-09-05
+        # Update Date:  v.18.0  2025-09-08
+        # Update Details:  1. 响应新增 `bindAccount` 字段
         url = "https://{0}/api/user/login".format(base_url)
         # password = parse.quote(password_rsa(password))
         password = password_base64(password)
@@ -356,8 +354,24 @@ class BaseAPI:
         headers.update(kwargs)
         return headers
 
-    def check_str_type(self, _string):  # 正则表达式判断是否为中文字符
+    def request_body(self, payload, **kwargs):
+        if kwargs.get("pop_item"):
+            pop_item = kwargs.get("pop_item")
+            if isinstance(pop_item, list):
+                for item in pop_item:
+                    payload.pop(item)
+                    kwargs.pop(item)
+            else:
+                payload.pop(pop_item)
+                kwargs.pop(pop_item)
+        payload.update(kwargs)
+        return payload
+
+    def check_str_language(self, _string):  # 正则表达式判断是否为中文字符
+        '''检查字符串是中文还是英文'''
         if bool(re.search('[\u4e00-\u9fff]', _string)):
             return "zh"
         elif bool(re.search('[a-zA-Z]', _string)):
             return "en"
+
+

@@ -35,7 +35,7 @@ class UserApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-05
         # Creator: Baidi
-        url = f"https://{base_url}/api/user/videoWhitelist/"
+        url = f"https://{base_url}/api/user/videoWhitelist"
         payload = {
             "userIds": userIds
         }
@@ -47,7 +47,7 @@ class UserApi(BaseAPI):
         response = response.json()
         return response
 
-    def bindWechat(self, authorization, DeviceType="web"):
+    def bindWechat(self, authorization, code, DeviceType="web", **kwargs):
         """
         绑定微信账号
         :param:
@@ -57,16 +57,19 @@ class UserApi(BaseAPI):
         # Creator: Baidi
         url = f"https://{base_url}/user/bindWechat"
         timestamp = str(int(time.time() * 1000))
-        payload = {}
-
+        payload = {
+            "code": code
+        }
+        payload = self.request_body(payload, **kwargs)
         headers = self.request_header(timestamp, authorization, DeviceType)
+
         response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "绑定微信账号"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
 
-    def unbindWechat(self, authorization, DeviceType="web"):
+    def unbindWechat(self, authorization, DeviceType="web", code=200):
         """
         解绑微信账号
         :param:
@@ -76,16 +79,15 @@ class UserApi(BaseAPI):
         # Creator: Baidi
         url = f"https://{base_url}/user/unbindWechat"
         timestamp = str(int(time.time() * 1000))
-        payload = {}
-
         headers = self.request_header(timestamp, authorization, DeviceType)
-        response = requests.request("POST", url, headers=headers, json=payload)
+        response = requests.request("POST", url, headers=headers)
         error_msg = "解绑微信账号"
-        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        response = response.json()
-        return response
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        if code != 403:
+            response = response.json()
+            return response
 
-    def bindApple(self, authorization, DeviceType="web"):
+    def bindApple(self, authorization, identifyToken='', DeviceType="web", code=200, **kwargs):
         """
         绑定Apple账号
         :param:
@@ -95,16 +97,19 @@ class UserApi(BaseAPI):
         # Creator: Baidi
         url = f"https://{base_url}/user/bindApple"
         timestamp = str(int(time.time() * 1000))
-        payload = {}
-
+        payload = {
+            "identifyToken": identifyToken
+        }
+        payload = self.request_body(payload, **kwargs)
         headers = self.request_header(timestamp, authorization, DeviceType)
+
         response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "绑定Apple账号"
-        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
 
-    def unbindApple(self, authorization, DeviceType="web"):
+    def unbindApple(self, authorization, DeviceType="web", code=200):
         """
         解绑Apple账号
         :param:
@@ -119,7 +124,7 @@ class UserApi(BaseAPI):
         headers = self.request_header(timestamp, authorization, DeviceType)
         response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "解绑Apple账号"
-        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
 

@@ -10,23 +10,26 @@ base_url = BaseAPI().baseurl()
 class PosterApi(BaseAPI):
     """书籍接口"""
 
-    def poster_generate(self, authorization, direction, scale, DeviceType="web"):
+    def poster_generate(self, authorization, posterId, bind:{}, DeviceType="web", **kwargs):
         """
         上传通用资源文件
         :param:
         :return:
         """
-        # Create Data:  创建基线，创建时间
-        # Creator: 接口作者
+        # Create Data:  ?  2025-09-08
+        # Creator: Baidi
         # Update Date:  v.18.0  2025-09-08
         # updater: Baidi
         # Update Details:  1. 新增参数: `direction`, `scale`
         url = f"https://{base_url}/poster/generate"
         payload = {
-            "direction": direction,
-            "scale": scale
+            "posterId": posterId,
+            "bind": bind,
+            "posterFileType": "string",
+            "direction": "string",
+            "scale": "string"
         }
-
+        payload.update(kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
         response = requests.request("POST", url, headers=headers, json=payload)
