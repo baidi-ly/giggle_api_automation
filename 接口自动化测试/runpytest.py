@@ -8,7 +8,7 @@ if __name__ =="__main__":
     path = os.getcwd()
     pathcase = path + "/test_case/"
 
-    pathreport = path + "/report/report" + str(now) + ".html"
+    pathreport = path + "/report/" + str(now) + ".html"
     # 运行initUser用于初始化账号
     # pytest.main([pathcase + "/a_initUser",
     #              "-m initUser",
@@ -18,7 +18,7 @@ if __name__ =="__main__":
     pytest.main([pathcase,
                  # "-vs",
                  # "-n 2",
-                 "-m book",
+                 "-m pendingRelease",
                  "--html=" + pathreport,
                  "--self-contained-html",
                  # "--reruns", "1"

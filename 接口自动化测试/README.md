@@ -24,7 +24,7 @@ test_case/: 存放测试用例
     	其他模块以模块名称命名，继承base_api,如signupApi(Page_API)。
     book/: 书籍相关api
     test_book_case/: 书籍相关的测试用例
-        命名规则: test_模块名称_功能名称_api。如：test_book_api.py（如：test_模块名称_功能名称_*_api.py，*号长度不限）
+        命名规则: test_模块名称_功能名称_api。如：test_system_api.py（如：test_模块名称_功能名称_*_api.py，*号长度不限）
         最新基线测试用例 @pytest.mark.pendingRelease
         冒烟测试用例 @pytest.mark.smoke
     test_data: 存放测试过程中需要使用的测试数据
