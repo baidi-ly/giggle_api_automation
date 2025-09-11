@@ -49,6 +49,43 @@ class BaseAPI:
         http.mount("http://", adapter)
         return http
 
+    def admin_login(self, email, password, DeviceType="web", **kwargs):
+        """
+        用户登录 - 邮箱密码
+        :param email: 用户邮箱
+        :param password: 用户密码   base64加密
+        :param token: 可选，第三方登录token
+        :param inviteByCode: 设备类型
+        :param kwargs: 其他参数如token: 可选，第三方登录token
+        :return:
+        """
+        # Create Data:  ?  2025-09-11
+        # Update Date:  v.18.0  2025-09-11
+        # Update Details:  1. 响应新增 `bindAccount` 字段
+        url = "https://{0}/admin/login".format(base_url)
+        password = password_base64(password)
+        payload = {
+            "email": email,
+            "password": password
+        }
+        payload.update(kwargs)
+        timestamp = str(int(time.time() * 1000))
+        Deviceid = "8320afd7-9c41-402c-8136-d3b6a4e6401f"
+        _Authtoken = f"{timestamp}{Deviceid}{RunConfig.AUTH_KEY}"
+        Authtoken = hashlib.md5(_Authtoken.encode()).hexdigest()
+        headers = {
+            "Authtoken": Authtoken,  # Authtoken与Timestamp需要有对应关系
+            "Deviceid": Deviceid,
+            "DeviceType": DeviceType,  # android/ios/web
+            "Timestamp": timestamp
+        }
+        response = self.http_timeout().request("POST", url, headers=headers, json=payload)
+        error_msg = "用户登录 - 邮箱密码"
+        assert response.status_code in [200,
+                                        201], f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
     def login(self, email, password, DeviceType="web", **kwargs):
         """
         用户登录 - 邮箱密码
@@ -314,6 +351,20 @@ class BaseAPI:
         for i in range(10):
             try:
                 authorization = self.login(emails[position], passwords[position], token=tokens[position])["data"]["token"]
+                break
+            except Exception as e:
+                error_msg = e
+                time.sleep(.5)
+        else:
+            assert False, "登录失败-->{}".format(error_msg)
+        return authorization
+
+    def get_admin_authorization(self, position=0):
+        '''根据position登录后获取对应的authorization'''
+        names, emails, passwords, tokens = self.get_user_account()
+        for i in range(10):
+            try:
+                authorization = self.admin_login(emails[position], passwords[position], token=tokens[position])["data"]["token"]
                 break
             except Exception as e:
                 error_msg = e
