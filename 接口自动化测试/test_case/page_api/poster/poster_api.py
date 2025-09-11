@@ -8,7 +8,26 @@ base_url = BaseAPI().baseurl()
 
 
 class PosterApi(BaseAPI):
-    """书籍接口"""
+    """海报接口"""
+
+    def poster_list(self, authorization,  DeviceType="web"):
+        """
+        上传通用资源文件
+        :param:
+        :return:
+        """
+        # Create Data:  ?  2025-09-11
+        # Creator: Baidi
+        url = f"https://{base_url}/api/poster/list"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers)
+        error_msg = "上传通用资源文件"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
 
     def poster_generate(self, authorization, posterId, bind:{}, DeviceType="web", **kwargs):
         """
