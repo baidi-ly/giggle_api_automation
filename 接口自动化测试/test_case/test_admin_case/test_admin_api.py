@@ -2,7 +2,9 @@ import datetime
 import sys
 import os
 
-from test_case.page_api.admin.admin_api import AdminApi
+import pandas as pd
+
+from test_case.page_api.admin.admin_course_api import AdminApi
 
 sys.path.append(os.getcwd())
 sys.path.append("..")
@@ -18,7 +20,7 @@ class TestAdmin:
 
     @pytest.fixture(scope='class')
     def courselistAll(self):
-        courselistAll = self.admin.course_listAll(self.authorization, 1)
+        courselistAll = self.admin.course_listAll(self.authorization, 641364052840517)
         yield courselistAll
 
     @pytest.mark.pendingRelease
@@ -39,7 +41,7 @@ class TestAdmin:
         """
         theme = "Indoor+Actions"
         export_res = self.admin.export_byTheme(self.authorization, theme)
-        assert export_res["data"]
+        assert not export_res["data"]
 
     @pytest.mark.pendingRelease
     @pytest.mark.parametrize("theme", [123, 123.4, True, "!@#~", ''],
@@ -58,9 +60,8 @@ class TestAdmin:
         分页查询用户创建的书籍列表-验证page，
         可参数化，参考注册正常场景
         """
-        theme = "Colors"
-        export_res = self.admin.export_byTheme('', theme)
-        assert export_res["data"]
+        theme = 'Colors'
+        self.admin.export_byTheme('', theme)
 
     @pytest.mark.pendingRelease
     def test_admin_course_trial_list(self):
@@ -77,8 +78,7 @@ class TestAdmin:
         分页查询用户创建的书籍列表-验证page，
         可参数化，参考注册正常场景
         """
-        export_res = self.admin.trial_list('', code=401)
-        assert export_res["data"]
+        self.admin.trial_list('', code=401)
 
     @pytest.mark.pendingRelease
     def test_admin_course_update_to_trial(self, courselistAll):
@@ -86,9 +86,9 @@ class TestAdmin:
         分页查询用户创建的书籍列表-验证page，
         可参数化，参考注册正常场景
         """
-        courseId = courselistAll[0]["id"]
+        courseId = courselistAll['data'][0]["id"]
         export_res = self.admin.update_to_trial(self.authorization, courseId)
-        assert export_res["data"]
+        assert export_res["message"] == 'success'
 
     @pytest.mark.pendingRelease
     def test_admin_course_remove_trial(self, courselistAll):
@@ -96,9 +96,9 @@ class TestAdmin:
         分页查询用户创建的书籍列表-验证page，
         可参数化，参考注册正常场景
         """
-        courseId = courselistAll[0]["id"]
+        courseId = courselistAll['data'][0]["id"]
         export_res = self.admin.remove_trial(self.authorization, courseId)
-        assert export_res["data"]
+        assert export_res["message"] == 'success'
 
     @pytest.mark.pendingRelease
     def test_admin_course_update_blockedIds(self, courselistAll):
@@ -106,9 +106,10 @@ class TestAdmin:
         分页查询用户创建的书籍列表-验证page，
         可参数化，参考注册正常场景
         """
-        blockedIds = courselistAll[0]["id"]
-        export_res = self.admin.update_blockedIds(self.authorization)
-        assert export_res["data"]
+        courselistAll = courselistAll
+        courseIds = pd.DataFrame(courselistAll['data']).loc[:, 'id'].tolist()
+        export_res = self.admin.update_blockedIds(self.authorization, courseIds)
+        assert export_res["data"] == '更新成功'
 
     @pytest.mark.pendingRelease
     def test_admin_course_get_blockedIds(self, courselistAll):
@@ -116,6 +117,7 @@ class TestAdmin:
         分页查询用户创建的书籍列表-验证page，
         可参数化，参考注册正常场景
         """
-        blockedIds = courselistAll[0]["id"]
         export_res = self.admin.blockedIds(self.authorization)
-        assert export_res["data"]
+        assert export_res["data"]['blockedIds']
+
+

@@ -10,7 +10,7 @@ base_url = BaseAPI().baseurl()
 class AdminApi(BaseAPI):
     """书籍接口"""
 
-    def export_byTheme(self, authorization, theme, DeviceType="web"):
+    def export_byTheme(self, authorization, theme, DeviceType="web", code=200):
         """
         根据主题导出课程词汇
         :param:
@@ -26,9 +26,10 @@ class AdminApi(BaseAPI):
         headers = self.request_header(timestamp, authorization, DeviceType)
         response = requests.request("GET", url, headers=headers, params=payload)
         error_msg = "根据主题导出课程词汇"
-        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        response = response.json()
-        return response
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        if response.status_code != 401:
+            response = response.json()
+            return response
 
     def trial_list(self, authorization, DeviceType="web", code=200):
         """
@@ -40,9 +41,9 @@ class AdminApi(BaseAPI):
         # Creator: Baidi
         url = f"https://{base_url}/admin/course/list-trial"
         timestamp = str(int(time.time() * 1000))
-
         headers = self.request_header(timestamp, authorization, DeviceType)
-        response = requests.request("POST", url, headers=headers)
+
+        response = requests.request("GET", url, headers=headers)
         error_msg = "查看体验课的课程"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         if code != 401:
@@ -108,7 +109,7 @@ class AdminApi(BaseAPI):
         response = response.json()
         return response
 
-    def update_blockedIds(self, authorization, blockedIds, DeviceType="web"):
+    def update_blockedIds(self, authorization, courseIds, DeviceType="web"):
         """
         更新屏蔽的课程ID列表
         :param blockedIds: 用户邮箱
@@ -119,11 +120,11 @@ class AdminApi(BaseAPI):
         url = f"https://{base_url}/admin/course/blockedIds"
         timestamp = str(int(time.time() * 1000))
         payload = {
-            "blockedIds": blockedIds
+          "courseIds": courseIds
         }
 
         headers = self.request_header(timestamp, authorization, DeviceType)
-        response = requests.request("POST", url, headers=headers, json=payload)
+        response = requests.request("PUT", url, headers=headers, json=payload)
         error_msg = "更新屏蔽的课程ID列表"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
@@ -137,13 +138,13 @@ class AdminApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-08
         # Creator: Baidi
-        url = f"https://{base_url}/admin/course/listAll'"
+        url = f"https://{base_url}/admin/course/listAll"
         timestamp = str(int(time.time() * 1000))
         payload = {
             "categoryId": categoryId
         }
         headers = self.request_header(timestamp, authorization, DeviceType)
-        response = requests.request("POST", url, headers=headers, params=payload)
+        response = requests.request("GET", url, headers=headers, params=payload)
         error_msg = "获取分类下所有课程"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
