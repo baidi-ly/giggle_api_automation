@@ -64,6 +64,14 @@ class TestUser:
         code = "18380143661"
         event_res = self.user.bindWechat(self.authorization, code)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+
+    @pytest.mark.pendingRelease
+    def test_user_bindWechat_abnormal(self):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        code = "18380143661"
+        event_res = self.user.bindWechat(self.authorization, code)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == 'WeChat authorization code is invalid'
         assert event_res["data"] == 'WeChat authorization code is invalid'
 
@@ -102,6 +110,14 @@ class TestUser:
         self.user.bindWechat('', code, status_code=401)
 
     @pytest.mark.pendingRelease
+    def test_user_unbindWechat_abnormal(self):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        event_res = self.user.unbindWechat(self.authorization)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
+
+    @pytest.mark.pendingRelease
     def test_user_unbindWechat_normal(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -113,7 +129,6 @@ class TestUser:
     def test_user_unbindWechat_unauthorized(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
-        code = "18380143661"
         event_res = self.user.unbindWechat('', code=403)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
