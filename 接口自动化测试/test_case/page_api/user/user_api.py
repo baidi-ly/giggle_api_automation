@@ -47,7 +47,7 @@ class UserApi(BaseAPI):
         response = response.json()
         return response
 
-    def bindWechat(self, authorization, code, DeviceType="web", **kwargs):
+    def bindWechat(self, authorization, code, DeviceType="web", status_code=200, **kwargs):
         """
         绑定微信账号
         :param:
@@ -55,7 +55,7 @@ class UserApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-08
         # Creator: Baidi
-        url = f"https://{base_url}/user/bindWechat"
+        url = f"https://{base_url}/api/user/bindWechat"
         timestamp = str(int(time.time() * 1000))
         payload = {
             "code": code
@@ -65,9 +65,10 @@ class UserApi(BaseAPI):
 
         response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "绑定微信账号"
-        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        response = response.json()
-        return response
+        assert response.status_code == status_code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        if response.status_code != 401:
+            response = response.json()
+            return response
 
     def unbindWechat(self, authorization, DeviceType="web", code=200):
         """

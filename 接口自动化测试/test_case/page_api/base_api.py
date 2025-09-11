@@ -363,7 +363,7 @@ class BaseAPI:
                     kwargs.pop(item)
             else:
                 payload.pop(pop_item)
-                kwargs.pop(pop_item)
+                kwargs.pop("pop_item")
         payload.update(kwargs)
         return payload
 

@@ -28,7 +28,7 @@ class TestPoster:
         """有效的kidId，返回完整统计数据"""
         # 获取有效的kidId
         # 获取孩子学习统计数据
-        posterId = posterList
+        posterId = posterList['data'][0]['id']
         stats_res = self.poster.poster_generate(self.authorization, posterId, {})
         assert "data" in stats_res, f"获取孩子学习统计数据接口没有data数据，response->{stats_res}"
         assert stats_res["data"]["learningStats"]

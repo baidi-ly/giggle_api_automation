@@ -22,7 +22,7 @@ class PosterApi(BaseAPI):
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
-        response = requests.request("POST", url, headers=headers)
+        response = requests.request("GET", url, headers=headers)
         error_msg = "上传通用资源文件"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
