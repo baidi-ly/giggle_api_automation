@@ -19,15 +19,7 @@ class TestInteraction:
         self.interaction = InteractionApi()
         self.authorization = self.interaction.get_authorization()
         self.course = CourseApi()
-
         self.now = strftime("%Y%m%d%H%M%S")
-        self.today = datetime.date.today().strftime("%Y-%m-%d")
-        self.yesterday = (datetime.date.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-        self.tomorrow = (datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-
-        _today = datetime.date.today()  # 当前日期
-        self.start_of_week = _today - datetime.timedelta(days=_today.weekday())  # 本周周一
-        self.end_of_week = self.start_of_week + datetime.timedelta(days=6)  # 本周周日
 
 
     @pytest.fixture(scope="class")
@@ -103,7 +95,7 @@ class TestInteraction:
         # 获取孩子学习统计数据
         event_res = self.interaction.event(self.authorization, courses, DeviceType="web")
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["message"] == "success"    # TODO
+        assert event_res["message"] == "success"
 
     @pytest.mark.pendingRelease
     def test_interaction_event_name_empty(self, get_couerseList):
@@ -141,4 +133,4 @@ class TestInteraction:
         # 获取孩子学习统计数据
         event_res = self.interaction.event(self.authorization, courses, DeviceType="web")
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["message"] == "success"    #   TODO
+        assert event_res["message"] == "success"

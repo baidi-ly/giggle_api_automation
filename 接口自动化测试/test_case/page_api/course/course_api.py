@@ -27,7 +27,7 @@ class CourseApi(BaseAPI):
         response = response.json()
         return response
 
-    def blockedCourseIds(self, authorization, DeviceType="web"):
+    def blockedCourseIds(self, authorization, DeviceType="web", code=200):
         """
         获取屏蔽的课程ID列表
         :param:
@@ -38,9 +38,11 @@ class CourseApi(BaseAPI):
         url = f"https://{base_url}/api/course/blockedCourseIds"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
+
         response = requests.request("GET", url, headers=headers)
         error_msg = "获取屏蔽的课程ID列表"
-        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        response = response.json()
-        return response
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        if code != 401:
+            response = response.json()
+            return response
 

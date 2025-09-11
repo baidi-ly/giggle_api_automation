@@ -7,9 +7,9 @@ class RunConfig:
     运行测试配置
     """
     # 环境信息
-    baseurl = "creator.giggleacademy.com"   # 线上环境
+    # baseurl = "creator.giggleacademy.com"   # 线上环境
     # baseurl = "127.0.0.1:5000"    # 本地测试
-    # baseurl = "creator.qakjukl.net"     # QA环境
+    baseurl = "creator.qakjukl.net"     # QA环境
 
     # 初始化账号
     filename = "account.txt"

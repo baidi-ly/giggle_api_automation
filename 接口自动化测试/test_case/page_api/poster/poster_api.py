@@ -21,7 +21,7 @@ class PosterApi(BaseAPI):
         # Update Date:  v.18.0  2025-09-08
         # updater: Baidi
         # Update Details:  1. 新增参数: `direction`, `scale`
-        url = f"https://{base_url}/poster/generate"
+        url = f"https://{base_url}/api/poster/generate"
         payload = {
             "posterId": posterId,
             "bind": bind,

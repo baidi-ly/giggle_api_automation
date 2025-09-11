@@ -78,7 +78,7 @@ class BookApi(BaseAPI):
         # Update Date:  v.18.0  2025-09-08
         # updater: Baidi
         # Update Details:  1. 新增参数: `includeBookCover`, `bookCoverSize`
-        url = f"https://{base_url}/api/book/series/list"
+        url = f"https://{base_url}/api/book/series"
         payload = {
             "includeBookCover": False,
             "includeBookCount": False,
@@ -159,7 +159,7 @@ class BookApi(BaseAPI):
         response = response.json()
         return response
 
-    def generateVideo(self, authorization, bookId, DeviceType="web"):
+    def generateVideo(self, authorization, bookId, DeviceType="web", code=200):
         """
         根据故事书内容生成AI视频
         :param bookId: 书籍id
@@ -175,7 +175,7 @@ class BookApi(BaseAPI):
         headers = self.request_header(timestamp, authorization, DeviceType)
         response = requests.request("POST", url, headers=headers, params=payload)
         error_msg = "获取故事书内单词释义"
-        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
 
@@ -219,7 +219,7 @@ class BookApi(BaseAPI):
         response = response.json()
         return response
 
-    def recommend_bookAndCourse(self, authorization, age, courseNum=3, translateLanguage="en", DeviceType="web"):
+    def recommend_bookAndCourse(self, authorization, age='', courseNum=3, translateLanguage="en", DeviceType="web", code=200):
         """
         推荐体验课与故事书
         :param:
@@ -237,7 +237,7 @@ class BookApi(BaseAPI):
         headers = self.request_header(timestamp, authorization, DeviceType)
         response = requests.request("GET", url, headers=headers, params=payload)
         error_msg = "推荐体验课与故事书"
-        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
 
@@ -249,14 +249,15 @@ class BookApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-08
         # Creator: Baidi
-        url = f"https://{base_url}/api/book/recomment/newUserBookRules"
+        url = f"https://{base_url}/api/book/recommend/newUserBookRules"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
         response = requests.request("GET", url, headers=headers)
         error_msg = "获取新用户推荐书籍规则"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        response = response.json()
-        return response
+        if code != 401:
+            response = response.json()
+            return response
 
     def update_recommend_newUserBookRules(self, authorization, rules='', DeviceType="web", **kwargs):
         """
@@ -266,7 +267,7 @@ class BookApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-08
         # Creator: Baidi
-        url = f"https://{base_url}/api/book/recomment/newUserBookRules"
+        url = f"https://{base_url}/api/book/recommend/newUserBookRules"
         payload = {
             "rules": rules
         }

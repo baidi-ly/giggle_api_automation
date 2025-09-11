@@ -18,7 +18,7 @@ class TestCourse:
 
     def setup_class(self):
         self.materials = MaterialsApi()
-        self.authorization = self.course.get_authorization()
+        self.authorization = self.materials.get_authorization()
 
     @pytest.mark.pendingRelease
     def test_materials_upload_common_resource_ppt(self):

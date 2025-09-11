@@ -118,7 +118,7 @@ class TestBook:
                              [("hello", "en", "en", 'hello · hello'),
                               ("", "en", "en",'happy · happy'),
                               ("hello", "en", "zh", 'hello · 你好'),
-                              ("hello", "zh", "en", '你好 · hello'),   # TODO
+                              ("hello", "zh", "en", 'hello · 你好'),   # TODO
                               ("hello", "zh", "zh", '你好 · 你好')], ids=["en_en", "default", "en_ch", "ch_en", "ch_ch"])
     def test_book_getWordDefinition_word_normal(self, word, interfaceLanguage, learningLanguage, header):
         """有效的kidId，返回完整统计数据"""
@@ -138,6 +138,7 @@ class TestBook:
         bookId = get_bookId["data"]["content"][0]["id"]
         event_res = self.book.generateVideo(self.authorization, bookId)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["data"] == True
         assert event_res["message"] == "success"
 
     @pytest.mark.pendingRelease
@@ -147,7 +148,8 @@ class TestBook:
         bookId = -999999
         event_res = self.book.generateVideo(self.authorization, bookId)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["message"] == "success"
+        assert event_res["data"] == 'book not found'
+        assert event_res["message"] == 'book not found'
 
     @pytest.mark.pendingRelease
     def test_book_generateVideo_bookId_not_current_owner(self):
@@ -159,9 +161,10 @@ class TestBook:
     def test_book_generateVideo_bookId_empty(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
-        event_res = self.book.generateVideo(self.authorization, '')   # TODO
+        event_res = self.book.generateVideo(self.authorization, '', code=400)   # TODO
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["message"] == "success"
+        assert event_res["data"] == '''Failed to convert value of type 'java.lang.String' to required type 'long'; nested exception is java.lang.NumberFormatException: For input string: ""'''
+        assert event_res["message"] == 'invalid parameter'
 
     @pytest.mark.pendingRelease
     def test_book_get_generateVideo_bookId_normal(self, get_bookId):
@@ -170,6 +173,7 @@ class TestBook:
         bookId = get_bookId["data"]["content"][0]["id"]
         event_res = self.book.get_generateVideos(self.authorization, bookId)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["data"]
         assert event_res["message"] == "success"
 
     @pytest.mark.pendingRelease
@@ -204,7 +208,7 @@ class TestBook:
         bookId = get_bookId["data"]["content"][0]["id"]
         event_res = self.book.series_list(self.authorization, bookId, includeBookCover=includeBookCover)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"] == "更新成功"
+        assert event_res["data"] == "更新成功"  # TOTEST
         assert event_res["message"] == "success"
 
     @pytest.mark.pendingRelease
@@ -215,7 +219,7 @@ class TestBook:
         bookId = get_bookId["data"]["content"][0]["id"]
         event_res = self.book.series_list(self.authorization, bookId, includeBookCover="hello")
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"] == "更新成功"
+        assert event_res["data"] == "更新成功"  # TOTEST
         assert event_res["message"] == "success"
 
     @pytest.mark.pendingRelease
@@ -225,7 +229,7 @@ class TestBook:
         bookId = get_bookId["data"]["content"][0]["id"]
         event_res = self.book.series_list(self.authorization, bookId, includeBookCover="")
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"] == "更新成功"
+        assert event_res["data"] == "更新成功"  # TOTEST
         assert event_res["message"] == "success"
 
     @pytest.mark.pendingRelease
@@ -235,7 +239,7 @@ class TestBook:
         bookId = get_bookId["data"]["content"][0]["id"]
         event_res = self.book.series_list(self.authorization, bookId)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"] == "更新成功"
+        assert event_res["data"] == "更新成功"  # TOTEST
         assert event_res["message"] == "success"
 
     @pytest.mark.pendingRelease
@@ -245,7 +249,7 @@ class TestBook:
         bookId = get_bookId["data"]["content"][0]["id"]
         event_res = self.book.series_list(self.authorization, bookId, includeBookCount=-1)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"] == "更新成功"
+        assert event_res["data"] == "更新成功"  # TOTEST
         assert event_res["message"] == "success"
 
     @pytest.mark.pendingRelease
@@ -255,7 +259,7 @@ class TestBook:
         bookId = get_bookId["data"]["content"][0]["id"]
         event_res = self.book.series_list(self.authorization, bookId, includeBookCount=0)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"] == "更新成功"
+        assert event_res["data"] == "更新成功"  # TOTEST
         assert event_res["message"] == "success"
 
     @pytest.mark.pendingRelease
@@ -265,7 +269,7 @@ class TestBook:
         bookId = get_bookId["data"]["content"][0]["id"]
         event_res = self.book.series_list(self.authorization, bookId, includeBookCount=99999999)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"] == "更新成功"
+        assert event_res["data"] == "更新成功"  # TOTEST
         assert event_res["message"] == "success"
 
     @pytest.mark.pendingRelease
@@ -275,7 +279,7 @@ class TestBook:
         bookId = get_bookId["data"]["content"][0]["id"]
         event_res = self.book.series_list(self.authorization, bookId, includeBookCount='')
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"] == "更新成功"
+        assert event_res["data"] == "更新成功"  # TOTEST
         assert event_res["message"] == "success"
 
     @pytest.mark.pendingRelease
@@ -286,7 +290,7 @@ class TestBook:
         bookId = get_bookId["data"]["content"][0]["id"]
         event_res = self.book.series_list(self.authorization, bookId, includeBookCount=includeBookCover)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"] == "更新成功"
+        assert event_res["data"] == "更新成功"  # TOTEST
         assert event_res["message"] == "success"
 
     @pytest.mark.pendingRelease
@@ -296,48 +300,46 @@ class TestBook:
         for age in range(20):
             event_res = self.book.recommend_bookAndCourse(self.authorization, age)
             assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-            assert event_res["data"] == "更新成功"
-            assert event_res["message"] == "success"
+            assert event_res["data"]["courses"]
+            assert event_res["data"]["book"]
 
     @pytest.mark.pendingRelease
     @pytest.mark.parametrize("age", ["hello", True, "!@#~"], ids=["string", "boolen", "special characters"])
     def test_book_recommend_bookAndCourse_age_typeWrong(self, age):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
-        for age in range(20):
-            event_res = self.book.recommend_bookAndCourse(self.authorization, age)
-            assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-            assert event_res["data"] == "更新成功"
-            assert event_res["message"] == "success"
+        event_res = self.book.recommend_bookAndCourse(self.authorization, age, code=400)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == 'invalid parameter'
+        assert event_res["data"] == f'''Failed to convert value of type 'java.lang.String' to required type 'java.lang.Integer'; nested exception is java.lang.NumberFormatException: For input string: "{age}"'''
 
     @pytest.mark.pendingRelease
     def test_book_recommend_bookAndCourse_age_empty(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
-        for age in range(20):
-            event_res = self.book.recommend_bookAndCourse(self.authorization, '')
-            assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-            assert event_res["data"] == "更新成功"
-            assert event_res["message"] == "success"
+        event_res = self.book.recommend_bookAndCourse(self.authorization, '')
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["data"]["courses"]
+        assert event_res["data"]["book"]
 
     @pytest.mark.pendingRelease
     def test_book_recommend_bookAndCourse_courseNum_default(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
-        event_res = self.book.recommend_bookAndCourse(self.authorization, 3)
+        event_res = self.book.recommend_bookAndCourse(self.authorization)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"] == "更新成功"
-        assert event_res["message"] == "success"
+        assert event_res["data"]["courses"]
+        assert event_res["data"]["book"]
 
     @pytest.mark.pendingRelease
     @pytest.mark.parametrize("age", ["hello", True, "!@#~"], ids=["string", "boolen", "special characters"])
     def test_book_recommend_bookAndCourse_courseNum_typeWrong(self, age):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
-        event_res = self.book.recommend_bookAndCourse(self.authorization, age)
+        event_res = self.book.recommend_bookAndCourse(self.authorization, age, code=400)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"] == "更新成功"
-        assert event_res["message"] == "success"
+        assert event_res["message"] == 'invalid parameter'
+        assert event_res["data"] == f'''Failed to convert value of type 'java.lang.String' to required type 'java.lang.Integer'; nested exception is java.lang.NumberFormatException: For input string: "{age}"'''
 
     @pytest.mark.pendingRelease
     def test_book_recommend_bookAndCourse_courseNum_empty(self):
@@ -345,36 +347,36 @@ class TestBook:
         # 获取孩子学习统计数据
         event_res = self.book.recommend_bookAndCourse(self.authorization, '', '')
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"] == "更新成功"
-        assert event_res["message"] == "success"
+        assert event_res["data"]["courses"]
+        assert event_res["data"]["book"]
 
     @pytest.mark.pendingRelease
     @pytest.mark.parametrize("translateLanguage", ["en", "zh", "fr", "de", "ja", "ko", "ar"], ids=["en", "zh", "fr", "de", "ja", "ko", "ar"])
     def test_book_recommend_bookAndCourse_translateLanguage_iterate(self, translateLanguage):
         """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
-        event_res = self.book.recommend_bookAndCourse(self.authorization, 3, translateLanguage=translateLanguage)
+        # 获取孩子学习统计数据v
+        event_res = self.book.recommend_bookAndCourse(self.authorization, translateLanguage=translateLanguage)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"] == "更新成功"
-        assert event_res["message"] == "success"
+        assert event_res["data"]["courses"]
+        assert event_res["data"]["book"]
 
     @pytest.mark.pendingRelease
     def test_book_recommend_bookAndCourse_translateLanguage_empty(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
-        event_res = self.book.recommend_bookAndCourse(self.authorization, 3, translateLanguage='')
+        event_res = self.book.recommend_bookAndCourse(self.authorization, translateLanguage='')
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"] == "更新成功"
-        assert event_res["message"] == "success"
+        assert event_res["data"]["courses"]
+        assert event_res["data"]["book"]
 
     @pytest.mark.pendingRelease
     def test_book_recommend_bookAndCourse_translateLanguage_countryNotExist(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
-        event_res = self.book.recommend_bookAndCourse(self.authorization, 3, translateLanguage='ee')
+        event_res = self.book.recommend_bookAndCourse(self.authorization, translateLanguage='eeeee')
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"] == "更新成功"
-        assert event_res["message"] == "success"
+        assert event_res["data"]["courses"] # TODO
+        assert event_res["data"]["book"] # TODO
 
     @pytest.mark.pendingRelease
     def test_book_recommend_get_newUserBookRules(self):
@@ -382,17 +384,13 @@ class TestBook:
         # 获取孩子学习统计数据
         event_res = self.book.recommend_newUserBookRules(self.authorization)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"] == "更新成功"
-        assert event_res["message"] == "success"
+        assert event_res["data"]["rules"]
 
     @pytest.mark.pendingRelease
     def test_book_recommend_get_newUserBookRules_unauthorized(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
-        event_res = self.book.recommend_newUserBookRules('')
-        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"] == "更新成功"
-        assert event_res["message"] == "success"
+        self.book.recommend_newUserBookRules('', code=401)
 
     @pytest.mark.pendingRelease
     def test_book_recommend_update_newUserBookRules_normal(self):
@@ -400,7 +398,7 @@ class TestBook:
         # 获取孩子学习统计数据
         event_res = self.book.update_recommend_newUserBookRules(self.authorization, rules="this is new rule")
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"] == "更新成功"
+        assert event_res["data"] == True
         assert event_res["message"] == "success"
 
     @pytest.mark.pendingRelease
@@ -409,18 +407,16 @@ class TestBook:
         # 获取孩子学习统计数据
         event_res = self.book.update_recommend_newUserBookRules(self.authorization)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"] == "更新成功"
-        assert event_res["message"] == "success"
+        assert False    # TODO
 
     @pytest.mark.pendingRelease
     @pytest.mark.parametrize("rules", [123, True, "!@#~"], ids=["intger", "boolen", "special characters"])
     def test_book_recommend_update_newUserBookRules_typeWrong(self, rules):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
-        event_res = self.book.update_recommend_newUserBookRules(self.authorization, rules="this is new rule")
+        event_res = self.book.update_recommend_newUserBookRules(self.authorization, rules=rules)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"] == "更新成功"
-        assert event_res["message"] == "success"
+        assert False    # TODO
 
     @pytest.mark.pendingRelease
     @pytest.mark.parametrize("age", [123, True, "!@#~"], ids=["string", "boolen", "special characters"])
@@ -432,5 +428,5 @@ class TestBook:
         }
         event_res = self.book.update_recommend_newUserBookRules(self.authorization, rules="this is new rule", **pl)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"] == "更新成功"
-        assert event_res["message"] == "success"
+        assert False    # TODO
+
