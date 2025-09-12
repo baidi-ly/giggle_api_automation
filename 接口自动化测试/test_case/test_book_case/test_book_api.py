@@ -375,8 +375,8 @@ class TestBook:
         # 获取孩子学习统计数据
         event_res = self.book.recommend_bookAndCourse(self.authorization, translateLanguage='eeeee')
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["data"]["courses"] # TODO
-        assert event_res["data"]["book"] # TODO
+        assert event_res["data"]["courses"]
+        assert event_res["data"]["book"]
 
     @pytest.mark.pendingRelease
     def test_book_recommend_get_newUserBookRules(self):

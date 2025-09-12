@@ -29,7 +29,7 @@ class CourseApi(BaseAPI):
         response = response.json()
         return response
 
-    def blockedCourseIds(self, DeviceType="web", code=200):
+    def blockedCourseIds(self, authorization='', DeviceType="web", code=200):
         """
         获取屏蔽的课程ID列表
         :param:
@@ -46,6 +46,8 @@ class CourseApi(BaseAPI):
             "DeviceType": DeviceType,    # android/ios/web
             "Timestamp": timestamp
         }
+        if authorization:
+            headers.update(authorization=authorization)
 
         response = requests.request("GET", url, headers=headers)
         error_msg = "获取屏蔽的课程ID列表"

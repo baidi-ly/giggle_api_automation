@@ -28,10 +28,19 @@ class TestSystem:
             print(f"获取系统相关接口的指定token失败：{e}")
 
     @pytest.mark.pendingRelease
-    def test_system_health_with_right_token(self):
+    def test_system_health_login(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
         health_res = self.sys.health(self.authorization, self.token)
+        assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
+        assert health_res["data"]["isUp"]
+        assert health_res["data"]["status"] == "UP"
+
+    @pytest.mark.pendingRelease
+    def test_system_health_customer(self):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        health_res = self.sys.health(self.token)
         assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
         assert health_res["data"]["isUp"]
         assert health_res["data"]["status"] == "UP"
@@ -41,7 +50,7 @@ class TestSystem:
         """有效的kidId，返回完整统计数据"""
         token = 'xEr0:v1f7@A]DYXg6WL_?JEUp/>yDHsdsdsd'
         # 获取孩子学习统计数据
-        health_res = self.sys.health(self.authorization, token, code=403)
+        health_res = self.sys.health(token, code=403)
         assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
         assert health_res["message"] == 'permission not allowed'
 
@@ -49,19 +58,21 @@ class TestSystem:
     def test_system_health_without_token(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
-        health_res = self.sys.health(self.authorization, '', code=403)
+        health_res = self.sys.health('', code=403)
         assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
         assert health_res["message"] == 'permission not allowed'
 
     @pytest.mark.pendingRelease
-    def test_system_health_unauthorized(self):
+    def test_system_info_login(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
-        self.sys.health('', self.token, code=401)
-
+        health_res = self.sys.info(self.authorization, self.token)
+        assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
+        assert health_res["data"]["git"]
+        assert health_res["data"]["build"]['name'] == 'Giggle-Server'
 
     @pytest.mark.pendingRelease
-    def test_system_info_with_right_token(self):
+    def test_system_info_customer(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
         health_res = self.sys.info(self.authorization, self.token)
@@ -74,7 +85,7 @@ class TestSystem:
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
         token = 'xEr0:v1f7@A]DYXg6WL_?JEUp/>yDHsdsdsd'
-        health_res = self.sys.info(self.authorization, token, code=403)
+        health_res = self.sys.info(token, code=403)
         assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
         assert health_res["message"] == 'permission not allowed'
 
@@ -82,20 +93,21 @@ class TestSystem:
     def test_system_info_without_token(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
-        health_res = self.sys.info(self.authorization, '', code=403)
+        health_res = self.sys.info('', code=403)
         assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
         assert health_res["message"] == 'permission not allowed'
 
+
     @pytest.mark.pendingRelease
-    def test_system_info_unauthorized(self):
+    def test_system_ping_with_login(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
-
-        self.sys.info('', self.token, code=401)
-
+        ping_res = self.sys.ping(self.authorization, self.token)
+        assert ping_res["data"]["message"] == 'pong'
+        assert ping_res["data"]["server"] == "giggle-academy-server"
 
     @pytest.mark.pendingRelease
-    def test_system_ping_with_right_token(self):
+    def test_system_ping_with_customer(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
         ping_res = self.sys.ping(self.authorization, self.token)
@@ -107,7 +119,7 @@ class TestSystem:
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
         token = 'xEr0:v1f7@A]DYXg6WL_?JEUp/>yDHsdsdsd'
-        health_res = self.sys.ping(self.authorization, token, code=403)
+        health_res = self.sys.ping(token, code=403)
         assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
         assert health_res["message"] == 'permission not allowed'
 
@@ -115,12 +127,7 @@ class TestSystem:
     def test_system_ping_without_token(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
-        health_res = self.sys.ping(self.authorization, '', code=403)
+        health_res = self.sys.ping('', code=403)
         assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
         assert health_res["message"] == 'permission not allowed'
 
-    @pytest.mark.pendingRelease
-    def test_system_ping_unauthorized(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
-        self.sys.ping('', self.token, code=401)
