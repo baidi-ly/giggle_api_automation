@@ -18,7 +18,7 @@ class TestCourse:
         self.authorization = self.course.get_authorization()
 
     @pytest.mark.pendingRelease
-    def test_course_blockedCourseIds_normal(self):
+    def test_course_blockedCourseIds_login(self):
         """有效的kidId，返回完整统计数据"""
         # 获取有效的kidId
         # 获取孩子学习统计数据
@@ -27,8 +27,10 @@ class TestCourse:
         assert stats_res["data"]["blockedIds"]
 
     @pytest.mark.pendingRelease
-    def test_course_blockedCourseIds_unauthorized(self):
+    def test_course_blockedCourseIds_customer(self):
         """有效的kidId，返回完整统计数据"""
         # 获取有效的kidId
         # 获取孩子学习统计数据
-        self.course.blockedCourseIds('', code=401)  # todo
+        stats_res = self.course.blockedCourseIds('')
+        assert "data" in stats_res, f"获取孩子学习统计数据接口没有data数据，response->{stats_res}"
+        assert stats_res["data"]["blockedIds"]

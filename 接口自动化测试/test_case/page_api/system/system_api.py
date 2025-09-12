@@ -27,7 +27,6 @@ class SystemApi(BaseAPI):
         response = requests.request("GET", url, headers=headers, params=payload)
         error_msg = "系统健康状态检查"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        if code != 401:
             response = response.json()
             return response
 

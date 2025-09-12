@@ -1,10 +1,12 @@
 
 import time
 
+from config import RunConfig
 from test_case.page_api.base_api import BaseAPI
 
 requests = BaseAPI().http_timeout()
 base_url = BaseAPI().baseurl()
+DeviceId = RunConfig.DeviceId
 
 
 class CourseApi(BaseAPI):
@@ -27,7 +29,7 @@ class CourseApi(BaseAPI):
         response = response.json()
         return response
 
-    def blockedCourseIds(self, authorization, DeviceType="web", code=200):
+    def blockedCourseIds(self, DeviceType="web", code=200):
         """
         获取屏蔽的课程ID列表
         :param:
@@ -37,12 +39,17 @@ class CourseApi(BaseAPI):
         # Creator: Baidi
         url = f"https://{base_url}/api/course/blockedCourseIds"
         timestamp = str(int(time.time() * 1000))
-        headers = self.request_header(timestamp, authorization, DeviceType)
+        Authtoken = self._generate_auth_token(timestamp)
+        headers = {
+            "AuthToken": Authtoken,
+            "DeviceId": DeviceId,
+            "DeviceType": DeviceType,    # android/ios/web
+            "Timestamp": timestamp
+        }
 
         response = requests.request("GET", url, headers=headers)
         error_msg = "获取屏蔽的课程ID列表"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        if code != 401:
-            response = response.json()
-            return response
+        response = response.json()
+        return response
 
