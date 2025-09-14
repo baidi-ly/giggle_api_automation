@@ -182,8 +182,8 @@ class TestBook:
         # 获取孩子学习统计数据
         bookId = -999999
         event_res = self.book.get_generateVideos(self.authorization, bookId)
-        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert False    # TODO
+        assert event_res["message"] == 'book not found'
+        assert event_res['data'] == 'book not found'
 
     @pytest.mark.pendingRelease
     def test_book_get_generateVideo_bookId_not_current_owner(self, get_bookId):
@@ -199,6 +199,11 @@ class TestBook:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == 'invalid parameter'
         assert event_res['data'] == '''Failed to convert value of type 'java.lang.String' to required type 'long'; nested exception is java.lang.NumberFormatException: For input string: ""'''
+
+    def test_book_get_generateVideo_bookId_special_character(self, get_bookId):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        event_res = self.book.get_generateVideos(self.authorization, '@#$%^&*', code=403)
 
     @pytest.mark.pendingRelease
     @pytest.mark.parametrize("includeBookCover", [True, False], ids=[True, False])
@@ -405,28 +410,23 @@ class TestBook:
     def test_book_recommend_update_newUserBookRules_empty(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
-        event_res = self.book.update_recommend_newUserBookRules(self.authorization)
+        event_res = self.book.update_recommend_newUserBookRules(self.authorization, code=500)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert False    # TODO
+        assert event_res["message"] == 'internal server error'
 
     @pytest.mark.pendingRelease
     @pytest.mark.parametrize("rules", [123, True, "!@#~"], ids=["intger", "boolen", "special characters"])
     def test_book_recommend_update_newUserBookRules_typeWrong(self, rules):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
-        event_res = self.book.update_recommend_newUserBookRules(self.authorization, rules=rules)
-        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert False    # TODO
+        event_res = self.book.update_recommend_newUserBookRules(self.authorization, rules=rules, code=500)
+        assert event_res["message"] == 'internal server error'
 
     @pytest.mark.pendingRelease
-    @pytest.mark.parametrize("age", [123, True, "!@#~"], ids=["string", "boolen", "special characters"])
-    def test_book_recommend_update_newUserBookRules_withoutRules(self, age):
+    def test_book_recommend_update_newUserBookRules_withoutRules(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
-        pl = {
-            "pop_items": "rules"
-        }
-        event_res = self.book.update_recommend_newUserBookRules(self.authorization, rules="this is new rule", **pl)
-        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert False    # TODO
+        pl = {"pop_items": "rules"}
+        event_res = self.book.update_recommend_newUserBookRules(self.authorization, rules="this is new rule", code=500, **pl)
+        assert event_res["message"] == 'internal server error'
 

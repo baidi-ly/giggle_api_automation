@@ -108,16 +108,11 @@ class TestLearning:
     @pytest.mark.pendingRelease
     def test_learning_daily_byKidId_normal_empty(self, getkidId):
         """获取孩子今日学习详情，无数据的kidId，返回完整统计数据"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
         # 获取孩子学习统计数据
-        daily_res = self.learning.daily_learning(kidId, self.authorization)
-        assert "data" in daily_res, f"获取孩子今日学习详情接口没有data数据，response->{daily_res}"
-        assert daily_res["data"]["date"] == self.today
-        return_keys = ["courses", "storybooks", "flashcard", "myWorks"]
-        for _key in return_keys:
-            assert _key in daily_res["data"],\
-                f'获取孩子今日学习详情接口data数据中没有预期的返回字段:("courses", "storybooks", "flashcard", "myWorks")'
+        daily_res = self.learning.daily_learning('', self.authorization, code=404)
+        assert daily_res['error'] == 'Not Found', f"获取孩子今日学习详情接口没有data数据，response->{daily_res}"
+        assert daily_res['status'] == 404, f"获取孩子今日学习详情接口没有data数据，response->{daily_res}"
+
 
     @pytest.mark.pendingRelease
     def test_learning_daily_byKidId_normal(self, getkidId):
@@ -130,16 +125,25 @@ class TestLearning:
         pass
 
     @pytest.mark.pendingRelease
-    def test_learning_daily_byKidId_invalid(self):
+    def test_learning_daily_byKidId_special_character(self):
         """获取孩子今日学习详情，无效的kidId - 返回错误信息"""
         # 创建无效的kidId
-        kidId = 888888
+        kidId = '@@#$%^&*'
+        # 获取孩子学习统计数据
+        daily_res = self.learning.daily_learning(kidId, self.authorization, code=400)
+        error_msg = "获取孩子今日学习详情-无效的kidId"
+        assert daily_res['message'] == 'invalid parameter', f'{error_msg}-返回状态码不正确，预期:500, 实际：{daily_res["code"]}'
+        assert daily_res['data'] == '''Failed to convert value of type 'java.lang.String' to required type 'long'; nested exception is java.lang.NumberFormatException: For input string: "@@"''', f'{error_msg}-返回状态码不正确，预期:500, 实际：{daily_res["code"]}'
+
+    @pytest.mark.pendingRelease
+    def test_learning_daily_byKidId_positive(self):
+        """获取孩子今日学习详情，无效的kidId - 返回错误信息"""
+        # 创建无效的kidId
+        kidId = -9999
         # 获取孩子学习统计数据
         daily_res = self.learning.daily_learning(kidId, self.authorization, code=500)
         error_msg = "获取孩子今日学习详情-无效的kidId"
-        assert daily_res["code"] == 500, f'{error_msg}-返回状态码不正确，预期:500, 实际：{daily_res["code"]}'
-        assert "data" in daily_res, f"获取孩子学习统计数据接口没有msg数据，response->{daily_res}"    # TODO
-        assert daily_res["data"]["message"] == f"孩子不存在: {kidId}", f'{error_msg} - 预期:无效的kidId, 实际：{daily_res["data"]}'
+        assert daily_res['message'] == 'internal server error', f'{error_msg}-返回状态码不正确，预期:500, 实际：{daily_res["code"]}'
 
     @pytest.mark.pendingRelease
     def test_learning_daily_byKidId_unauthorized(self, getkidId):

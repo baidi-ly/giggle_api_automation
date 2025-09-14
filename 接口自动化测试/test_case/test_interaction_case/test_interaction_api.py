@@ -57,7 +57,7 @@ class TestInteraction:
         # 获取孩子学习统计数据
         event_res = self.interaction.event(self.authorization, courses, DeviceType="web")
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["message"] == "success"    # TODO
+        assert event_res["message"] == "success"
 
     @pytest.mark.pendingRelease
     def test_interaction_event_multi(self, get_couerseList):
@@ -114,7 +114,8 @@ class TestInteraction:
         # 获取孩子学习统计数据
         event_res = self.interaction.event(self.authorization, courses, DeviceType="web")
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["message"] == "success"
+        assert event_res["message"] == 'invalid parameter'
+        assert event_res["data"] == 'invalid parameter'
 
     @pytest.mark.pendingRelease
     def test_interaction_event_name_wrong(self, get_couerseList):
@@ -123,7 +124,7 @@ class TestInteraction:
         couerseList = get_couerseList[0]['courseList']
         courses = [
             {
-                "eventName": -999,
+                "eventName": True,
                 "params": {
                     "courseId": couerseList[0]["id"],
                     "lessonType": "normal"
@@ -133,4 +134,5 @@ class TestInteraction:
         # 获取孩子学习统计数据
         event_res = self.interaction.event(self.authorization, courses, DeviceType="web")
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["message"] == "success"
+        assert event_res["message"] == 'invalid parameter'
+        assert event_res["data"] == 'invalid parameter'

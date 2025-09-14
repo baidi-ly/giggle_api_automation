@@ -196,8 +196,9 @@ class BookApi(BaseAPI):
         response = requests.request("GET", url, headers=headers, params=payload)
         error_msg = "获取故事书内单词释义"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        response = response.json()
-        return response
+        if response.status_code != 403:
+            response = response.json()
+            return response
 
     def tormsToGlossary(self, authorization, bookId, DeviceType="web"):
         """
@@ -259,7 +260,7 @@ class BookApi(BaseAPI):
             response = response.json()
             return response
 
-    def update_recommend_newUserBookRules(self, authorization, rules='', DeviceType="web", **kwargs):
+    def update_recommend_newUserBookRules(self, authorization, rules='', DeviceType="web", code=200, **kwargs):
         """
         设置新用户推荐书籍规则
         :param:
@@ -277,7 +278,7 @@ class BookApi(BaseAPI):
 
         response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "设置新用户推荐书籍规则"
-        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
 
