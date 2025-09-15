@@ -64,38 +64,6 @@ if __name__ == '__main__':
     print(f"共提取了 {len(extracted_data['definitions'])} 个相关定义")
 
 
-    # -----------------------------------步骤3： 解析swagger中的接口并写入指定的文件中---------------------------------------
-    parser = argparse.ArgumentParser(description='使用prance解析OpenAPI/Swagger文档并生成测试用例')
-    # parser.add_argument('openapi_file', help='OpenAPI/Swagger文件路径')
-    parser.add_argument('--output', '-o', default='/test_data/generated', help='输出目录')
-    parser.add_argument('--strict', '-s', action='store_true', help='是否进行严格验证')
-    parser.add_argument('--recursion-limit', '-r', type=int, default=100, help='引用解析的递归限制，默认100')
-    parser.add_argument('--no-resolve', '-n', action='store_true', help='不解析引用，直接使用原始规范')
-    parser.add_argument('--excel-data', '-e', help='Excel测试数据文件路径')
-
-    args = parser.parse_args()
-
-    # 创建生成器
-    openapi_file = os.getcwd() + '/test_data/swagger/swagger_fixed.json'
-    generator = OpenAPITestGenerator(
-        openapi_file,
-        args.output,
-        args.strict,
-        args.recursion_limit,
-        not args.no_resolve,  # 如果指定了--no-resolve，则不解析引用
-        args.excel_data  # Excel测试数据文件路径
-    )
-
-    # 加载OpenAPI规范
-    if not generator.load_spec():
-        logger.error("加载OpenAPI规范失败")
-
-    # # 生成测试用例
-    # if generator.generate_test_cases():
-    #     logger.info("测试用例生成成功")
-    # else:
-    #     logger.error("测试用例生成失败")
-
     # -----------------------------------步骤4： 封装接口---------------------------------------
     parser = argparse.ArgumentParser(description="Swagger -> CourseApi 方法生成器")
     parser.add_argument("--module", default="course", help="目标模块目录名（如 course、book 等），默认 course")

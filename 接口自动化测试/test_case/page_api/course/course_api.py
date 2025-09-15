@@ -55,3 +55,24 @@ class CourseApi(BaseAPI):
         response = response.json()
         return response
 
+    def getDetail(self, authorization, DeviceType="web", **kwargs):
+        """
+        获取课程详情包括版本信息
+        :param page:
+        :return:
+        """
+        # Create Data:  自动生成 2025-09-15
+        # Creator: Swagger Generator
+        # Update Date:
+        # updater:
+        # Update Details:
+        url = f"https://{base_url}/api/course/content/detail"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+        response = requests.request("GET", url, headers=headers, params=kwargs)
+        error_msg = "获取课程详情包括版本信息"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        assert "data" in response,  f"{error_msg}返回结果没有data数据，url->{url}，response->{response}"
+        return response["data"]
+

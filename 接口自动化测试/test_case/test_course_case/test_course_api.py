@@ -34,3 +34,30 @@ class TestCourse:
         stats_res = self.course.blockedCourseIds('')
         assert "data" in stats_res, f"获取孩子学习统计数据接口没有data数据，response->{stats_res}"
         assert stats_res["data"]["blockedIds"]
+
+    def test_noargs_detail_basic(self):
+        """获取所有课程分级列表"""
+        res = self.api.detail(authorization=self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+
+    def test_noargs_detail_basic(self):
+        """获取所有课程分级列表"""
+        res = self.api.detail(authorization=self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+
+    def test_noargs_detail_basic(self):
+        """获取所有课程分级列表"""
+        res = self.api.detail(authorization=self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+
+    def test_noargs_detail_basic(self):
+        """获取所有课程分级列表"""
+        res = self.api.detail(authorization=self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
