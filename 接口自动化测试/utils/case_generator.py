@@ -67,6 +67,7 @@ def _render_kwargs(kwargs: Dict[str, Any]) -> str:
 def _append_case(file_path: str, name: str, doc: str, call_expr: str, assert_data: bool = True) -> None:
     lines = [
         "\n",
+        "\n",
         f"    def {name}(self):\n",
         f"        \"\"\"{doc}\"\"\"\n",
         f"        res = {call_expr}\n",
@@ -174,37 +175,7 @@ def _parse_args() -> argparse.Namespace:
     return args
 
 
-def generate_cases():
-    # 在此配置你要生成的接口用例任务（可增删改）
-    tasks: List[Dict] = [
-        # 示例1：无业务参数（仅 authorization）
-        {
-            "path": "/api/course/listAllWithLevel",
-            "api_method": "listAllWithLevel",
-            "required": [],
-            "optional": [],
-            "marker": "Course",
-            "doc": "获取所有课程分级列表"
-        },
-        # 示例2：有必填参数
-        {
-            "path": "/api/course/content/detail",
-            "api_method": "getCourseContentDetail",
-            "required": ["courseId"],
-            "optional": [],
-            "marker": "Course",
-            "doc": "获取课程详情"
-        },
-        # 示例3：有必填 + 可选参数
-        {
-            "path": "/api/user/kids",
-            "api_method": "getKids",
-            "required": ["kidId"],
-            "optional": ["page"],
-            "marker": "User",
-            "doc": "获取孩子数据"
-        }
-    ]
+def generate_cases(tasks):
 
     for t in tasks:
         out_file = generate_tests_by_spec(

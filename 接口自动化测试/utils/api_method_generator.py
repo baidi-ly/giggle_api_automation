@@ -35,7 +35,7 @@ from typing import Dict, Any, List, Tuple, Optional, Iterable
 import argparse
 
 
-SWAGGER_PATH = os.path.join("test_data", "swagger_fixed.json")
+SWAGGER_PATH = os.path.join("test_data", "swagger", "swagger_fixed.json")
 
 
 
@@ -174,7 +174,7 @@ def generate_methods_to_api(
         return
 
     # 读取并定位 CourseApi 类，准备在文件末尾追加（维持缩进）
-    api_file = os.path.join("test_case", "page_api", module, f"{module}_api.py")
+    api_file = os.getcwd() + os.path.join("/test_case", "page_api", module, f"{module}_api.py")
     if not os.path.exists(api_file):
         raise FileNotFoundError(f"未找到 API 文件: {api_file}")
     with open(api_file, "r", encoding="utf-8") as f:

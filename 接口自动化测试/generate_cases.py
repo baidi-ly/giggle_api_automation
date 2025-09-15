@@ -17,19 +17,20 @@ from utils.openapi_generator import OpenAPITestGenerator
 
 
 if __name__ == '__main__':
+    ''' 前置需要对装饰器进行替换'''
     # -----------------------------------步骤1： 初始化指定的接口到swagger文件---------------------------------------
     # 目标API列表
     file_path: str = os.path.join("test_data", "api_difference.json")
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"未找到差异文件: {file_path}，请先运行比较脚本生成")
     with open(file_path, "r", encoding="utf-8") as f:
-        target_apis = json.load(f)
+        target_apis = json.load(f)['apis']
 
     parser = argparse.ArgumentParser(description='初始化Swagger文档')
     parser.add_argument('--url', '-u', default='https://creator.qakjukl.net/swagger-resources/v2/api-docs',
                         help='Swagger文档的URL')
     parser.add_argument('--dir', '-d', default=os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '../../api_test_new/data/swagger')),
+        os.path.join(os.path.dirname(__file__), '../../test_data/')),
                         help='Swagger文档目录')
     parser.add_argument('--no-backup', '-n', action='store_true',
                         help='不备份原始文档')
@@ -46,8 +47,8 @@ if __name__ == '__main__':
 
 
     # 输入和输出文件路径
-    input_file = os.getcwd() + "/test_data/swagger_fixed.json"
-    output_file = "/Users/areli/Downloads/api_test_framework/api_test_new/data/swagger/selected_apis.json"
+    input_file = os.getcwd() + "/test_data/swagger/swagger_fixed.json"
+    output_file = os.getcwd() + "/test_data/swagger/selected_apis.json"
 
     # 确保输出目录存在
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
@@ -59,14 +60,14 @@ if __name__ == '__main__':
     extracted_data = extract_api_info(swagger_data, target_apis)
 
     print(f"已成功提取API信息并保存到: {output_file}")
-    print(f"共提取了 {len(extracted_data['paths'])} 个API路径")
+    print(f"共提取了 {extracted_data['paths']} 个API路径")
     print(f"共提取了 {len(extracted_data['definitions'])} 个相关定义")
 
 
     # -----------------------------------步骤3： 解析swagger中的接口并写入指定的文件中---------------------------------------
     parser = argparse.ArgumentParser(description='使用prance解析OpenAPI/Swagger文档并生成测试用例')
     # parser.add_argument('openapi_file', help='OpenAPI/Swagger文件路径')
-    parser.add_argument('--output', '-o', default='api_test_new/testcases/generated', help='输出目录')
+    parser.add_argument('--output', '-o', default='/test_data/generated', help='输出目录')
     parser.add_argument('--strict', '-s', action='store_true', help='是否进行严格验证')
     parser.add_argument('--recursion-limit', '-r', type=int, default=100, help='引用解析的递归限制，默认100')
     parser.add_argument('--no-resolve', '-n', action='store_true', help='不解析引用，直接使用原始规范')
@@ -75,7 +76,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # 创建生成器
-    openapi_file = os.getcwd() + '/test_data/swagger_fixed.json'
+    openapi_file = os.getcwd() + '/test_data/swagger/swagger_fixed.json'
     generator = OpenAPITestGenerator(
         openapi_file,
         args.output,
@@ -89,11 +90,11 @@ if __name__ == '__main__':
     if not generator.load_spec():
         logger.error("加载OpenAPI规范失败")
 
-    # 生成测试用例
-    if generator.generate_test_cases():
-        logger.info("测试用例生成成功")
-    else:
-        logger.error("测试用例生成失败")
+    # # 生成测试用例
+    # if generator.generate_test_cases():
+    #     logger.info("测试用例生成成功")
+    # else:
+    #     logger.error("测试用例生成失败")
 
     # -----------------------------------步骤4： 封装接口---------------------------------------
     parser = argparse.ArgumentParser(description="Swagger -> CourseApi 方法生成器")
@@ -105,9 +106,10 @@ if __name__ == '__main__':
     parser.add_argument("--method", dest="methods", action="append", help="仅生成指定 HTTP 方法，如 --method GET，可多次")
 
     args = parser.parse_args()
+
     generate_methods_to_api(
         module=args.module,
-        include_exact=['/api/course/content/detail'],
+        include_exact=target_apis,
         include_prefix=args.include_prefix,
         include_regex=args.include_regex,
         only_course_related=(not args.all_paths),
@@ -115,4 +117,34 @@ if __name__ == '__main__':
     )
 
     # -----------------------------------步骤5: 生成单接口用例---------------------------------------
-    generate_cases()
+    # 在此配置你要生成的接口用例任务（可增删改）
+    tasks = [
+        # 示例1：无业务参数（仅 authorization）
+        {
+            "path": target_apis[0],
+            "api_method": "detail",
+            "required": [],
+            "optional": [],
+            "marker": "course",
+            "doc": "获取所有课程分级列表"
+        },
+        # # 示例2：有必填参数
+        # {
+        #     "path": "/api/course/content/detail",
+        #     "api_method": "getCourseContentDetail",
+        #     "required": ["courseId"],
+        #     "optional": [],
+        #     "marker": "Course",
+        #     "doc": "获取课程详情"
+        # },
+        # # 示例3：有必填 + 可选参数
+        # {
+        #     "path": "/api/user/kids",
+        #     "api_method": "getKids",
+        #     "required": ["kidId"],
+        #     "optional": ["page"],
+        #     "marker": "User",
+        #     "doc": "获取孩子数据"
+        # }
+    ]
+    generate_cases(tasks)
