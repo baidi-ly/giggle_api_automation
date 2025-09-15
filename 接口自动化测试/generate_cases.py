@@ -5,42 +5,25 @@
 添加单接口用例
 """
 import argparse
+import json
 import os
 import sys
 
 from utils.api_method_generator import generate_methods_to_api
+from utils.case_generator import generate_cases
 from utils.extract_apis import load_swagger_file, extract_api_info
 from utils.init_swagger import init_swagger, logger
 from utils.openapi_generator import OpenAPITestGenerator
-from utils.test_case_generator import generate_cases
+
 
 if __name__ == '__main__':
-     # -----------------------------------步骤1： 初始化指定的接口到swagger文件---------------------------------------
-     # 目标API列表
-    target_apis = [
-        "admin/cloudFrontUrl",
-        "admin/materials/download",
-        "admin/common/getFileByUrl",
-        "admin/materials/{id}/files",
-        "admin/course/detail",
-        "admin/course/selectVersion",
-        "admin/app/upload-url",
-        "admin/app/version/list",
-        "admin/presigned-url-for-course",
-        "admin/presigned-url-for-static-bucket",
-        "api/book/content",
-        "api/book/{bookId}",
-        "api/book/public/{bookId}",
-        "api/book/bookDetail/{bookId}",
-        "api/book/coverDetail/{bookId}",
-        "api/materials/list",
-        "api/materials/download",
-        "api/private/materials/list",
-        "api/private/materials/presignedUrl",
-        "api/private/materials/deleteFolder",
-        "api/home/latest-version",
-        "api/game/resource"
-    ]
+    # -----------------------------------步骤1： 初始化指定的接口到swagger文件---------------------------------------
+    # 目标API列表
+    file_path: str = os.path.join("test_data", "api_difference.json")
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"未找到差异文件: {file_path}，请先运行比较脚本生成")
+    with open(file_path, "r", encoding="utf-8") as f:
+        target_apis = json.load(f)
 
     parser = argparse.ArgumentParser(description='初始化Swagger文档')
     parser.add_argument('--url', '-u', default='https://creator.qakjukl.net/swagger-resources/v2/api-docs',
@@ -74,9 +57,6 @@ if __name__ == '__main__':
 
     # 提取API信息
     extracted_data = extract_api_info(swagger_data, target_apis)
-
-    # # 保存到新文件
-    # save_to_file(extracted_data, output_file)
 
     print(f"已成功提取API信息并保存到: {output_file}")
     print(f"共提取了 {len(extracted_data['paths'])} 个API路径")
