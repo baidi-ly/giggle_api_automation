@@ -1,0 +1,2609 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "我是描述信息",
+    "version": "版本号：V.1",
+    "title": "接口文档",
+    "license": {
+      "name": "The Apache License",
+      "url": "http://www.giggleacademy.com"
+    }
+  },
+  "host": "creator.qakjukl.net",
+  "basePath": "/",
+  "schemes": [],
+  "paths": {
+    "/admin/cloudFrontUrl": {
+      "get": {
+        "tags": [
+          "admin-controller"
+        ],
+        "summary": "根据参数重定向到对应的cloudFront地址",
+        "operationId": "cloudFrontUrlUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "AuthToken",
+            "in": "header",
+            "description": "AuthToken",
+            "required": true,
+            "type": "string",
+            "default": "2257c2346e90a19d74465a81f2277e27"
+          },
+          {
+            "name": "DeviceId",
+            "in": "header",
+            "description": "DeviceId",
+            "required": true,
+            "type": "string",
+            "default": "123456"
+          },
+          {
+            "name": "DeviceType",
+            "in": "header",
+            "description": "android/ios/web",
+            "required": true,
+            "type": "string",
+            "default": "web"
+          },
+          {
+            "name": "Timestamp",
+            "in": "header",
+            "description": "Timestamp",
+            "required": true,
+            "type": "string",
+            "default": "1749733491423"
+          },
+          {
+            "name": "bucket",
+            "in": "query",
+            "description": "bucket",
+            "required": true,
+            "type": "string",
+            "enum": [
+              "STATIC",
+              "TEMP",
+              "CLEAN"
+            ]
+          },
+          {
+            "name": "key",
+            "in": "query",
+            "description": "key",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/admin/materials/download": {
+      "get": {
+        "tags": [
+          "admin-controller"
+        ],
+        "summary": "downloadMaterialImage",
+        "operationId": "downloadMaterialImageUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "AuthToken",
+            "in": "header",
+            "description": "AuthToken",
+            "required": true,
+            "type": "string",
+            "default": "2257c2346e90a19d74465a81f2277e27"
+          },
+          {
+            "name": "DeviceId",
+            "in": "header",
+            "description": "DeviceId",
+            "required": true,
+            "type": "string",
+            "default": "123456"
+          },
+          {
+            "name": "DeviceType",
+            "in": "header",
+            "description": "android/ios/web",
+            "required": true,
+            "type": "string",
+            "default": "web"
+          },
+          {
+            "name": "Timestamp",
+            "in": "header",
+            "description": "Timestamp",
+            "required": true,
+            "type": "string",
+            "default": "1749733491423"
+          },
+          {
+            "name": "key",
+            "in": "query",
+            "description": "key",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/admin/common/getFileByUrl": {
+      "get": {
+        "tags": [
+          "admin-controller"
+        ],
+        "summary": "根据url获取对应文件",
+        "operationId": "getFileByUrlUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "AuthToken",
+            "in": "header",
+            "description": "AuthToken",
+            "required": true,
+            "type": "string",
+            "default": "2257c2346e90a19d74465a81f2277e27"
+          },
+          {
+            "name": "DeviceId",
+            "in": "header",
+            "description": "DeviceId",
+            "required": true,
+            "type": "string",
+            "default": "123456"
+          },
+          {
+            "name": "DeviceType",
+            "in": "header",
+            "description": "android/ios/web",
+            "required": true,
+            "type": "string",
+            "default": "web"
+          },
+          {
+            "name": "Timestamp",
+            "in": "header",
+            "description": "Timestamp",
+            "required": true,
+            "type": "string",
+            "default": "1749733491423"
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "description": "url",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string",
+              "format": "byte"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/admin/materials/{id}/files": {
+      "get": {
+        "tags": [
+          "admin-controller"
+        ],
+        "summary": "获取材料相关的所有文件",
+        "operationId": "getMaterialFilesUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "AuthToken",
+            "in": "header",
+            "description": "AuthToken",
+            "required": true,
+            "type": "string",
+            "default": "2257c2346e90a19d74465a81f2277e27"
+          },
+          {
+            "name": "DeviceId",
+            "in": "header",
+            "description": "DeviceId",
+            "required": true,
+            "type": "string",
+            "default": "123456"
+          },
+          {
+            "name": "DeviceType",
+            "in": "header",
+            "description": "android/ios/web",
+            "required": true,
+            "type": "string",
+            "default": "web"
+          },
+          {
+            "name": "Timestamp",
+            "in": "header",
+            "description": "Timestamp",
+            "required": true,
+            "type": "string",
+            "default": "1749733491423"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/api/course/detail": {
+      "get": {
+        "tags": [
+          "admin-controller"
+        ],
+        "summary": "获取课程详情包括版本信息",
+        "operationId": "getCourseDetailUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "AuthToken",
+            "in": "header",
+            "description": "AuthToken",
+            "required": true,
+            "type": "string",
+            "default": "2257c2346e90a19d74465a81f2277e27"
+          },
+          {
+            "name": "DeviceId",
+            "in": "header",
+            "description": "DeviceId",
+            "required": true,
+            "type": "string",
+            "default": "123456"
+          },
+          {
+            "name": "DeviceType",
+            "in": "header",
+            "description": "android/ios/web",
+            "required": true,
+            "type": "string",
+            "default": "web"
+          },
+          {
+            "name": "Timestamp",
+            "in": "header",
+            "description": "Timestamp",
+            "required": true,
+            "type": "string",
+            "default": "1749733491423"
+          },
+          {
+            "name": "courseId",
+            "in": "query",
+            "description": "courseId",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/admin/course/selectVersion": {
+      "post": {
+        "tags": [
+          "admin-controller"
+        ],
+        "summary": "设置课程当前发布的版本",
+        "operationId": "selectCourseVersionUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "AuthToken",
+            "in": "header",
+            "description": "AuthToken",
+            "required": true,
+            "type": "string",
+            "default": "2257c2346e90a19d74465a81f2277e27"
+          },
+          {
+            "name": "DeviceId",
+            "in": "header",
+            "description": "DeviceId",
+            "required": true,
+            "type": "string",
+            "default": "123456"
+          },
+          {
+            "name": "DeviceType",
+            "in": "header",
+            "description": "android/ios/web",
+            "required": true,
+            "type": "string",
+            "default": "web"
+          },
+          {
+            "name": "Timestamp",
+            "in": "header",
+            "description": "Timestamp",
+            "required": true,
+            "type": "string",
+            "default": "1749733491423"
+          },
+          {
+            "in": "body",
+            "name": "req",
+            "description": "req",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SelectCourseVersionReq"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "201": {
+            "description": "Created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/admin/app/upload-url": {
+      "get": {
+        "tags": [
+          "admin-controller"
+        ],
+        "summary": "getAppUploadUrl",
+        "operationId": "getAppUploadUrlUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "AuthToken",
+            "in": "header",
+            "description": "AuthToken",
+            "required": true,
+            "type": "string",
+            "default": "2257c2346e90a19d74465a81f2277e27"
+          },
+          {
+            "name": "DeviceId",
+            "in": "header",
+            "description": "DeviceId",
+            "required": true,
+            "type": "string",
+            "default": "123456"
+          },
+          {
+            "name": "DeviceType",
+            "in": "header",
+            "description": "android/ios/web",
+            "required": true,
+            "type": "string",
+            "default": "web"
+          },
+          {
+            "name": "Timestamp",
+            "in": "header",
+            "description": "Timestamp",
+            "required": true,
+            "type": "string",
+            "default": "1749733491423"
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "description": "platform",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/admin/app/version/list": {
+      "get": {
+        "tags": [
+          "admin-controller"
+        ],
+        "summary": "获取所有APP版本",
+        "operationId": "getAllAppVersionsUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "AuthToken",
+            "in": "header",
+            "description": "AuthToken",
+            "required": true,
+            "type": "string",
+            "default": "2257c2346e90a19d74465a81f2277e27"
+          },
+          {
+            "name": "DeviceId",
+            "in": "header",
+            "description": "DeviceId",
+            "required": true,
+            "type": "string",
+            "default": "123456"
+          },
+          {
+            "name": "DeviceType",
+            "in": "header",
+            "description": "android/ios/web",
+            "required": true,
+            "type": "string",
+            "default": "web"
+          },
+          {
+            "name": "Timestamp",
+            "in": "header",
+            "description": "Timestamp",
+            "required": true,
+            "type": "string",
+            "default": "1749733491423"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "page",
+            "required": false,
+            "type": "integer",
+            "default": 0,
+            "format": "int32"
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "description": "platform",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "size",
+            "required": false,
+            "type": "integer",
+            "default": 10,
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/admin/presigned-url-for-course": {
+      "get": {
+        "tags": [
+          "admin-controller"
+        ],
+        "summary": "getPresignedUrl",
+        "operationId": "getPresignedUrlUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "AuthToken",
+            "in": "header",
+            "description": "AuthToken",
+            "required": true,
+            "type": "string",
+            "default": "2257c2346e90a19d74465a81f2277e27"
+          },
+          {
+            "name": "DeviceId",
+            "in": "header",
+            "description": "DeviceId",
+            "required": true,
+            "type": "string",
+            "default": "123456"
+          },
+          {
+            "name": "DeviceType",
+            "in": "header",
+            "description": "android/ios/web",
+            "required": true,
+            "type": "string",
+            "default": "web"
+          },
+          {
+            "name": "Timestamp",
+            "in": "header",
+            "description": "Timestamp",
+            "required": true,
+            "type": "string",
+            "default": "1749733491423"
+          },
+          {
+            "name": "fileName",
+            "in": "query",
+            "description": "fileName",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/admin/presigned-url-for-static-bucket": {
+      "get": {
+        "tags": [
+          "admin-controller"
+        ],
+        "summary": "获取S3预传url",
+        "operationId": "getPresignedUrlForStaticBucketUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "AuthToken",
+            "in": "header",
+            "description": "AuthToken",
+            "required": true,
+            "type": "string",
+            "default": "2257c2346e90a19d74465a81f2277e27"
+          },
+          {
+            "name": "DeviceId",
+            "in": "header",
+            "description": "DeviceId",
+            "required": true,
+            "type": "string",
+            "default": "123456"
+          },
+          {
+            "name": "DeviceType",
+            "in": "header",
+            "description": "android/ios/web",
+            "required": true,
+            "type": "string",
+            "default": "web"
+          },
+          {
+            "name": "Timestamp",
+            "in": "header",
+            "description": "Timestamp",
+            "required": true,
+            "type": "string",
+            "default": "1749733491423"
+          },
+          {
+            "name": "filePath",
+            "in": "query",
+            "description": "filePath",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/api/book/content": {
+      "get": {
+        "tags": [
+          "book-controller"
+        ],
+        "summary": "通过key获取content",
+        "operationId": "getS3ContentByKeyUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "AuthToken",
+            "in": "header",
+            "description": "AuthToken",
+            "required": true,
+            "type": "string",
+            "default": "2257c2346e90a19d74465a81f2277e27"
+          },
+          {
+            "name": "DeviceId",
+            "in": "header",
+            "description": "DeviceId",
+            "required": true,
+            "type": "string",
+            "default": "123456"
+          },
+          {
+            "name": "DeviceType",
+            "in": "header",
+            "description": "android/ios/web",
+            "required": true,
+            "type": "string",
+            "default": "web"
+          },
+          {
+            "name": "Timestamp",
+            "in": "header",
+            "description": "Timestamp",
+            "required": true,
+            "type": "string",
+            "default": "1749733491423"
+          },
+          {
+            "name": "contentKey",
+            "in": "query",
+            "description": "contentKey",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization": [
+              "global"
+            ]
+          }
+        ],
+        "deprecated": false
+      }
+    },
+    "/api/book/{bookId}": {
+      "get": {
+        "tags": [
+          "book-controller"
+        ],
+        "summary": "通过bookId查询书籍详情",
+        "operationId": "getBookByIdUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "AuthToken",
+            "in": "header",
+            "description": "AuthToken",
+            "required": true,
+            "type": "string",
+            "default": "2257c2346e90a19d74465a81f2277e27"
+          },
+          {
+            "name": "DeviceId",
+            "in": "header",
+            "description": "DeviceId",
+            "required": true,
+            "type": "string",
+            "default": "123456"
+          },
+          {
+            "name": "DeviceType",
+            "in": "header",
+            "description": "android/ios/web",
+            "required": true,
+            "type": "string",
+            "default": "web"
+          },
+          {
+            "name": "Timestamp",
+            "in": "header",
+            "description": "Timestamp",
+            "required": true,
+            "type": "string",
+            "default": "1749733491423"
+          },
+          {
+            "name": "bookId",
+            "in": "path",
+            "description": "bookId",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "translateLanguage",
+            "in": "query",
+            "description": "目标翻译语言，用于翻译书籍名称和描述",
+            "required": false,
+            "type": "string",
+            "allowEmptyValue": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization": [
+              "global"
+            ]
+          }
+        ],
+        "deprecated": false
+      },
+      "delete": {
+        "tags": [
+          "book-controller"
+        ],
+        "summary": "删除书籍",
+        "operationId": "deleteBookByIdUsingDELETE",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "AuthToken",
+            "in": "header",
+            "description": "AuthToken",
+            "required": true,
+            "type": "string",
+            "default": "2257c2346e90a19d74465a81f2277e27"
+          },
+          {
+            "name": "DeviceId",
+            "in": "header",
+            "description": "DeviceId",
+            "required": true,
+            "type": "string",
+            "default": "123456"
+          },
+          {
+            "name": "DeviceType",
+            "in": "header",
+            "description": "android/ios/web",
+            "required": true,
+            "type": "string",
+            "default": "web"
+          },
+          {
+            "name": "Timestamp",
+            "in": "header",
+            "description": "Timestamp",
+            "required": true,
+            "type": "string",
+            "default": "1749733491423"
+          },
+          {
+            "name": "bookId",
+            "in": "path",
+            "description": "bookId",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "204": {
+            "description": "No Content",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization": [
+              "global"
+            ]
+          }
+        ],
+        "deprecated": false
+      }
+    },
+    "/api/book/public/{bookId}": {
+      "get": {
+        "tags": [
+          "book-controller"
+        ],
+        "summary": "通过bookId查询书籍详情",
+        "operationId": "getPublicBookByIdUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "AuthToken",
+            "in": "header",
+            "description": "AuthToken",
+            "required": true,
+            "type": "string",
+            "default": "2257c2346e90a19d74465a81f2277e27"
+          },
+          {
+            "name": "DeviceId",
+            "in": "header",
+            "description": "DeviceId",
+            "required": true,
+            "type": "string",
+            "default": "123456"
+          },
+          {
+            "name": "DeviceType",
+            "in": "header",
+            "description": "android/ios/web",
+            "required": true,
+            "type": "string",
+            "default": "web"
+          },
+          {
+            "name": "Timestamp",
+            "in": "header",
+            "description": "Timestamp",
+            "required": true,
+            "type": "string",
+            "default": "1749733491423"
+          },
+          {
+            "name": "bookId",
+            "in": "path",
+            "description": "bookId",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "translateLanguage",
+            "in": "query",
+            "description": "目标翻译语言，用于翻译书籍名称和描述",
+            "required": false,
+            "type": "string",
+            "allowEmptyValue": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization": [
+              "global"
+            ]
+          }
+        ],
+        "deprecated": false
+      }
+    },
+    "/api/book/bookDetail/{bookId}": {
+      "get": {
+        "tags": [
+          "book-controller"
+        ],
+        "summary": "通过bookId获取书籍内容",
+        "operationId": "getBookContentByIdUsingGET",
+        "produces": [
+          "application/octet-stream"
+        ],
+        "parameters": [
+          {
+            "name": "AuthToken",
+            "in": "header",
+            "description": "AuthToken",
+            "required": true,
+            "type": "string",
+            "default": "2257c2346e90a19d74465a81f2277e27"
+          },
+          {
+            "name": "DeviceId",
+            "in": "header",
+            "description": "DeviceId",
+            "required": true,
+            "type": "string",
+            "default": "123456"
+          },
+          {
+            "name": "DeviceType",
+            "in": "header",
+            "description": "android/ios/web",
+            "required": true,
+            "type": "string",
+            "default": "web"
+          },
+          {
+            "name": "Timestamp",
+            "in": "header",
+            "description": "Timestamp",
+            "required": true,
+            "type": "string",
+            "default": "1749733491423"
+          },
+          {
+            "name": "bookId",
+            "in": "path",
+            "description": "bookId",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string",
+              "format": "byte"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization": [
+              "global"
+            ]
+          }
+        ],
+        "deprecated": false
+      }
+    },
+    "/api/book/coverDetail/{bookId}": {
+      "get": {
+        "tags": [
+          "book-controller"
+        ],
+        "summary": "通过bookId获取书籍封面",
+        "operationId": "getBookCoverByIdUsingGET",
+        "produces": [
+          "application/octet-stream"
+        ],
+        "parameters": [
+          {
+            "name": "AuthToken",
+            "in": "header",
+            "description": "AuthToken",
+            "required": true,
+            "type": "string",
+            "default": "2257c2346e90a19d74465a81f2277e27"
+          },
+          {
+            "name": "DeviceId",
+            "in": "header",
+            "description": "DeviceId",
+            "required": true,
+            "type": "string",
+            "default": "123456"
+          },
+          {
+            "name": "DeviceType",
+            "in": "header",
+            "description": "android/ios/web",
+            "required": true,
+            "type": "string",
+            "default": "web"
+          },
+          {
+            "name": "Timestamp",
+            "in": "header",
+            "description": "Timestamp",
+            "required": true,
+            "type": "string",
+            "default": "1749733491423"
+          },
+          {
+            "name": "bookId",
+            "in": "path",
+            "description": "bookId",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string",
+              "format": "byte"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization": [
+              "global"
+            ]
+          }
+        ],
+        "deprecated": false
+      }
+    },
+    "/api/materials/list": {
+      "get": {
+        "tags": [
+          "material-controller"
+        ],
+        "summary": "获取资源项目列表",
+        "operationId": "listMaterialItemsUsingGET_1",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "AuthToken",
+            "in": "header",
+            "description": "AuthToken",
+            "required": true,
+            "type": "string",
+            "default": "2257c2346e90a19d74465a81f2277e27"
+          },
+          {
+            "name": "DeviceId",
+            "in": "header",
+            "description": "DeviceId",
+            "required": true,
+            "type": "string",
+            "default": "123456"
+          },
+          {
+            "name": "DeviceType",
+            "in": "header",
+            "description": "android/ios/web",
+            "required": true,
+            "type": "string",
+            "default": "web"
+          },
+          {
+            "name": "Timestamp",
+            "in": "header",
+            "description": "Timestamp",
+            "required": true,
+            "type": "string",
+            "default": "1749733491423"
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "description": "keyword",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "limit",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "description": "tag",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "typeId",
+            "in": "query",
+            "description": "typeId",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization": [
+              "global"
+            ]
+          }
+        ],
+        "deprecated": false
+      }
+    },
+    "/api/materials/download": {
+      "get": {
+        "tags": [
+          "material-controller"
+        ],
+        "summary": "downloadMaterialImage",
+        "operationId": "downloadMaterialImageUsingGET_1",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "AuthToken",
+            "in": "header",
+            "description": "AuthToken",
+            "required": true,
+            "type": "string",
+            "default": "2257c2346e90a19d74465a81f2277e27"
+          },
+          {
+            "name": "DeviceId",
+            "in": "header",
+            "description": "DeviceId",
+            "required": true,
+            "type": "string",
+            "default": "123456"
+          },
+          {
+            "name": "DeviceType",
+            "in": "header",
+            "description": "android/ios/web",
+            "required": true,
+            "type": "string",
+            "default": "web"
+          },
+          {
+            "name": "Timestamp",
+            "in": "header",
+            "description": "Timestamp",
+            "required": true,
+            "type": "string",
+            "default": "1749733491423"
+          },
+          {
+            "name": "key",
+            "in": "query",
+            "description": "key",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization": [
+              "global"
+            ]
+          }
+        ],
+        "deprecated": false
+      }
+    },
+    "/api/private/materials/list": {
+      "get": {
+        "tags": [
+          "material-controller"
+        ],
+        "summary": "获取用户私有仓库中的文件列表",
+        "operationId": "listUserMaterialsUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "AuthToken",
+            "in": "header",
+            "description": "AuthToken",
+            "required": true,
+            "type": "string",
+            "default": "2257c2346e90a19d74465a81f2277e27"
+          },
+          {
+            "name": "DeviceId",
+            "in": "header",
+            "description": "DeviceId",
+            "required": true,
+            "type": "string",
+            "default": "123456"
+          },
+          {
+            "name": "DeviceType",
+            "in": "header",
+            "description": "android/ios/web",
+            "required": true,
+            "type": "string",
+            "default": "web"
+          },
+          {
+            "name": "Timestamp",
+            "in": "header",
+            "description": "Timestamp",
+            "required": true,
+            "type": "string",
+            "default": "1749733491423"
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "description": "category",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization": [
+              "global"
+            ]
+          }
+        ],
+        "deprecated": false
+      }
+    },
+    "/api/private/materials/presignedUrl": {
+      "post": {
+        "tags": [
+          "material-controller"
+        ],
+        "summary": "上传图片到私有仓库",
+        "operationId": "generatePresignedUrlByFileUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "AuthToken",
+            "in": "header",
+            "description": "AuthToken",
+            "required": true,
+            "type": "string",
+            "default": "2257c2346e90a19d74465a81f2277e27"
+          },
+          {
+            "name": "DeviceId",
+            "in": "header",
+            "description": "DeviceId",
+            "required": true,
+            "type": "string",
+            "default": "123456"
+          },
+          {
+            "name": "DeviceType",
+            "in": "header",
+            "description": "android/ios/web",
+            "required": true,
+            "type": "string",
+            "default": "web"
+          },
+          {
+            "name": "Timestamp",
+            "in": "header",
+            "description": "Timestamp",
+            "required": true,
+            "type": "string",
+            "default": "1749733491423"
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "description": "category",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "fileKey",
+            "in": "query",
+            "description": "fileKey",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "201": {
+            "description": "Created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization": [
+              "global"
+            ]
+          }
+        ],
+        "deprecated": false
+      }
+    },
+    "/api/private/materials/deleteFolder": {
+      "delete": {
+        "tags": [
+          "material-controller"
+        ],
+        "summary": "删除用户私有仓库中的文件夹",
+        "operationId": "deleteFolderUsingDELETE",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "AuthToken",
+            "in": "header",
+            "description": "AuthToken",
+            "required": true,
+            "type": "string",
+            "default": "2257c2346e90a19d74465a81f2277e27"
+          },
+          {
+            "name": "DeviceId",
+            "in": "header",
+            "description": "DeviceId",
+            "required": true,
+            "type": "string",
+            "default": "123456"
+          },
+          {
+            "name": "DeviceType",
+            "in": "header",
+            "description": "android/ios/web",
+            "required": true,
+            "type": "string",
+            "default": "web"
+          },
+          {
+            "name": "Timestamp",
+            "in": "header",
+            "description": "Timestamp",
+            "required": true,
+            "type": "string",
+            "default": "1749733491423"
+          },
+          {
+            "name": "folder",
+            "in": "query",
+            "description": "folder",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "204": {
+            "description": "No Content",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization": [
+              "global"
+            ]
+          }
+        ],
+        "deprecated": false
+      }
+    }
+  },
+  "definitions": {
+    "SelectCourseVersionReq": {
+      "type": "object",
+      "properties": {
+        "courseId": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "versionId": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "SelectCourseVersionReq"
+    }
+  }
+}
