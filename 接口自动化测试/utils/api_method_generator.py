@@ -33,9 +33,11 @@ import re
 from datetime import datetime
 from typing import Dict, Any, List, Tuple, Optional, Iterable
 import argparse
+from config import RunConfig
+VersionId = RunConfig.VersionId
 
 
-SWAGGER_PATH = os.path.join("test_data", "swagger", "swagger_fixed.json")
+SWAGGER_PATH = os.getcwd() + os.path.join(r"\test_data", "swagger", "swagger_fixed.json")
 
 
 
@@ -66,7 +68,7 @@ def _camelize_from_path(path: str, http_method: str) -> str:
     return name
 
 
-def _build_method_block(method_name: str, http_method: str, path: str, summary: str) -> str:
+def _build_method_block(method_name: str, http_method: str, path: str, summary: str, is_update: bool = False) -> str:
     """构建符合用户模板的方法代码块（缩进与现有文件一致，4空格）"""
     summary_text = summary or path
     today = datetime.now().strftime("%Y-%m-%d")
@@ -76,6 +78,19 @@ def _build_method_block(method_name: str, http_method: str, path: str, summary: 
         if http_method.upper() == "GET"
         else f"response = requests.request(\"{http_method}\", url, headers=headers, json=kwargs)"
     )
+    
+    # 根据是否为更新模式生成不同的注释
+    if is_update:
+        comment_block = (
+            f"        # Create Data:  {VersionId}  &  {today}\n"
+            f"        # Update Date:  {VersionId}  &  {today}\n"
+            f"        # Update Details:  接口更新\n"
+        )
+    else:
+        comment_block = (
+            f"        # Create Data:  {VersionId}  &  {today}\n"
+        )
+    
     return (
         f"\n    def {method_name}(self, authorization, DeviceType=\"web\", **kwargs):\n"
         f"        \"\"\"\n"
@@ -83,14 +98,11 @@ def _build_method_block(method_name: str, http_method: str, path: str, summary: 
         f"        :param page:\n"
         f"        :return:\n"
         f"        \"\"\"\n"
-        f"        # Create Data:  自动生成 {today}\n"
-        f"        # Creator: Swagger Generator\n"
-        f"        # Update Date:\n"
-        f"        # updater:\n"
-        f"        # Update Details:\n"
+        f"{comment_block}"
         f"        url = f\"https://{{base_url}}{path}\"\n"
         f"        timestamp = str(int(time.time() * 1000))\n"
         f"        headers = self.request_header(timestamp, authorization, DeviceType)\n"
+        f"\n"
         f"        {request_line}\n"
         f"        error_msg = \"{summary_text}\"\n"
         f"        assert response.status_code == 200, f\"{{error_msg}}失败，url->{{url}}，失败信息->{{response.reason}}{{response.content}}\"\n"
@@ -147,6 +159,141 @@ def _extract_course_paths(
     return results
 
 
+def generate_single_method_to_api(
+    path: str,
+    http_method: str,
+    module: str = "course",
+    summary: Optional[str] = None,
+    force: bool = False,
+):
+    """
+    生成单个接口方法到指定的 API 文件中
+    
+    Args:
+        path: 接口路径，如 "/api/course/content/detail"
+        http_method: HTTP 方法，如 "GET", "POST" 等
+        module: 目标模块目录名，如 "course", "book" 等
+        summary: 接口摘要，如果不提供则从 swagger 中获取
+        force: 是否强制覆盖已存在的方法
+    """
+    # 读取 swagger 获取接口信息
+    if not os.path.exists(SWAGGER_PATH):
+        raise FileNotFoundError(f"未找到 Swagger 文件: {SWAGGER_PATH}")
+    
+    with open(SWAGGER_PATH, "r", encoding="utf-8") as f:
+        swagger = json.load(f)
+    
+    # 从 swagger 中获取接口摘要
+    if not summary:
+        paths = swagger.get("paths", {})
+        if path in paths and http_method.upper() in paths[path]:
+            summary = paths[path][http_method.upper()].get("summary", "")
+        else:
+            summary = path
+    
+    # 读取并定位 API 类文件
+    api_file = os.path.join("test_case", "page_api", module, f"{module}_api.py")
+    if not os.path.exists(api_file):
+        raise FileNotFoundError(f"未找到 API 文件: {api_file}")
+    
+    with open(api_file, "r", encoding="utf-8") as f:
+        content = f.read()
+    
+    # 检查目标类是否存在
+    if f"class {module.capitalize()}Api(" not in content:
+        raise RuntimeError(f"未在目标文件中找到 {module.capitalize()}Api 类定义")
+    
+    # 生成方法名
+    method_name = _camelize_from_path(path, http_method)
+    
+    # 检查方法是否已存在
+    signature_token = f"\n    def {method_name}("
+    method_exists = signature_token in content
+
+    # 若方法已存在：在原注释中追加 Update 行（不破坏原有 Create Data 等注释）
+    if method_exists:
+        start_pos = content.find(signature_token)
+        if start_pos == -1:
+            print(f"未能定位已存在的方法: {method_name}")
+            return
+
+        # 切片出该方法的完整文本块
+        tail = content[start_pos:]
+        lines = tail.split('\n')
+        method_lines = []
+        indent_level = None
+        end_index = None
+        for i, line in enumerate(lines):
+            if i == 0:
+                method_lines.append(line)
+                continue
+            if indent_level is None and line.strip():
+                indent_level = len(line) - len(line.lstrip())
+            if line.strip() and indent_level is not None:
+                current_indent = len(line) - len(line.lstrip())
+                if current_indent <= indent_level and not line.startswith(' ' * (indent_level + 1)):
+                    end_index = i
+                    break
+            method_lines.append(line)
+        if end_index is None:
+            end_index = len(lines)
+
+        old_method = '\n'.join(method_lines)
+
+        # 在 old_method 中查找 Create Data 注释，并在其后插入 Update 注释（若未存在）
+        create_marker = "# Create Data:"
+        update_date_marker = "# Update Date:"
+        update_details_marker = "# Update Details:"
+        if update_date_marker in old_method or update_details_marker in old_method:
+            print(f"方法 {method_name} 已包含更新注释，跳过追加")
+            return method_name
+
+        insert_idx = old_method.find(create_marker)
+        if insert_idx == -1:
+            # 未找到 Create Data，则不做破坏性修改，直接返回
+            print(f"方法 {method_name} 未找到 Create Data 注释，跳过追加")
+            return method_name
+
+        # 计算插入位置到该行末尾
+        line_start = old_method.rfind('\n', 0, insert_idx) + 1
+        line_end = old_method.find('\n', insert_idx)
+        if line_end == -1:
+            line_end = len(old_method)
+        existing_line = old_method[line_start:line_end]
+
+        # 保持与现有注释相同的缩进
+        leading_spaces = ''
+        for ch in existing_line:
+            if ch == ' ':
+                leading_spaces += ' '
+            else:
+                break
+
+        from datetime import datetime
+        today = datetime.now().strftime("%Y-%m-%d")
+        update_block = (
+            f"\n{leading_spaces}# Update Date:  {VersionId}  &  {today}\n"
+            f"{leading_spaces}# Update Details:  接口更新"
+        )
+
+        new_method = old_method[:line_end] + update_block + old_method[line_end:]
+        new_content = content.replace(old_method, new_method, 1)
+
+        with open(api_file, "w", encoding="utf-8") as f:
+            f.write(new_content)
+        print(f"已在方法 {method_name} 的注释下追加 Update 信息: {api_file}")
+        return method_name
+
+    # 方法不存在：走新增逻辑，生成带 Create Data 注释的方法块
+    method_block = _build_method_block(method_name, http_method, path, summary, is_update=False)
+    new_content = content.rstrip() + "\n" + method_block + "\n"
+    with open(api_file, "w", encoding="utf-8") as f:
+        f.write(new_content)
+    print(f"已新增方法 {method_name} 到文件: {api_file}")
+    
+    return method_name
+
+
 def generate_methods_to_api(
     module: str = "course",
     include_exact: Optional[List[str]] = None,
@@ -174,7 +321,7 @@ def generate_methods_to_api(
         return
 
     # 读取并定位 CourseApi 类，准备在文件末尾追加（维持缩进）
-    api_file = os.getcwd() + os.path.join("/test_case", "page_api", module, f"{module}_api.py")
+    api_file = os.path.join("test_case", "page_api", module, f"{module}_api.py")
     if not os.path.exists(api_file):
         raise FileNotFoundError(f"未找到 API 文件: {api_file}")
     with open(api_file, "r", encoding="utf-8") as f:
@@ -194,7 +341,7 @@ def generate_methods_to_api(
         if signature_token in content:
             skipped += 1
             continue
-        blocks_to_add.append(_build_method_block(method_name, http_method, path, summary))
+        blocks_to_add.append(_build_method_block(method_name, http_method, path, summary, is_update=False))
 
     if not blocks_to_add:
         print(f"无新增方法可写入（跳过 {skipped} 个已存在的方法）。目标文件: {api_file}")
@@ -211,6 +358,15 @@ def generate_methods_to_api(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Swagger -> CourseApi 方法生成器")
     parser.add_argument("--module", default="course", help="目标模块目录名（如 course、book 等），默认 course")
+    
+    # 单个接口生成参数
+    parser.add_argument("--single", action="store_true", help="生成单个接口方法")
+    parser.add_argument("--path", help="单个接口的路径，如 '/api/course/content/detail'")
+    parser.add_argument("--http-method", help="HTTP 方法，如 'GET', 'POST' 等")
+    parser.add_argument("--summary", help="接口摘要，如果不提供则从 swagger 中获取")
+    parser.add_argument("--force", action="store_true", help="强制覆盖已存在的方法")
+    
+    # 批量生成参数
     parser.add_argument("--include-path", dest="include_exact", action="append", help="仅生成这些精确路径的接口，可多次")
     parser.add_argument("--include-prefix", dest="include_prefix", action="append", help="仅生成以此前缀开头的接口，可多次")
     parser.add_argument("--include-regex", dest="include_regex", help="使用正则筛选路径")
@@ -218,13 +374,28 @@ if __name__ == "__main__":
     parser.add_argument("--method", dest="methods", action="append", help="仅生成指定 HTTP 方法，如 --method GET，可多次")
 
     args = parser.parse_args()
-    generate_methods_to_api(
-        module=args.module,
-        include_exact=['/api/course/content/detail'],
-        include_prefix=args.include_prefix,
-        include_regex=args.include_regex,
-        only_course_related=(not args.all_paths),
-        methods=args.methods,
-    )
+    
+    # 根据参数选择生成方式
+    if args.single:
+        if not args.path or not args.http_method:
+            print("错误：使用 --single 模式时必须提供 --path 和 --http-method 参数")
+            exit(1)
+        generate_single_method_to_api(
+            path=args.path,
+            http_method=args.http_method,
+            module=args.module,
+            summary=args.summary,
+            force=args.force,
+        )
+    else:
+        # 默认批量生成模式
+        generate_methods_to_api(
+            module=args.module,
+            include_exact=args.include_exact,
+            include_prefix=args.include_prefix,
+            include_regex=args.include_regex,
+            only_course_related=(not args.all_paths),
+            methods=args.methods,
+        )
 
 

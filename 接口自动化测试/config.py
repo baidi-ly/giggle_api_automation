@@ -35,6 +35,9 @@ class RunConfig:
     # 设备ID
     DeviceId = "123456"
 
+    # 当前版本号
+    VersionId = 'V1.19.0'
+
     # 是否配置host，普通不要动用，跑单节点的时候才能使用（平时动了会影响其他用例的执行）
     is_host = False
     passport_url = ""

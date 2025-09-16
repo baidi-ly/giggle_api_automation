@@ -76,3 +76,21 @@ class CourseApi(BaseAPI):
         assert "data" in response,  f"{error_msg}返回结果没有data数据，url->{url}，response->{response}"
         return response["data"]
 
+    def getListallwithlevel(self, authorization, DeviceType="web", **kwargs):
+        """
+        获取所有课程，并按级别分组（分批循环查询全部数据，每批次500条）
+        :param page:
+        :return:
+        """
+        # Create Data:  V1.19.0  &  2025-09-16
+        url = f"https://{base_url}/api/course/listAllWithLevel"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("get", url, headers=headers, params=kwargs)
+        error_msg = "获取所有课程，并按级别分组（分批循环查询全部数据，每批次500条）"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        assert "data" in response,  f"{error_msg}返回结果没有data数据，url->{url}，response->{response}"
+        return response["data"]
+

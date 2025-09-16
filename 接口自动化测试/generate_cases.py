@@ -9,7 +9,7 @@ import json
 import os
 import sys
 
-from utils.api_method_generator import generate_methods_to_api
+from utils.api_method_generator import generate_methods_to_api, generate_single_method_to_api
 from utils.case_generator import generate_cases
 from utils.extract_apis import load_swagger_file, extract_api_info
 from utils.init_swagger import init_swagger, logger
@@ -65,54 +65,27 @@ if __name__ == '__main__':
 
 
     # -----------------------------------步骤4： 封装接口---------------------------------------
-    parser = argparse.ArgumentParser(description="Swagger -> CourseApi 方法生成器")
-    parser.add_argument("--module", default="course", help="目标模块目录名（如 course、book 等），默认 course")
-    parser.add_argument("--include-path", dest="include_exact", action="append", help="仅生成这些精确路径的接口，可多次")
-    parser.add_argument("--include-prefix", dest="include_prefix", action="append", help="仅生成以此前缀开头的接口，可多次")
-    parser.add_argument("--include-regex", dest="include_regex", help="使用正则筛选路径")
-    parser.add_argument("--all-paths", dest="all_paths", action="store_true", help="包含所有路径（不只限 /course）")
-    parser.add_argument("--method", dest="methods", action="append", help="仅生成指定 HTTP 方法，如 --method GET，可多次")
 
-    args = parser.parse_args()
 
-    generate_methods_to_api(
-        module=args.module,
-        include_exact=target_apis,
-        include_prefix=args.include_prefix,
-        include_regex=args.include_regex,
-        only_course_related=(not args.all_paths),
-        methods=args.methods,
-    )
-
-    # -----------------------------------步骤5: 生成单接口用例---------------------------------------
-    # 在此配置你要生成的接口用例任务（可增删改）
-    tasks = [
-        # 示例1：无业务参数（仅 authorization）
-        {
-            "path": target_apis[0],
-            "api_method": "detail",
-            "required": [],
-            "optional": [],
-            "marker": "course",
-            "doc": "获取所有课程分级列表"
-        },
-        # # 示例2：有必填参数
-        # {
-        #     "path": "/api/course/content/detail",
-        #     "api_method": "getCourseContentDetail",
-        #     "required": ["courseId"],
-        #     "optional": [],
-        #     "marker": "Course",
-        #     "doc": "获取课程详情"
-        # },
-        # # 示例3：有必填 + 可选参数
-        # {
-        #     "path": "/api/user/kids",
-        #     "api_method": "getKids",
-        #     "required": ["kidId"],
-        #     "optional": ["page"],
-        #     "marker": "User",
-        #     "doc": "获取孩子数据"
-        # }
-    ]
-    generate_cases(tasks)
+    for api, api_info in extracted_data['paths'].items():
+        for info_k, info_v in api_info.items():
+            method_name = generate_single_method_to_api(
+                path=api,
+                http_method=info_k,
+                module=api.split('/')[2],
+                summary=info_v['summary'],
+                force=False,
+            )
+            tasks = []
+            tasks.append(
+                # 示例1：无业务参数（仅 authorization）
+                {
+                    "path": api,
+                    "api_method": method_name,
+                    "required": [],
+                    "optional": [],
+                    "marker": api.split('/')[2],
+                    "doc": info_v['summary']
+                }
+            )
+            generate_cases(tasks)
