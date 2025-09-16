@@ -294,66 +294,6 @@ def generate_single_method_to_api(
     return method_name
 
 
-def generate_methods_to_api(
-    module: str = "course",
-    include_exact: Optional[List[str]] = None,
-    include_prefix: Optional[List[str]] = None,
-    include_regex: Optional[str] = None,
-    only_course_related: bool = True,
-    methods: Optional[List[str]] = None,
-):
-    # 读取 swagger
-    if not os.path.exists(SWAGGER_PATH):
-        raise FileNotFoundError(f"未找到 Swagger 文件: {SWAGGER_PATH}")
-    with open(SWAGGER_PATH, "r", encoding="utf-8") as f:
-        swagger = json.load(f)
-
-    items = _extract_course_paths(
-        swagger,
-        include_exact=include_exact,
-        include_prefix=include_prefix,
-        include_regex=include_regex,
-        only_course_related=only_course_related,
-        methods=methods,
-    )
-    if not items:
-        print("未找到匹配的接口路径。")
-        return
-
-    # 读取并定位 CourseApi 类，准备在文件末尾追加（维持缩进）
-    api_file = os.path.join("test_case", "page_api", module, f"{module}_api.py")
-    if not os.path.exists(api_file):
-        raise FileNotFoundError(f"未找到 API 文件: {api_file}")
-    with open(api_file, "r", encoding="utf-8") as f:
-        content = f.read()
-
-    # 仅检查 CourseApi 类以保持与现有结构兼容
-    if f"class {module.capitalize()}Api(" not in content:
-        raise RuntimeError(f"未在目标文件中找到 {module.capitalize()}Api 类定义")
-
-    # 生成方法块（若方法名已存在则跳过）
-    blocks_to_add: List[str] = []
-    skipped = 0
-    for http_method, path, summary in items:
-        method_name = _camelize_from_path(path, http_method)
-        # 在目标文件中检测是否已有同名方法
-        signature_token = f"\n    def {method_name}("
-        if signature_token in content:
-            skipped += 1
-            continue
-        blocks_to_add.append(_build_method_block(method_name, http_method, path, summary, is_update=False))
-
-    if not blocks_to_add:
-        print(f"无新增方法可写入（跳过 {skipped} 个已存在的方法）。目标文件: {api_file}")
-        return
-
-    new_content = content.rstrip() + "\n" + "\n".join(blocks_to_add) + "\n"
-
-    with open(api_file, "w", encoding="utf-8") as f:
-        f.write(new_content)
-
-    print(f"已新增 {len(blocks_to_add)} 个方法写入: {api_file}（跳过 {skipped} 个已存在的方法）")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Swagger -> CourseApi 方法生成器")
