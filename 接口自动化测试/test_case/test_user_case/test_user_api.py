@@ -201,3 +201,31 @@ class TestUser:
         res = self.api.auto(authorization=self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+
+    def test_positive_getAzureconfig_ok(self):
+        """获取 Azure 配置-正向用例"""
+        res = self.user.getAzureconfig(authorization=self.authorization, **{})
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+
+    def test_permission_getAzureconfig_no_auth(self):
+        """获取 Azure 配置-未登录"""
+        res = self.user.getAzureconfig()
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+
+    def test_permission_getAzureconfig_expired_token(self):
+        """获取 Azure 配置-鉴权异常-expired_token"""
+        res = self.user.getAzureconfig(authorization='expired_token')
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+
+    def test_permission_getAzureconfig_invalid_token(self):
+        """获取 Azure 配置-鉴权异常-invalid_token"""
+        res = self.user.getAzureconfig(authorization='invalid_token')
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'

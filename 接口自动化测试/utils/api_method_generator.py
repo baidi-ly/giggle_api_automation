@@ -37,7 +37,7 @@ from config import RunConfig
 VersionId = RunConfig.VersionId
 
 
-SWAGGER_PATH = os.getcwd() + os.path.join(r"\test_data", "swagger", "swagger_fixed.json")
+SWAGGER_PATH = os.getcwd() + os.path.join(r"/test_data", "swagger", "swagger_fixed.json")
 
 
 

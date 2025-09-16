@@ -9,7 +9,7 @@ import json
 import os
 import sys
 
-from utils.api_case_generator import generate_cases
+from utils.api_case_generator import generate_tests_for_api
 from utils.api_method_generator import generate_single_method_to_api
 from utils.extract_apis import load_swagger_file, extract_api_info
 from utils.init_swagger import init_swagger, logger
@@ -76,16 +76,15 @@ if __name__ == '__main__':
                 summary=info_v['summary'],
                 force=False,
             )
-            tasks = []
-            tasks.append(
-                # 示例1：无业务参数（仅 authorization）
-                {
-                    "path": api,
-                    "api_method": method_name,
-                    "required": [],
-                    "optional": [],
-                    "marker": api.split('/')[2],
-                    "doc": info_v['summary']
-                }
+            # 基于 swagger 的参数信息生成测试用例（仅 query/body 参与测试）
+            raw_parameters = info_v.get('parameters', [])
+            parameters = [p for p in raw_parameters if p.get('in') in ('query', 'body')]
+            marker = api.split('/')[2]
+            generate_tests_for_api(
+                path=api,
+                http_method=info_k,
+                method_name=method_name,
+                summary=info_v.get('summary', ''),
+                parameters=parameters,
+                marker=marker,
             )
-            generate_cases(tasks)
