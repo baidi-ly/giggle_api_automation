@@ -40,38 +40,3 @@ class TestCourse:
         res = self.api.detail(authorization=self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
-
-
-    def test_noargs_detail_basic(self):
-        """获取所有课程分级列表"""
-        res = self.api.detail(authorization=self.authorization)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert 'data' in res, f'返回结果没有data数据，response->{res}'
-
-
-    def test_noargs_detail_basic(self):
-        """获取所有课程分级列表"""
-        res = self.api.detail(authorization=self.authorization)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert 'data' in res, f'返回结果没有data数据，response->{res}'
-
-
-    def test_noargs_detail_basic(self):
-        """获取所有课程分级列表"""
-        res = self.api.detail(authorization=self.authorization)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert 'data' in res, f'返回结果没有data数据，response->{res}'
-
-
-    def test_noargs_getListallwithlevel_basic(self):
-        """获取所有课程，并按级别分组（分批循环查询全部数据，每批次500条）"""
-        res = self.api.getListallwithlevel(authorization=self.authorization)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert 'data' in res, f'返回结果没有data数据，response->{res}'
-
-
-    def test_noargs_getListallwithlevel_basic(self):
-        """获取所有课程，并按级别分组（分批循环查询全部数据，每批次500条）"""
-        res = self.api.getListallwithlevel(authorization=self.authorization)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert 'data' in res, f'返回结果没有data数据，response->{res}'
