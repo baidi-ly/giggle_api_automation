@@ -13,8 +13,8 @@ sys.path.append(os.getcwd())
 sys.path.append("..")
 
 
-@pytest.mark.Course
-class TestCourse:
+@pytest.mark.material
+class TestMaterial:
 
     def setup_class(self):
         self.materials = MaterialsApi()

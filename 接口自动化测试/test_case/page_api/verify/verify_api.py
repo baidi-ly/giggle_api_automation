@@ -37,13 +37,13 @@ class VerifyApi(BaseAPI):
         """
         # Create Data:  V1.19.0  &  2025-09-16
         url = f"https://{base_url}/api/verify/auditors"
-        payload1 = {
+        payload = {
             "page": page
         }
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
-        response = requests.request("GET", url, headers=headers, params=payload1)
+        response = requests.request("GET", url, headers=headers, params=payload)
         error_msg = "获取所有审核员"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
