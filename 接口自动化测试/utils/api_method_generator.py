@@ -60,11 +60,19 @@ def _camelize_from_path(path: str, http_method: str) -> str:
     # 特例：当末段是 detail 或 listAllWithLevel 等已是驼峰词，直接拼接
     if not tail_camel:
         tail_camel = "Auto"
-    # 避免方法名与已有方法冲突：不强制加 get 前缀时，尽量遵循现有风格
-    if tail_camel[0].isupper():
-        name = verb + tail_camel
+    # 规则调整：POST 不加动词前缀，其它方法保持原规则
+    if http_method.upper() == "POST":
+        # lowerCamel，如 bindApple
+        if tail_camel:
+            name = tail_camel[0].lower() + tail_camel[1:]
+        else:
+            name = "auto"
     else:
-        name = verb + tail_camel[0].upper() + tail_camel[1:]
+        # 避免方法名与已有方法冲突：不强制加 get 前缀时，尽量遵循现有风格
+        if tail_camel and tail_camel[0].isupper():
+            name = verb + tail_camel
+        else:
+            name = verb + (tail_camel[0].upper() + tail_camel[1:] if tail_camel else "Auto")
     return name
 
 
@@ -76,6 +84,8 @@ def _build_method_block(
     is_update: bool = False,
     body_params: Optional[List[Dict[str, Any]]] = None,
     path_params: Optional[List[Dict[str, Any]]] = None,
+    query_params: Optional[List[Dict[str, Any]]] = None,
+    form_params: Optional[List[Dict[str, Any]]] = None,
 ) -> str:
     """构建符合用户模板的方法代码块（缩进与现有文件一致，4空格）"""
     summary_text = summary or path
@@ -128,6 +138,25 @@ def _build_method_block(
                     default_value = "''"
             
             method_params.append(f"{param_name}={default_value}")
+
+    # 添加 query 参数到方法签名
+    if query_params:
+        for param in query_params:
+            param_name = param.get("name", "")
+            param_type = param.get("type", "string")
+            param_default = param.get("default", "")
+            if param_type == "integer":
+                default_value = param_default if isinstance(param_default, int) else "0"
+            elif param_type == "boolean":
+                default_value = str(param_default).lower() if isinstance(param_default, bool) else "False"
+            else:
+                default_value = f"'{param_default}'" if isinstance(param_default, str) and param_default else "''"
+            method_params.append(f"{param_name}={default_value}")
+
+    # formData 文件上传：按照需求仅暴露 file 参数
+    has_form = bool(form_params)
+    if has_form:
+        method_params.append("file=None")
     
     # 添加其他标准参数
     method_params.extend(["DeviceType=\"web\"", "code=200", "**kwargs"])
@@ -135,25 +164,56 @@ def _build_method_block(
     
     # 构建 payload 代码
     payload_code = ""
-    if body_params:
-        payload_items = []
+    payload_lines: List[str] = []
+    has_query = bool(query_params)
+    has_body = bool(body_params)
+    # 同时存在 query 与 body 时，沿用 payload1/payload2；否则统一使用 payload
+    if has_query and has_body:
+        q_items = []
+        for param in query_params:
+            pname = param.get("name", "")
+            q_items.append(f'            "{pname}": {pname}')
+        payload_lines.append(f"        payload1 = {{\n{chr(10).join(q_items)}\n        }}")
+        b_items = []
         for param in body_params:
-            param_name = param.get("name", "")
-            payload_items.append(f'            "{param_name}": {param_name}')
-        payload_code = f"        payload = {{\n{chr(10).join(payload_items)}\n        }}\n        payload = self.request_body(payload, **kwargs)\n"
+            pname = param.get("name", "")
+            b_items.append(f'            "{pname}": {pname}')
+        payload_lines.append(f"        payload2 = {{\n{chr(10).join(b_items)}\n        }}")
+        payload_lines.append("        payload2 = self.request_body(payload2, **kwargs)")
+    elif has_query:
+        q_items = []
+        for param in query_params:
+            pname = param.get("name", "")
+            q_items.append(f'            "{pname}": {pname}')
+        payload_lines.append(f"        payload = {{\n{chr(10).join(q_items)}\n        }}")
+    elif has_body:
+        b_items = []
+        for param in body_params:
+            pname = param.get("name", "")
+            b_items.append(f'            "{pname}": {pname}')
+        payload_lines.append(f"        payload = {{\n{chr(10).join(b_items)}\n        }}")
+        payload_lines.append("        payload = self.request_body(payload, **kwargs)")
+    if payload_lines:
+        payload_code = "\n".join(payload_lines) + "\n"
     
     # 构建请求行
-    if body_params:
-        # 有 payload：依据方法类型选择传参
-        if http_method.upper() == "GET":
-            request_line = f"response = requests.request(\"{http_method.upper()}\", url, headers=headers, params=payload)"
-        elif http_method.upper() in ("POST", "PUT", "PATCH"):
-            request_line = f"response = requests.request(\"{http_method.upper()}\", url, headers=headers, json=payload)"
-        else:
-            request_line = f"response = requests.request(\"{http_method.upper()}\", url, headers=headers)"
-    else:
-        # 无 payload：不携带任何 data/json/params
-        request_line = f"response = requests.request(\"{http_method.upper()}\", url, headers=headers)"
+    # 组合请求：按是否存在 query/body/formData 动态传参
+    method_upper = http_method.upper()
+    args_parts: List[str] = ["\"" + method_upper + "\"", "url", "headers=headers"]
+    if has_query and has_body:
+        args_parts.append("params=payload1")
+        if method_upper in ("POST", "PUT", "PATCH", "DELETE"):
+            args_parts.append("json=payload2")
+    elif has_query:
+        args_parts.append("params=payload")
+    elif has_body and method_upper in ("POST", "PUT", "PATCH", "DELETE"):
+        args_parts.append("json=payload")
+    if has_body and method_upper == "GET":
+        # GET 一般不带 body，这里忽略 body
+        pass
+    if has_form:
+        args_parts.append("files=file")
+    request_line = f"response = requests.request(" + ", ".join(args_parts) + ")"
     
     # 根据是否为更新模式生成不同的注释
     if is_update:
@@ -197,6 +257,17 @@ def _build_method_block(
             req = "required" if p.get("required") else "optional"
             desc = p.get("description") or name
             param_doc_lines.append(f"        :param {name}: ({typ}, body, {req}) {desc}")
+    if query_params:
+        for p in query_params:
+            name = p.get("name", "")
+            if not name:
+                continue
+            typ = _param_type(p)
+            req = "required" if p.get("required") else "optional"
+            desc = p.get("description") or name
+            param_doc_lines.append(f"        :param {name}: ({typ}, query, {req}) {desc}")
+    if has_form:
+        param_doc_lines.append("        :param file: (file, formData, optional) 上传文件")
     params_doc = "\n".join(param_doc_lines)
 
     return (
@@ -208,8 +279,8 @@ def _build_method_block(
         f"        \"\"\"\n"
         f"{comment_block}"
         f"        url = f\"https://{{base_url}}{path_code}\"\n"
-        f"        timestamp = str(int(time.time() * 1000))\n"
         f"{payload_code}"
+        f"        timestamp = str(int(time.time() * 1000))\n"
         f"        headers = self.request_header(timestamp, authorization, DeviceType)\n"
         f"\n"
         f"        {request_line}\n"
@@ -305,23 +376,29 @@ def generate_single_method_to_api(
     with open(SWAGGER_PATH, "r", encoding="utf-8") as f:
         swagger = json.load(f)
     
-    # 从 swagger 中获取接口摘要和 body/path 参数
+    # 从 swagger 中获取接口摘要和 body/path/query/formData 参数
     paths = swagger.get("paths", {})
     body_params: List[Dict[str, Any]] = []
     path_params: List[Dict[str, Any]] = []
+    query_params: List[Dict[str, Any]] = []
+    form_params: List[Dict[str, Any]] = []
     
     if path in paths and (http_method.lower() in paths[path] or http_method.upper() in paths[path]):
         interface_info = paths[path].get(http_method.lower()) or paths[path].get(http_method.upper())
         if not summary:
             summary = interface_info.get("summary", "")
         
-        # 提取 parameters 中 in 类型为 body 与 path 的参数
+        # 提取 parameters 中 in 类型为 body/path/query/formData 的参数
         parameters = interface_info.get("parameters", [])
         for param in parameters:
             if param.get("in") == "body":
                 body_params.append(param)
             elif param.get("in") == "path":
                 path_params.append(param)
+            elif param.get("in") == "query":
+                query_params.append(param)
+            elif param.get("in") == "formData":
+                form_params.append(param)
     else:
         if not summary:
             summary = path
@@ -437,6 +514,8 @@ def generate_single_method_to_api(
         is_update=False,
         body_params=body_params,
         path_params=path_params,
+        query_params=query_params,
+        form_params=form_params,
     )
     new_content = content.rstrip() + "\n" + method_block + "\n"
     with open(api_file, "w", encoding="utf-8") as f:
