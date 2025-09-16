@@ -68,16 +68,91 @@ def _camelize_from_path(path: str, http_method: str) -> str:
     return name
 
 
-def _build_method_block(method_name: str, http_method: str, path: str, summary: str, is_update: bool = False) -> str:
+def _build_method_block(
+    method_name: str,
+    http_method: str,
+    path: str,
+    summary: str,
+    is_update: bool = False,
+    body_params: Optional[List[Dict[str, Any]]] = None,
+    path_params: Optional[List[Dict[str, Any]]] = None,
+) -> str:
     """构建符合用户模板的方法代码块（缩进与现有文件一致，4空格）"""
     summary_text = summary or path
     today = datetime.now().strftime("%Y-%m-%d")
-    # GET 使用 params，其他使用 json；允许 **kwargs 透传
-    request_line = (
-        f"response = requests.request(\"{http_method}\", url, headers=headers, params=kwargs)"
-        if http_method.upper() == "GET"
-        else f"response = requests.request(\"{http_method}\", url, headers=headers, json=kwargs)"
-    )
+    
+    # 构建方法参数
+    method_params = ["self", "authorization"]
+
+    # 先添加 path 参数到方法签名（确保可用于 f-string URL）
+    if path_params:
+        for param in path_params:
+            pname = param.get("name", "")
+            ptype = (param.get("type") or "string").lower()
+            prequired = bool(param.get("required", False))
+            pdefault = param.get("default")
+            if ptype == "integer":
+                default_value = str(pdefault) if isinstance(pdefault, int) else "0"
+            elif ptype == "boolean":
+                default_value = (str(pdefault).lower() if isinstance(pdefault, bool) else "False")
+            else:
+                default_value = f"'{pdefault}'" if isinstance(pdefault, str) and pdefault is not None else "''"
+            method_params.append(f"{pname}={default_value}")
+    
+    # 添加 body 参数到方法签名
+    if body_params:
+        for param in body_params:
+            param_name = param.get("name", "")
+            param_type = param.get("type", "string")
+            param_required = param.get("required", False)
+            param_default = param.get("default", "")
+            
+            # 根据参数类型和是否必填设置默认值
+            if param_required:
+                if param_type == "string":
+                    default_value = f"'{param_default}'" if param_default else "''"
+                elif param_type == "integer":
+                    default_value = param_default if param_default else "0"
+                elif param_type == "boolean":
+                    default_value = param_default.lower() if param_default else "False"
+                else:
+                    default_value = "''"
+            else:
+                if param_type == "string":
+                    default_value = f"'{param_default}'" if param_default else "''"
+                elif param_type == "integer":
+                    default_value = param_default if param_default else "0"
+                elif param_type == "boolean":
+                    default_value = param_default.lower() if param_default else "False"
+                else:
+                    default_value = "''"
+            
+            method_params.append(f"{param_name}={default_value}")
+    
+    # 添加其他标准参数
+    method_params.extend(["DeviceType=\"web\"", "code=200", "**kwargs"])
+    method_signature = ", ".join(method_params)
+    
+    # 构建 payload 代码
+    payload_code = ""
+    if body_params:
+        payload_items = []
+        for param in body_params:
+            param_name = param.get("name", "")
+            payload_items.append(f'            "{param_name}": {param_name}')
+        payload_code = f"        payload = {{\n{chr(10).join(payload_items)}\n        }}\n        payload = self.request_body(payload, **kwargs)\n"
+    
+    # 构建请求行
+    if body_params:
+        # 有 body 参数时使用 json=payload
+        request_line = f"response = requests.request(\"{http_method}\", url, headers=headers, json=payload)"
+    else:
+        # 没有 body 参数时使用原来的逻辑
+        request_line = (
+            f"response = requests.request(\"{http_method}\", url, headers=headers, params=kwargs)"
+            if http_method.upper() == "GET"
+            else f"response = requests.request(\"{http_method}\", url, headers=headers, json=kwargs)"
+        )
     
     # 根据是否为更新模式生成不同的注释
     if is_update:
@@ -91,24 +166,28 @@ def _build_method_block(method_name: str, http_method: str, path: str, summary: 
             f"        # Create Data:  {VersionId}  &  {today}\n"
         )
     
+    # 将路径中的占位符 {id} 保持为单括号，以便生成的 f-string 在运行时替换
+    import re as _re_internal
+    path_code = _re_internal.sub(r"\{([^}]+)\}", r"{\1}", path)
+
     return (
-        f"\n    def {method_name}(self, authorization, DeviceType=\"web\", **kwargs):\n"
+        f"\n    def {method_name}({method_signature}):\n"
         f"        \"\"\"\n"
         f"        {summary_text}\n"
-        f"        :param page:\n"
+        f"        :param:\n"
         f"        :return:\n"
         f"        \"\"\"\n"
         f"{comment_block}"
-        f"        url = f\"https://{{base_url}}{path}\"\n"
+        f"        url = f\"https://{{base_url}}{path_code}\"\n"
         f"        timestamp = str(int(time.time() * 1000))\n"
+        f"{payload_code}"
         f"        headers = self.request_header(timestamp, authorization, DeviceType)\n"
         f"\n"
         f"        {request_line}\n"
         f"        error_msg = \"{summary_text}\"\n"
-        f"        assert response.status_code == 200, f\"{{error_msg}}失败，url->{{url}}，失败信息->{{response.reason}}{{response.content}}\"\n"
+        f"        assert response.status_code == code, f\"{{error_msg}}失败，url->{{url}}，失败信息->{{response.reason}}{{response.content}}\"\n"
         f"        response = response.json()\n"
-        f"        assert \"data\" in response,  f\"{{error_msg}}返回结果没有data数据，url->{{url}}，response->{{response}}\"\n"
-        f"        return response[\"data\"]\n"
+        f"        return response\n"
     )
 
 
@@ -159,6 +238,20 @@ def _extract_course_paths(
     return results
 
 
+def generate_methods_to_api(
+    module: str = "course",
+    include_exact: Optional[List[str]] = None,
+    include_prefix: Optional[List[str]] = None,
+    include_regex: Optional[str] = None,
+    only_course_related: bool = True,
+    methods: Optional[List[str]] = None,
+):
+    """批量生成接口方法（已弃用，请使用 generate_single_method_to_api）"""
+    print("警告：批量生成模式已弃用，请使用 --single 模式生成单个接口方法")
+    print("示例：python api_method_generator.py --single --path /api/course/content/detail --http-method GET")
+    return
+
+
 def generate_single_method_to_api(
     path: str,
     http_method: str,
@@ -183,18 +276,40 @@ def generate_single_method_to_api(
     with open(SWAGGER_PATH, "r", encoding="utf-8") as f:
         swagger = json.load(f)
     
-    # 从 swagger 中获取接口摘要
-    if not summary:
-        paths = swagger.get("paths", {})
-        if path in paths and http_method.upper() in paths[path]:
-            summary = paths[path][http_method.upper()].get("summary", "")
-        else:
+    # 从 swagger 中获取接口摘要和 body/path 参数
+    paths = swagger.get("paths", {})
+    body_params: List[Dict[str, Any]] = []
+    path_params: List[Dict[str, Any]] = []
+    
+    if path in paths and (http_method.lower() in paths[path] or http_method.upper() in paths[path]):
+        interface_info = paths[path].get(http_method.lower()) or paths[path].get(http_method.upper())
+        if not summary:
+            summary = interface_info.get("summary", "")
+        
+        # 提取 parameters 中 in 类型为 body 与 path 的参数
+        parameters = interface_info.get("parameters", [])
+        for param in parameters:
+            if param.get("in") == "body":
+                body_params.append(param)
+            elif param.get("in") == "path":
+                path_params.append(param)
+    else:
+        if not summary:
             summary = path
     
     # 读取并定位 API 类文件
     api_file = os.path.join("test_case", "page_api", module, f"{module}_api.py")
     if not os.path.exists(api_file):
-        raise FileNotFoundError(f"未找到 API 文件: {api_file}")
+        # 如果标准文件名不存在，尝试查找目录下的其他 .py 文件
+        module_dir = os.path.join("test_case", "page_api", module)
+        if os.path.exists(module_dir):
+            py_files = [f for f in os.listdir(module_dir) if f.endswith('.py') and f != '__init__.py']
+            if py_files:
+                api_file = os.path.join(module_dir, py_files[0])
+            else:
+                raise FileNotFoundError(f"未找到 API 文件: {api_file}")
+        else:
+            raise FileNotFoundError(f"未找到 API 文件: {api_file}")
     
     with open(api_file, "r", encoding="utf-8") as f:
         content = f.read()
@@ -285,11 +400,22 @@ def generate_single_method_to_api(
         return method_name
 
     # 方法不存在：走新增逻辑，生成带 Create Data 注释的方法块
-    method_block = _build_method_block(method_name, http_method, path, summary, is_update=False)
+    method_block = _build_method_block(
+        method_name,
+        http_method,
+        path,
+        summary,
+        is_update=False,
+        body_params=body_params,
+        path_params=path_params,
+    )
     new_content = content.rstrip() + "\n" + method_block + "\n"
     with open(api_file, "w", encoding="utf-8") as f:
         f.write(new_content)
     print(f"已新增方法 {method_name} 到文件: {api_file}")
+    if body_params:
+        param_names = [param.get("name", "") for param in body_params]
+        print(f"  - 包含 body 参数: {', '.join(param_names)}")
     
     return method_name
 
