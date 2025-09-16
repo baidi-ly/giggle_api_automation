@@ -9,11 +9,11 @@ import json
 import os
 import sys
 
+from utils.api_case_generator import generate_cases
 from utils.api_method_generator import generate_single_method_to_api
-from utils.case_generator import generate_cases
 from utils.extract_apis import load_swagger_file, extract_api_info
 from utils.init_swagger import init_swagger, logger
-from utils.openapi_generator import OpenAPITestGenerator
+
 
 
 if __name__ == '__main__':

@@ -195,3 +195,9 @@ class TestUser:
         event_res = self.user.unbindApple('', code=403)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
+
+    def test_noargs_auto_basic(self):
+        """AI创建故事书消耗giggles"""
+        res = self.api.auto(authorization=self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'

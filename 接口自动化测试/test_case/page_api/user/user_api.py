@@ -176,3 +176,21 @@ class UserApi(BaseAPI):
         assert response.status_code in [200, 201], f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
+
+    def auto(self, authorization, bookId=0, DeviceType="web", code=200, **kwargs):
+        """
+        AI创建故事书消耗giggles
+        :param bookId: (integer, path, required) bookId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-09-16
+        url = f"https://{base_url}/api/user/aiStoryCreation/{bookId}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers)
+        error_msg = "AI创建故事书消耗giggles"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
