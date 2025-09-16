@@ -144,15 +144,16 @@ def _build_method_block(
     
     # 构建请求行
     if body_params:
-        # 有 body 参数时使用 json=payload
-        request_line = f"response = requests.request(\"{http_method}\", url, headers=headers, json=payload)"
+        # 有 payload：依据方法类型选择传参
+        if http_method.upper() == "GET":
+            request_line = f"response = requests.request(\"{http_method.upper()}\", url, headers=headers, params=payload)"
+        elif http_method.upper() in ("POST", "PUT", "PATCH"):
+            request_line = f"response = requests.request(\"{http_method.upper()}\", url, headers=headers, json=payload)"
+        else:
+            request_line = f"response = requests.request(\"{http_method.upper()}\", url, headers=headers)"
     else:
-        # 没有 body 参数时使用原来的逻辑
-        request_line = (
-            f"response = requests.request(\"{http_method}\", url, headers=headers, params=kwargs)"
-            if http_method.upper() == "GET"
-            else f"response = requests.request(\"{http_method}\", url, headers=headers, json=kwargs)"
-        )
+        # 无 payload：不携带任何 data/json/params
+        request_line = f"response = requests.request(\"{http_method.upper()}\", url, headers=headers)"
     
     # 根据是否为更新模式生成不同的注释
     if is_update:
@@ -170,12 +171,40 @@ def _build_method_block(
     import re as _re_internal
     path_code = _re_internal.sub(r"\{([^}]+)\}", r"{\1}", path)
 
+    # 生成 docstring 参数说明（排除 authorization / DeviceType / code / kwargs）
+    def _param_type(p: Dict[str, Any]) -> str:
+        t = p.get("type")
+        if not t and isinstance(p.get("schema"), dict):
+            t = p["schema"].get("type", "object")
+        return (t or "string")
+
+    param_doc_lines: List[str] = []
+    if path_params:
+        for p in path_params:
+            name = p.get("name", "")
+            if not name:
+                continue
+            typ = _param_type(p)
+            req = "required" if p.get("required") else "optional"
+            desc = p.get("description") or name
+            param_doc_lines.append(f"        :param {name}: ({typ}, path, {req}) {desc}")
+    if body_params:
+        for p in body_params:
+            name = p.get("name", "")
+            if not name:
+                continue
+            typ = _param_type(p)
+            req = "required" if p.get("required") else "optional"
+            desc = p.get("description") or name
+            param_doc_lines.append(f"        :param {name}: ({typ}, body, {req}) {desc}")
+    params_doc = "\n".join(param_doc_lines)
+
     return (
         f"\n    def {method_name}({method_signature}):\n"
         f"        \"\"\"\n"
         f"        {summary_text}\n"
-        f"        :param:\n"
-        f"        :return:\n"
+        f"{params_doc}\n"
+        f"        :return: 接口原始返回（已 json 解析）\n"
         f"        \"\"\"\n"
         f"{comment_block}"
         f"        url = f\"https://{{base_url}}{path_code}\"\n"
