@@ -76,10 +76,11 @@ if __name__ == '__main__':
                 summary=info_v['summary'],
                 force=False,
             )
-            # 基于 swagger 的参数信息生成测试用例（仅 query/body 参与测试）
+            # 基于 swagger 的参数信息生成测试用例（仅 query/body/path/formData 参与测试）
+            # 不校验请求头中的参数（如authorization、content-type等）
             raw_parameters = info_v.get('parameters', [])
-            parameters = [p for p in raw_parameters if p.get('in') in ('query', 'body')]
-            marker = api.split('/')[2]
+            parameters = [p for p in raw_parameters if p.get('in') in ('query', 'body', 'path', 'formData')]
+            marker = api.split('/')[2] if len(api.split('/')) > 2 else 'api'
             generate_tests_for_api(
                 path=api,
                 http_method=info_k,

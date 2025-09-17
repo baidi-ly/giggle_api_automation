@@ -1,1 +1,1 @@
-{"apis":  ["/api/user/azureConfig"]}
+{"apis":  ["/api/book/{bookId}/quiz"]}

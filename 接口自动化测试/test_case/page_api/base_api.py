@@ -395,14 +395,23 @@ class BaseAPI:
     def request_header(self, timestamp, authorization, DeviceType, **kwargs):
         """生成AuthToken"""
         Authtoken = self._generate_auth_token(timestamp)
-        headers = {
-            "authorization": authorization,
-            "AuthToken": Authtoken,
-            "DeviceId": DeviceId,
-            "DeviceType": DeviceType,    # android/ios/web
-            "Timestamp": timestamp
-        }
-        headers.update(kwargs)
+        if authorization == 'missing':
+            headers = {
+                "AuthToken": Authtoken,
+                "DeviceId": DeviceId,
+                "DeviceType": DeviceType,    # android/ios/web
+                "Timestamp": timestamp
+            }
+            headers.update(kwargs)
+        else:
+            headers = {
+                "authorization": authorization,
+                "AuthToken": Authtoken,
+                "DeviceId": DeviceId,
+                "DeviceType": DeviceType,    # android/ios/web
+                "Timestamp": timestamp
+            }
+            headers.update(kwargs)
         return headers
 
     def request_body(self, payload, **kwargs):
