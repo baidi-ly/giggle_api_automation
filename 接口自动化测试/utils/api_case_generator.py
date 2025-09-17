@@ -76,26 +76,29 @@ def _generate_test_methods(
     module_name: str,
     summary: str = ""
 ) -> List[str]:
-    """生成测试方法列表"""
-    test_methods = []
-    
-    # 检查是否有参数
-    has_params = bool(query_params or body_params)
-    
-    if has_params:
-        # 有参数的情况 - 生成所有测试类别
-        test_methods.extend(_generate_positive_test(method_name, query_params, body_params, module_name, summary))
-        test_methods.extend(_generate_required_field_tests(method_name, query_params, body_params, module_name, summary))
-        test_methods.extend(_generate_data_format_tests(method_name, query_params, body_params, module_name, summary))
-        test_methods.extend(_generate_boundary_value_tests(method_name, query_params, body_params, module_name, summary))
-        test_methods.extend(_generate_scenario_exception_tests(method_name, query_params, body_params, module_name, summary))
-        test_methods.extend(_generate_permission_tests(method_name, query_params, body_params, module_name, summary))
-        test_methods.extend(_generate_security_tests(method_name, query_params, body_params, module_name, summary))
-    else:
-        # 无参数的情况 - 只生成正向和权限测试
+    """生成测试方法列表（逐参数：一个参数的6类用例之后再到下一个参数）"""
+    test_methods: List[str] = []
+
+    all_params = query_params + body_params
+    has_params = bool(all_params)
+
+    if not has_params:
         test_methods.extend(_generate_positive_test(method_name, [], [], module_name, summary))
         test_methods.extend(_generate_permission_tests(method_name, [], [], module_name, summary))
-    
+        return test_methods
+
+    # 先生成一条正向用例
+    test_methods.extend(_generate_positive_test(method_name, query_params, body_params, module_name, summary))
+
+    # 逐参数生成六类
+    for param in all_params:
+        test_methods.extend(_generate_required_field_tests_for_param(method_name, query_params, body_params, module_name, summary, param))
+        test_methods.extend(_generate_data_format_tests_for_param(method_name, query_params, body_params, module_name, summary, param))
+        test_methods.extend(_generate_boundary_value_tests_for_param(method_name, query_params, body_params, module_name, summary, param))
+        test_methods.extend(_generate_scenario_exception_tests_for_param(method_name, query_params, body_params, module_name, summary, param))
+        test_methods.extend(_generate_permission_tests(method_name, query_params, body_params, module_name, summary))
+        test_methods.extend(_generate_security_tests_for_param(method_name, query_params, body_params, module_name, summary, param))
+
     return test_methods
 
 
@@ -161,69 +164,54 @@ def _generate_positive_test(method_name: str, query_params: List[Dict], body_par
 
 
 def _generate_required_field_tests(method_name: str, query_params: List[Dict], body_params: List[Dict], module_name: str, summary: str = "") -> List[str]:
-    """生成必填字段测试用例"""
-    methods = []
-    
-    # 获取所有必填参数
-    required_params = []
-    for param in query_params + body_params:
-        if param.get('required', False):
-            required_params.append(param)
-    
-    if not required_params:
+    """为每个必填参数分别生成必填字段测试用例"""
+    methods: List[str] = []
+    all_params = query_params + body_params
+    if not all_params:
         return methods
     
-    # 检查是否有path类型的必填参数
-    has_path_params = any(p.get('in') == 'path' for p in required_params)
-    
-    # 根据是否有path参数决定测试用例
-    if has_path_params:
-        # 如果有path参数，不包含"缺失"测试用例
-        test_cases = [
-            ("empty", "''"),
-            ("null", "'None'")
-        ]
-    else:
-        # 如果没有path参数，包含所有测试用例
-        test_cases = [
-            ("missing", "''"),
-            ("empty", "''"),
-            ("null", "'None'")
-        ]
-    
-    methods.append(f"    @pytest.mark.pendingRelease")
-    methods.append(f"    @pytest.mark.parametrize(")
-    methods.append(f"        'desc, value',")
-    methods.append(f"        [")
-    for case in test_cases:
-        methods.append(f"            {case},")
-    methods.append(f"        ]")
-    methods.append(f"    )")
-    methods.append(f"    def test_{module_name}_required_{method_name}(self, desc, value):")
-    methods.append(f'        """{summary}-必填字段测试-{{desc}}"""')
-    methods.append(f"        # 构建测试参数")
-    
-    # 构建调用参数
-    call_params = []
-    for param in required_params:
+    for param in all_params:
+        if not param.get('required', False):
+            continue
         param_name = param.get('name', '')
-        call_params.append(f"{param_name}=value")
-    
-    # 添加非必填参数
-    for param in query_params + body_params:
-        param_name = param.get('name', '')
-        param_type = param.get('type', 'string')
-        if param_name not in [p.get('name', '') for p in required_params]:
-            default_value = _get_default_value(param, param_type)
-            call_params.append(f"{param_name}={default_value}")
-    
-    # 生成调用代码
-    methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {', '.join(call_params)})")
-    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
-    methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
-    methods.append("")
-    print(f"  ✓ 已添加必填字段用例: test_{module_name}_required_{method_name}")
-    
+        param_in = param.get('in', 'query')
+        cases = [("empty", "''"), ("null", "'None'")] if param_in == 'path' else [("missing", "''"), ("empty", "''"), ("null", "'None'")]
+        methods.append(f"    @pytest.mark.pendingRelease")
+        methods.append(f"    @pytest.mark.parametrize(")
+        methods.append(f"        'desc, value',")
+        methods.append(f"        [")
+        for c in cases:
+            methods.append(f"            {c},")
+        methods.append(f"        ]")
+        methods.append(f"    )")
+        methods.append(f"    def test_{module_name}_required_{method_name}_{param_name}(self, desc, value):")
+        methods.append(f'        """{summary}-必填字段测试-{{desc}}({param_name})"""')
+        methods.append(f"        call_args = []")
+        for p in all_params:
+            p_name = p.get('name', '')
+            p_type = p.get('type', 'string')
+            if p_name == param_name:
+                if param_in == 'path':
+                    methods.append(f"        {p_name} = None if desc == 'null' else ('' if desc == 'empty' else {_get_default_value.__name__}(p, p_type))")
+                    methods.append(f"        call_args.append(f'{p_name}={{ {p_name} }}')")
+                else:
+                    methods.append(f"        if desc == 'missing':")
+                    methods.append(f"            pl_{p_name} = {{'pop_items': '{p_name}'}}")
+                    methods.append(f"            {p_name} = {_get_default_value.__name__}(p, p_type)")
+                    methods.append(f"        else:")
+                    methods.append(f"            pl_{p_name} = {{}}")
+                    methods.append(f"            {p_name} = value")
+                    methods.append(f"        call_args.append(f'{p_name}={{ {p_name} }}')")
+            else:
+                methods.append(f"        call_args.append(f" + "'" + "{p_name}=" + "'" + f" + str({_get_default_value.__name__}(p, p_type)))")
+        methods.append(f"        kwargs = {{k.split('=')[0]: eval(k.split('=')[1]) for k in call_args}}")
+        if param_in != 'path':
+            methods.append(f"        kwargs.update(pl_{param_name})")
+        methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **kwargs)")
+        methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
+        methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
+        methods.append("")
+        print(f"  ✓ 已添加必填字段用例: test_{module_name}_required_{method_name}_{param_name}")
     return methods
 
 
@@ -231,103 +219,98 @@ def _generate_data_format_tests(method_name: str, query_params: List[Dict], body
     """生成数据格式测试用例"""
     methods = []
     
-    # 只生成第一个参数的格式测试
+    # 为每个参数都生成一组数据格式用例
     all_params = query_params + body_params
     if not all_params:
         return methods
     
-    param = all_params[0]
-    param_name = param.get('name', '')
-    param_type = param.get('type', 'string')
-    
-    # 根据参数类型生成格式测试用例
-    format_tests = []
-    if param_type in ['integer', 'number']:
-        format_tests = [
-            ("string", "字符串", '"abc"'),
-            ("float", "浮点数", "12.34"),
-            ("boolean", "布尔值", "True"),
-            ("array", "数组", "[1, 2, 3]"),
-            ("object", "对象", '{"key": "value"}'),
-            ("special_chars", "特殊字符", '"!@#$%^&*()"'),
-            ("emoji", "表情符号", '"😀🎉🚀"'),
-            ("long_string", "超长字符串", '"' + 'a' * 1000 + '"')
-        ]
-    elif param_type == 'boolean':
-        format_tests = [
-            ("string", "字符串", '"abc"'),
-            ("integer", "整数", "123"),
-            ("float", "浮点数", "12.34"),
-            ("array", "数组", "[1, 2, 3]"),
-            ("object", "对象", '{"key": "value"}'),
-            ("special_chars", "特殊字符", '"!@#$%^&*()"'),
-            ("emoji", "表情符号", '"😀🎉🚀"'),
-            ("long_string", "超长字符串", '"' + 'a' * 1000 + '"')
-        ]
-    else:  # string类型
-        format_tests = [
-            ("integer", "整数", "123"),
-            ("float", "浮点数", "12.34"),
-            ("boolean", "布尔值", "True"),
-            ("array", "数组", "[1, 2, 3]"),
-            ("object", "对象", '{"key": "value"}'),
-            ("special_chars", "特殊字符", '"!@#$%^&*()"'),
-            ("email_format", "邮箱格式", '"test@example.com"'),
-            ("phone_format", "手机号格式", '"13800138000"'),
-            ("date_format", "日期格式", '"2023-12-25"'),
-            ("emoji", "表情符号", '"😀🎉🚀"'),
-            ("long_string", "超长字符串", '"' + 'a' * 1000 + '"'),
-            ("unicode", "Unicode字符", '"中文测试"'),
-            ("sql_injection", "SQL注入", '"\'; DROP TABLE users; --"'),
-            ("xss", "XSS攻击", '"<script>alert(1)</script>"'),
-            ("json_string", "JSON字符串", '"{\\"key\\": \\"value\\"}"'),
-            ("xml_string", "XML字符串", '"<root><item>test</item></root>"'),
-            ("url_string", "URL字符串", '"https://www.example.com"'),
-            ("base64_string", "Base64字符串", '"SGVsbG8gV29ybGQ="')
-        ]
-    
-    methods.append(f"    @pytest.mark.pendingRelease")
-    methods.append(f"    @pytest.mark.parametrize(")
-    methods.append(f"        'input_param, desc, value',")
-    methods.append(f"        [")
-    for case in format_tests:
-        methods.append(f"            {case},")
-    methods.append(f"        ]")
-    methods.append(f"    )")
-    methods.append(f"    def test_{module_name}_format_{method_name}(self, input_param, desc, value):")
-    methods.append(f'        """{summary}-数据格式测试-{{desc}}"""')
-    methods.append(f"        # 构建测试参数并发起请求")
-    # 目标参数使用传入的 input_param/value；其余参数使用默认值
-    call_args = []
-    for p in all_params:
-        p_name = p.get('name', '')
-        p_type = p.get('type', 'string')
-        if p_name == param_name:
-            call_args.append(f"{p_name}=input_param")
-        else:
-            default_value = _get_default_value(p, p_type)
-            call_args.append(f"{p_name}={default_value}")
-    methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, {', '.join(call_args)})")
-    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
-    methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
-    methods.append("")
-    print(f"  ✓ 已添加格式测试用例: test_{module_name}_format_{method_name}")
+    for param in all_params:
+        param_name = param.get('name', '')
+        param_type = param.get('type', 'string')
+        
+        # 根据参数类型生成格式测试用例
+        if param_type in ['integer', 'number']:
+            format_tests = [
+                ("string", "字符串", '"abc"'),
+                ("float", "浮点数", "12.34"),
+                ("boolean", "布尔值", "True"),
+                ("array", "数组", "[1, 2, 3]"),
+                ("object", "对象", '{"key": "value"}'),
+                ("special_chars", "特殊字符", '"!@#$%^&*()"'),
+                ("emoji", "表情符号", '"😀🎉🚀"'),
+                ("long_string", "超长字符串", '"' + 'a' * 1000 + '"')
+            ]
+        elif param_type == 'boolean':
+            format_tests = [
+                ("string", "字符串", '"abc"'),
+                ("integer", "整数", "123"),
+                ("float", "浮点数", "12.34"),
+                ("array", "数组", "[1, 2, 3]"),
+                ("object", "对象", '{"key": "value"}'),
+                ("special_chars", "特殊字符", '"!@#$%^&*()"'),
+                ("emoji", "表情符号", '"😀🎉🚀"'),
+                ("long_string", "超长字符串", '"' + 'a' * 1000 + '"')
+            ]
+        else:  # string类型
+            format_tests = [
+                ("integer", "整数", "123"),
+                ("float", "浮点数", "12.34"),
+                ("boolean", "布尔值", "True"),
+                ("array", "数组", "[1, 2, 3]"),
+                ("object", "对象", '{"key": "value"}'),
+                ("special_chars", "特殊字符", '"!@#$%^&*()"'),
+                ("email_format", "邮箱格式", '"test@example.com"'),
+                ("phone_format", "手机号格式", '"13800138000"'),
+                ("date_format", "日期格式", '"2023-12-25"'),
+                ("emoji", "表情符号", '"😀🎉🚀"'),
+                ("long_string", "超长字符串", '"' + 'a' * 1000 + '"'),
+                ("unicode", "Unicode字符", '"中文测试"'),
+                ("sql_injection", "SQL注入", '"\'; DROP TABLE users; --"'),
+                ("xss", "XSS攻击", '"<script>alert(1)</script>"'),
+                ("json_string", "JSON字符串", '"{\\"key\\": \\"value\\"}"'),
+                ("xml_string", "XML字符串", '"<root><item>test</item></root>"'),
+                ("url_string", "URL字符串", '"https://www.example.com"'),
+                ("base64_string", "Base64字符串", '"SGVsbG8gV29ybGQ="')
+            ]
+        
+        methods.append(f"    @pytest.mark.pendingRelease")
+        methods.append(f"    @pytest.mark.parametrize(")
+        methods.append(f"        'input_param, desc, value',")
+        methods.append(f"        [")
+        for case in format_tests:
+            methods.append(f"            {case},")
+        methods.append(f"        ]")
+        methods.append(f"    )")
+        methods.append(f"    def test_{module_name}_format_{method_name}_{param_name}(self, input_param, desc, value):")
+        methods.append(f'        """{summary}-数据格式测试-{{desc}}({param_name})"""')
+        methods.append(f"        # 构建测试参数并发起请求")
+        call_args = []
+        for p in all_params:
+            p_name = p.get('name', '')
+            p_type = p.get('type', 'string')
+            if p_name == param_name:
+                call_args.append(f"{p_name}=input_param")
+            else:
+                default_value = _get_default_value(p, p_type)
+                call_args.append(f"{p_name}={default_value}")
+        methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, {', '.join(call_args)})")
+        methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
+        methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
+        methods.append("")
+        print(f"  ✓ 已添加格式测试用例: test_{module_name}_format_{method_name}_{param_name}")
     
     return methods
 
 
 def _generate_boundary_value_tests(method_name: str, query_params: List[Dict], body_params: List[Dict], module_name: str, summary: str = "") -> List[str]:
-    """生成边界值测试用例"""
-    methods = []
-    
-    # 只生成第一个参数的边界值测试
+    """为每个参数生成边界值测试用例"""
+    methods: List[str] = []
     all_params = query_params + body_params
     if not all_params:
         return methods
-    
-    param = all_params[0]
-    param_name = param.get('name', '')
-    param_type = param.get('type', 'string')
+    for param in all_params:
+        param_name = param.get('name', '')
+        param_type = param.get('type', 'string')
     
     if param_type == 'integer':
         minimum = param.get('minimum')
@@ -390,76 +373,60 @@ def _generate_boundary_value_tests(method_name: str, query_params: List[Dict], b
     else:
         return methods
     
-    methods.append(f"    @pytest.mark.pendingRelease")
-    methods.append(f"    @pytest.mark.parametrize(")
-    methods.append(f"        'input_param, desc, value',")
-    methods.append(f"        [")
-    for line in boundary_lines:
-        methods.append(line)
-    methods.append(f"        ]")
-    methods.append(f"    )")
-    methods.append(f"    def test_{module_name}_boundary_{method_name}(self, input_param, desc, value):")
-    methods.append(f'        """{summary}-边界值测试-{{desc}}"""')
-    methods.append(f"        # 构建参数并发起请求")
-    call_args = []
-    for p in all_params:
-        p_name = p.get('name', '')
-        p_type = p.get('type', 'string')
-        if p_name == param_name:
-            call_args.append(f"{p_name}=value")
-        else:
-            default_value = _get_default_value(p, p_type)
-            call_args.append(f"{p_name}={default_value}")
-    methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, {', '.join(call_args)})")
-    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
-    methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
-    methods.append("")
-    print(f"  ✓ 已添加边界值用例: test_{module_name}_boundary_{method_name}")
-    
+        methods.append(f"    @pytest.mark.pendingRelease")
+        methods.append(f"    @pytest.mark.parametrize(")
+        methods.append(f"        'input_param, desc, value',")
+        methods.append(f"        [")
+        for line in boundary_lines:
+            methods.append(line)
+        methods.append(f"        ]")
+        methods.append(f"    )")
+        methods.append(f"    def test_{module_name}_boundary_{method_name}_{param_name}(self, input_param, desc, value):")
+        methods.append(f'        """{summary}-边界值测试-{{desc}}({param_name})"""')
+        methods.append(f"        call_args = []")
+        for p in all_params:
+            p_name = p.get('name', '')
+            p_type = p.get('type', 'string')
+            if p_name == param_name:
+                call_args.append(f"{p_name}=value")
+            else:
+                default_value = _get_default_value(p, p_type)
+                call_args.append(f"{p_name}={default_value}")
+        methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, {', '.join(call_args)})")
+        methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
+        methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
+        methods.append("")
+        print(f"  ✓ 已添加边界值用例: test_{module_name}_boundary_{method_name}_{param_name}")
     return methods
 
 
 def _generate_scenario_exception_tests(method_name: str, query_params: List[Dict], body_params: List[Dict], module_name: str, summary: str = "") -> List[str]:
-    """生成场景异常测试用例"""
-    methods = []
-    
-    # 查找可能的ID类型参数
-    id_params = []
-    for param in query_params + body_params:
-        param_name = param.get('name', '').lower()
-        if 'id' in param_name or 'rule' in param_name:
-            id_params.append(param)
-    
-    if not id_params:
+    """为每个参数生成场景异常测试用例（使用通用无效值）"""
+    methods: List[str] = []
+    all_params = query_params + body_params
+    if not all_params:
         return methods
-    
-    # 只生成第一个ID参数的不存在测试
-    param = id_params[0]
-    param_name = param.get('name', '')
-    param_type = param.get('type', 'string')
-    
-    methods.append(f"    @pytest.mark.pendingRelease")
-    methods.append(f"    def test_{module_name}_scenario_{method_name}_nonexistent_{param_name}(self):")
-    methods.append(f'        """{summary}-场景异常-不存在的{param_name}"""')
-    methods.append(f"        # 构建测试参数")
-    methods.append(f"        test_params = {{}}")
-    for p in query_params + body_params:
-        p_name = p.get('name', '')
-        p_type = p.get('type', 'string')
-        if p_name == param_name:
-            if param_type == 'integer':
-                methods.append(f"        test_params['{p_name}'] = 999999")
+    for param in all_params:
+        param_name = param.get('name', '')
+        p_type = param.get('type', 'string')
+        invalid_expr = "999999999" if p_type in ['integer', 'number'] else "'INVALID_VALUE'"
+        methods.append(f"    @pytest.mark.pendingRelease")
+        methods.append(f"    def test_{module_name}_scenario_{method_name}_invalid_{param_name}(self):")
+        methods.append(f'        """{summary}-场景异常-无效的{param_name}"""')
+        methods.append(f"        test_params = {{}}")
+        for p in all_params:
+            p_name = p.get('name', '')
+            p_t = p.get('type', 'string')
+            if p_name == param_name:
+                methods.append(f"        test_params['{p_name}'] = {invalid_expr}")
             else:
-                methods.append(f"        test_params['{p_name}'] = 'nonexistent_id'")
-        else:
-            default_value = _get_default_value(p, p_type)
-            methods.append(f"        test_params['{p_name}'] = {default_value}")
-    methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **test_params)")
-    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
-    methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
-    methods.append("")
-    print(f"  ✓ 已添加场景异常用例: test_{module_name}_scenario_{method_name}_nonexistent_{param_name}")
-    
+                default_value = _get_default_value(p, p_t)
+                methods.append(f"        test_params['{p_name}'] = {default_value}")
+        methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **test_params)")
+        methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
+        methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
+        methods.append("")
+        print(f"  ✓ 已添加场景异常用例: test_{module_name}_scenario_{method_name}_invalid_{param_name}")
     return methods
 
 
@@ -509,25 +476,242 @@ def _generate_permission_tests(method_name: str, query_params: List[Dict], body_
 
 
 def _generate_security_tests(method_name: str, query_params: List[Dict], body_params: List[Dict], module_name: str, summary: str = "") -> List[str]:
-    """生成安全测试用例"""
-    methods = []
-    
-    # 只生成第一个字符串参数的安全测试
+    """为每个字符串参数生成安全测试用例"""
+    methods: List[str] = []
     all_params = query_params + body_params
     string_params = [p for p in all_params if p.get('type', 'string') == 'string']
-    
     if not string_params:
         return methods
-    
-    param = string_params[0]
-    param_name = param.get('name', '')
-    
     security_tests = [
         ("sql_injection", "SQL注入", "' OR 1=1 --"),
         ("xss_attack", "XSS攻击", "<script>alert('xss')</script>"),
-        ("csrf_attack", "CSRF攻击", "csrf_token_here"),
     ]
-    
+    for param in string_params:
+        param_name = param.get('name', '')
+        methods.append(f"    @pytest.mark.pendingRelease")
+        methods.append(f"    @pytest.mark.parametrize(")
+        methods.append(f"        'test_type,test_desc,attack_value',")
+        methods.append(f"        [")
+        for case in security_tests:
+            methods.append(f"            {case},")
+        methods.append(f"        ]")
+        methods.append(f"    )")
+        methods.append(f"    def test_{module_name}_security_{method_name}_{param_name}(self, test_type, test_desc, attack_value):")
+        methods.append(f'        """{summary}-安全测试-{{test_desc}}({param_name})"""')
+        methods.append(f"        test_params = {{}}")
+        for p in all_params:
+            p_name = p.get('name', '')
+            p_type = p.get('type', 'string')
+            if p_name == param_name:
+                methods.append(f"        test_params['{p_name}'] = attack_value")
+            else:
+                default_value = _get_default_value(p, p_type)
+                methods.append(f"        test_params['{p_name}'] = {default_value}")
+        methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **test_params)")
+        methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
+        methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
+        methods.append("")
+        print(f"  ✓ 已添加安全测试用例: test_{module_name}_security_{method_name}_{param_name}")
+    return methods
+
+
+# ==== Per-parameter helpers (used to enforce per-param ordering) ====
+
+def _generate_required_field_tests_for_param(method_name: str, query_params: List[Dict[str, Any]], body_params: List[Dict[str, Any]], module_name: str, summary: str, target_param: Dict[str, Any]) -> List[str]:
+    all_params = query_params + body_params
+    methods: List[str] = []
+    if not target_param.get('required', False):
+        return methods
+    param_name = target_param.get('name', '')
+    param_in = target_param.get('in', 'query')
+    cases = [("empty", "''"), ("null", "'None'")] if param_in == 'path' else [("missing", "''"), ("empty", "''"), ("null", "'None'")]
+
+    methods.append(f"    @pytest.mark.pendingRelease")
+    methods.append(f"    @pytest.mark.parametrize(")
+    methods.append(f"        'desc, value',")
+    methods.append(f"        [")
+    for c in cases:
+        methods.append(f"            {c},")
+    methods.append(f"        ]")
+    methods.append(f"    )")
+    methods.append(f"    def test_{module_name}_required_{method_name}_{param_name}(self, desc, value):")
+    methods.append(f'        """{summary}-必填字段测试-{{desc}}({param_name})"""')
+    methods.append(f"        call_args = []")
+    for p in all_params:
+        p_name = p.get('name', '')
+        p_type = p.get('type', 'string')
+        if p_name == param_name:
+            if param_in == 'path':
+                methods.append(f"        {p_name} = None if desc == 'null' else ('' if desc == 'empty' else {_get_default_value.__name__}(p, p_type))")
+                methods.append(f"        call_args.append(f'{p_name}={{ {p_name} }}')")
+            else:
+                methods.append(f"        if desc == 'missing':")
+                methods.append(f"            pl_{p_name} = {{'pop_items': '{p_name}'}}")
+                methods.append(f"            {p_name} = {_get_default_value.__name__}(p, p_type)")
+                methods.append(f"        else:")
+                methods.append(f"            pl_{p_name} = {{}}")
+                methods.append(f"            {p_name} = value")
+                methods.append(f"        call_args.append(f'{p_name}={{ {p_name} }}')")
+        else:
+            methods.append(f"        call_args.append(f" + "'" + "{p_name}=" + "'" + f" + str({_get_default_value.__name__}(p, p_type)))")
+    methods.append(f"        kwargs = {{k.split('=')[0]: eval(k.split('=')[1]) for k in call_args}}")
+    if param_in != 'path':
+        methods.append(f"        kwargs.update(pl_{param_name})")
+    methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **kwargs)")
+    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
+    methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
+    methods.append("")
+    print(f"  ✓ 已添加必填字段用例: test_{module_name}_required_{method_name}_{param_name}")
+    return methods
+
+
+def _generate_data_format_tests_for_param(method_name: str, query_params: List[Dict[str, Any]], body_params: List[Dict[str, Any]], module_name: str, summary: str, target_param: Dict[str, Any]) -> List[str]:
+    all_params = query_params + body_params
+    param_name = target_param.get('name', '')
+    param_type = target_param.get('type', 'string')
+    methods: List[str] = []
+    if param_type in ['integer', 'number']:
+        format_tests = [("string", "字符串", '"abc"'), ("float", "浮点数", "12.34"), ("boolean", "布尔值", "True"), ("array", "数组", "[1, 2, 3]"), ("object", "对象", '{"key": "value"}'), ("special_chars", "特殊字符", '"!@#$%^&*()"'), ("emoji", "表情符号", '"😀🎉🚀"'), ("long_string", "超长字符串", '"' + 'a' * 1000 + '"')]
+    elif param_type == 'boolean':
+        format_tests = [("string", "字符串", '"abc"'), ("integer", "整数", "123"), ("float", "浮点数", "12.34"), ("array", "数组", "[1, 2, 3]"), ("object", "对象", '{"key": "value"}'), ("special_chars", "特殊字符", '"!@#$%^&*()"'), ("emoji", "表情符号", '"😀🎉🚀"'), ("long_string", "超长字符串", '"' + 'a' * 1000 + '"')]
+    else:
+        format_tests = [("integer", "整数", "123"), ("float", "浮点数", "12.34"), ("boolean", "布尔值", "True"), ("array", "数组", "[1, 2, 3]"), ("object", "对象", '{"key": "value"}'), ("special_chars", "特殊字符", '"!@#$%^&*()"'), ("email_format", "邮箱格式", '"test@example.com"'), ("phone_format", "手机号格式", '"13800138000"'), ("date_format", "日期格式", '"2023-12-25"'), ("emoji", "表情符号", '"😀🎉🚀"'), ("long_string", "超长字符串", '"' + 'a' * 1000 + '"'), ("unicode", "Unicode字符", '"中文测试"'), ("sql_injection", "SQL注入", '"\'; DROP TABLE users; --"'), ("xss", "XSS攻击", '"<script>alert(1)</script>"'), ("json_string", "JSON字符串", '"{\\"key\\": \\"value\\"}"'), ("xml_string", "XML字符串", '"<root><item>test</item></root>"'), ("url_string", "URL字符串", '"https://www.example.com"'), ("base64_string", "Base64字符串", '"SGVsbG8gV29ybGQ="')]
+    methods.append(f"    @pytest.mark.pendingRelease")
+    methods.append(f"    @pytest.mark.parametrize(")
+    methods.append(f"        'input_param, desc, value',")
+    methods.append(f"        [")
+    for case in format_tests:
+        methods.append(f"            {case},")
+    methods.append(f"        ]")
+    methods.append(f"    )")
+    methods.append(f"    def test_{module_name}_format_{method_name}_{param_name}(self, input_param, desc, value):")
+    methods.append(f'        """{summary}-数据格式测试-{{desc}}({param_name})"""')
+    methods.append(f"        call_args = []")
+    for p in all_params:
+        p_name = p.get('name', '')
+        p_type = p.get('type', 'string')
+        if p_name == param_name:
+            methods.append(f"        {p_name} = input_param")
+            methods.append(f"        call_args.append(f'{p_name}={{ {p_name} }}')")
+        else:
+            default_value = _get_default_value(p, p_type)
+            methods.append(f"        call_args.append(f" + "'" + "{p_name}=" + "'" + f" + str({default_value}))")
+    methods.append(f"        kwargs = {{k.split('=')[0]: eval(k.split('=')[1]) for k in call_args}}")
+    methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **kwargs)")
+    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
+    methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
+    methods.append("")
+    print(f"  ✓ 已添加格式测试用例: test_{module_name}_format_{method_name}_{param_name}")
+    return methods
+
+
+def _generate_boundary_value_tests_for_param(method_name: str, query_params: List[Dict[str, Any]], body_params: List[Dict[str, Any]], module_name: str, summary: str, target_param: Dict[str, Any]) -> List[str]:
+    all_params = query_params + body_params
+    param_name = target_param.get('name', '')
+    param_type = target_param.get('type', 'string')
+    methods: List[str] = []
+    boundary_lines: List[str] = []
+    if param_type == 'integer':
+        minimum = target_param.get('minimum')
+        maximum = target_param.get('maximum')
+        if minimum is not None and maximum is not None:
+            l1 = str(int(minimum) - 1); l = str(int(minimum)); lp = str(int(minimum)+1)
+            um = str(int(maximum) - 1); u = str(int(maximum)); up = str(int(maximum)+1)
+            boundary_lines = [
+                f"            ('below_min', '小于最小值', {l1}),",
+                f"            ('zero', '零值', 0),",
+                f"            ('min', '最小值', {l}),",
+                f"            ('min_plus_one', '略大于最小值', {lp}),",
+                f"            ('max_minus_one', '略小于最大值', {um}),",
+                f"            ('max', '最大值', {u}),",
+                f"            ('above_max', '大于最大值', {up}),",
+            ]
+        else:
+            boundary_lines = [
+                "            ('min', '最小值', -2147483648),",
+                "            ('zero', '零值', 0),",
+                "            ('max', '最大值', 2147483647),",
+            ]
+    elif param_type == 'string':
+        min_len = target_param.get('minLength'); max_len = target_param.get('maxLength')
+        if min_len is not None and max_len is not None:
+            min_len = int(min_len); max_len = int(max_len)
+            candidates = [min_len, min_len+1, max_len-1, max_len, max_len+1]
+            names = ["min_len","min_len_plus_one","max_len_minus_one","max_len","max_len_plus_one"]
+            descs = ["最小长度","略大于最小长度","略小于最大长度","最大长度","大于最大长度"]
+            for i, length in enumerate(candidates):
+                if length < 0: continue
+                value_expr = '"' + ("a" * length) + '"'
+                boundary_lines.append(f"            ('{names[i]}', '{descs[i]}', {value_expr}),")
+        else:
+            boundary_lines = [
+                "            ('shortest', '最短长度', \"\"),",
+                "            ('longest', '最长长度', \"" + 'a' * 1000 + "\"),",
+            ]
+    else:
+        return methods
+    methods.append(f"    @pytest.mark.pendingRelease")
+    methods.append(f"    @pytest.mark.parametrize(")
+    methods.append(f"        'input_param, desc, value',")
+    methods.append(f"        [")
+    for line in boundary_lines:
+        methods.append(line)
+    methods.append(f"        ]")
+    methods.append(f"    )")
+    methods.append(f"    def test_{module_name}_boundary_{method_name}_{param_name}(self, input_param, desc, value):")
+    methods.append(f'        """{summary}-边界值测试-{{desc}}({param_name})"""')
+    methods.append(f"        call_args = []")
+    for p in all_params:
+        p_name = p.get('name', '')
+        p_type = p.get('type', 'string')
+        if p_name == param_name:
+            methods.append(f"        {p_name} = value")
+            methods.append(f"        call_args.append(f'{p_name}={{ {p_name} }}')")
+        else:
+            default_value = _get_default_value(p, p_type)
+            methods.append(f"        call_args.append(f" + "'" + "{p_name}=" + "'" + f" + str({default_value}))")
+    methods.append(f"        kwargs = {{k.split('=')[0]: eval(k.split('=')[1]) for k in call_args}}")
+    methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **kwargs)")
+    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
+    methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
+    methods.append("")
+    print(f"  ✓ 已添加边界值用例: test_{module_name}_boundary_{method_name}_{param_name}")
+    return methods
+
+
+def _generate_scenario_exception_tests_for_param(method_name: str, query_params: List[Dict[str, Any]], body_params: List[Dict[str, Any]], module_name: str, summary: str, target_param: Dict[str, Any]) -> List[str]:
+    all_params = query_params + body_params
+    param_name = target_param.get('name', '')
+    p_type = target_param.get('type', 'string')
+    invalid_expr = "999999999" if p_type in ['integer', 'number'] else "'INVALID_VALUE'"
+    methods: List[str] = []
+    methods.append(f"    @pytest.mark.pendingRelease")
+    methods.append(f"    def test_{module_name}_scenario_{method_name}_invalid_{param_name}(self):")
+    methods.append(f'        """{summary}-场景异常-无效的{param_name}"""')
+    methods.append(f"        test_params = {{}}")
+    for p in all_params:
+        p_name = p.get('name', '')
+        p_t = p.get('type', 'string')
+        if p_name == param_name:
+            methods.append(f"        test_params['{p_name}'] = {invalid_expr}")
+        else:
+            default_value = _get_default_value(p, p_t)
+            methods.append(f"        test_params['{p_name}'] = {default_value}")
+    methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **test_params)")
+    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
+    methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
+    methods.append("")
+    print(f"  ✓ 已添加场景异常用例: test_{module_name}_scenario_{method_name}_invalid_{param_name}")
+    return methods
+
+
+def _generate_security_tests_for_param(method_name: str, query_params: List[Dict[str, Any]], body_params: List[Dict[str, Any]], module_name: str, summary: str, target_param: Dict[str, Any]) -> List[str]:
+    all_params = query_params + body_params
+    if target_param.get('type', 'string') != 'string':
+        return []
+    param_name = target_param.get('name', '')
+    security_tests = [("sql_injection", "SQL注入", "' OR 1=1 --"), ("xss_attack", "XSS攻击", "<script>alert('xss')</script>")]
+    methods: List[str] = []
     methods.append(f"    @pytest.mark.pendingRelease")
     methods.append(f"    @pytest.mark.parametrize(")
     methods.append(f"        'test_type,test_desc,attack_value',")
@@ -536,9 +720,8 @@ def _generate_security_tests(method_name: str, query_params: List[Dict], body_pa
         methods.append(f"            {case},")
     methods.append(f"        ]")
     methods.append(f"    )")
-    methods.append(f"    def test_{module_name}_security_{method_name}(self, test_type, test_desc, attack_value):")
-    methods.append(f'        """{summary}-安全测试-{{test_desc}}"""')
-    methods.append(f"        # 构建测试参数")
+    methods.append(f"    def test_{module_name}_security_{method_name}_{param_name}(self, test_type, test_desc, attack_value):")
+    methods.append(f'        """{summary}-安全测试-{{test_desc}}({param_name})"""')
     methods.append(f"        test_params = {{}}")
     for p in all_params:
         p_name = p.get('name', '')
@@ -552,8 +735,7 @@ def _generate_security_tests(method_name: str, query_params: List[Dict], body_pa
     methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
     methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
     methods.append("")
-    print(f"  ✓ 已添加安全测试用例: test_{module_name}_security_{method_name}")
-    
+    print(f"  ✓ 已添加安全测试用例: test_{module_name}_security_{method_name}_{param_name}")
     return methods
 
 
