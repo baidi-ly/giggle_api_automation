@@ -495,16 +495,11 @@ def _generate_permission_tests(method_name: str, query_params: List[Dict], body_
     methods.append(f"    )")
     methods.append(f"    def test_{module_name}_permission_{method_name}(self, input_param, desc, value):")
     methods.append(f'        """{summary}-{{desc}}"""')
-    methods.append(f"        if value == 'missing':")
+    methods.append(f"        # 鉴权作为位置参数直接传入（示例期望的极简风格）")
     if param_str:
-        methods.append(f"            res = self.{module_name}.{method_name}({param_str})")
+        methods.append(f"        res = self.{module_name}.{method_name}(input_param, {param_str})")
     else:
-        methods.append(f"            res = self.{module_name}.{method_name}()")
-    methods.append(f"        else:")
-    if param_str:
-        methods.append(f"            res = self.{module_name}.{method_name}(authorization=value, {param_str})")
-    else:
-        methods.append(f"            res = self.{module_name}.{method_name}(authorization=value)")
+        methods.append(f"        res = self.{module_name}.{method_name}(input_param)")
     methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
     methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
     methods.append("")
