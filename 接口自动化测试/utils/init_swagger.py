@@ -173,8 +173,13 @@ def init_swagger(url: str, swagger_dir: str, backup: bool = True, target_apis: l
             
         # 如果不需要备份原始文档，则删除
         if not backup:
-            os.remove(raw_file)
-            logger.info(f"已删除原始文档 {raw_file}")
+            try:
+                os.remove(raw_file)
+                logger.info(f"已删除原始文档 {raw_file}")
+            except Exception as e:
+                logger.warning(f"删除原始文档失败: {e}")
+        else:
+            logger.info(f"已保留原始文档: {raw_file}")
             
         logger.info("Swagger文档初始化成功！")
         return True

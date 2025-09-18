@@ -33,7 +33,7 @@ if __name__ == '__main__':
         os.path.join(os.path.dirname(__file__), '../../test_data/')),
                         help='Swagger文档目录')
     parser.add_argument('--no-backup', '-n', action='store_true',
-                        help='不备份原始文档')
+                        help='不备份原始文档（默认会保留原始下载文件）')
 
     args = parser.parse_args()
 
