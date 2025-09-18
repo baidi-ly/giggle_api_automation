@@ -118,27 +118,26 @@ def init_swagger(url: str, swagger_dir: str, backup: bool = True, target_apis: l
         raw_file = os.path.join(temp_dir, f'swagger_raw_{timestamp}.json')
         fixed_file = os.path.join(swagger_dir, 'swagger_fixed.json')
         
-        # 检查是否已存在swagger文件，如果存在则直接使用
-        if os.path.exists(fixed_file):
-            logger.info(f"发现已存在的swagger文件: {fixed_file}，直接使用")
-            return True
-        
-        # 尝试下载Swagger文档
+        # 总是尝试从URL下载最新的Swagger文档
+        logger.info(f"正在尝试从 {url} 下载最新的swagger文档...")
         success, swagger_doc = download_swagger(url, raw_file)
-        if not success:
-            logger.warning(f"无法从 {url} 下载swagger文档，将使用现有的swagger文件")
-            # 如果下载失败，检查是否有现有的swagger文件
+        
+        if success:
+            # 下载成功，处理Swagger文档
+            logger.info("成功下载swagger文档，正在处理...")
+            success = process_swagger(swagger_doc, fixed_file)
+            if not success:
+                logger.error("处理swagger文档失败")
+                return False
+        else:
+            # 下载失败，检查是否有现有的swagger文件作为备用
+            logger.warning(f"无法从 {url} 下载swagger文档")
             if os.path.exists(fixed_file):
-                logger.info(f"使用现有的swagger文件: {fixed_file}")
+                logger.info(f"使用现有的swagger文件作为备用: {fixed_file}")
                 return True
             else:
                 logger.error("没有找到可用的swagger文件")
                 return False
-
-        # 处理Swagger文档
-        success = process_swagger(swagger_doc, fixed_file)
-        if not success:
-            return False
             
         # 如果不需要备份原始文档，则删除
         if not backup:
