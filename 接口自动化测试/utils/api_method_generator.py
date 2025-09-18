@@ -124,7 +124,7 @@ def _build_method_block(
                 elif param_type == "integer":
                     default_value = param_default if param_default else "0"
                 elif param_type == "boolean":
-                    default_value = param_default.lower() if param_default else "False"
+                    default_value = str(param_default).lower() if param_default is not None else "False"
                 else:
                     default_value = "''"
             else:
@@ -133,7 +133,7 @@ def _build_method_block(
                 elif param_type == "integer":
                     default_value = param_default if param_default else "0"
                 elif param_type == "boolean":
-                    default_value = param_default.lower() if param_default else "False"
+                    default_value = str(param_default).lower() if param_default is not None else "False"
                 else:
                     default_value = "''"
             
@@ -173,25 +173,29 @@ def _build_method_block(
         for param in query_params:
             pname = param.get("name", "")
             q_items.append(f'            "{pname}": {pname}')
-        payload_lines.append(f"        payload1 = {{\n{chr(10).join(q_items)}\n        }}")
+        q_joined = ",\n".join(q_items)
+        payload_lines.append("        payload1 = {\n" + q_joined + "\n        }")
         b_items = []
         for param in body_params:
             pname = param.get("name", "")
             b_items.append(f'            "{pname}": {pname}')
-        payload_lines.append(f"        payload2 = {{\n{chr(10).join(b_items)}\n        }}")
+        b_joined = ",\n".join(b_items)
+        payload_lines.append("        payload2 = {\n" + b_joined + "\n        }")
         payload_lines.append("        payload2 = self.request_body(payload2, **kwargs)")
     elif has_query:
         q_items = []
         for param in query_params:
             pname = param.get("name", "")
             q_items.append(f'            "{pname}": {pname}')
-        payload_lines.append(f"        payload = {{\n{chr(10).join(q_items)}\n        }}")
+        q_joined = ",\n".join(q_items)
+        payload_lines.append("        payload = {\n" + q_joined + "\n        }")
     elif has_body:
         b_items = []
         for param in body_params:
             pname = param.get("name", "")
             b_items.append(f'            "{pname}": {pname}')
-        payload_lines.append(f"        payload = {{\n{chr(10).join(b_items)}\n        }}")
+        b_joined = ",\n".join(b_items)
+        payload_lines.append("        payload = {\n" + b_joined + "\n        }")
         payload_lines.append("        payload = self.request_body(payload, **kwargs)")
     if payload_lines:
         payload_code = "\n".join(payload_lines) + "\n"
