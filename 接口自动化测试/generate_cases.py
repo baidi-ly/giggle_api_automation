@@ -30,15 +30,15 @@ if __name__ == '__main__':
     parser.add_argument('--url', '-u', default='https://creator.qakjukl.net/swagger-resources/v2/api-docs',
                         help='Swagger文档的URL')
     parser.add_argument('--dir', '-d', default=os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '../../test_data/')),
+        os.path.join(os.path.dirname(__file__), 'test_data')),
                         help='Swagger文档目录')
     parser.add_argument('--no-backup', '-n', action='store_true',
                         help='不备份原始文档（默认会保留原始下载文件）')
 
     args = parser.parse_args()
 
-    # 初始化swagger文档
-    swagger_success = init_swagger(args.url, args.dir, not args.no_backup, target_apis)
+    # 初始化swagger文档 - 不传递target_apis，保存所有API
+    swagger_success = init_swagger(args.url, args.dir, not args.no_backup, [])
     if swagger_success:
         logger.info("Swagger文档初始化成功！")
     else:

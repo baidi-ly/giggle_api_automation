@@ -95,13 +95,14 @@ def download_swagger(url: str, output_file: str) -> bool:
         logger.error(f"下载Swagger文档时出错: {str(e)}")
         return False, None
 
-def process_swagger(swagger_doc: dict, output_file: str) -> bool:
+def process_swagger(swagger_doc: dict, output_file: str, target_apis: list = None) -> bool:
     """
     处理Swagger文档并保存
     
     Args:
         swagger_doc: Swagger文档对象
         output_file: 输出文件路径
+        target_apis: 目标API列表，如果为None则保存所有API
         
     Returns:
         bool: 是否处理成功
@@ -112,11 +113,72 @@ def process_swagger(swagger_doc: dict, output_file: str) -> bool:
         # 使用swagger_fixer修复文档
         fixed_doc = fix_swagger_doc(swagger_doc)
         
+        # 如果指定了target_apis，则过滤接口
+        if target_apis:
+            logger.info(f"根据target_apis过滤接口，目标API数量: {len(target_apis)}")
+            filtered_doc = {
+                "swagger": fixed_doc.get("swagger", "2.0"),
+                "info": fixed_doc.get("info", {}),
+                "host": fixed_doc.get("host", ""),
+                "basePath": fixed_doc.get("basePath", ""),
+                "schemes": fixed_doc.get("schemes", []),
+                "paths": {},
+                "definitions": {}
+            }
+            
+            # 用于存储需要保留的定义
+            required_definitions = set()
+            
+            # 过滤目标API
+            for api_path in target_apis:
+                api_path = api_path.lstrip('/')
+                found = False
+                
+                for path, path_item in fixed_doc.get("paths", {}).items():
+                    path_normalized = path.lstrip('/')
+                    
+                    # 精确匹配或部分匹配
+                    if path_normalized == api_path or api_path in path_normalized:
+                        filtered_doc["paths"][path] = path_item
+                        found = True
+                        logger.info(f"✓ 找到匹配的API: {path}")
+                        
+                        # 收集该API使用的所有定义
+                        for method in path_item.values():
+                            if isinstance(method, dict):
+                                if "parameters" in method:
+                                    for param in method["parameters"]:
+                                        if "schema" in param and "$ref" in param["schema"]:
+                                            ref = param["schema"]["$ref"]
+                                            if ref.startswith("#/definitions/"):
+                                                required_definitions.add(ref.split("/")[-1])
+                                
+                                if "responses" in method:
+                                    for response in method["responses"].values():
+                                        if "schema" in response and "$ref" in response["schema"]:
+                                            ref = response["schema"]["$ref"]
+                                            if ref.startswith("#/definitions/"):
+                                                required_definitions.add(ref.split("/")[-1])
+                
+                if not found:
+                    logger.warning(f"✗ 未找到匹配的API: {api_path}")
+            
+            # 只保留需要的定义
+            for def_name in required_definitions:
+                if def_name in fixed_doc.get("definitions", {}):
+                    filtered_doc["definitions"][def_name] = fixed_doc["definitions"][def_name]
+            
+            logger.info(f"过滤后保留 {len(filtered_doc['paths'])} 个API路径")
+            fixed_doc = filtered_doc
+        else:
+            logger.info("未指定target_apis，保存所有API")
+        
         # 保存修复后的文档
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(fixed_doc, f, indent=2, ensure_ascii=False)
             
         logger.info(f"Swagger文档已处理并保存到 {output_file}")
+        logger.info(f"最终API路径数量: {len(fixed_doc.get('paths', {}))}")
         return True
     except Exception as e:
         logger.error(f"处理Swagger文档时出错: {str(e)}")
@@ -157,7 +219,7 @@ def init_swagger(url: str, swagger_dir: str, backup: bool = True, target_apis: l
         if success:
             # 下载成功，处理Swagger文档
             logger.info("成功下载swagger文档，正在处理...")
-            success = process_swagger(swagger_doc, fixed_file)
+            success = process_swagger(swagger_doc, fixed_file, target_apis)
             if not success:
                 logger.error("处理swagger文档失败")
                 return False
