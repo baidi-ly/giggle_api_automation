@@ -44,7 +44,7 @@ class TestLogin:
         login_res = self.base.login(email, password)
         assert login_res["message"] == "success"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_user_login_email_has_bindAccount(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -55,7 +55,7 @@ class TestLogin:
         assert "data" in login_res, f"获取孩子学习统计数据接口没有data数据，response->{login_res}"
         assert login_res["message"] == "success"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     @pytest.mark.parametrize("bindAccount", [123, 123.4, True, "!@#~"], ids=["integer", "float", "boolen", "special characters"])
     def test_user_login_email_has_not_bindAccount(self, bindAccount):
         """有效的kidId，返回完整统计数据"""

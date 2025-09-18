@@ -20,7 +20,7 @@ class TestMaterial:
         self.materials = MaterialsApi()
         self.authorization = self.materials.get_authorization()
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_materials_upload_common_resource_ppt(self):
         """有效的kidId，返回完整统计数据"""
         # 获取有效的kidId

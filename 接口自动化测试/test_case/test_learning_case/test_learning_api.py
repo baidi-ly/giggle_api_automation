@@ -41,7 +41,7 @@ class TestLearning:
         # 注销小孩账户
         yield kidId
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_stats_byKidId_normal(self, getkidId):
         """有效的kidId，返回完整统计数据"""
         # 获取有效的kidId
@@ -51,7 +51,7 @@ class TestLearning:
         assert "data" in stats_res, f"获取孩子学习统计数据接口没有data数据，response->{stats_res}"
         assert stats_res["data"]["learningStats"]
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_stats_byKidId_deletedAccount(self, create_deletedAccount):
         """注销的kidId，返回错误信息"""
         # 获取有效的kidId
@@ -61,7 +61,7 @@ class TestLearning:
         assert "msg" in stats_res, f"获取孩子学习统计数据接口没有msg数据，response->{stats_res}"
         assert stats_res["msg"] == "无效的kidId", f'无效的kidId返回错误信息有误，预期:无效的kidId, 实际：{stats_res["msg"]}'
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_stats_byKidId_invalid(self):
         """无效的kidId - 返回错误信息"""
         # 创建无效的kidId
@@ -72,7 +72,7 @@ class TestLearning:
         assert "data" in stats_res, f"获取孩子学习统计数据接口没有msg数据，response->{stats_res}"
         assert stats_res["data"]["message"] == f"孩子不存在: {kidId}", f'无效的kidId返回错误信息有误，预期:无效的kidId, 实际：{stats_res["data"]}'
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_stats_byKidId_unauthorized(self, getkidId):
         """有效的kidId - 未授权，返回401"""
         # 获取有效的kidId
@@ -80,7 +80,7 @@ class TestLearning:
         # 未授权，获取孩子学习统计数据
         self.learning.learning_stats(kidId, code=401)
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_stats_byKidId_negative(self, getkidId):
         """kidId为负数 - 返回错误信息"""
         # 创建负数kidId
@@ -91,7 +91,7 @@ class TestLearning:
         assert stats_res["message"] == "internal server error", (f'kidId为负数返回错误信息有误，'
                                                                  f'预期:internal server error, 实际：{stats_res["message"]}')
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_byKidId_normal(self, getkidId):
         """获取孩子今日学习详情，有数据的kidId，返回完整统计数据"""
         # 获取有效的kidId
@@ -105,7 +105,7 @@ class TestLearning:
             assert _key in daily_res["data"],\
                 f'获取孩子今日学习详情接口data数据中没有预期的返回字段:("courses", "storybooks", "flashcard", "myWorks")'
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_byKidId_normal_empty(self, getkidId):
         """获取孩子今日学习详情，无数据的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -114,17 +114,17 @@ class TestLearning:
         assert daily_res['status'] == 404, f"获取孩子今日学习详情接口没有data数据，response->{daily_res}"
 
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_byKidId_normal(self, getkidId):
         """获取今日学习详情，跨时区测试"""
         pass
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_byKidId_deletedAccount(self, create_deletedAccount):
         """获取孩子今日学习详情，注销的kidId，返回错误信息"""
         pass
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_byKidId_special_character(self):
         """获取孩子今日学习详情，无效的kidId - 返回错误信息"""
         # 创建无效的kidId
@@ -135,7 +135,7 @@ class TestLearning:
         assert daily_res['message'] == 'invalid parameter', f'{error_msg}-返回状态码不正确，预期:500, 实际：{daily_res["code"]}'
         assert daily_res['data'] == '''Failed to convert value of type 'java.lang.String' to required type 'long'; nested exception is java.lang.NumberFormatException: For input string: "@@"''', f'{error_msg}-返回状态码不正确，预期:500, 实际：{daily_res["code"]}'
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_byKidId_positive(self):
         """获取孩子今日学习详情，无效的kidId - 返回错误信息"""
         # 创建无效的kidId
@@ -145,7 +145,7 @@ class TestLearning:
         error_msg = "获取孩子今日学习详情-无效的kidId"
         assert daily_res['message'] == 'internal server error', f'{error_msg}-返回状态码不正确，预期:500, 实际：{daily_res["code"]}'
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_byKidId_unauthorized(self, getkidId):
         """有效的kidId - 未授权，返回401"""
         # 获取有效的kidId
@@ -153,7 +153,7 @@ class TestLearning:
         # 未授权，获取孩子学习统计数据
         self.learning.daily_learning(kidId, code=401)
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_byKidId_negative(self, getkidId):
         """kidId为负数 - 返回错误信息"""
         # 创建负数kidId
@@ -163,7 +163,7 @@ class TestLearning:
         assert "message" in daily_res, f"获取孩子学习统计数据接口没有msg数据，response->{daily_res}"
         assert daily_res["message"] == "internal server error", (f'kidId为负数返回错误信息有误，'                                     
                                                                  f'预期:internal server error, 实际：{daily_res["message"]}')       # TODO
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_report_byKidId_default(self, getkidId):
         """生成指定孩子的学习情况报表数据，生成今日报表"""
         # 获取有效的kidId
@@ -176,7 +176,7 @@ class TestLearning:
         for key in  return_keys:
             assert key in report_res["data"],f'获取孩子今日学习详情接口data数据中没有预期的返回字段:("courses", "storybooks", "flashcard", "myWorks")'
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_report_byKidId_yesterday(self, getkidId):
         """生成指定孩子的学习情况报表数据，生成今日报表"""
         # 获取有效的kidId
@@ -189,7 +189,7 @@ class TestLearning:
         for key in  return_keys:
             assert key in report_res["data"],f'获取孩子今日学习详情接口data数据中没有预期的返回字段:("courses", "storybooks", "flashcard", "myWorks")'
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_report_byKidId_tomorrow(self, getkidId):
         """生成指定孩子的学习情况报表数据，生成今日报表"""
         # 获取有效的kidId
@@ -202,7 +202,7 @@ class TestLearning:
         for key in  return_keys:        # TODO
             assert key in report_res["data"],f'获取孩子今日学习详情接口data数据中没有预期的返回字段:("courses", "storybooks", "flashcard", "myWorks")'
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_weekly_byKidId_thisWeekend(self, getkidId):
         """获取本周学习"""
         # 获取有效的kidId
@@ -214,7 +214,7 @@ class TestLearning:
         for for_key in return_keys:
             assert for_key in weekly_learning_res, f"获取孩子学习统计数据接口没有data数据，response->{weekly_learning_res}"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_weekly_byKidId_nextWeekend(self, getkidId):
         """跨周测试 - 下一周"""
         # 获取有效的kidId
@@ -226,7 +226,7 @@ class TestLearning:
         for for_key in return_keys:
             assert for_key in weekly_learning_res, f"获取孩子学习统计数据接口没有data数据，response->{weekly_learning_res}"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_weekly_byKidId_lastWeekend(self, getkidId):
         """跨周测试 - 上一周"""
         # 获取有效的kidId
@@ -238,7 +238,7 @@ class TestLearning:
         for for_key in return_keys:
             assert for_key in weekly_learning_res, f"获取孩子学习统计数据接口没有data数据，response->{weekly_learning_res}"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_weekly_learning_report_thisWeekend(self, getkidId):
         """跨周测试 - 下一周"""
         # 获取有效的kidId
@@ -251,7 +251,7 @@ class TestLearning:
         for for_key in return_keys:
             assert for_key in weekly_learning_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{weekly_learning_res}"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_weekly_learning_report_targetWeekend(self, getkidId):
         """跨周测试 - 上一周"""
         # 获取有效的kidId
@@ -266,7 +266,7 @@ class TestLearning:
         for for_key in return_keys:
             assert for_key in weekly_learning_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{weekly_learning_res}"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_storybook_report_target(self, getkidId):
         """生成今日故事书报告"""
         # 获取有效的kidId
@@ -279,7 +279,7 @@ class TestLearning:
         for for_key in return_keys:
             assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_storybook_report_today(self, getkidId):
         """无故事书阅读记录"""
         # 获取有效的kidId
@@ -291,7 +291,7 @@ class TestLearning:
         for for_key in return_keys:
             assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_storybook_report_tomorrow(self, getkidId):
         """无故事书阅读记录"""
         # 获取有效的kidId
@@ -303,7 +303,7 @@ class TestLearning:
         for for_key in return_keys:
             assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_storybook_report_yesterday(self, getkidId):
         """无故事书阅读记录"""
         # 获取有效的kidId
@@ -315,7 +315,7 @@ class TestLearning:
         for for_key in return_keys:
             assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_challenge_report_target(self, getkidId):
         """生成今日故事书报告"""
         # 获取有效的kidId
@@ -328,7 +328,7 @@ class TestLearning:
         for for_key in return_keys:
             assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_challenge_report_today(self, getkidId):
         """无故事书阅读记录"""
         # 获取有效的kidId
@@ -340,7 +340,7 @@ class TestLearning:
         for for_key in return_keys:
             assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_challenge_report_tomorrow(self, getkidId):
         """无故事书阅读记录"""
         # 获取有效的kidId
@@ -352,7 +352,7 @@ class TestLearning:
         for for_key in return_keys:
             assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_challenge_report_yesterday(self, getkidId):
         """无故事书阅读记录"""
         # 获取有效的kidId
@@ -364,7 +364,7 @@ class TestLearning:
         for for_key in return_keys:
             assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_flashcard_report_target(self, getkidId):
         """生成今日故事书报告"""
         # 获取有效的kidId
@@ -377,7 +377,7 @@ class TestLearning:
         for for_key in return_keys:
             assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_flashcard_report_today(self, getkidId):
         """无故事书阅读记录"""
         # 获取有效的kidId
@@ -389,7 +389,7 @@ class TestLearning:
         for for_key in return_keys:
             assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_flashcard_report_tomorrow(self, getkidId):
         """无故事书阅读记录"""
         # 获取有效的kidId
@@ -401,7 +401,7 @@ class TestLearning:
         for for_key in return_keys:
             assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_learning_daily_flashcard_report_yesterday(self, getkidId):
         """无故事书阅读记录"""
         # 获取有效的kidId

@@ -148,7 +148,7 @@ def _generate_positive_test(method_name: str, query_params: List[Dict], body_par
     
     param_str = ", ".join(normal_params) if normal_params else ""
     
-    methods.append(f"    @pytest.mark.pendingRelease")
+    methods.append(f"    @pytest.mark.release")
     methods.append(f"    def test_{module_name}_positive_{method_name}_ok(self):")
     methods.append(f'        """{summary}-正向用例"""')
     if param_str:
@@ -176,7 +176,7 @@ def _generate_required_field_tests(method_name: str, query_params: List[Dict], b
         param_name = param.get('name', '')
         param_in = param.get('in', 'query')
         cases = [("empty", "''"), ("null", "'None'")] if param_in == 'path' else [("missing", "''"), ("empty", "''"), ("null", "'None'")]
-        methods.append(f"    @pytest.mark.pendingRelease")
+        methods.append(f"    @pytest.mark.release")
         methods.append(f"    @pytest.mark.parametrize(")
         methods.append(f"        'desc, value',")
         methods.append(f"        [")
@@ -273,7 +273,7 @@ def _generate_data_format_tests(method_name: str, query_params: List[Dict], body
                 ("base64_string", "Base64字符串", '"SGVsbG8gV29ybGQ="')
             ]
         
-        methods.append(f"    @pytest.mark.pendingRelease")
+        methods.append(f"    @pytest.mark.release")
         methods.append(f"    @pytest.mark.parametrize(")
         methods.append(f"        'input_param, desc, value',")
         methods.append(f"        [")
@@ -373,7 +373,7 @@ def _generate_boundary_value_tests(method_name: str, query_params: List[Dict], b
     else:
         return methods
     
-        methods.append(f"    @pytest.mark.pendingRelease")
+        methods.append(f"    @pytest.mark.release")
         methods.append(f"    @pytest.mark.parametrize(")
         methods.append(f"        'input_param, desc, value',")
         methods.append(f"        [")
@@ -410,7 +410,7 @@ def _generate_scenario_exception_tests(method_name: str, query_params: List[Dict
         param_name = param.get('name', '')
         p_type = param.get('type', 'string')
         invalid_expr = "999999999" if p_type in ['integer', 'number'] else "'INVALID_VALUE'"
-        methods.append(f"    @pytest.mark.pendingRelease")
+        methods.append(f"    @pytest.mark.release")
         methods.append(f"    def test_{module_name}_scenario_{method_name}_invalid_{param_name}(self):")
         methods.append(f'        """{summary}-场景异常-无效的{param_name}"""')
         methods.append(f"        test_params = {{}}")
@@ -452,7 +452,7 @@ def _generate_permission_tests(method_name: str, query_params: List[Dict], body_
         ("invalid_token", "鉴权异常-invalid_token", "invalid_token"),
     ]
     
-    methods.append(f"    @pytest.mark.pendingRelease")
+    methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
     methods.append(f"        'input_param, desc, value',")
     methods.append(f"        [")
@@ -488,7 +488,7 @@ def _generate_security_tests(method_name: str, query_params: List[Dict], body_pa
     ]
     for param in string_params:
         param_name = param.get('name', '')
-        methods.append(f"    @pytest.mark.pendingRelease")
+        methods.append(f"    @pytest.mark.release")
         methods.append(f"    @pytest.mark.parametrize(")
         methods.append(f"        'test_type,test_desc,attack_value',")
         methods.append(f"        [")
@@ -526,7 +526,7 @@ def _generate_required_field_tests_for_param(method_name: str, query_params: Lis
     param_in = target_param.get('in', 'query')
     cases = [("empty", "''"), ("null", "'None'")] if param_in == 'path' else [("missing", "''"), ("empty", "''"), ("null", "'None'")]
 
-    methods.append(f"    @pytest.mark.pendingRelease")
+    methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
     methods.append(f"        'desc, value',")
     methods.append(f"        [")
@@ -576,7 +576,7 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
         format_tests = [("string", "字符串", '"abc"'), ("integer", "整数", "123"), ("float", "浮点数", "12.34"), ("array", "数组", "[1, 2, 3]"), ("object", "对象", '{"key": "value"}'), ("special_chars", "特殊字符", '"!@#$%^&*()"'), ("emoji", "表情符号", '"😀🎉🚀"'), ("long_string", "超长字符串", '"' + 'a' * 1000 + '"')]
     else:
         format_tests = [("integer", "整数", "123"), ("float", "浮点数", "12.34"), ("boolean", "布尔值", "True"), ("array", "数组", "[1, 2, 3]"), ("object", "对象", '{"key": "value"}'), ("special_chars", "特殊字符", '"!@#$%^&*()"'), ("email_format", "邮箱格式", '"test@example.com"'), ("phone_format", "手机号格式", '"13800138000"'), ("date_format", "日期格式", '"2023-12-25"'), ("emoji", "表情符号", '"😀🎉🚀"'), ("long_string", "超长字符串", '"' + 'a' * 1000 + '"'), ("unicode", "Unicode字符", '"中文测试"'), ("sql_injection", "SQL注入", '"\'; DROP TABLE users; --"'), ("xss", "XSS攻击", '"<script>alert(1)</script>"'), ("json_string", "JSON字符串", '"{\\"key\\": \\"value\\"}"'), ("xml_string", "XML字符串", '"<root><item>test</item></root>"'), ("url_string", "URL字符串", '"https://www.example.com"'), ("base64_string", "Base64字符串", '"SGVsbG8gV29ybGQ="')]
-    methods.append(f"    @pytest.mark.pendingRelease")
+    methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
     methods.append(f"        'input_param, desc, value',")
     methods.append(f"        [")
@@ -650,7 +650,7 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
             ]
     else:
         return methods
-    methods.append(f"    @pytest.mark.pendingRelease")
+    methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
     methods.append(f"        'input_param, desc, value',")
     methods.append(f"        [")
@@ -685,7 +685,7 @@ def _generate_scenario_exception_tests_for_param(method_name: str, query_params:
     p_type = target_param.get('type', 'string')
     invalid_expr = "999999999" if p_type in ['integer', 'number'] else "'INVALID_VALUE'"
     methods: List[str] = []
-    methods.append(f"    @pytest.mark.pendingRelease")
+    methods.append(f"    @pytest.mark.release")
     methods.append(f"    def test_{module_name}_scenario_{method_name}_invalid_{param_name}(self):")
     methods.append(f'        """{summary}-场景异常-无效的{param_name}"""')
     methods.append(f"        test_params = {{}}")
@@ -712,7 +712,7 @@ def _generate_security_tests_for_param(method_name: str, query_params: List[Dict
     param_name = target_param.get('name', '')
     security_tests = [("sql_injection", "SQL注入", "' OR 1=1 --"), ("xss_attack", "XSS攻击", "<script>alert('xss')</script>")]
     methods: List[str] = []
-    methods.append(f"    @pytest.mark.pendingRelease")
+    methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
     methods.append(f"        'test_type,test_desc,attack_value',")
     methods.append(f"        [")

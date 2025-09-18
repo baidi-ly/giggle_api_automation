@@ -23,7 +23,7 @@ class TestPoster:
         posterList = self.poster.poster_list(self.authorization)
         yield posterList
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_course_blockedCourseIds_normal(self, posterList):
         """有效的kidId，返回完整统计数据"""
         # 获取有效的kidId

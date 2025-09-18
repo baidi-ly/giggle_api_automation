@@ -30,7 +30,7 @@ class TestUser:
         couerseList = self.course.listAllWithLevel(self.authorization)["data"]
         yield couerseList
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_user_videoWhitelist_update_normal(self, get_userIds):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -39,7 +39,7 @@ class TestUser:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_user_videoWhitelist_update_empty(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -48,7 +48,7 @@ class TestUser:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_user_videoWhitelist_update_wrong(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -57,7 +57,7 @@ class TestUser:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_user_bindWechat_normal(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -65,7 +65,7 @@ class TestUser:
         event_res = self.user.bindWechat(self.authorization, code)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_user_bindWechat_abnormal(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -75,7 +75,7 @@ class TestUser:
         assert event_res["message"] == 'WeChat authorization code is invalid'
         assert event_res["data"] == 'WeChat authorization code is invalid'
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     @pytest.mark.parametrize("code", [123, 123.4, True, "!@#~"], ids=["integer", "float", "boolen", "special characters"])
     def test_user_bindWechat_wrong(self, code):
         """有效的kidId，返回完整统计数据"""
@@ -85,7 +85,7 @@ class TestUser:
         assert event_res["message"] == 'WeChat authorization code is invalid'
         assert event_res["data"] == 'WeChat authorization code is invalid'
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_user_bindWechat_null(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -93,7 +93,7 @@ class TestUser:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == 'WeChat authorization code is invalid'
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_user_bindWechat_withoutCode(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -102,14 +102,14 @@ class TestUser:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == 'WeChat authorization code is invalid'
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_user_bindWechat_unauthorized(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
         code = "18380143661"
         self.user.bindWechat('', code, status_code=401)
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_user_unbindWechat_abnormal(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -117,7 +117,7 @@ class TestUser:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_user_unbindWechat_normal(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -125,7 +125,7 @@ class TestUser:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_user_unbindWechat_unauthorized(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -133,7 +133,7 @@ class TestUser:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_user_bindApple_normal(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -142,7 +142,7 @@ class TestUser:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     @pytest.mark.parametrize("identifyToken", [123, 123.4, True, "!@#~"], ids=["integer", "float", "boolen", "special characters"])
     def test_user_bindApple_wrong(self, identifyToken):
         """有效的kidId，返回完整统计数据"""
@@ -151,7 +151,7 @@ class TestUser:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_user_bindApple_null(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -159,7 +159,7 @@ class TestUser:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_user_bindApple_withReq(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -170,7 +170,7 @@ class TestUser:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_user_bindApple_unauthorized(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -179,7 +179,7 @@ class TestUser:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_user_unbindApple_normal(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -187,7 +187,7 @@ class TestUser:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
 
-    @pytest.mark.pendingRelease
+    @pytest.mark.release
     def test_user_unbindApple_unauthorized(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
