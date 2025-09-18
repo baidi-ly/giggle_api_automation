@@ -118,16 +118,25 @@ def init_swagger(url: str, swagger_dir: str, backup: bool = True, target_apis: l
         raw_file = os.path.join(temp_dir, f'swagger_raw_{timestamp}.json')
         fixed_file = os.path.join(swagger_dir, 'swagger_fixed.json')
         
-        # 下载Swagger文档
+        # 检查是否已存在swagger文件，如果存在则直接使用
+        if os.path.exists(fixed_file):
+            logger.info(f"发现已存在的swagger文件: {fixed_file}，直接使用")
+            return True
+        
+        # 尝试下载Swagger文档
         success, swagger_doc = download_swagger(url, raw_file)
-        # if not success:
-        #     return False
+        if not success:
+            logger.warning(f"无法从 {url} 下载swagger文档，将使用现有的swagger文件")
+            # 如果下载失败，检查是否有现有的swagger文件
+            if os.path.exists(fixed_file):
+                logger.info(f"使用现有的swagger文件: {fixed_file}")
+                return True
+            else:
+                logger.error("没有找到可用的swagger文件")
+                return False
 
-        new_swagger_doc = {}
-        # for api in target_apis:
-        #     new_swagger_doc[api] = swagger_doc[api]
         # 处理Swagger文档
-        success = process_swagger(new_swagger_doc, fixed_file)
+        success = process_swagger(swagger_doc, fixed_file)
         if not success:
             return False
             

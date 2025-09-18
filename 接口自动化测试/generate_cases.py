@@ -37,11 +37,13 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    if init_swagger(args.url, args.dir, not args.no_backup, target_apis):
+    # 初始化swagger文档
+    swagger_success = init_swagger(args.url, args.dir, not args.no_backup, target_apis)
+    if swagger_success:
         logger.info("Swagger文档初始化成功！")
     else:
-        logger.error("Swagger文档初始化失败！")
-        sys.exit(1)
+        logger.warning("Swagger文档初始化失败，但继续执行...")
+        # 不直接退出，继续执行后续步骤
 
      # -----------------------------------步骤2： 解析swagger中的接口并写入指定的文件中---------------------------------------
 
@@ -60,8 +62,12 @@ if __name__ == '__main__':
     extracted_data = extract_api_info(swagger_data, target_apis)
 
     print(f"已成功提取API信息并保存到: {output_file}")
-    print(f"共提取了 {extracted_data['paths']} 个API路径")
+    print(f"共提取了 {len(extracted_data['paths'])} 个API路径")
     print(f"共提取了 {len(extracted_data['definitions'])} 个相关定义")
+    
+    # 保存提取的API信息
+    with open(output_file, 'w', encoding='utf-8') as f:
+        json.dump(extracted_data, f, indent=2, ensure_ascii=False)
 
 
     # -----------------------------------步骤4： 封装接口---------------------------------------

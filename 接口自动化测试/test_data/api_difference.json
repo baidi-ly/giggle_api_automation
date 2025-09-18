@@ -1,1 +1,1 @@
-{"apis":  ["/book/languageLayers/upload"]}
+{"apis":  ["/api/book/content", "/api/book/bookDetail/{bookId}", "/api/book/categories"]}
