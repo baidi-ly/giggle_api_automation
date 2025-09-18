@@ -50,7 +50,28 @@ def download_swagger(url: str, output_file: str) -> bool:
     """
     try:
         logger.info(f"正在从 {url} 下载Swagger文档...")
-        response = requests.get(url, timeout=30)
+        
+        # 添加更完整的请求头来避免访问限制
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+            'Referer': 'https://creator.qakjukl.net/',
+            'Origin': 'https://creator.qakjukl.net',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-origin',
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+        }
+        
+        # 使用session来保持连接
+        session = requests.Session()
+        session.headers.update(headers)
+        
+        response = session.get(url, timeout=60, verify=False)
         response.raise_for_status()  # 检查HTTP错误
         
         # 解析JSON响应
@@ -61,7 +82,15 @@ def download_swagger(url: str, output_file: str) -> bool:
             json.dump(swagger_doc, f, indent=2, ensure_ascii=False)
             
         logger.info(f"Swagger文档已下载并保存到 {output_file}")
+        logger.info(f"文档版本: {swagger_doc.get('info', {}).get('version', 'Unknown')}")
+        logger.info(f"API路径数量: {len(swagger_doc.get('paths', {}))}")
         return True, swagger_doc
+    except requests.exceptions.RequestException as e:
+        logger.error(f"网络请求失败: {str(e)}")
+        return False, None
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON解析失败: {str(e)}")
+        return False, None
     except Exception as e:
         logger.error(f"下载Swagger文档时出错: {str(e)}")
         return False, None
@@ -116,7 +145,10 @@ def init_swagger(url: str, swagger_dir: str, backup: bool = True, target_apis: l
         # 定义文件路径
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         raw_file = os.path.join(temp_dir, f'swagger_raw_{timestamp}.json')
-        fixed_file = os.path.join(swagger_dir, 'swagger_fixed.json')
+        # 确保swagger文件保存到正确的目录
+        swagger_subdir = os.path.join(swagger_dir, 'swagger')
+        os.makedirs(swagger_subdir, exist_ok=True)
+        fixed_file = os.path.join(swagger_subdir, 'swagger_fixed.json')
         
         # 总是尝试从URL下载最新的Swagger文档
         logger.info(f"正在尝试从 {url} 下载最新的swagger文档...")

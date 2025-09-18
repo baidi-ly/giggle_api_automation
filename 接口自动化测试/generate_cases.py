@@ -45,15 +45,15 @@ if __name__ == '__main__':
         logger.warning("Swagger文档初始化失败，但继续执行...")
         # 不直接退出，继续执行后续步骤
 
-     # -----------------------------------步骤2： 解析swagger中的接口并写入指定的文件中---------------------------------------
+     # -----------------------------------步骤2： 解析swagger中的接口信息---------------------------------------
 
+    # 输入文件路径
+    input_file = os.path.join("test_data", "swagger", "swagger_fixed.json")
 
-    # 输入和输出文件路径
-    input_file = os.getcwd() + "/test_data/swagger/swagger_fixed.json"
-    output_file = os.getcwd() + "/test_data/swagger/selected_apis.json"
-
-    # 确保输出目录存在
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+    # 检查swagger文件是否存在
+    if not os.path.exists(input_file):
+        logger.error(f"Swagger文件不存在: {input_file}")
+        sys.exit(1)
 
     # 加载swagger文件
     swagger_data = load_swagger_file(input_file)
@@ -61,13 +61,19 @@ if __name__ == '__main__':
     # 提取API信息
     extracted_data = extract_api_info(swagger_data, target_apis)
 
-    print(f"已成功提取API信息并保存到: {output_file}")
+    print(f"已成功提取API信息")
     print(f"共提取了 {len(extracted_data['paths'])} 个API路径")
     print(f"共提取了 {len(extracted_data['definitions'])} 个相关定义")
     
-    # 保存提取的API信息
-    with open(output_file, 'w', encoding='utf-8') as f:
-        json.dump(extracted_data, f, indent=2, ensure_ascii=False)
+    # 显示提取的API路径
+    if extracted_data['paths']:
+        print("提取的API路径:")
+        for path in extracted_data['paths'].keys():
+            print(f"  - {path}")
+    else:
+        print("警告: 没有找到匹配的API路径")
+        print(f"目标API列表: {target_apis}")
+        print("请检查api_difference.json中的API路径是否正确")
 
 
     # -----------------------------------步骤4： 封装接口---------------------------------------
