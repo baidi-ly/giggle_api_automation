@@ -284,7 +284,7 @@ def _generate_data_format_tests(method_name: str, query_params: List[Dict], body
                 ("string", "字符串", '"abc"'),
                 ("float", "浮点数", "12.34"),
                 ("boolean", "布尔值", "True"),
-                ("array", "数组", "[1, 2, 3]"),
+                ("array", "数组", [1, 2, 3]),
                 ("object", "对象", '{"key": "value"}'),
                 ("special_chars", "特殊字符", '"!@#$%^&*()"'),
                 ("emoji", "表情符号", '"😀🎉🚀"'),
@@ -295,7 +295,7 @@ def _generate_data_format_tests(method_name: str, query_params: List[Dict], body
                 ("string", "字符串", '"abc"'),
                 ("integer", "整数", "123"),
                 ("float", "浮点数", "12.34"),
-                ("array", "数组", "[1, 2, 3]"),
+                ("array", "数组", [1, 2, 3]),
                 ("object", "对象", '{"key": "value"}'),
                 ("special_chars", "特殊字符", '"!@#$%^&*()"'),
                 ("emoji", "表情符号", '"😀🎉🚀"'),
@@ -306,7 +306,7 @@ def _generate_data_format_tests(method_name: str, query_params: List[Dict], body
                 ("integer", "整数", "123"),
                 ("float", "浮点数", "12.34"),
                 ("boolean", "布尔值", "True"),
-                ("array", "数组", "[1, 2, 3]"),
+                ("array", "数组", [1, 2, 3]),
                 ("object", "对象", '{"key": "value"}'),
                 ("special_chars", "特殊字符", '"!@#$%^&*()"'),
                 ("email_format", "邮箱格式", '"test@example.com"'),
@@ -578,36 +578,20 @@ def _generate_required_field_tests_for_param(method_name: str, query_params: Lis
 
     methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
-    methods.append(f"        'desc, value',")
+    methods.append(f"        'input_param, desc, value',")
     methods.append(f"        [")
-    for c in cases:
-        methods.append(f"            {c},")
+    methods.append(f"            ('missing', '缺失',  'missing'),")
+    methods.append(f"            ('empty', '为空', \"''\"),")
+    methods.append(f"            ('null', 'None', None),")
     methods.append(f"        ]")
     methods.append(f"    )")
-    methods.append(f"    def test_{module_name}_required_{method_name}_{param_name}(self, desc, value):")
+    methods.append(f"    def test_{module_name}_required_{method_name}_{param_name}(self, input_param, desc, value):")
     methods.append(f'        """{summary}-必填字段测试-{{desc}}({param_name})"""')
-    methods.append(f"        call_args = []")
-    for p in all_params:
-        p_name = p.get('name', '')
-        p_type = p.get('type', 'string')
-        if p_name == param_name:
-            if param_in == 'path':
-                methods.append(f"        {p_name} = None if desc == 'null' else ('' if desc == 'empty' else {_get_default_value.__name__}(p, p_type))")
-                methods.append(f"        call_args.append(f'{p_name}={{ {p_name} }}')")
-            else:
-                methods.append(f"        if desc == 'missing':")
-                methods.append(f"            pl_{p_name} = {{'pop_items': '{p_name}'}}")
-                methods.append(f"            {p_name} = {_get_default_value.__name__}(p, p_type)")
-                methods.append(f"        else:")
-                methods.append(f"            pl_{p_name} = {{}}")
-                methods.append(f"            {p_name} = value")
-                methods.append(f"        call_args.append(f'{p_name}={{ {p_name} }}')")
-        else:
-            methods.append(f"        call_args.append(f" + "'" + "{p_name}=" + "'" + f" + str({_get_default_value.__name__}(p, p_type)))")
-    methods.append(f"        kwargs = {{k.split('=')[0]: eval(k.split('=')[1]) for k in call_args}}")
-    if param_in != 'path':
-        methods.append(f"        kwargs.update(pl_{param_name})")
-    methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **kwargs)")
+    methods.append(f"        if desc == 'missing':")
+    methods.append(f"            pl, {param_name} = {{'pop_items': '{param_name}'}}, 0")
+    methods.append(f"        else:")
+    methods.append(f"            pl, {param_name} = {{}}, value")
+    methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **pl)")
     methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
     methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
     methods.append("")
@@ -636,18 +620,7 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
     methods.append(f"    )")
     methods.append(f"    def test_{module_name}_format_{method_name}_{param_name}(self, input_param, desc, value):")
     methods.append(f'        """{summary}-数据格式测试-{{desc}}({param_name})"""')
-    methods.append(f"        call_args = []")
-    for p in all_params:
-        p_name = p.get('name', '')
-        p_type = p.get('type', 'string')
-        if p_name == param_name:
-            methods.append(f"        {p_name} = input_param")
-            methods.append(f"        call_args.append(f'{p_name}={{ {p_name} }}')")
-        else:
-            default_value = _get_default_value(p, p_type)
-            methods.append(f"        call_args.append(f" + "'" + "{p_name}=" + "'" + f" + str({default_value}))")
-    methods.append(f"        kwargs = {{k.split('=')[0]: eval(k.split('=')[1]) for k in call_args}}")
-    methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **kwargs)")
+    methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value)")
     methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
     methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
     methods.append("")
@@ -729,22 +702,7 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
     methods.append(f"    )")
     methods.append(f"    def test_{module_name}_boundary_{method_name}_{param_name}(self, input_param, desc, value):")
     methods.append(f'        """{summary}-边界值测试-{{desc}}({param_name})"""')
-    methods.append(f"        call_args = []")
-    for p in all_params:
-        p_name = p.get('name', '')
-        p_type = p.get('type', 'string')
-        if p_name == param_name:
-            methods.append(f"        {p_name} = value")
-            methods.append(f"        call_args.append(f'{p_name}={{ {p_name} }}')")
-        else:
-            default_value = _get_default_value(p, p_type)
-            methods.append(f"        call_args.append(f" + "'" + "{p_name}=" + "'" + f" + str({default_value}))")
-    methods.append(f"        kwargs = {{k.split('=')[0]: eval(k.split('=')[1]) for k in call_args}}")
-    methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **kwargs)")
-    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
-    methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
-    methods.append("")
-    print(f"  ✓ 已添加边界值用例: test_{module_name}_boundary_{method_name}_{param_name}")
+    methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value)")
     return methods
 
 
