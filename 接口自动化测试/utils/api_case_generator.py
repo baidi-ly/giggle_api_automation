@@ -12,16 +12,16 @@ from datetime import datetime
 
 
 def generate_tests_for_api(
-    path: str,
-    http_method: str,
-    method_name: str,
-    summary: str,
-    parameters: List[Dict[str, Any]],
-    marker: str = "api"
+        path: str,
+        http_method: str,
+        method_name: str,
+        summary: str,
+        parameters: List[Dict[str, Any]],
+        marker: str = "api"
 ) -> str:
     """
     为指定API追加测试用例到现有测试文件
-    
+
     Args:
         path: API路径，如 "/api/user/login"
         http_method: HTTP方法，如 "GET", "POST" 等
@@ -29,75 +29,125 @@ def generate_tests_for_api(
         summary: 接口摘要
         parameters: 参数列表，包含query和body参数
         marker: 测试标记，用于pytest筛选
-    
+
     Returns:
         生成的测试用例文件路径
     """
-    # 分离参数：只校验通过json/data/params传参的参数，以及body/path/formData参数
-    # 不校验请求头中的参数（如authorization、content-type等）
+    # 分离不同类型的参数
     query_params = [p for p in parameters if p.get('in') == 'query']
-    body_params = [p for p in parameters if p.get('in') in ['body', 'path', 'formData']]
-    
+    body_params = [p for p in parameters if p.get('in') == 'body']
+    path_params = [p for p in parameters if p.get('in') == 'path']
+    file_params = [p for p in parameters if p.get('in') == 'formData' and p.get('type') == 'file']
+
     # 确定测试用例文件路径
     module_name = path.split('/')[2] if len(path.split('/')) > 2 else 'api'
     test_file_path = f"test_case/test_{module_name}_case/test_{module_name}_api.py"
-    
+
     # 确保测试文件目录存在
     os.makedirs(os.path.dirname(test_file_path), exist_ok=True)
-    
+
     # 生成测试用例内容
     test_methods = _generate_test_methods(
-        method_name, query_params, body_params, module_name, summary
+        method_name, query_params, body_params, module_name, summary, path_params, file_params
     )
-    
+
     # 追加到现有文件
     if os.path.exists(test_file_path):
         with open(test_file_path, 'r', encoding='utf-8') as f:
             existing_content = f.read()
-        
+
         # 纯粹追加，不修改任何现有内容
         new_content = existing_content + "\n\n" + "\n".join(test_methods) + "\n"
     else:
         # 如果文件不存在，创建基础结构
         new_content = _generate_basic_test_file(module_name, test_methods)
-    
+
     # 写入测试文件
     with open(test_file_path, 'w', encoding='utf-8') as f:
         f.write(new_content)
-    
+
     print(f"已追加测试用例到文件: {test_file_path}")
     return test_file_path
 
 
 def _generate_test_methods(
-    method_name: str,
-    query_params: List[Dict[str, Any]],
-    body_params: List[Dict[str, Any]],
-    module_name: str,
-    summary: str = ""
+        method_name: str,
+        query_params: List[Dict[str, Any]],
+        body_params: List[Dict[str, Any]],
+        module_name: str,
+        summary: str = "",
+        path_params: List[Dict[str, Any]] = None,
+        file_params: List[Dict[str, Any]] = None
 ) -> List[str]:
-    """生成测试方法列表（逐参数：一个参数的6类用例之后再到下一个参数）"""
+    """
+    生成测试方法列表
+    新逻辑：
+    1. 一条正向用例
+    2. 一条权限校验用例
+    3. 根据参数类型生成不同的校验规则：
+       - path参数：必填、数据格式、边界值、场景异常
+       - params与body参数：必填、数据格式、边界值、场景异常、安全
+       - file参数：必填、数据格式、边界值
+    """
     test_methods: List[str] = []
 
-    all_params = query_params + body_params
+    # 初始化参数列表
+    if path_params is None:
+        path_params = []
+    if file_params is None:
+        file_params = []
+
+    all_params = query_params + body_params + path_params + file_params
     has_params = bool(all_params)
 
-    if not has_params:
-        test_methods.extend(_generate_positive_test(method_name, [], [], module_name, summary))
-        test_methods.extend(_generate_permission_tests(method_name, [], [], module_name, summary))
-        return test_methods
-
-    # 先生成一条正向用例
+    # 1. 生成一条正向用例
     test_methods.extend(_generate_positive_test(method_name, query_params, body_params, module_name, summary))
 
-    # 逐参数生成六类
-    for param in all_params:
-        test_methods.extend(_generate_required_field_tests_for_param(method_name, query_params, body_params, module_name, summary, param))
-        test_methods.extend(_generate_data_format_tests_for_param(method_name, query_params, body_params, module_name, summary, param))
-        test_methods.extend(_generate_boundary_value_tests_for_param(method_name, query_params, body_params, module_name, summary, param))
-        test_methods.extend(_generate_scenario_exception_tests_for_param(method_name, query_params, body_params, module_name, summary, param))
-        test_methods.extend(_generate_permission_tests(method_name, query_params, body_params, module_name, summary))
-        test_methods.extend(_generate_security_tests_for_param(method_name, query_params, body_params, module_name, summary, param))
+    # 2. 生成一条权限校验用例
+    test_methods.extend(_generate_permission_tests(method_name, query_params, body_params, module_name, summary))
+
+    # 3. 根据参数类型生成不同的校验规则
+
+    # 处理 path 参数：必填、数据格式、边界值、场景异常
+    for param in path_params:
+        test_methods.extend(
+            _generate_required_field_tests_for_param(method_name, query_params, body_params, module_name, summary,
+                                                     param))
+        test_methods.extend(
+            _generate_data_format_tests_for_param(method_name, query_params, body_params, module_name, summary, param))
+        test_methods.extend(
+            _generate_boundary_value_tests_for_param(method_name, query_params, body_params, module_name, summary,
+                                                     param))
+        test_methods.extend(
+            _generate_scenario_exception_tests_for_param(method_name, query_params, body_params, module_name, summary,
+                                                         param))
+
+    # 处理 params 和 body 参数：必填、数据格式、边界值、场景异常、安全
+    for param in query_params + body_params:
+        test_methods.extend(
+            _generate_required_field_tests_for_param(method_name, query_params, body_params, module_name, summary,
+                                                     param))
+        test_methods.extend(
+            _generate_data_format_tests_for_param(method_name, query_params, body_params, module_name, summary, param))
+        test_methods.extend(
+            _generate_boundary_value_tests_for_param(method_name, query_params, body_params, module_name, summary,
+                                                     param))
+        test_methods.extend(
+            _generate_scenario_exception_tests_for_param(method_name, query_params, body_params, module_name, summary,
+                                                         param))
+        test_methods.extend(
+            _generate_security_tests_for_param(method_name, query_params, body_params, module_name, summary, param))
+
+    # 处理 file 参数：必填、数据格式、边界值（不包含场景异常）
+    for param in file_params:
+        test_methods.extend(
+            _generate_required_field_tests_for_param(method_name, query_params, body_params, module_name, summary,
+                                                     param))
+        test_methods.extend(
+            _generate_data_format_tests_for_param(method_name, query_params, body_params, module_name, summary, param))
+        test_methods.extend(
+            _generate_boundary_value_tests_for_param(method_name, query_params, body_params, module_name, summary,
+                                                     param))
 
     return test_methods
 
@@ -605,18 +655,25 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
     return methods
 
 
-def _generate_boundary_value_tests_for_param(method_name: str, query_params: List[Dict[str, Any]], body_params: List[Dict[str, Any]], module_name: str, summary: str, target_param: Dict[str, Any]) -> List[str]:
+def _generate_boundary_value_tests_for_param(method_name: str, query_params: List[Dict[str, Any]],
+                                             body_params: List[Dict[str, Any]], module_name: str, summary: str,
+                                             target_param: Dict[str, Any]) -> List[str]:
     all_params = query_params + body_params
     param_name = target_param.get('name', '')
     param_type = target_param.get('type', 'string')
     methods: List[str] = []
     boundary_lines: List[str] = []
+
     if param_type == 'integer':
         minimum = target_param.get('minimum')
         maximum = target_param.get('maximum')
         if minimum is not None and maximum is not None:
-            l1 = str(int(minimum) - 1); l = str(int(minimum)); lp = str(int(minimum)+1)
-            um = str(int(maximum) - 1); u = str(int(maximum)); up = str(int(maximum)+1)
+            l1 = str(int(minimum) - 1)
+            l = str(int(minimum))
+            lp = str(int(minimum) + 1)
+            um = str(int(maximum) - 1)
+            u = str(int(maximum))
+            up = str(int(maximum) + 1)
             boundary_lines = [
                 f"            ('below_min', '小于最小值', {l1}),",
                 f"            ('zero', '零值', 0),",
@@ -633,12 +690,14 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
                 "            ('max', '最大值', 2147483647),",
             ]
     elif param_type == 'string':
-        min_len = target_param.get('minLength'); max_len = target_param.get('maxLength')
+        min_len = target_param.get('minLength')
+        max_len = target_param.get('maxLength')
         if min_len is not None and max_len is not None:
-            min_len = int(min_len); max_len = int(max_len)
-            candidates = [min_len, min_len+1, max_len-1, max_len, max_len+1]
-            names = ["min_len","min_len_plus_one","max_len_minus_one","max_len","max_len_plus_one"]
-            descs = ["最小长度","略大于最小长度","略小于最大长度","最大长度","大于最大长度"]
+            min_len = int(min_len)
+            max_len = int(max_len)
+            candidates = [min_len, min_len + 1, max_len - 1, max_len, max_len + 1]
+            names = ["min_len", "min_len_plus_one", "max_len_minus_one", "max_len", "max_len_plus_one"]
+            descs = ["最小长度", "略大于最小长度", "略小于最大长度", "最大长度", "大于最大长度"]
             for i, length in enumerate(candidates):
                 if length < 0: continue
                 value_expr = '"' + ("a" * length) + '"'
@@ -648,8 +707,18 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
                 "            ('shortest', '最短长度', \"\"),",
                 "            ('longest', '最长长度', \"" + 'a' * 1000 + "\"),",
             ]
+    elif param_type == 'file':
+        # 文件类型的边界值测试：文件大小、文件格式等
+        boundary_lines = [
+            "            ('empty_file', '空文件', 'test_files/empty.txt'),",
+            "            ('small_file', '小文件', 'test_files/small.txt'),",
+            "            ('large_file', '大文件', 'test_files/large.txt'),",
+            "            ('invalid_format', '无效格式', 'test_files/invalid.exe'),",
+            "            ('max_size', '最大尺寸', 'test_files/max_size.txt'),",
+        ]
     else:
         return methods
+
     methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
     methods.append(f"        'input_param, desc, value',")
