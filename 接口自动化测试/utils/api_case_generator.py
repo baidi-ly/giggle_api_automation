@@ -605,11 +605,48 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
     param_type = target_param.get('type', 'string')
     methods: List[str] = []
     if param_type in ['integer', 'number']:
-        format_tests = [("string", "字符串", '"abc"'), ("float", "浮点数", "12.34"), ("boolean", "布尔值", "True"), ("array", "数组", "[1, 2, 3]"), ("object", "对象", '{"key": "value"}'), ("special_chars", "特殊字符", '"!@#$%^&*()"'), ("emoji", "表情符号", '"😀🎉🚀"'), ("long_string", "超长字符串", '"' + 'a' * 1000 + '"')]
+        format_tests = [
+            ("string", "字符串", '"abc"'),
+            ("float", "浮点数", 12.34),
+            ("boolean", "布尔值", True),
+            ("array", "数组", [1, 2, 3]),
+            ("object", "对象", {"key": "value"}),
+            ("special_chars", "特殊字符", '"!@#$%^&*()"'),
+            ("emoji", "表情符号", '"😀��🚀"'),
+            ("long_string", "超长字符串", '"' + 'a' * 1000 + '"')
+        ]
     elif param_type == 'boolean':
-        format_tests = [("string", "字符串", '"abc"'), ("integer", "整数", "123"), ("float", "浮点数", "12.34"), ("array", "数组", "[1, 2, 3]"), ("object", "对象", '{"key": "value"}'), ("special_chars", "特殊字符", '"!@#$%^&*()"'), ("emoji", "表情符号", '"😀🎉🚀"'), ("long_string", "超长字符串", '"' + 'a' * 1000 + '"')]
+        format_tests = [
+            ("string", "字符串", '"abc"'),
+            ("integer", "整数", 123),
+            ("float", "浮点数", 12.34),
+            ("array", "数组", [1, 2, 3]),
+            ("object", "对象", {"key": "value"}),
+            ("special_chars", "特殊字符", '"!@#$%^&*()"'),
+            ("emoji", "表情符号", '"😀🎉🚀"'),
+            ("long_string", "超长字符串", '"' + 'a' * 1000 + '"')
+        ]
     else:
-        format_tests = [("integer", "整数", "123"), ("float", "浮点数", "12.34"), ("boolean", "布尔值", "True"), ("array", "数组", "[1, 2, 3]"), ("object", "对象", '{"key": "value"}'), ("special_chars", "特殊字符", '"!@#$%^&*()"'), ("email_format", "邮箱格式", '"test@example.com"'), ("phone_format", "手机号格式", '"13800138000"'), ("date_format", "日期格式", '"2023-12-25"'), ("emoji", "表情符号", '"😀🎉🚀"'), ("long_string", "超长字符串", '"' + 'a' * 1000 + '"'), ("unicode", "Unicode字符", '"中文测试"'), ("sql_injection", "SQL注入", '"\'; DROP TABLE users; --"'), ("xss", "XSS攻击", '"<script>alert(1)</script>"'), ("json_string", "JSON字符串", '"{\\"key\\": \\"value\\"}"'), ("xml_string", "XML字符串", '"<root><item>test</item></root>"'), ("url_string", "URL字符串", '"https://www.example.com"'), ("base64_string", "Base64字符串", '"SGVsbG8gV29ybGQ="')]
+        format_tests = [
+            ("integer", "整数", 123),
+            ("float", "浮点数", 12.34),
+            ("boolean", "布尔值", True),
+            ("array", "数组", [1, 2, 3]),
+            ("object", "对象", {"key": "value"}),
+            ("special_chars", "特殊字符", '"!@#$%^&*()"'),
+            ("email_format", "邮箱格式", '"test@example.com"'),
+            ("phone_format", "手机号格式", '"13800138000"'),
+            ("date_format", "日期格式", '"2023-12-25"'),
+            ("emoji", "表情符号", '"😀🎉🚀"'),
+            ("long_string", "超长字符串", '"' + 'a' * 1000 + '"'),
+            ("unicode", "Unicode字符", '"中文测试"'),
+            ("sql_injection", "SQL注入", '"\'; DROP TABLE users; --"'),
+            ("xss", "XSS攻击", '"<script>alert(1)</script>"'),
+            ("json_string", "JSON字符串", '"{\\"key\\": \\"value\\"}"'),
+            ("xml_string", "XML字符串", '"<root><item>test</item></root>"'),
+            ("url_string", "URL字符串", '"https://www.example.com"'),
+            ("base64_string", "Base64字符串", '"SGVsbG8gV29ybGQ="')
+        ]
     methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
     methods.append(f"        'input_param, desc, value',")
@@ -703,6 +740,10 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
     methods.append(f"    def test_{module_name}_boundary_{method_name}_{param_name}(self, input_param, desc, value):")
     methods.append(f'        """{summary}-边界值测试-{{desc}}({param_name})"""')
     methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value)")
+    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
+    methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
+    methods.append("")
+    print(f"  ✓ 已添加边界值用例: test_{module_name}_boundary_{method_name}_{param_name}")
     return methods
 
 
