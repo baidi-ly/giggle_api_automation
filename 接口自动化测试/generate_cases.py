@@ -12,6 +12,7 @@ import sys
 from utils.api_case_generator import generate_tests_for_api
 from utils.api_method_generator import generate_single_method_to_api
 from utils.extract_apis import load_swagger_file, extract_api_info
+from utils.extract_interface_info import generate_interface_info_file
 from utils.init_swagger import init_swagger, logger
 
 
@@ -75,6 +76,13 @@ if __name__ == '__main__':
         print(f"目标API列表: {target_apis}")
         print("请检查api_difference.json中的API路径是否正确")
 
+
+    # 设置文件路径
+    doc_path = "接口变更文档_develop_vs_release_1.19.0.md"
+    output_path = "test_data/interface_info.json"
+
+    # 生成接口信息文件
+    generate_interface_info_file(doc_path, output_path)
 
     # -----------------------------------步骤4： 封装接口---------------------------------------
 

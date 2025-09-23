@@ -1,0 +1,790 @@
+{
+  "extract_time": "2025-09-23 12:50:16",
+  "document_version": "develop_vs_release_1.19.0",
+  "interfaces": {
+    "POST__admin_activity_create": {
+      "name": "创建活动",
+      "method": "POST",
+      "path": "/admin/activity/create",
+      "full_name": "创建活动 (POST /admin/activity/create)",
+      "endpoint": "POST /admin/activity/create",
+      "path_parameters": {},
+      "request_parameters": {
+        "name": {
+          "name": "name",
+          "type": "String",
+          "description": "活动名称，必填，最大255字符",
+          "location": "query",
+          "required": true,
+          "example": "255",
+          "constraints": {
+            "max_length": 255
+          }
+        },
+        "activityCode": {
+          "name": "activityCode",
+          "type": "String",
+          "description": "活动编码，必填，最大50字符",
+          "location": "query",
+          "required": true,
+          "example": "50",
+          "constraints": {
+            "max_length": 50
+          }
+        },
+        "startTime": {
+          "name": "startTime",
+          "type": "LocalDateTime",
+          "description": "活动开始时间，必填，格式：yyyy-MM-dd HH:mm:ss",
+          "location": "query",
+          "required": true,
+          "example": "yyyy",
+          "constraints": {
+            "format": "yyyy-MM-dd HH:mm:ss"
+          }
+        },
+        "endTime": {
+          "name": "endTime",
+          "type": "LocalDateTime",
+          "description": "活动结束时间，必填，格式：yyyy-MM-dd HH:mm:ss",
+          "location": "query",
+          "required": true,
+          "example": "yyyy",
+          "constraints": {
+            "format": "yyyy-MM-dd HH:mm:ss"
+          }
+        },
+        "description": {
+          "name": "description",
+          "type": "String",
+          "description": "活动描述，可选，最大1000字符",
+          "location": "query",
+          "required": false,
+          "example": "1000",
+          "constraints": {
+            "max_length": 1000
+          }
+        },
+        "status": {
+          "name": "status",
+          "type": "ActivityStatus",
+          "description": "活动状态，必填",
+          "location": "query",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "rewardConfig": {
+          "name": "rewardConfig",
+          "type": "String",
+          "description": "奖励配置，可选，最大2000字符",
+          "location": "query",
+          "required": false,
+          "example": "2000",
+          "constraints": {
+            "max_length": 2000
+          }
+        }
+      },
+      "request_body": {
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {
+          "name": {
+            "name": "name",
+            "type": "String",
+            "description": "活动名称，必填，最大255字符",
+            "location": "body",
+            "required": true,
+            "example": "255",
+            "constraints": {
+              "max_length": 255
+            }
+          },
+          "activityCode": {
+            "name": "activityCode",
+            "type": "String",
+            "description": "活动编码，必填，最大50字符",
+            "location": "body",
+            "required": true,
+            "example": "50",
+            "constraints": {
+              "max_length": 50
+            }
+          },
+          "startTime": {
+            "name": "startTime",
+            "type": "LocalDateTime",
+            "description": "活动开始时间，必填，格式：yyyy-MM-dd HH:mm:ss",
+            "location": "body",
+            "required": true,
+            "example": "yyyy",
+            "constraints": {
+              "format": "yyyy-MM-dd HH:mm:ss"
+            }
+          },
+          "endTime": {
+            "name": "endTime",
+            "type": "LocalDateTime",
+            "description": "活动结束时间，必填，格式：yyyy-MM-dd HH:mm:ss",
+            "location": "body",
+            "required": true,
+            "example": "yyyy",
+            "constraints": {
+              "format": "yyyy-MM-dd HH:mm:ss"
+            }
+          },
+          "description": {
+            "name": "description",
+            "type": "String",
+            "description": "活动描述，可选，最大1000字符",
+            "location": "body",
+            "required": false,
+            "example": "1000",
+            "constraints": {
+              "max_length": 1000
+            }
+          },
+          "status": {
+            "name": "status",
+            "type": "ActivityStatus",
+            "description": "活动状态，必填",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "rewardConfig": {
+            "name": "rewardConfig",
+            "type": "String",
+            "description": "奖励配置，可选，最大2000字符",
+            "location": "body",
+            "required": false,
+            "example": "2000",
+            "constraints": {
+              "max_length": 2000
+            }
+          }
+        }
+      },
+      "response": {
+        "type": "application/json",
+        "description": "响应数据",
+        "schema": "RestResponse<ActivityResponse>"
+      },
+      "description": "创建新的活动",
+      "category": "",
+      "all_parameters": {
+        "name": {
+          "name": "name",
+          "type": "String",
+          "description": "活动名称，必填，最大255字符",
+          "location": "body",
+          "required": true,
+          "example": "255",
+          "constraints": {
+            "max_length": 255
+          }
+        },
+        "activityCode": {
+          "name": "activityCode",
+          "type": "String",
+          "description": "活动编码，必填，最大50字符",
+          "location": "body",
+          "required": true,
+          "example": "50",
+          "constraints": {
+            "max_length": 50
+          }
+        },
+        "startTime": {
+          "name": "startTime",
+          "type": "LocalDateTime",
+          "description": "活动开始时间，必填，格式：yyyy-MM-dd HH:mm:ss",
+          "location": "body",
+          "required": true,
+          "example": "yyyy",
+          "constraints": {
+            "format": "yyyy-MM-dd HH:mm:ss"
+          }
+        },
+        "endTime": {
+          "name": "endTime",
+          "type": "LocalDateTime",
+          "description": "活动结束时间，必填，格式：yyyy-MM-dd HH:mm:ss",
+          "location": "body",
+          "required": true,
+          "example": "yyyy",
+          "constraints": {
+            "format": "yyyy-MM-dd HH:mm:ss"
+          }
+        },
+        "description": {
+          "name": "description",
+          "type": "String",
+          "description": "活动描述，可选，最大1000字符",
+          "location": "body",
+          "required": false,
+          "example": "1000",
+          "constraints": {
+            "max_length": 1000
+          }
+        },
+        "status": {
+          "name": "status",
+          "type": "ActivityStatus",
+          "description": "活动状态，必填",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "rewardConfig": {
+          "name": "rewardConfig",
+          "type": "String",
+          "description": "奖励配置，可选，最大2000字符",
+          "location": "body",
+          "required": false,
+          "example": "2000",
+          "constraints": {
+            "max_length": 2000
+          }
+        }
+      }
+    },
+    "PUT__admin_activity_activityId": {
+      "name": "更新活动",
+      "method": "PUT",
+      "path": "/admin/activity/{activityId}",
+      "full_name": "更新活动 (PUT /admin/activity/{activityId})",
+      "endpoint": "PUT /admin/activity/{activityId}",
+      "path_parameters": {
+        "activityId": {
+          "name": "activityId",
+          "type": "Long",
+          "description": "活动ID",
+          "location": "path",
+          "required": true,
+          "example": "ID"
+        }
+      },
+      "request_parameters": {},
+      "request_body": {
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {}
+      },
+      "response": {
+        "type": "application/json",
+        "description": "响应数据",
+        "schema": "RestResponse<ActivityResponse>"
+      },
+      "description": "更新指定活动信息",
+      "category": "",
+      "all_parameters": {
+        "activityId": {
+          "name": "activityId",
+          "type": "Long",
+          "description": "活动ID",
+          "location": "path",
+          "required": true,
+          "example": "ID"
+        }
+      }
+    },
+    "PUT__admin_activity_status": {
+      "name": "更新活动状态",
+      "method": "PUT",
+      "path": "/admin/activity/status",
+      "full_name": "更新活动状态 (PUT /admin/activity/status)",
+      "endpoint": "PUT /admin/activity/status",
+      "path_parameters": {},
+      "request_parameters": {},
+      "request_body": {
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {}
+      },
+      "response": {
+        "type": "application/json",
+        "description": "响应数据",
+        "schema": "RestResponse<String>"
+      },
+      "description": "更新活动状态",
+      "category": "",
+      "all_parameters": {}
+    },
+    "GET__admin_activity_list": {
+      "name": "获取活动列表",
+      "method": "GET",
+      "path": "/admin/activity/list",
+      "full_name": "获取活动列表 (GET /admin/activity/list)",
+      "endpoint": "GET /admin/activity/list",
+      "path_parameters": {},
+      "request_parameters": {
+        "page": {
+          "name": "page",
+          "type": "Int",
+          "description": "页码，默认0",
+          "location": "query",
+          "required": false,
+          "example": "0",
+          "constraints": {
+            "default": 0
+          }
+        },
+        "size": {
+          "name": "size",
+          "type": "Int",
+          "description": "每页大小，默认10",
+          "location": "query",
+          "required": false,
+          "example": "10",
+          "constraints": {
+            "default": 10
+          }
+        },
+        "status": {
+          "name": "status",
+          "type": "ActivityStatus",
+          "description": "活动状态，可选",
+          "location": "query",
+          "required": false,
+          "example": "",
+          "constraints": {}
+        }
+      },
+      "request_body": {
+        "type": "",
+        "description": "",
+        "parameters": {}
+      },
+      "response": {
+        "type": "application/json",
+        "description": "响应数据",
+        "schema": "RestResponse<Page<ActivityResponse>>"
+      },
+      "description": "分页获取活动列表",
+      "category": "",
+      "all_parameters": {
+        "page": {
+          "name": "page",
+          "type": "Int",
+          "description": "页码，默认0",
+          "location": "query",
+          "required": false,
+          "example": "0",
+          "constraints": {
+            "default": 0
+          }
+        },
+        "size": {
+          "name": "size",
+          "type": "Int",
+          "description": "每页大小，默认10",
+          "location": "query",
+          "required": false,
+          "example": "10",
+          "constraints": {
+            "default": 10
+          }
+        },
+        "status": {
+          "name": "status",
+          "type": "ActivityStatus",
+          "description": "活动状态，可选",
+          "location": "query",
+          "required": false,
+          "example": "",
+          "constraints": {}
+        }
+      }
+    },
+    "GET__admin_activity_activityId": {
+      "name": "获取活动详情",
+      "method": "GET",
+      "path": "/admin/activity/{activityId}",
+      "full_name": "获取活动详情 (GET /admin/activity/{activityId})",
+      "endpoint": "GET /admin/activity/{activityId}",
+      "path_parameters": {
+        "activityId": {
+          "name": "activityId",
+          "type": "Long",
+          "description": "活动ID",
+          "location": "path",
+          "required": true,
+          "example": "ID"
+        }
+      },
+      "request_parameters": {},
+      "request_body": {
+        "type": "",
+        "description": "",
+        "parameters": {}
+      },
+      "response": {
+        "type": "application/json",
+        "description": "响应数据",
+        "schema": "RestResponse<ActivityResponse>"
+      },
+      "description": "根据ID获取活动详情",
+      "category": "",
+      "all_parameters": {
+        "activityId": {
+          "name": "activityId",
+          "type": "Long",
+          "description": "活动ID",
+          "location": "path",
+          "required": true,
+          "example": "ID"
+        }
+      }
+    },
+    "POST__admin_activity_task": {
+      "name": "创建活动任务",
+      "method": "POST",
+      "path": "/admin/activity/task",
+      "full_name": "创建活动任务 (POST /admin/activity/task)",
+      "endpoint": "POST /admin/activity/task",
+      "path_parameters": {},
+      "request_parameters": {},
+      "request_body": {
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {}
+      },
+      "response": {
+        "type": "application/json",
+        "description": "响应数据",
+        "schema": "RestResponse<ActivityTaskResponse>"
+      },
+      "description": "为活动创建任务",
+      "category": "",
+      "all_parameters": {}
+    },
+    "PUT__admin_activity_task_id": {
+      "name": "更新活动任务",
+      "method": "PUT",
+      "path": "/admin/activity/task/{id}",
+      "full_name": "更新活动任务 (PUT /admin/activity/task/{id})",
+      "endpoint": "PUT /admin/activity/task/{id}",
+      "path_parameters": {
+        "id": {
+          "name": "id",
+          "type": "Long",
+          "description": "任务ID",
+          "location": "path",
+          "required": true,
+          "example": "ID"
+        }
+      },
+      "request_parameters": {},
+      "request_body": {
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {}
+      },
+      "response": {
+        "type": "application/json",
+        "description": "响应数据",
+        "schema": "RestResponse<ActivityTaskResponse>"
+      },
+      "description": "更新活动任务",
+      "category": "",
+      "all_parameters": {
+        "id": {
+          "name": "id",
+          "type": "Long",
+          "description": "任务ID",
+          "location": "path",
+          "required": true,
+          "example": "ID"
+        }
+      }
+    },
+    "GET__admin_activity_task_id": {
+      "name": "获取活动任务详情",
+      "method": "GET",
+      "path": "/admin/activity/task/{id}",
+      "full_name": "获取活动任务详情 (GET /admin/activity/task/{id})",
+      "endpoint": "GET /admin/activity/task/{id}",
+      "path_parameters": {
+        "id": {
+          "name": "id",
+          "type": "Long",
+          "description": "任务ID",
+          "location": "path",
+          "required": true,
+          "example": "ID"
+        }
+      },
+      "request_parameters": {},
+      "request_body": {
+        "type": "",
+        "description": "",
+        "parameters": {}
+      },
+      "response": {
+        "type": "application/json",
+        "description": "响应数据",
+        "schema": "RestResponse<ActivityTaskResponse>"
+      },
+      "description": "获取活动任务详情",
+      "category": "",
+      "all_parameters": {
+        "id": {
+          "name": "id",
+          "type": "Long",
+          "description": "任务ID",
+          "location": "path",
+          "required": true,
+          "example": "ID"
+        }
+      }
+    },
+    "GET__admin_activity_task_list": {
+      "name": "获取活动任务列表",
+      "method": "GET",
+      "path": "/admin/activity/task/list",
+      "full_name": "获取活动任务列表 (GET /admin/activity/task/list)",
+      "endpoint": "GET /admin/activity/task/list",
+      "path_parameters": {},
+      "request_parameters": {
+        "page": {
+          "name": "page",
+          "type": "Int",
+          "description": "页码，默认0",
+          "location": "query",
+          "required": false,
+          "example": "0",
+          "constraints": {
+            "default": 0
+          }
+        },
+        "size": {
+          "name": "size",
+          "type": "Int",
+          "description": "每页大小，默认10",
+          "location": "query",
+          "required": false,
+          "example": "10",
+          "constraints": {
+            "default": 10
+          }
+        },
+        "activityId": {
+          "name": "activityId",
+          "type": "Long",
+          "description": "活动ID，可选",
+          "location": "query",
+          "required": false,
+          "example": "ID",
+          "constraints": {}
+        }
+      },
+      "request_body": {
+        "type": "",
+        "description": "",
+        "parameters": {}
+      },
+      "response": {
+        "type": "application/json",
+        "description": "响应数据",
+        "schema": "RestResponse<Page<ActivityTaskResponse>>"
+      },
+      "description": "分页获取活动任务列表",
+      "category": "",
+      "all_parameters": {
+        "page": {
+          "name": "page",
+          "type": "Int",
+          "description": "页码，默认0",
+          "location": "query",
+          "required": false,
+          "example": "0",
+          "constraints": {
+            "default": 0
+          }
+        },
+        "size": {
+          "name": "size",
+          "type": "Int",
+          "description": "每页大小，默认10",
+          "location": "query",
+          "required": false,
+          "example": "10",
+          "constraints": {
+            "default": 10
+          }
+        },
+        "activityId": {
+          "name": "activityId",
+          "type": "Long",
+          "description": "活动ID，可选",
+          "location": "query",
+          "required": false,
+          "example": "ID",
+          "constraints": {}
+        }
+      }
+    },
+    "GET__admin_activity_activityId_task": {
+      "name": "获取活动的所有任务",
+      "method": "GET",
+      "path": "/admin/activity/{activityId}/task",
+      "full_name": "获取活动的所有任务 (GET /admin/activity/{activityId}/task)",
+      "endpoint": "GET /admin/activity/{activityId}/task",
+      "path_parameters": {
+        "activityId": {
+          "name": "activityId",
+          "type": "Long",
+          "description": "活动ID",
+          "location": "path",
+          "required": true,
+          "example": "ID"
+        }
+      },
+      "request_parameters": {},
+      "request_body": {
+        "type": "",
+        "description": "",
+        "parameters": {}
+      },
+      "response": {
+        "type": "application/json",
+        "description": "响应数据",
+        "schema": "RestResponse<List<ActivityTaskResponse>>"
+      },
+      "description": "获取指定活动的所有任务",
+      "category": "",
+      "all_parameters": {
+        "activityId": {
+          "name": "activityId",
+          "type": "Long",
+          "description": "活动ID",
+          "location": "path",
+          "required": true,
+          "example": "ID"
+        }
+      }
+    },
+    "DELETE__admin_activity_task_id": {
+      "name": "删除活动任务",
+      "method": "DELETE",
+      "path": "/admin/activity/task/{id}",
+      "full_name": "删除活动任务 (DELETE /admin/activity/task/{id})",
+      "endpoint": "DELETE /admin/activity/task/{id}",
+      "path_parameters": {
+        "id": {
+          "name": "id",
+          "type": "Long",
+          "description": "任务ID",
+          "location": "path",
+          "required": true,
+          "example": "ID"
+        }
+      },
+      "request_parameters": {},
+      "request_body": {
+        "type": "",
+        "description": "",
+        "parameters": {}
+      },
+      "response": {
+        "type": "application/json",
+        "description": "响应数据",
+        "schema": "RestResponse<String>"
+      },
+      "description": "删除活动任务",
+      "category": "图书管理相关接口 (BookController)",
+      "all_parameters": {
+        "id": {
+          "name": "id",
+          "type": "Long",
+          "description": "任务ID",
+          "location": "path",
+          "required": true,
+          "example": "ID"
+        }
+      }
+    },
+    "POST__book_languageLayers_upload": {
+      "name": "上传故事书语言层包到S3",
+      "method": "POST",
+      "path": "/book/languageLayers/upload",
+      "full_name": "上传故事书语言层包到S3 (POST /book/languageLayers/upload)",
+      "endpoint": "POST /book/languageLayers/upload",
+      "path_parameters": {},
+      "request_parameters": {
+        "file": {
+          "name": "file",
+          "type": "MultipartFile",
+          "description": "文件，必填",
+          "location": "query",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "bookId": {
+          "name": "bookId",
+          "type": "Long",
+          "description": "图书ID，必填",
+          "location": "query",
+          "required": true,
+          "example": "ID",
+          "constraints": {}
+        },
+        "languageCode": {
+          "name": "languageCode",
+          "type": "String",
+          "description": "语言代码，必填",
+          "location": "query",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        }
+      },
+      "request_body": {
+        "type": "",
+        "description": "",
+        "parameters": {}
+      },
+      "response": {
+        "type": "application/json",
+        "description": "响应数据",
+        "schema": "RestResponse<Map<String, String>> (包含s3Key)"
+      },
+      "description": "上传故事书语言层包到S3存储",
+      "category": "图书相关接口修改 (BookController)",
+      "all_parameters": {
+        "file": {
+          "name": "file",
+          "type": "MultipartFile",
+          "description": "文件，必填",
+          "location": "query",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "bookId": {
+          "name": "bookId",
+          "type": "Long",
+          "description": "图书ID，必填",
+          "location": "query",
+          "required": true,
+          "example": "ID",
+          "constraints": {}
+        },
+        "languageCode": {
+          "name": "languageCode",
+          "type": "String",
+          "description": "语言代码，必填",
+          "location": "query",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        }
+      }
+    }
+  }
+}

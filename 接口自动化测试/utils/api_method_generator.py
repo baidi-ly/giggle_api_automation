@@ -88,8 +88,17 @@ def _build_method_block(
     form_params: Optional[List[Dict[str, Any]]] = None,
 ) -> str:
     """构建符合用户模板的方法代码块（缩进与现有文件一致，4空格）"""
+
+
+
     summary_text = summary or path
     today = datetime.now().strftime("%Y-%m-%d")
+
+    # 加载接口信息
+    interface_info = load_interface_info()
+
+    # 生成接口唯一标识
+    interface_key = f"{http_method.upper()}__{path.replace('/api/', '').replace('/', '_').replace('{', '').replace('}', '')}"
     
     # 构建方法参数
     method_params = ["self", "authorization"]
@@ -242,6 +251,25 @@ def _build_method_block(
             t = p["schema"].get("type", "object")
         return (t or "string")
 
+    def _get_detailed_description(param: Dict[str, Any], interface_info: Dict[str, Any], interface_key: str) -> str:
+        """获取参数的详细描述"""
+        param_name = param.get("name", "")
+        if not param_name:
+            return param.get("description") or ""
+
+        # 优先使用接口信息中的详细描述
+        if interface_info and interface_key:
+            interface_data = interface_info.get('interfaces', {}).get(interface_key)
+            if interface_data:
+                all_parameters = interface_data.get('all_parameters', {})
+                if param_name in all_parameters:
+                    detailed_desc = all_parameters[param_name].get('description', '')
+                    if detailed_desc:
+                        return detailed_desc
+
+        # 如果没有详细描述，使用swagger中的描述
+        return param.get("description") or param_name
+
     param_doc_lines: List[str] = []
     if path_params:
         for p in path_params:
@@ -250,7 +278,7 @@ def _build_method_block(
                 continue
             typ = _param_type(p)
             req = "required" if p.get("required") else "optional"
-            desc = p.get("description") or name
+            desc = _get_detailed_description(p, interface_info, interface_key)
             param_doc_lines.append(f"        :param {name}: ({typ}, path, {req}) {desc}")
     if body_params:
         for p in body_params:
@@ -259,7 +287,7 @@ def _build_method_block(
                 continue
             typ = _param_type(p)
             req = "required" if p.get("required") else "optional"
-            desc = p.get("description") or name
+            desc = _get_detailed_description(p, interface_info, interface_key)
             param_doc_lines.append(f"        :param {name}: ({typ}, body, {req}) {desc}")
     if query_params:
         for p in query_params:
@@ -268,7 +296,7 @@ def _build_method_block(
                 continue
             typ = _param_type(p)
             req = "required" if p.get("required") else "optional"
-            desc = p.get("description") or name
+            desc = _get_detailed_description(p, interface_info, interface_key)
             param_doc_lines.append(f"        :param {name}: ({typ}, query, {req}) {desc}")
     if has_form:
         param_doc_lines.append("        :param file: (file, formData, optional) 上传文件")
@@ -531,6 +559,14 @@ def generate_single_method_to_api(
     
     return method_name
 
+
+def load_interface_info(interface_info_path: str = "test_data/interface_info.json") -> Dict[str, Any]:
+    """加载接口信息文件"""
+    if not os.path.exists(interface_info_path):
+        return {}
+
+    with open(interface_info_path, 'r', encoding='utf-8') as f:
+        return json.load(f)
 
 
 if __name__ == "__main__":

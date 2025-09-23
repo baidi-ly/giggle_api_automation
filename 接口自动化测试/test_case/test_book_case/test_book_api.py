@@ -430,3 +430,249 @@ class TestBook:
         event_res = self.book.update_recommend_newUserBookRules(self.authorization, rules="this is new rule", code=500, **pl)
         assert event_res["message"] == 'internal server error'
 
+
+
+    @pytest.mark.release
+    def test_book_positive_upload_ok(self):
+        """上传故事书语言层包到S3-正向用例"""
+        res = self.book.upload(authorization=self.authorization, bookId=0, languageCode='')
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'input_param, desc, value',
+        [
+            ('unauthorized', '未登录', 'missing'),
+            ('no_auth', '空token', ''),
+            ('expired_token', '鉴权异常-expired_token', 'expired_token'),
+            ('invalid_token', '鉴权异常-invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_book_permission_upload(self, input_param, desc, value):
+        """上传故事书语言层包到S3-{desc}"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.book.upload(input_param, bookId=0, languageCode='')
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'input_param, desc, value',
+        [
+            ('missing', '缺失',  'missing'),
+            ('empty', '为空', "''"),
+            ('null', 'None', None),
+        ]
+    )
+    def test_book_required_upload_bookId(self, input_param, desc, value):
+        """上传故事书语言层包到S3-必填字段测试-{desc}(bookId)"""
+        if desc == 'missing':
+            pl, bookId = {'pop_items': 'bookId'}, 0
+        else:
+            pl, bookId = {}, value
+        res = self.book.upload(authorization=self.authorization, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'input_param, desc, value',
+        [
+            ('string', '字符串', '"abc"'),
+            ('float', '浮点数', 12.34),
+            ('boolean', '布尔值', True),
+            ('array', '数组', [1, 2, 3]),
+            ('object', '对象', {'key': 'value'}),
+            ('special_chars', '特殊字符', '"!@#$%^&*()"'),
+            ('emoji', '表情符号', '"😀��🚀"'),
+            ('long_string', '超长字符串', '"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"'),
+        ]
+    )
+    def test_book_format_upload_bookId(self, input_param, desc, value):
+        """上传故事书语言层包到S3-数据格式测试-{desc}(bookId)"""
+        res = self.book.upload(self.authorization, bookId=value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'input_param, desc, value',
+        [
+            ('min', '最小值', -2147483648),
+            ('zero', '零值', 0),
+            ('max', '最大值', 2147483647),
+        ]
+    )
+    def test_book_boundary_upload_bookId(self, input_param, desc, value):
+        """上传故事书语言层包到S3-边界值测试-{desc}(bookId)"""
+        res = self.book.upload(self.authorization, bookId=value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+    @pytest.mark.release
+    def test_book_scenario_upload_invalid_bookId(self):
+        """上传故事书语言层包到S3-场景异常-无效的bookId"""
+        test_params = {}
+        test_params['bookId'] = 999999999
+        test_params['languageCode'] = ''
+        res = self.book.upload(authorization=self.authorization, **test_params)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'input_param, desc, value',
+        [
+            ('missing', '缺失',  'missing'),
+            ('empty', '为空', "''"),
+            ('null', 'None', None),
+        ]
+    )
+    def test_book_required_upload_languageCode(self, input_param, desc, value):
+        """上传故事书语言层包到S3-必填字段测试-{desc}(languageCode)"""
+        if desc == 'missing':
+            pl, languageCode = {'pop_items': 'languageCode'}, 0
+        else:
+            pl, languageCode = {}, value
+        res = self.book.upload(authorization=self.authorization, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'input_param, desc, value',
+        [
+            ('integer', '整数', 123),
+            ('float', '浮点数', 12.34),
+            ('boolean', '布尔值', True),
+            ('array', '数组', [1, 2, 3]),
+            ('object', '对象', {'key': 'value'}),
+            ('special_chars', '特殊字符', '"!@#$%^&*()"'),
+            ('email_format', '邮箱格式', '"test@example.com"'),
+            ('phone_format', '手机号格式', '"13800138000"'),
+            ('date_format', '日期格式', '"2023-12-25"'),
+            ('emoji', '表情符号', '"😀🎉🚀"'),
+            ('long_string', '超长字符串', '"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"'),
+            ('unicode', 'Unicode字符', '"中文测试"'),
+            ('sql_injection', 'SQL注入', '"\'; DROP TABLE users; --"'),
+            ('xss', 'XSS攻击', '"<script>alert(1)</script>"'),
+            ('json_string', 'JSON字符串', '"{\\"key\\": \\"value\\"}"'),
+            ('xml_string', 'XML字符串', '"<root><item>test</item></root>"'),
+            ('url_string', 'URL字符串', '"https://www.example.com"'),
+            ('base64_string', 'Base64字符串', '"SGVsbG8gV29ybGQ="'),
+        ]
+    )
+    def test_book_format_upload_languageCode(self, input_param, desc, value):
+        """上传故事书语言层包到S3-数据格式测试-{desc}(languageCode)"""
+        res = self.book.upload(self.authorization, languageCode=value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'input_param, desc, value',
+        [
+            ('shortest', '最短长度', ""),
+            ('longest', '最长长度', "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+        ]
+    )
+    def test_book_boundary_upload_languageCode(self, input_param, desc, value):
+        """上传故事书语言层包到S3-边界值测试-{desc}(languageCode)"""
+        res = self.book.upload(self.authorization, languageCode=value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+    @pytest.mark.release
+    def test_book_scenario_upload_invalid_languageCode(self):
+        """上传故事书语言层包到S3-场景异常-无效的languageCode"""
+        test_params = {}
+        test_params['bookId'] = 0
+        test_params['languageCode'] = 'INVALID_VALUE'
+        res = self.book.upload(authorization=self.authorization, **test_params)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'test_type,test_desc,attack_value',
+        [
+            ('sql_injection', 'SQL注入', "' OR 1=1 --"),
+            ('xss_attack', 'XSS攻击', "<script>alert('xss')</script>"),
+        ]
+    )
+    def test_book_security_upload_languageCode(self, test_type, test_desc, attack_value):
+        """上传故事书语言层包到S3-安全测试-{test_desc}(languageCode)"""
+        test_params = {}
+        test_params['bookId'] = 0
+        test_params['languageCode'] = attack_value
+        res = self.book.upload(authorization=self.authorization, **test_params)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'input_param, desc, value',
+        [
+            ('missing', '缺失',  'missing'),
+            ('empty', '为空', "''"),
+            ('null', 'None', None),
+        ]
+    )
+    def test_book_required_upload_file(self, input_param, desc, value):
+        """上传故事书语言层包到S3-必填字段测试-{desc}(file)"""
+        if desc == 'missing':
+            pl, file = {'pop_items': 'file'}, 0
+        else:
+            pl, file = {}, value
+        res = self.book.upload(authorization=self.authorization, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'input_param, desc, value',
+        [
+            ('integer', '整数', 123),
+            ('float', '浮点数', 12.34),
+            ('boolean', '布尔值', True),
+            ('array', '数组', [1, 2, 3]),
+            ('object', '对象', {'key': 'value'}),
+            ('special_chars', '特殊字符', '"!@#$%^&*()"'),
+            ('email_format', '邮箱格式', '"test@example.com"'),
+            ('phone_format', '手机号格式', '"13800138000"'),
+            ('date_format', '日期格式', '"2023-12-25"'),
+            ('emoji', '表情符号', '"😀🎉🚀"'),
+            ('long_string', '超长字符串', '"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"'),
+            ('unicode', 'Unicode字符', '"中文测试"'),
+            ('sql_injection', 'SQL注入', '"\'; DROP TABLE users; --"'),
+            ('xss', 'XSS攻击', '"<script>alert(1)</script>"'),
+            ('json_string', 'JSON字符串', '"{\\"key\\": \\"value\\"}"'),
+            ('xml_string', 'XML字符串', '"<root><item>test</item></root>"'),
+            ('url_string', 'URL字符串', '"https://www.example.com"'),
+            ('base64_string', 'Base64字符串', '"SGVsbG8gV29ybGQ="'),
+        ]
+    )
+    def test_book_format_upload_file(self, input_param, desc, value):
+        """上传故事书语言层包到S3-数据格式测试-{desc}(file)"""
+        res = self.book.upload(self.authorization, file=value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'input_param, desc, value',
+        [
+            ('empty_file', '空文件', 'test_files/empty.txt'),
+            ('small_file', '小文件', 'test_files/small.txt'),
+            ('large_file', '大文件', 'test_files/large.txt'),
+            ('invalid_format', '无效格式', 'test_files/invalid.exe'),
+            ('max_size', '最大尺寸', 'test_files/max_size.txt'),
+        ]
+    )
+    def test_book_boundary_upload_file(self, input_param, desc, value):
+        """上传故事书语言层包到S3-边界值测试-{desc}(file)"""
+        res = self.book.upload(self.authorization, file=value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
