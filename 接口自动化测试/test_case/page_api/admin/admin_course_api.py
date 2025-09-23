@@ -7,7 +7,7 @@ requests = BaseAPI().http_timeout()
 base_url = BaseAPI().baseurl()
 
 
-class AdminApi(BaseAPI):
+class AdminCourseApi(BaseAPI):
     """书籍接口"""
 
     def export_byTheme(self, authorization, theme, DeviceType="web", code=200):

@@ -12,6 +12,7 @@ import sys
 from utils.api_case_generator import generate_tests_for_api
 from utils.api_method_generator import generate_single_method_to_api
 from utils.extract_apis import load_swagger_file, extract_api_info
+from utils.markdown_api_extractor import extract_api_info_from_markdown_file
 from utils.init_swagger import init_swagger, logger
 
 
@@ -75,29 +76,119 @@ if __name__ == '__main__':
         print(f"目标API列表: {target_apis}")
         print("请检查api_difference.json中的API路径是否正确")
 
+    # -----------------------------------步骤3： 从Markdown文档提取接口信息---------------------------------------
+    
+    # 从Markdown文档提取接口信息
+    markdown_file = os.path.join("test_data", "接口测试文档_v1.19.0.md")
+    if os.path.exists(markdown_file):
+        logger.info("从Markdown文档提取接口信息...")
+        try:
+            markdown_extracted_data = extract_api_info_from_markdown_file(markdown_file)
+            logger.info(f"从Markdown文档提取了 {len(markdown_extracted_data['paths'])} 个API路径")
+            
+            # 合并两个数据源的结果
+            # 特殊处理：如果swagger中的接口有in=body参数，用Markdown中的body参数替换
+            for path, path_info in markdown_extracted_data['paths'].items():
+                if path in extracted_data['paths']:
+                    # 如果swagger中也有这个路径，需要特殊处理body参数
+                    swagger_path_info = extracted_data['paths'][path]
+                    
+                    # 遍历swagger中的每个HTTP方法
+                    for method, method_info in swagger_path_info.items():
+                        if method in path_info:
+                            # 检查swagger中是否有in=body的参数
+                            swagger_parameters = method_info.get('parameters', [])
+                            body_params_in_swagger = [p for p in swagger_parameters if p.get('in') == 'body']
+                            
+                            if body_params_in_swagger:
+                                # 如果swagger中有body参数，删除它们
+                                logger.info(f"删除swagger中 {method.upper()} {path} 的body参数: {[p['name'] for p in body_params_in_swagger]}")
+                                
+                                # 删除swagger中的body参数
+                                method_info['parameters'] = [p for p in swagger_parameters if p.get('in') != 'body']
+                                
+                                # 从Markdown中获取body参数
+                                markdown_method_info = path_info[method]
+                                markdown_parameters = markdown_method_info.get('parameters', [])
+                                markdown_body_params = [p for p in markdown_parameters if p.get('in') == 'body']
+                                
+                                if markdown_body_params:
+                                    # 添加Markdown中的body参数
+                                    method_info['parameters'].extend(markdown_body_params)
+                                    logger.info(f"添加Markdown中 {method.upper()} {path} 的body参数: {[p['name'] for p in markdown_body_params]}")
+                                else:
+                                    logger.warning(f"Markdown中 {method.upper()} {path} 没有找到body参数")
+                            else:
+                                # 如果swagger中没有body参数，直接合并所有参数
+                                markdown_method_info = path_info[method]
+                                markdown_parameters = markdown_method_info.get('parameters', [])
+                                method_info['parameters'].extend(markdown_parameters)
+                                logger.info(f"合并 {method.upper()} {path} 的所有参数")
+                else:
+                    # 如果swagger中没有这个接口，跳过不添加
+                    logger.info(f"跳过Markdown中的接口 {path}，因为swagger中没有对应接口")
+            
+            print(f"合并后共提取了 {len(extracted_data['paths'])} 个API路径")
+            
+        except Exception as e:
+            logger.error(f"从Markdown文档提取接口信息失败: {e}")
+            logger.info("继续使用swagger数据...")
+    else:
+        logger.warning(f"Markdown文档不存在: {markdown_file}")
+        logger.info("仅使用swagger数据...")
 
     # -----------------------------------步骤4： 封装接口---------------------------------------
 
 
     for api, api_info in extracted_data['paths'].items():
         for info_k, info_v in api_info.items():
-            method_name = generate_single_method_to_api(
-                path=api,
-                http_method=info_k,
-                module=api.split('/')[2],
-                summary=info_v['summary'],
-                force=False,
-            )
-            # 基于 swagger 的参数信息生成测试用例（仅 query/body/path/formData 参与测试）
-            # 不校验请求头中的参数（如authorization、content-type等）
-            raw_parameters = info_v.get('parameters', [])
-            parameters = [p for p in raw_parameters if p.get('in') in ('query', 'body', 'path', 'formData')]
-            marker = api.split('/')[2] if len(api.split('/')) > 2 else 'api'
-            generate_tests_for_api(
-                path=api,
-                http_method=info_k,
-                method_name=method_name,
-                summary=info_v.get('summary', ''),
-                parameters=parameters,
-                marker=marker,
-            )
+            # 判断是否为admin接口
+            is_admin_api = api.startswith('/admin/')
+            
+            if is_admin_api:
+                # admin接口的特殊处理
+                module = api.split('/')[2] if len(api.split('/')) > 2 else 'admin'
+                method_name = generate_single_method_to_api(
+                    path=api,
+                    http_method=info_k,
+                    module=f"admin_{module}_api",  # 这会生成 test_case/page_api/admin/admin_{module}_api.py
+                    summary=info_v['summary'],
+                    force=False,
+                )
+                # 基于 swagger 的参数信息生成测试用例（仅 query/body/path/formData 参与测试）
+                # 不校验请求头中的参数（如authorization、content-type等）
+                raw_parameters = info_v.get('parameters', [])
+                parameters = [p for p in raw_parameters if p.get('in') in ('query', 'body', 'path', 'formData')]
+                marker = f"test_admin_{module}_api"  # test_admin_case下的test_admin_{module}_api.py文件
+                generate_tests_for_api(
+                    path=api,
+                    http_method=info_k,
+                    method_name=method_name,
+                    summary=info_v.get('summary', ''),
+                    parameters=parameters,
+                    marker=marker,
+                )
+                logger.info(f"生成admin接口: {info_k.upper()} {api} -> test_case/page_api/admin/admin_{module}_api.py/{method_name}, 测试用例: test_admin_case/test_admin_{module}_api.py")
+            else:
+                # 普通接口的处理（保持原有逻辑）
+                method_name = generate_single_method_to_api(
+                    path=api,
+                    http_method=info_k,
+                    module=api.split('/')[2],
+                    summary=info_v['summary'],
+                    force=False,
+                )
+                # 基于 swagger 的参数信息生成测试用例（仅 query/body/path/formData 参与测试）
+                # 不校验请求头中的参数（如authorization、content-type等）
+                raw_parameters = info_v.get('parameters', [])
+                parameters = [p for p in raw_parameters if p.get('in') in ('query', 'body', 'path', 'formData')]
+                marker = api.split('/')[2] if len(api.split('/')) > 2 else 'api'
+                generate_tests_for_api(
+                    path=api,
+                    http_method=info_k,
+                    method_name=method_name,
+                    summary=info_v.get('summary', ''),
+                    parameters=parameters,
+                    marker=marker,
+                )
+                logger.info(f"生成普通接口: {info_k.upper()} {api} -> test_case/page_api/{api.split('/')[2]}/{api.split('/')[2]}_api.py/{method_name}, 测试用例: {marker}")

@@ -299,3 +299,27 @@ class BookApi(BaseAPI):
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
+
+    def upload(self, authorization, bookId=0, languageCode='', file=None, DeviceType="web", code=200, **kwargs):
+        """
+        上传故事书语言层包到S3
+        :param bookId: (integer, query, required) bookId
+        :param languageCode: (string, query, required) languageCode
+        :param file: (file, formData, optional) 上传文件
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-09-23
+        url = f"https://{base_url}/api/book/languageLayers/upload"
+        payload = {
+            "bookId": bookId,
+            "languageCode": languageCode
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload, files=file)
+        error_msg = "上传故事书语言层包到S3"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+

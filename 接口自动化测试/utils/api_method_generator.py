@@ -408,25 +408,74 @@ def generate_single_method_to_api(
             summary = path
     
     # 读取并定位 API 类文件
-    api_file = os.path.join("test_case", "page_api", module, f"{module}_api.py")
+    # 判断是否为admin接口
+    if module.startswith("admin_"):
+        # admin接口写入到test_case/page_api/admin目录
+        api_file = os.path.join("test_case", "page_api", "admin", f"{module}.py")
+    else:
+        # 普通接口写入到test_case/page_api目录
+        api_file = os.path.join("test_case", "page_api", module, f"{module}_api.py")
     if not os.path.exists(api_file):
-        # 如果标准文件名不存在，尝试查找目录下的其他 .py 文件
-        module_dir = os.path.join("test_case", "page_api", module)
-        if os.path.exists(module_dir):
-            py_files = [f for f in os.listdir(module_dir) if f.endswith('.py') and f != '__init__.py']
-            if py_files:
-                api_file = os.path.join(module_dir, py_files[0])
+        if module.startswith("admin_"):
+            # admin接口文件不存在，创建admin目录和文件
+            admin_dir = os.path.join("test_case", "page_api", "admin")
+            os.makedirs(admin_dir, exist_ok=True)
+            # 创建基本的API类文件
+            class_name = f"Admin{module.replace('admin_', '').replace('_api', '').capitalize()}Api"
+            basic_content = f'''#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+{module} API接口
+"""
+
+import requests
+import time
+from config import RunConfig
+
+base_url = RunConfig.base_url
+
+
+class {class_name}:
+    """API接口类"""
+    
+    def __init__(self):
+        self.base_url = base_url
+    
+    def request_header(self, timestamp, authorization, DeviceType="web"):
+        """构建请求头"""
+        return {{
+            "Authorization": authorization,
+            "DeviceType": DeviceType,
+            "timestamp": timestamp,
+            "Content-Type": "application/json"
+        }}
+'''
+            with open(api_file, "w", encoding="utf-8") as f:
+                f.write(basic_content)
+        else:
+            # 如果标准文件名不存在，尝试查找目录下的其他 .py 文件
+            module_dir = os.path.join("test_case", "page_api", module)
+            if os.path.exists(module_dir):
+                py_files = [f for f in os.listdir(module_dir) if f.endswith('.py') and f != '__init__.py']
+                if py_files:
+                    api_file = os.path.join(module_dir, py_files[0])
+                else:
+                    raise FileNotFoundError(f"未找到 API 文件: {api_file}")
             else:
                 raise FileNotFoundError(f"未找到 API 文件: {api_file}")
-        else:
-            raise FileNotFoundError(f"未找到 API 文件: {api_file}")
     
     with open(api_file, "r", encoding="utf-8") as f:
         content = f.read()
     
     # 检查目标类是否存在
-    if f"class {module.capitalize()}Api(" not in content:
-        raise RuntimeError(f"未在目标文件中找到 {module.capitalize()}Api 类定义")
+    if module.startswith("admin_"):
+        class_name = f"Admin{module.replace('admin_', '').replace('_api', '').capitalize()}Api"
+    else:
+        class_name = f"{module.capitalize()}Api"
+    
+    if f"class {class_name}(" not in content:
+        raise RuntimeError(f"未在目标文件中找到 {class_name} 类定义")
     
     # 生成方法名
     method_name = _camelize_from_path(path, http_method)
