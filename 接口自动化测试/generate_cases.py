@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
 
     # 设置文件路径
-    doc_path = "接口变更文档_develop_vs_release_1.19.0.md"
+    doc_path = "接口测试文档_v1.19.0.md"
     output_path = "test_data/interface_info.json"
 
     # 生成接口信息文件
@@ -96,17 +96,17 @@ if __name__ == '__main__':
                 summary=info_v['summary'],
                 force=False
             )
-            # 基于 swagger 的参数信息生成测试用例（仅 query/body/path/formData 参与测试）
-            # 不校验请求头中的参数（如authorization、content-type等）
-            raw_parameters = info_v.get('parameters', [])
-            parameters = [p for p in raw_parameters if p.get('in') in ('query', 'path', 'formData')]
-            parameters.append(body_param)
-            marker = api.split('/')[2] if len(api.split('/')) > 2 else 'api'
-            generate_tests_for_api(
-                path=api,
-                http_method=info_k,
-                method_name=method_name,
-                summary=info_v.get('summary', ''),
-                parameters=parameters,
-                marker=marker,
-            )
+            # # 基于 swagger 的参数信息生成测试用例（仅 query/body/path/formData 参与测试）
+            # # 不校验请求头中的参数（如authorization、content-type等）
+            # raw_parameters = info_v.get('parameters', [])
+            # parameters = [p for p in raw_parameters if p.get('in') in ('query', 'path', 'formData')]
+            # parameters.append(body_param)
+            # marker = api.split('/')[2] if len(api.split('/')) > 2 else 'api'
+            # generate_tests_for_api(
+            #     path=api,
+            #     http_method=info_k,
+            #     method_name=method_name,
+            #     summary=info_v.get('summary', ''),
+            #     parameters=parameters,
+            #     marker=marker,
+            # )

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 接口信息提取工具
-从接口变更文档_develop_vs_release_1.19.0.md中提取详细的接口信息并生成interface_info.json
+从接口测试文档_v1.19.0.md中提取详细的接口信息并生成interface_info.json
 """
 
 import os
@@ -89,7 +89,7 @@ def split_interface_sections(content: str) -> List[str]:
 
     # 查找所有接口标题
     # 匹配模式: #### 1.1 创建活动
-    interface_pattern = r'#### \d+\.\d+ ([^#\n]+)'
+    interface_pattern = r'#### \d+\.\d+\.\d+ ([^#\n]+)'
     matches = list(re.finditer(interface_pattern, content))
 
     for i, match in enumerate(matches):
@@ -169,14 +169,14 @@ def extract_interface_basic_info(section: str) -> Optional[Dict[str, Any]]:
         接口基本信息字典
     """
     # 提取接口名称
-    name_match = re.search(r'#### \d+\.\d+ (.+)', section)
+    name_match = re.search(r'#### \d+\.\d+\.\d+ (.+)', section)
     if not name_match:
         return None
 
     interface_name = name_match.group(1).strip()
 
-    # 提取接口路径
-    path_match = re.search(r'- \*\*接口路径\*\*: `([^`]+)`', section)
+    # 提取接口路径 - 修改这里
+    path_match = re.search(r'\*\*接口地址\*\*: `([^`]+)`', section)
     if not path_match:
         return None
 
@@ -263,6 +263,10 @@ def extract_request_parameters(section: str) -> Dict[str, Dict[str, Any]]:
         if request_param_match:
             request_param_content = request_param_match.group(1)
 
+            # 🔥 修改：检查是否是请求体类型，如果是则跳过（由 extract_request_body_info 处理）
+            if 'Req' in request_param_content or 'Request' in request_param_content:
+                continue  # 跳过请求体类型，由 extract_request_body_info 处理
+
             # 解析参数列表 - 支持两种格式
             # 格式1: - paramName: type (description)
             param_pattern1 = r'- (\w+):\s*([^(]+)\s*\(([^)]+)\)'
@@ -298,7 +302,7 @@ def extract_request_parameters(section: str) -> Dict[str, Dict[str, Any]]:
                     "name": param_name,
                     "type": param_type,
                     "description": param_desc,
-                    "location": "query",
+                    "location": "query",  # 🔥 保持为 query，因为这里处理的是非请求体参数
                     "required": is_required,
                     "example": extract_example_from_description(param_desc),
                     "constraints": extract_constraints_from_description(param_desc)
@@ -323,6 +327,80 @@ def extract_request_body_info(section: str) -> Dict[str, Any]:
         "parameters": {}
     }
 
+    # 🔥 通用JSON解析：支持多种格式
+    # 匹配模式1: 直接写在文档中的多行JSON对象
+    direct_json_pattern = r"\{\s*\n(?:[^{}]*\n)*\s*\}"
+    direct_json_matches = re.findall(direct_json_pattern, section, re.MULTILINE)
+
+    # 匹配模式2: 注释格式 <!-- json: {...} -->
+    commented_json_pattern = r"<!--\s*(?:json|JSON):\s*(\{.*?\})\s*-->"
+    commented_json_match = re.search(commented_json_pattern, section, re.DOTALL)
+
+    # 匹配模式3: 代码块格式 ```json ... ```
+    json_code_block_pattern = r"```json\s*\n(.*?)\n```"
+    json_code_block_match = re.search(json_code_block_pattern, section, re.DOTALL)
+
+    # 通用JSON解析（按优先级顺序）
+    json_data = None
+
+    # 1. 优先解析直接写在文档中的JSON
+    if direct_json_matches:
+        for json_content in direct_json_matches:
+            try:
+                json_data = json.loads(json_content.strip())
+                print(f"✅ 成功解析直接JSON: {json_content[:100]}...")
+                break
+            except json.JSONDecodeError:
+                continue
+
+    # 2. 解析注释格式的JSON
+    if not json_data and commented_json_match:
+        json_content = commented_json_match.group(1).strip()
+        try:
+            json_data = json.loads(json_content)
+            print(f"✅ 成功解析注释JSON: {json_content[:100]}...")
+        except json.JSONDecodeError:
+            print(f"❌ JSON解析失败: {json_content}")
+
+    # 3. 解析代码块格式的JSON
+    if not json_data and json_code_block_match:
+        json_content = json_code_block_match.group(1).strip()
+        try:
+            json_data = json.loads(json_content)
+            print(f"✅ 成功解析代码块JSON: {json_content[:100]}...")
+        except json.JSONDecodeError:
+            print(f"❌ JSON解析失败: {json_content}")
+
+    # �� 如果成功解析JSON，将字段转换为参数
+    if json_data:
+        request_body["type"] = "application/json"
+        request_body["description"] = "请求体参数"
+
+        def extract_nested_fields(data, prefix=""):
+            """递归提取嵌套字段"""
+            for field_name, field_value in data.items():
+                full_name = f"{prefix}.{field_name}" if prefix else field_name
+
+                if isinstance(field_value, dict):
+                    # 如果是嵌套对象，递归处理
+                    extract_nested_fields(field_value, full_name)
+                else:
+                    # 如果是基本类型，添加为参数
+                    request_body["parameters"][full_name] = {
+                        "name": full_name,
+                        "type": infer_smart_type(field_name, field_value),
+                        "description": generate_smart_description(field_name, field_value),
+                        "location": "body",
+                        "required": True,
+                        "example": "",
+                        "constraints": {}
+                    }
+
+        extract_nested_fields(json_data)
+
+        print(f"✅ 成功解析 {len(json_data)} 个JSON字段为参数")
+        return request_body
+
     # 查找请求参数部分（可能包含请求体）
     request_param_pattern = r'- \*\*请求参数\*\*: (.+?)(?=\n- \*\*|$)'
     request_param_match = re.search(request_param_pattern, section, re.DOTALL)
@@ -335,27 +413,123 @@ def extract_request_body_info(section: str) -> Dict[str, Any]:
             request_body["type"] = "application/json"
             request_body["description"] = "请求体参数"
 
-            # 解析请求体参数
-            param_pattern = r'- (\w+):\s*([^(]+)\s*\(([^)]+)\)'
-            param_matches = re.findall(param_pattern, request_param_content)
+            # 🔥 新增：处理只有类型名的情况
+            lines = request_param_content.strip().split('\n')
+            first_line = lines[0].strip()
 
-            for match in param_matches:
-                param_name = match[0].strip()
-                param_type = match[1].strip()
-                param_desc = match[2].strip()
-
-                request_body["parameters"][param_name] = {
-                    "name": param_name,
-                    "type": param_type,
-                    "description": param_desc,
+            # 如果第一行是类型名（如 UpdateActivityReq），生成一个通用参数
+            if first_line and not first_line.startswith('- '):
+                # 提取类型名
+                type_name = first_line.strip()
+                request_body["parameters"]["requestBody"] = {
+                    "name": "requestBody",
+                    "type": type_name,
+                    "description": f"{type_name} 请求体参数",
                     "location": "body",
-                    "required": "必填" in param_desc or "required" in param_desc.lower(),
-                    "example": extract_example_from_description(param_desc),
-                    "constraints": extract_constraints_from_description(param_desc)
+                    "required": True,
+                    "example": "",
+                    "constraints": {}
                 }
+            else:
+                # 原有的多行参数解析逻辑
+                param_pattern1 = r'- (\w+):\s*([^(]+)\s*\(([^)]+)\)'
+                param_matches1 = re.findall(param_pattern1, request_param_content)
+
+                if not param_matches1:
+                    for line in lines:
+                        line = line.strip()
+                        if line.startswith('- ') and ':' in line:
+                            line = line[2:].strip()
+                            match = re.match(r'(\w+):\s*([^(]+)\s*\(([^)]+)\)', line)
+                            if match:
+                                param_matches1.append(match.groups())
+
+                for match in param_matches1:
+                    param_name = match[0].strip()
+                    param_type = match[1].strip()
+                    param_desc = match[2].strip()
+
+                    param_desc = re.sub(r'\s+', ' ', param_desc)
+                    is_required = any(keyword in param_desc.lower() for keyword in
+                                      ['required', '必填', '必须', 'mandatory'])
+
+                    request_body["parameters"][param_name] = {
+                        "name": param_name,
+                        "type": param_type,
+                        "description": param_desc,
+                        "location": "body",
+                        "required": is_required,
+                        "example": extract_example_from_description(param_desc),
+                        "constraints": extract_constraints_from_description(param_desc)
+                    }
 
     return request_body
 
+
+def infer_smart_type(field_name: str, field_value: Any) -> str:
+    """通用智能推断字段类型"""
+    field_name_lower = field_name.lower()
+
+    if isinstance(field_value, bool):
+        return "Boolean"
+    elif isinstance(field_value, int):
+        if "id" in field_name_lower:
+            return "Long"
+        else:
+            return "Integer"
+    elif isinstance(field_value, float):
+        return "BigDecimal"
+    elif isinstance(field_value, str):
+        # 根据字段名推断具体类型
+        if "email" in field_name_lower:
+            return "String"
+        elif "time" in field_name_lower or "date" in field_name_lower:
+            return "LocalDateTime"
+        elif "amount" in field_name_lower or "price" in field_name_lower:
+            return "String"
+        elif "currency" in field_name_lower:
+            return "String"
+        elif "type" in field_name_lower:
+            return "String"
+        elif "channel" in field_name_lower:
+            return "String"
+        elif "network" in field_name_lower:
+            return "String"
+        elif "transaction" in field_name_lower:
+            return "String"
+        else:
+            return "String"
+    else:
+        return "Object"
+
+
+def generate_smart_description(field_name: str, field_value: Any) -> str:
+    """通用智能生成字段描述"""
+    field_name_lower = field_name.lower()
+
+    # 通用描述生成规则
+    if "amount" in field_name_lower or "price" in field_name_lower:
+        return f"{field_name} 金额"
+    elif "id" in field_name_lower:
+        return f"{field_name} 标识"
+    elif "name" in field_name_lower:
+        return f"{field_name} 名称"
+    elif "type" in field_name_lower:
+        return f"{field_name} 类型"
+    elif "time" in field_name_lower or "date" in field_name_lower:
+        return f"{field_name} 时间"
+    elif "email" in field_name_lower:
+        return f"{field_name} 邮箱"
+    elif "phone" in field_name_lower:
+        return f"{field_name} 电话"
+    elif "address" in field_name_lower:
+        return f"{field_name} 地址"
+    elif "status" in field_name_lower:
+        return f"{field_name} 状态"
+    elif "message" in field_name_lower or "content" in field_name_lower:
+        return f"{field_name} 内容"
+    else:
+        return f"{field_name} 参数"
 
 def extract_response_info(section: str) -> Dict[str, Any]:
     """
@@ -413,7 +587,7 @@ def extract_interface_category(section: str) -> str:
         接口分类
     """
     # 查找接口分类（从上级标题获取）
-    category_match = re.search(r'### \d+\. ([^#\n]+)', section)
+    category_match = re.search(r'### \d+\.\d+ ([^#\n]+)', section)
     if category_match:
         return category_match.group(1).strip()
 
@@ -505,6 +679,20 @@ def generate_all_parameters(path_params: Dict, request_params: Dict, request_bod
     if request_body.get("parameters"):
         for name, param in request_body["parameters"].items():
             all_parameters[name] = param
+    # 🔥 新增：如果请求体有类型但没有参数，添加一个通用参数
+    elif request_body.get("type") == "application/json":
+        # 从请求体描述中提取类型名
+        description = request_body.get("description", "")
+        if "请求体参数" in description:
+            all_parameters["requestBody"] = {
+                "name": "requestBody",
+                "type": "Object",
+                "description": "请求体参数",
+                "location": "body",
+                "required": True,
+                "example": "",
+                "constraints": {}
+            }
 
     return all_parameters
 
@@ -526,7 +714,7 @@ def generate_interface_key(method: str, path: str) -> str:
 
 
 def generate_interface_info_file(
-        doc_path: str = "接口变更文档_develop_vs_release_1.19.0.md",
+        doc_path: str = "接口测试文档_v1.19.0.md",
         output_path: str = "test_data/interface_info.json"
 ) -> None:
     """
@@ -592,7 +780,7 @@ def generate_interface_info_file(
 
 if __name__ == "__main__":
     # 设置文件路径
-    doc_path = "接口变更文档_develop_vs_release_1.19.0.md"
+    doc_path = "接口测试文档_v1.19.0.md"
     output_path = "test_data/interface_info.json"
 
     # 生成接口信息文件

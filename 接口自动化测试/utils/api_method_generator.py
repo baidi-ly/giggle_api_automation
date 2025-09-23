@@ -134,7 +134,7 @@ def _build_method_block(
     interface_info = load_interface_info()
 
     # 生成接口唯一标识
-    interface_key = f"{http_method.upper()}__{path.replace('/api/', '').replace('/', '_').replace('{', '').replace('}', '')}"
+    interface_key = f"{http_method.upper()}__{path.replace('/api/', '').replace('/', '_').replace('{', '').replace('}', '').lstrip('_')}"
 
     # �� 新增：从 interface_info.json 中提取 body 参数
     interface_body_params = {}

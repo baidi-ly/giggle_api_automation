@@ -1,7 +1,1933 @@
 {
-  "extract_time": "2025-09-23 16:17:36",
+  "extract_time": "2025-09-23 18:24:16",
   "document_version": "develop_vs_release_1.19.0",
   "interfaces": {
+    "GET__activity_gacha_info": {
+      "name": "获取扭蛋活动信息",
+      "method": "GET",
+      "path": "/activity/gacha/info",
+      "full_name": "获取扭蛋活动信息 (GET /activity/gacha/info)",
+      "endpoint": "GET /activity/gacha/info",
+      "path_parameters": {},
+      "request_parameters": {},
+      "request_body": {
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {
+          "activityId": {
+            "name": "activityId",
+            "type": "Long",
+            "description": "activityId 标识",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "activityName": {
+            "name": "activityName",
+            "type": "String",
+            "description": "activityName 名称",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "activityStartTime": {
+            "name": "activityStartTime",
+            "type": "LocalDateTime",
+            "description": "activityStartTime 时间",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "activityEndTime": {
+            "name": "activityEndTime",
+            "type": "LocalDateTime",
+            "description": "activityEndTime 时间",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "activityStatus": {
+            "name": "activityStatus",
+            "type": "String",
+            "description": "activityStatus 状态",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          }
+        }
+      },
+      "response": {
+        "type": "",
+        "description": "",
+        "schema": ""
+      },
+      "description": "",
+      "category": "",
+      "all_parameters": {
+        "activityId": {
+          "name": "activityId",
+          "type": "Long",
+          "description": "activityId 标识",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "activityName": {
+          "name": "activityName",
+          "type": "String",
+          "description": "activityName 名称",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "activityStartTime": {
+          "name": "activityStartTime",
+          "type": "LocalDateTime",
+          "description": "activityStartTime 时间",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "activityEndTime": {
+          "name": "activityEndTime",
+          "type": "LocalDateTime",
+          "description": "activityEndTime 时间",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "activityStatus": {
+          "name": "activityStatus",
+          "type": "String",
+          "description": "activityStatus 状态",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        }
+      }
+    },
+    "GET__activity_gacha_user_info": {
+      "name": "获取用户抽奖信息",
+      "method": "GET",
+      "path": "/activity/gacha/user/info",
+      "full_name": "获取用户抽奖信息 (GET /activity/gacha/user/info)",
+      "endpoint": "GET /activity/gacha/user/info",
+      "path_parameters": {},
+      "request_parameters": {},
+      "request_body": {
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {
+          "drawCount": {
+            "name": "drawCount",
+            "type": "Integer",
+            "description": "drawCount 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "shareCount": {
+            "name": "shareCount",
+            "type": "Integer",
+            "description": "shareCount 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "inviteCount": {
+            "name": "inviteCount",
+            "type": "Integer",
+            "description": "inviteCount 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "totalCount": {
+            "name": "totalCount",
+            "type": "Integer",
+            "description": "totalCount 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "newInviteUsers": {
+            "name": "newInviteUsers",
+            "type": "Integer",
+            "description": "newInviteUsers 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "activityStartTime": {
+            "name": "activityStartTime",
+            "type": "LocalDateTime",
+            "description": "activityStartTime 时间",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "activityEndTime": {
+            "name": "activityEndTime",
+            "type": "LocalDateTime",
+            "description": "activityEndTime 时间",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          }
+        }
+      },
+      "response": {
+        "type": "",
+        "description": "",
+        "schema": ""
+      },
+      "description": "",
+      "category": "",
+      "all_parameters": {
+        "drawCount": {
+          "name": "drawCount",
+          "type": "Integer",
+          "description": "drawCount 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "shareCount": {
+          "name": "shareCount",
+          "type": "Integer",
+          "description": "shareCount 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "inviteCount": {
+          "name": "inviteCount",
+          "type": "Integer",
+          "description": "inviteCount 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "totalCount": {
+          "name": "totalCount",
+          "type": "Integer",
+          "description": "totalCount 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "newInviteUsers": {
+          "name": "newInviteUsers",
+          "type": "Integer",
+          "description": "newInviteUsers 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "activityStartTime": {
+          "name": "activityStartTime",
+          "type": "LocalDateTime",
+          "description": "activityStartTime 时间",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "activityEndTime": {
+          "name": "activityEndTime",
+          "type": "LocalDateTime",
+          "description": "activityEndTime 时间",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        }
+      }
+    },
+    "POST__activity_gacha_share": {
+      "name": "分享成功增加抽奖次数",
+      "method": "POST",
+      "path": "/activity/gacha/share",
+      "full_name": "分享成功增加抽奖次数 (POST /activity/gacha/share)",
+      "endpoint": "POST /activity/gacha/share",
+      "path_parameters": {},
+      "request_parameters": {},
+      "request_body": {
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {
+          "success": {
+            "name": "success",
+            "type": "Boolean",
+            "description": "success 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "message": {
+            "name": "message",
+            "type": "String",
+            "description": "message 内容",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          }
+        }
+      },
+      "response": {
+        "type": "",
+        "description": "",
+        "schema": ""
+      },
+      "description": "",
+      "category": "",
+      "all_parameters": {
+        "success": {
+          "name": "success",
+          "type": "Boolean",
+          "description": "success 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "message": {
+          "name": "message",
+          "type": "String",
+          "description": "message 内容",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        }
+      }
+    },
+    "POST__activity_gacha_draw": {
+      "name": "抽奖",
+      "method": "POST",
+      "path": "/activity/gacha/draw",
+      "full_name": "抽奖 (POST /activity/gacha/draw)",
+      "endpoint": "POST /activity/gacha/draw",
+      "path_parameters": {},
+      "request_parameters": {},
+      "request_body": {
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {
+          "rewardId": {
+            "name": "rewardId",
+            "type": "Long",
+            "description": "rewardId 标识",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "rewardName": {
+            "name": "rewardName",
+            "type": "String",
+            "description": "rewardName 名称",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "rewardType": {
+            "name": "rewardType",
+            "type": "String",
+            "description": "rewardType 类型",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "rewardUrl": {
+            "name": "rewardUrl",
+            "type": "String",
+            "description": "rewardUrl 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "isNew": {
+            "name": "isNew",
+            "type": "Boolean",
+            "description": "isNew 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          }
+        }
+      },
+      "response": {
+        "type": "",
+        "description": "",
+        "schema": ""
+      },
+      "description": "",
+      "category": "",
+      "all_parameters": {
+        "rewardId": {
+          "name": "rewardId",
+          "type": "Long",
+          "description": "rewardId 标识",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "rewardName": {
+          "name": "rewardName",
+          "type": "String",
+          "description": "rewardName 名称",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "rewardType": {
+          "name": "rewardType",
+          "type": "String",
+          "description": "rewardType 类型",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "rewardUrl": {
+          "name": "rewardUrl",
+          "type": "String",
+          "description": "rewardUrl 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "isNew": {
+          "name": "isNew",
+          "type": "Boolean",
+          "description": "isNew 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        }
+      }
+    },
+    "GET__activity_gacha_rewardCenter": {
+      "name": "扭蛋奖励中心",
+      "method": "GET",
+      "path": "/activity/gacha/rewardCenter",
+      "full_name": "扭蛋奖励中心 (GET /activity/gacha/rewardCenter)",
+      "endpoint": "GET /activity/gacha/rewardCenter",
+      "path_parameters": {},
+      "request_parameters": {},
+      "request_body": {
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {
+          "id": {
+            "name": "id",
+            "type": "Long",
+            "description": "id 标识",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "name": {
+            "name": "name",
+            "type": "String",
+            "description": "name 名称",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "url": {
+            "name": "url",
+            "type": "String",
+            "description": "url 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "isCollected": {
+            "name": "isCollected",
+            "type": "Boolean",
+            "description": "isCollected 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "activityId": {
+            "name": "activityId",
+            "type": "Long",
+            "description": "activityId 标识",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "property": {
+            "name": "property",
+            "type": "Integer",
+            "description": "property 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          }
+        }
+      },
+      "response": {
+        "type": "",
+        "description": "",
+        "schema": ""
+      },
+      "description": "",
+      "category": "捐赠订单相关接口 (DonateOrderController)",
+      "all_parameters": {
+        "id": {
+          "name": "id",
+          "type": "Long",
+          "description": "id 标识",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "name": {
+          "name": "name",
+          "type": "String",
+          "description": "name 名称",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "url": {
+          "name": "url",
+          "type": "String",
+          "description": "url 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "isCollected": {
+          "name": "isCollected",
+          "type": "Boolean",
+          "description": "isCollected 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "activityId": {
+          "name": "activityId",
+          "type": "Long",
+          "description": "activityId 标识",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "property": {
+          "name": "property",
+          "type": "Integer",
+          "description": "property 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        }
+      }
+    },
+    "POST__donate_createDonateOrder": {
+      "name": "创建捐赠订单",
+      "method": "POST",
+      "path": "/donate/createDonateOrder",
+      "full_name": "创建捐赠订单 (POST /donate/createDonateOrder)",
+      "endpoint": "POST /donate/createDonateOrder",
+      "path_parameters": {},
+      "request_parameters": {},
+      "request_body": {
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {
+          "amount": {
+            "name": "amount",
+            "type": "String",
+            "description": "amount 金额",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "donorName": {
+            "name": "donorName",
+            "type": "String",
+            "description": "donorName 名称",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "anonymous": {
+            "name": "anonymous",
+            "type": "Boolean",
+            "description": "anonymous 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "currency": {
+            "name": "currency",
+            "type": "String",
+            "description": "currency 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "donorType": {
+            "name": "donorType",
+            "type": "String",
+            "description": "donorType 类型",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "donorEmailAddress": {
+            "name": "donorEmailAddress",
+            "type": "String",
+            "description": "donorEmailAddress 邮箱",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "fundSource": {
+            "name": "fundSource",
+            "type": "String",
+            "description": "fundSource 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "message": {
+            "name": "message",
+            "type": "String",
+            "description": "message 内容",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "platform": {
+            "name": "platform",
+            "type": "String",
+            "description": "platform 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "donateChannel": {
+            "name": "donateChannel",
+            "type": "String",
+            "description": "donateChannel 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "networkType": {
+            "name": "networkType",
+            "type": "String",
+            "description": "networkType 类型",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "transactionId": {
+            "name": "transactionId",
+            "type": "String",
+            "description": "transactionId 标识",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          }
+        }
+      },
+      "response": {
+        "type": "",
+        "description": "",
+        "schema": ""
+      },
+      "description": "",
+      "category": "",
+      "all_parameters": {
+        "amount": {
+          "name": "amount",
+          "type": "String",
+          "description": "amount 金额",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "donorName": {
+          "name": "donorName",
+          "type": "String",
+          "description": "donorName 名称",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "anonymous": {
+          "name": "anonymous",
+          "type": "Boolean",
+          "description": "anonymous 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "currency": {
+          "name": "currency",
+          "type": "String",
+          "description": "currency 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "donorType": {
+          "name": "donorType",
+          "type": "String",
+          "description": "donorType 类型",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "donorEmailAddress": {
+          "name": "donorEmailAddress",
+          "type": "String",
+          "description": "donorEmailAddress 邮箱",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "fundSource": {
+          "name": "fundSource",
+          "type": "String",
+          "description": "fundSource 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "message": {
+          "name": "message",
+          "type": "String",
+          "description": "message 内容",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "platform": {
+          "name": "platform",
+          "type": "String",
+          "description": "platform 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "donateChannel": {
+          "name": "donateChannel",
+          "type": "String",
+          "description": "donateChannel 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "networkType": {
+          "name": "networkType",
+          "type": "String",
+          "description": "networkType 类型",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "transactionId": {
+          "name": "transactionId",
+          "type": "String",
+          "description": "transactionId 标识",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        }
+      }
+    },
+    "GET__donate_donateOrderStatus_orderId": {
+      "name": "查询捐赠订单状态",
+      "method": "GET",
+      "path": "/donate/donateOrderStatus/{orderId}",
+      "full_name": "查询捐赠订单状态 (GET /donate/donateOrderStatus/{orderId})",
+      "endpoint": "GET /donate/donateOrderStatus/{orderId}",
+      "path_parameters": {},
+      "request_parameters": {},
+      "request_body": {
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {
+          "amount": {
+            "name": "amount",
+            "type": "BigDecimal",
+            "description": "amount 金额",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "orderId": {
+            "name": "orderId",
+            "type": "Long",
+            "description": "orderId 标识",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "paymentStatus": {
+            "name": "paymentStatus",
+            "type": "String",
+            "description": "paymentStatus 状态",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "name": {
+            "name": "name",
+            "type": "String",
+            "description": "name 名称",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "currency": {
+            "name": "currency",
+            "type": "String",
+            "description": "currency 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "createTime": {
+            "name": "createTime",
+            "type": "LocalDateTime",
+            "description": "createTime 时间",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          }
+        }
+      },
+      "response": {
+        "type": "",
+        "description": "",
+        "schema": ""
+      },
+      "description": "",
+      "category": "",
+      "all_parameters": {
+        "amount": {
+          "name": "amount",
+          "type": "BigDecimal",
+          "description": "amount 金额",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "orderId": {
+          "name": "orderId",
+          "type": "Long",
+          "description": "orderId 标识",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "paymentStatus": {
+          "name": "paymentStatus",
+          "type": "String",
+          "description": "paymentStatus 状态",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "name": {
+          "name": "name",
+          "type": "String",
+          "description": "name 名称",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "currency": {
+          "name": "currency",
+          "type": "String",
+          "description": "currency 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "createTime": {
+          "name": "createTime",
+          "type": "LocalDateTime",
+          "description": "createTime 时间",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        }
+      }
+    },
+    "GET__donate_orders": {
+      "name": "分页获取捐赠订单列表",
+      "method": "GET",
+      "path": "/donate/orders",
+      "full_name": "分页获取捐赠订单列表 (GET /donate/orders)",
+      "endpoint": "GET /donate/orders",
+      "path_parameters": {},
+      "request_parameters": {},
+      "request_body": {
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {
+          "orderId": {
+            "name": "orderId",
+            "type": "Long",
+            "description": "orderId 标识",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "currency": {
+            "name": "currency",
+            "type": "String",
+            "description": "currency 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "amount": {
+            "name": "amount",
+            "type": "BigDecimal",
+            "description": "amount 金额",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "donorName": {
+            "name": "donorName",
+            "type": "String",
+            "description": "donorName 名称",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "createTime": {
+            "name": "createTime",
+            "type": "LocalDateTime",
+            "description": "createTime 时间",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "transactionId": {
+            "name": "transactionId",
+            "type": "String",
+            "description": "transactionId 标识",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "paymentStatus": {
+            "name": "paymentStatus",
+            "type": "String",
+            "description": "paymentStatus 状态",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          }
+        }
+      },
+      "response": {
+        "type": "",
+        "description": "",
+        "schema": ""
+      },
+      "description": "",
+      "category": "",
+      "all_parameters": {
+        "orderId": {
+          "name": "orderId",
+          "type": "Long",
+          "description": "orderId 标识",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "currency": {
+          "name": "currency",
+          "type": "String",
+          "description": "currency 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "amount": {
+          "name": "amount",
+          "type": "BigDecimal",
+          "description": "amount 金额",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "donorName": {
+          "name": "donorName",
+          "type": "String",
+          "description": "donorName 名称",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "createTime": {
+          "name": "createTime",
+          "type": "LocalDateTime",
+          "description": "createTime 时间",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "transactionId": {
+          "name": "transactionId",
+          "type": "String",
+          "description": "transactionId 标识",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "paymentStatus": {
+          "name": "paymentStatus",
+          "type": "String",
+          "description": "paymentStatus 状态",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        }
+      }
+    },
+    "GET__donate_orders_orderId": {
+      "name": "获取捐赠订单详情",
+      "method": "GET",
+      "path": "/donate/orders/{orderId}",
+      "full_name": "获取捐赠订单详情 (GET /donate/orders/{orderId})",
+      "endpoint": "GET /donate/orders/{orderId}",
+      "path_parameters": {},
+      "request_parameters": {},
+      "request_body": {
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {
+          "orderId": {
+            "name": "orderId",
+            "type": "Long",
+            "description": "orderId 标识",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "merchantTradeNo": {
+            "name": "merchantTradeNo",
+            "type": "String",
+            "description": "merchantTradeNo 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "prepayId": {
+            "name": "prepayId",
+            "type": "String",
+            "description": "prepayId 标识",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "transactionId": {
+            "name": "transactionId",
+            "type": "String",
+            "description": "transactionId 标识",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "amount": {
+            "name": "amount",
+            "type": "BigDecimal",
+            "description": "amount 金额",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "currency": {
+            "name": "currency",
+            "type": "String",
+            "description": "currency 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "donorName": {
+            "name": "donorName",
+            "type": "String",
+            "description": "donorName 名称",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "donorEmailAddress": {
+            "name": "donorEmailAddress",
+            "type": "String",
+            "description": "donorEmailAddress 邮箱",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "donorType": {
+            "name": "donorType",
+            "type": "String",
+            "description": "donorType 类型",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "fundSource": {
+            "name": "fundSource",
+            "type": "String",
+            "description": "fundSource 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "message": {
+            "name": "message",
+            "type": "String",
+            "description": "message 内容",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "anonymous": {
+            "name": "anonymous",
+            "type": "Boolean",
+            "description": "anonymous 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "platform": {
+            "name": "platform",
+            "type": "String",
+            "description": "platform 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "paymentStatus": {
+            "name": "paymentStatus",
+            "type": "String",
+            "description": "paymentStatus 状态",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "qrcodeLink": {
+            "name": "qrcodeLink",
+            "type": "String",
+            "description": "qrcodeLink 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "checkoutUrl": {
+            "name": "checkoutUrl",
+            "type": "String",
+            "description": "checkoutUrl 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "expireTime": {
+            "name": "expireTime",
+            "type": "LocalDateTime",
+            "description": "expireTime 时间",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "createTime": {
+            "name": "createTime",
+            "type": "LocalDateTime",
+            "description": "createTime 时间",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "updateTime": {
+            "name": "updateTime",
+            "type": "LocalDateTime",
+            "description": "updateTime 时间",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          }
+        }
+      },
+      "response": {
+        "type": "",
+        "description": "",
+        "schema": ""
+      },
+      "description": "",
+      "category": "",
+      "all_parameters": {
+        "orderId": {
+          "name": "orderId",
+          "type": "Long",
+          "description": "orderId 标识",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "merchantTradeNo": {
+          "name": "merchantTradeNo",
+          "type": "String",
+          "description": "merchantTradeNo 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "prepayId": {
+          "name": "prepayId",
+          "type": "String",
+          "description": "prepayId 标识",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "transactionId": {
+          "name": "transactionId",
+          "type": "String",
+          "description": "transactionId 标识",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "amount": {
+          "name": "amount",
+          "type": "BigDecimal",
+          "description": "amount 金额",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "currency": {
+          "name": "currency",
+          "type": "String",
+          "description": "currency 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "donorName": {
+          "name": "donorName",
+          "type": "String",
+          "description": "donorName 名称",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "donorEmailAddress": {
+          "name": "donorEmailAddress",
+          "type": "String",
+          "description": "donorEmailAddress 邮箱",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "donorType": {
+          "name": "donorType",
+          "type": "String",
+          "description": "donorType 类型",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "fundSource": {
+          "name": "fundSource",
+          "type": "String",
+          "description": "fundSource 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "message": {
+          "name": "message",
+          "type": "String",
+          "description": "message 内容",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "anonymous": {
+          "name": "anonymous",
+          "type": "Boolean",
+          "description": "anonymous 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "platform": {
+          "name": "platform",
+          "type": "String",
+          "description": "platform 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "paymentStatus": {
+          "name": "paymentStatus",
+          "type": "String",
+          "description": "paymentStatus 状态",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "qrcodeLink": {
+          "name": "qrcodeLink",
+          "type": "String",
+          "description": "qrcodeLink 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "checkoutUrl": {
+          "name": "checkoutUrl",
+          "type": "String",
+          "description": "checkoutUrl 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "expireTime": {
+          "name": "expireTime",
+          "type": "LocalDateTime",
+          "description": "expireTime 时间",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "createTime": {
+          "name": "createTime",
+          "type": "LocalDateTime",
+          "description": "createTime 时间",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "updateTime": {
+          "name": "updateTime",
+          "type": "LocalDateTime",
+          "description": "updateTime 时间",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        }
+      }
+    },
+    "GET__donate_network-currency-mapping": {
+      "name": "获取网络和币种对应关系",
+      "method": "GET",
+      "path": "/donate/network-currency-mapping",
+      "full_name": "获取网络和币种对应关系 (GET /donate/network-currency-mapping)",
+      "endpoint": "GET /donate/network-currency-mapping",
+      "path_parameters": {},
+      "request_parameters": {},
+      "request_body": {
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {
+          "ETH": {
+            "name": "ETH",
+            "type": "Object",
+            "description": "ETH 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "BSC": {
+            "name": "BSC",
+            "type": "Object",
+            "description": "BSC 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "TRC20": {
+            "name": "TRC20",
+            "type": "Object",
+            "description": "TRC20 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          }
+        }
+      },
+      "response": {
+        "type": "",
+        "description": "",
+        "schema": ""
+      },
+      "description": "",
+      "category": "",
+      "all_parameters": {
+        "ETH": {
+          "name": "ETH",
+          "type": "Object",
+          "description": "ETH 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "BSC": {
+          "name": "BSC",
+          "type": "Object",
+          "description": "BSC 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "TRC20": {
+          "name": "TRC20",
+          "type": "Object",
+          "description": "TRC20 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        }
+      }
+    },
+    "GET__donate_payment-address": {
+      "name": "获取支付地址",
+      "method": "GET",
+      "path": "/donate/payment-address",
+      "full_name": "获取支付地址 (GET /donate/payment-address)",
+      "endpoint": "GET /donate/payment-address",
+      "path_parameters": {},
+      "request_parameters": {},
+      "request_body": {
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {
+          "address": {
+            "name": "address",
+            "type": "String",
+            "description": "address 地址",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          }
+        }
+      },
+      "response": {
+        "type": "",
+        "description": "",
+        "schema": ""
+      },
+      "description": "",
+      "category": "",
+      "all_parameters": {
+        "address": {
+          "name": "address",
+          "type": "String",
+          "description": "address 地址",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        }
+      }
+    },
+    "GET__donate_exchange-rate": {
+      "name": "获取汇率信息",
+      "method": "GET",
+      "path": "/donate/exchange-rate",
+      "full_name": "获取汇率信息 (GET /donate/exchange-rate)",
+      "endpoint": "GET /donate/exchange-rate",
+      "path_parameters": {},
+      "request_parameters": {},
+      "request_body": {
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {
+          "USDT": {
+            "name": "USDT",
+            "type": "BigDecimal",
+            "description": "USDT 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "USDC": {
+            "name": "USDC",
+            "type": "BigDecimal",
+            "description": "USDC 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "BTC": {
+            "name": "BTC",
+            "type": "BigDecimal",
+            "description": "BTC 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "ETH": {
+            "name": "ETH",
+            "type": "BigDecimal",
+            "description": "ETH 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          }
+        }
+      },
+      "response": {
+        "type": "",
+        "description": "",
+        "schema": ""
+      },
+      "description": "",
+      "category": "",
+      "all_parameters": {
+        "USDT": {
+          "name": "USDT",
+          "type": "BigDecimal",
+          "description": "USDT 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "USDC": {
+          "name": "USDC",
+          "type": "BigDecimal",
+          "description": "USDC 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "BTC": {
+          "name": "BTC",
+          "type": "BigDecimal",
+          "description": "BTC 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "ETH": {
+          "name": "ETH",
+          "type": "BigDecimal",
+          "description": "ETH 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        }
+      }
+    },
+    "GET__donate_withdraw-limit": {
+      "name": "获取提现限额",
+      "method": "GET",
+      "path": "/donate/withdraw-limit",
+      "full_name": "获取提现限额 (GET /donate/withdraw-limit)",
+      "endpoint": "GET /donate/withdraw-limit",
+      "path_parameters": {},
+      "request_parameters": {},
+      "request_body": {
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {
+          "minAmount": {
+            "name": "minAmount",
+            "type": "BigDecimal",
+            "description": "minAmount 金额",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "maxAmount": {
+            "name": "maxAmount",
+            "type": "BigDecimal",
+            "description": "maxAmount 金额",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "fee": {
+            "name": "fee",
+            "type": "BigDecimal",
+            "description": "fee 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          }
+        }
+      },
+      "response": {
+        "type": "",
+        "description": "",
+        "schema": ""
+      },
+      "description": "",
+      "category": "",
+      "all_parameters": {
+        "minAmount": {
+          "name": "minAmount",
+          "type": "BigDecimal",
+          "description": "minAmount 金额",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "maxAmount": {
+          "name": "maxAmount",
+          "type": "BigDecimal",
+          "description": "maxAmount 金额",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "fee": {
+          "name": "fee",
+          "type": "BigDecimal",
+          "description": "fee 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        }
+      }
+    },
+    "POST__donate_orders_orderId_cancel": {
+      "name": "取消捐赠订单",
+      "method": "POST",
+      "path": "/donate/orders/{orderId}/cancel",
+      "full_name": "取消捐赠订单 (POST /donate/orders/{orderId}/cancel)",
+      "endpoint": "POST /donate/orders/{orderId}/cancel",
+      "path_parameters": {},
+      "request_parameters": {},
+      "request_body": {
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {
+          "success": {
+            "name": "success",
+            "type": "Boolean",
+            "description": "success 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "message": {
+            "name": "message",
+            "type": "String",
+            "description": "message 内容",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          }
+        }
+      },
+      "response": {
+        "type": "",
+        "description": "",
+        "schema": ""
+      },
+      "description": "",
+      "category": "",
+      "all_parameters": {
+        "success": {
+          "name": "success",
+          "type": "Boolean",
+          "description": "success 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "message": {
+          "name": "message",
+          "type": "String",
+          "description": "message 内容",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        }
+      }
+    },
+    "POST__donate_orders_webhook": {
+      "name": "币安支付Webhook回调",
+      "method": "POST",
+      "path": "/donate/orders/webhook",
+      "full_name": "币安支付Webhook回调 (POST /donate/orders/webhook)",
+      "endpoint": "POST /donate/orders/webhook",
+      "path_parameters": {},
+      "request_parameters": {},
+      "request_body": {
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {
+          "bizType": {
+            "name": "bizType",
+            "type": "String",
+            "description": "bizType 类型",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "bizIdStr": {
+            "name": "bizIdStr",
+            "type": "String",
+            "description": "bizIdStr 标识",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "bizId": {
+            "name": "bizId",
+            "type": "Long",
+            "description": "bizId 标识",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "bizStatus": {
+            "name": "bizStatus",
+            "type": "String",
+            "description": "bizStatus 状态",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "data": {
+            "name": "data",
+            "type": "String",
+            "description": "data 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          }
+        }
+      },
+      "response": {
+        "type": "",
+        "description": "",
+        "schema": ""
+      },
+      "description": "",
+      "category": "管理后台活动管理接口 (AdminController)",
+      "all_parameters": {
+        "bizType": {
+          "name": "bizType",
+          "type": "String",
+          "description": "bizType 类型",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "bizIdStr": {
+          "name": "bizIdStr",
+          "type": "String",
+          "description": "bizIdStr 标识",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "bizId": {
+          "name": "bizId",
+          "type": "Long",
+          "description": "bizId 标识",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "bizStatus": {
+          "name": "bizStatus",
+          "type": "String",
+          "description": "bizStatus 状态",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "data": {
+          "name": "data",
+          "type": "String",
+          "description": "data 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        }
+      }
+    },
     "POST__admin_activity_create": {
       "name": "创建活动",
       "method": "POST",
@@ -9,246 +1935,92 @@
       "full_name": "创建活动 (POST /admin/activity/create)",
       "endpoint": "POST /admin/activity/create",
       "path_parameters": {},
-      "request_parameters": {
-        "name": {
-          "name": "name",
-          "type": "String",
-          "description": "活动名称，必填，最大255字符",
-          "location": "query",
-          "required": true,
-          "example": "255",
-          "constraints": {
-            "max_length": 255
-          }
-        },
-        "activityCode": {
-          "name": "activityCode",
-          "type": "String",
-          "description": "活动编码，必填，最大50字符",
-          "location": "query",
-          "required": true,
-          "example": "50",
-          "constraints": {
-            "max_length": 50
-          }
-        },
-        "startTime": {
-          "name": "startTime",
-          "type": "LocalDateTime",
-          "description": "活动开始时间，必填，格式：yyyy-MM-dd HH:mm:ss",
-          "location": "query",
-          "required": true,
-          "example": "yyyy",
-          "constraints": {
-            "format": "yyyy-MM-dd HH:mm:ss"
-          }
-        },
-        "endTime": {
-          "name": "endTime",
-          "type": "LocalDateTime",
-          "description": "活动结束时间，必填，格式：yyyy-MM-dd HH:mm:ss",
-          "location": "query",
-          "required": true,
-          "example": "yyyy",
-          "constraints": {
-            "format": "yyyy-MM-dd HH:mm:ss"
-          }
-        },
-        "description": {
-          "name": "description",
-          "type": "String",
-          "description": "活动描述，可选，最大1000字符",
-          "location": "query",
-          "required": false,
-          "example": "1000",
-          "constraints": {
-            "max_length": 1000
-          }
-        },
-        "status": {
-          "name": "status",
-          "type": "ActivityStatus",
-          "description": "活动状态，必填",
-          "location": "query",
-          "required": true,
-          "example": "",
-          "constraints": {}
-        },
-        "rewardConfig": {
-          "name": "rewardConfig",
-          "type": "String",
-          "description": "奖励配置，可选，最大2000字符",
-          "location": "query",
-          "required": false,
-          "example": "2000",
-          "constraints": {
-            "max_length": 2000
-          }
-        }
-      },
+      "request_parameters": {},
       "request_body": {
         "type": "application/json",
         "description": "请求体参数",
         "parameters": {
-          "name": {
-            "name": "name",
-            "type": "String",
-            "description": "活动名称，必填，最大255字符",
-            "location": "body",
-            "required": true,
-            "example": "255",
-            "constraints": {
-              "max_length": 255
-            }
-          },
-          "activityCode": {
-            "name": "activityCode",
-            "type": "String",
-            "description": "活动编码，必填，最大50字符",
-            "location": "body",
-            "required": true,
-            "example": "50",
-            "constraints": {
-              "max_length": 50
-            }
-          },
-          "startTime": {
-            "name": "startTime",
-            "type": "LocalDateTime",
-            "description": "活动开始时间，必填，格式：yyyy-MM-dd HH:mm:ss",
-            "location": "body",
-            "required": true,
-            "example": "yyyy",
-            "constraints": {
-              "format": "yyyy-MM-dd HH:mm:ss"
-            }
-          },
-          "endTime": {
-            "name": "endTime",
-            "type": "LocalDateTime",
-            "description": "活动结束时间，必填，格式：yyyy-MM-dd HH:mm:ss",
-            "location": "body",
-            "required": true,
-            "example": "yyyy",
-            "constraints": {
-              "format": "yyyy-MM-dd HH:mm:ss"
-            }
-          },
-          "description": {
-            "name": "description",
-            "type": "String",
-            "description": "活动描述，可选，最大1000字符",
-            "location": "body",
-            "required": false,
-            "example": "1000",
-            "constraints": {
-              "max_length": 1000
-            }
-          },
-          "status": {
-            "name": "status",
-            "type": "ActivityStatus",
-            "description": "活动状态，必填",
+          "defaultDraws": {
+            "name": "defaultDraws",
+            "type": "Integer",
+            "description": "defaultDraws 参数",
             "location": "body",
             "required": true,
             "example": "",
             "constraints": {}
           },
-          "rewardConfig": {
-            "name": "rewardConfig",
-            "type": "String",
-            "description": "奖励配置，可选，最大2000字符",
+          "shareMax": {
+            "name": "shareMax",
+            "type": "Integer",
+            "description": "shareMax 参数",
             "location": "body",
-            "required": false,
-            "example": "2000",
-            "constraints": {
-              "max_length": 2000
-            }
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "normalStickerProbability": {
+            "name": "normalStickerProbability",
+            "type": "BigDecimal",
+            "description": "normalStickerProbability 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "pointsProbability": {
+            "name": "pointsProbability",
+            "type": "BigDecimal",
+            "description": "pointsProbability 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
           }
         }
       },
       "response": {
-        "type": "application/json",
-        "description": "响应数据",
-        "schema": "RestResponse<ActivityResponse>"
+        "type": "",
+        "description": "",
+        "schema": ""
       },
-      "description": "创建新的活动",
+      "description": "",
       "category": "",
       "all_parameters": {
-        "name": {
-          "name": "name",
-          "type": "String",
-          "description": "活动名称，必填，最大255字符",
-          "location": "body",
-          "required": true,
-          "example": "255",
-          "constraints": {
-            "max_length": 255
-          }
-        },
-        "activityCode": {
-          "name": "activityCode",
-          "type": "String",
-          "description": "活动编码，必填，最大50字符",
-          "location": "body",
-          "required": true,
-          "example": "50",
-          "constraints": {
-            "max_length": 50
-          }
-        },
-        "startTime": {
-          "name": "startTime",
-          "type": "LocalDateTime",
-          "description": "活动开始时间，必填，格式：yyyy-MM-dd HH:mm:ss",
-          "location": "body",
-          "required": true,
-          "example": "yyyy",
-          "constraints": {
-            "format": "yyyy-MM-dd HH:mm:ss"
-          }
-        },
-        "endTime": {
-          "name": "endTime",
-          "type": "LocalDateTime",
-          "description": "活动结束时间，必填，格式：yyyy-MM-dd HH:mm:ss",
-          "location": "body",
-          "required": true,
-          "example": "yyyy",
-          "constraints": {
-            "format": "yyyy-MM-dd HH:mm:ss"
-          }
-        },
-        "description": {
-          "name": "description",
-          "type": "String",
-          "description": "活动描述，可选，最大1000字符",
-          "location": "body",
-          "required": false,
-          "example": "1000",
-          "constraints": {
-            "max_length": 1000
-          }
-        },
-        "status": {
-          "name": "status",
-          "type": "ActivityStatus",
-          "description": "活动状态，必填",
+        "defaultDraws": {
+          "name": "defaultDraws",
+          "type": "Integer",
+          "description": "defaultDraws 参数",
           "location": "body",
           "required": true,
           "example": "",
           "constraints": {}
         },
-        "rewardConfig": {
-          "name": "rewardConfig",
-          "type": "String",
-          "description": "奖励配置，可选，最大2000字符",
+        "shareMax": {
+          "name": "shareMax",
+          "type": "Integer",
+          "description": "shareMax 参数",
           "location": "body",
-          "required": false,
-          "example": "2000",
-          "constraints": {
-            "max_length": 2000
-          }
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "normalStickerProbability": {
+          "name": "normalStickerProbability",
+          "type": "BigDecimal",
+          "description": "normalStickerProbability 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "pointsProbability": {
+          "name": "pointsProbability",
+          "type": "BigDecimal",
+          "description": "pointsProbability 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
         }
       }
     },
@@ -258,37 +2030,57 @@
       "path": "/admin/activity/{activityId}",
       "full_name": "更新活动 (PUT /admin/activity/{activityId})",
       "endpoint": "PUT /admin/activity/{activityId}",
-      "path_parameters": {
-        "activityId": {
-          "name": "activityId",
-          "type": "Long",
-          "description": "活动ID",
-          "location": "path",
-          "required": true,
-          "example": "ID"
-        }
-      },
+      "path_parameters": {},
       "request_parameters": {},
       "request_body": {
         "type": "application/json",
         "description": "请求体参数",
-        "parameters": {}
+        "parameters": {
+          "defaultDraws": {
+            "name": "defaultDraws",
+            "type": "Integer",
+            "description": "defaultDraws 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "shareMax": {
+            "name": "shareMax",
+            "type": "Integer",
+            "description": "shareMax 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          }
+        }
       },
       "response": {
-        "type": "application/json",
-        "description": "响应数据",
-        "schema": "RestResponse<ActivityResponse>"
+        "type": "",
+        "description": "",
+        "schema": ""
       },
-      "description": "更新指定活动信息",
+      "description": "",
       "category": "",
       "all_parameters": {
-        "activityId": {
-          "name": "activityId",
-          "type": "Long",
-          "description": "活动ID",
-          "location": "path",
+        "defaultDraws": {
+          "name": "defaultDraws",
+          "type": "Integer",
+          "description": "defaultDraws 参数",
+          "location": "body",
           "required": true,
-          "example": "ID"
+          "example": "",
+          "constraints": {}
+        },
+        "shareMax": {
+          "name": "shareMax",
+          "type": "Integer",
+          "description": "shareMax 参数",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
         }
       }
     },
@@ -303,16 +2095,54 @@
       "request_body": {
         "type": "application/json",
         "description": "请求体参数",
-        "parameters": {}
+        "parameters": {
+          "activityId": {
+            "name": "activityId",
+            "type": "Long",
+            "description": "activityId 标识",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "status": {
+            "name": "status",
+            "type": "String",
+            "description": "status 状态",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          }
+        }
       },
       "response": {
-        "type": "application/json",
-        "description": "响应数据",
-        "schema": "RestResponse<String>"
+        "type": "",
+        "description": "",
+        "schema": ""
       },
-      "description": "更新活动状态",
+      "description": "",
       "category": "",
-      "all_parameters": {}
+      "all_parameters": {
+        "activityId": {
+          "name": "activityId",
+          "type": "Long",
+          "description": "activityId 标识",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "status": {
+          "name": "status",
+          "type": "String",
+          "description": "status 状态",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        }
+      }
     },
     "GET__admin_activity_list": {
       "name": "获取活动列表",
@@ -321,84 +2151,20 @@
       "full_name": "获取活动列表 (GET /admin/activity/list)",
       "endpoint": "GET /admin/activity/list",
       "path_parameters": {},
-      "request_parameters": {
-        "page": {
-          "name": "page",
-          "type": "Int",
-          "description": "页码，默认0",
-          "location": "query",
-          "required": false,
-          "example": "0",
-          "constraints": {
-            "default": 0
-          }
-        },
-        "size": {
-          "name": "size",
-          "type": "Int",
-          "description": "每页大小，默认10",
-          "location": "query",
-          "required": false,
-          "example": "10",
-          "constraints": {
-            "default": 10
-          }
-        },
-        "status": {
-          "name": "status",
-          "type": "ActivityStatus",
-          "description": "活动状态，可选",
-          "location": "query",
-          "required": false,
-          "example": "",
-          "constraints": {}
-        }
-      },
+      "request_parameters": {},
       "request_body": {
         "type": "",
         "description": "",
         "parameters": {}
       },
       "response": {
-        "type": "application/json",
-        "description": "响应数据",
-        "schema": "RestResponse<Page<ActivityResponse>>"
+        "type": "",
+        "description": "",
+        "schema": ""
       },
-      "description": "分页获取活动列表",
+      "description": "",
       "category": "",
-      "all_parameters": {
-        "page": {
-          "name": "page",
-          "type": "Int",
-          "description": "页码，默认0",
-          "location": "query",
-          "required": false,
-          "example": "0",
-          "constraints": {
-            "default": 0
-          }
-        },
-        "size": {
-          "name": "size",
-          "type": "Int",
-          "description": "每页大小，默认10",
-          "location": "query",
-          "required": false,
-          "example": "10",
-          "constraints": {
-            "default": 10
-          }
-        },
-        "status": {
-          "name": "status",
-          "type": "ActivityStatus",
-          "description": "活动状态，可选",
-          "location": "query",
-          "required": false,
-          "example": "",
-          "constraints": {}
-        }
-      }
+      "all_parameters": {}
     },
     "GET__admin_activity_activityId": {
       "name": "获取活动详情",
@@ -406,16 +2172,7 @@
       "path": "/admin/activity/{activityId}",
       "full_name": "获取活动详情 (GET /admin/activity/{activityId})",
       "endpoint": "GET /admin/activity/{activityId}",
-      "path_parameters": {
-        "activityId": {
-          "name": "activityId",
-          "type": "Long",
-          "description": "活动ID",
-          "location": "path",
-          "required": true,
-          "example": "ID"
-        }
-      },
+      "path_parameters": {},
       "request_parameters": {},
       "request_body": {
         "type": "",
@@ -423,363 +2180,188 @@
         "parameters": {}
       },
       "response": {
-        "type": "application/json",
-        "description": "响应数据",
-        "schema": "RestResponse<ActivityResponse>"
+        "type": "",
+        "description": "",
+        "schema": ""
       },
-      "description": "根据ID获取活动详情",
+      "description": "",
       "category": "",
-      "all_parameters": {
-        "activityId": {
-          "name": "activityId",
-          "type": "Long",
-          "description": "活动ID",
-          "location": "path",
-          "required": true,
-          "example": "ID"
-        }
-      }
+      "all_parameters": {}
     },
     "POST__admin_activity_task": {
-      "name": "创建活动任务",
+      "name": "活动任务管理接口",
       "method": "POST",
       "path": "/admin/activity/task",
-      "full_name": "创建活动任务 (POST /admin/activity/task)",
+      "full_name": "活动任务管理接口 (POST /admin/activity/task)",
       "endpoint": "POST /admin/activity/task",
       "path_parameters": {},
       "request_parameters": {},
       "request_body": {
         "type": "application/json",
         "description": "请求体参数",
-        "parameters": {}
+        "parameters": {
+          "cooldownHours": {
+            "name": "cooldownHours",
+            "type": "Integer",
+            "description": "cooldownHours 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          }
+        }
       },
       "response": {
-        "type": "application/json",
-        "description": "响应数据",
-        "schema": "RestResponse<ActivityTaskResponse>"
-      },
-      "description": "为活动创建任务",
-      "category": "",
-      "all_parameters": {}
-    },
-    "PUT__admin_activity_task_id": {
-      "name": "更新活动任务",
-      "method": "PUT",
-      "path": "/admin/activity/task/{id}",
-      "full_name": "更新活动任务 (PUT /admin/activity/task/{id})",
-      "endpoint": "PUT /admin/activity/task/{id}",
-      "path_parameters": {
-        "id": {
-          "name": "id",
-          "type": "Long",
-          "description": "任务ID",
-          "location": "path",
-          "required": true,
-          "example": "ID"
-        }
-      },
-      "request_parameters": {},
-      "request_body": {
-        "type": "application/json",
-        "description": "请求体参数",
-        "parameters": {}
-      },
-      "response": {
-        "type": "application/json",
-        "description": "响应数据",
-        "schema": "RestResponse<ActivityTaskResponse>"
-      },
-      "description": "更新活动任务",
-      "category": "",
-      "all_parameters": {
-        "id": {
-          "name": "id",
-          "type": "Long",
-          "description": "任务ID",
-          "location": "path",
-          "required": true,
-          "example": "ID"
-        }
-      }
-    },
-    "GET__admin_activity_task_id": {
-      "name": "获取活动任务详情",
-      "method": "GET",
-      "path": "/admin/activity/task/{id}",
-      "full_name": "获取活动任务详情 (GET /admin/activity/task/{id})",
-      "endpoint": "GET /admin/activity/task/{id}",
-      "path_parameters": {
-        "id": {
-          "name": "id",
-          "type": "Long",
-          "description": "任务ID",
-          "location": "path",
-          "required": true,
-          "example": "ID"
-        }
-      },
-      "request_parameters": {},
-      "request_body": {
         "type": "",
         "description": "",
-        "parameters": {}
+        "schema": ""
       },
-      "response": {
-        "type": "application/json",
-        "description": "响应数据",
-        "schema": "RestResponse<ActivityTaskResponse>"
-      },
-      "description": "获取活动任务详情",
-      "category": "",
+      "description": "",
+      "category": "故事书相关接口",
       "all_parameters": {
-        "id": {
-          "name": "id",
-          "type": "Long",
-          "description": "任务ID",
-          "location": "path",
+        "cooldownHours": {
+          "name": "cooldownHours",
+          "type": "Integer",
+          "description": "cooldownHours 参数",
+          "location": "body",
           "required": true,
-          "example": "ID"
-        }
-      }
-    },
-    "GET__admin_activity_task_list": {
-      "name": "获取活动任务列表",
-      "method": "GET",
-      "path": "/admin/activity/task/list",
-      "full_name": "获取活动任务列表 (GET /admin/activity/task/list)",
-      "endpoint": "GET /admin/activity/task/list",
-      "path_parameters": {},
-      "request_parameters": {
-        "page": {
-          "name": "page",
-          "type": "Int",
-          "description": "页码，默认0",
-          "location": "query",
-          "required": false,
-          "example": "0",
-          "constraints": {
-            "default": 0
-          }
-        },
-        "size": {
-          "name": "size",
-          "type": "Int",
-          "description": "每页大小，默认10",
-          "location": "query",
-          "required": false,
-          "example": "10",
-          "constraints": {
-            "default": 10
-          }
-        },
-        "activityId": {
-          "name": "activityId",
-          "type": "Long",
-          "description": "活动ID，可选",
-          "location": "query",
-          "required": false,
-          "example": "ID",
+          "example": "",
           "constraints": {}
-        }
-      },
-      "request_body": {
-        "type": "",
-        "description": "",
-        "parameters": {}
-      },
-      "response": {
-        "type": "application/json",
-        "description": "响应数据",
-        "schema": "RestResponse<Page<ActivityTaskResponse>>"
-      },
-      "description": "分页获取活动任务列表",
-      "category": "",
-      "all_parameters": {
-        "page": {
-          "name": "page",
-          "type": "Int",
-          "description": "页码，默认0",
-          "location": "query",
-          "required": false,
-          "example": "0",
-          "constraints": {
-            "default": 0
-          }
-        },
-        "size": {
-          "name": "size",
-          "type": "Int",
-          "description": "每页大小，默认10",
-          "location": "query",
-          "required": false,
-          "example": "10",
-          "constraints": {
-            "default": 10
-          }
-        },
-        "activityId": {
-          "name": "activityId",
-          "type": "Long",
-          "description": "活动ID，可选",
-          "location": "query",
-          "required": false,
-          "example": "ID",
-          "constraints": {}
-        }
-      }
-    },
-    "GET__admin_activity_activityId_task": {
-      "name": "获取活动的所有任务",
-      "method": "GET",
-      "path": "/admin/activity/{activityId}/task",
-      "full_name": "获取活动的所有任务 (GET /admin/activity/{activityId}/task)",
-      "endpoint": "GET /admin/activity/{activityId}/task",
-      "path_parameters": {
-        "activityId": {
-          "name": "activityId",
-          "type": "Long",
-          "description": "活动ID",
-          "location": "path",
-          "required": true,
-          "example": "ID"
-        }
-      },
-      "request_parameters": {},
-      "request_body": {
-        "type": "",
-        "description": "",
-        "parameters": {}
-      },
-      "response": {
-        "type": "application/json",
-        "description": "响应数据",
-        "schema": "RestResponse<List<ActivityTaskResponse>>"
-      },
-      "description": "获取指定活动的所有任务",
-      "category": "",
-      "all_parameters": {
-        "activityId": {
-          "name": "activityId",
-          "type": "Long",
-          "description": "活动ID",
-          "location": "path",
-          "required": true,
-          "example": "ID"
-        }
-      }
-    },
-    "DELETE__admin_activity_task_id": {
-      "name": "删除活动任务",
-      "method": "DELETE",
-      "path": "/admin/activity/task/{id}",
-      "full_name": "删除活动任务 (DELETE /admin/activity/task/{id})",
-      "endpoint": "DELETE /admin/activity/task/{id}",
-      "path_parameters": {
-        "id": {
-          "name": "id",
-          "type": "Long",
-          "description": "任务ID",
-          "location": "path",
-          "required": true,
-          "example": "ID"
-        }
-      },
-      "request_parameters": {},
-      "request_body": {
-        "type": "",
-        "description": "",
-        "parameters": {}
-      },
-      "response": {
-        "type": "application/json",
-        "description": "响应数据",
-        "schema": "RestResponse<String>"
-      },
-      "description": "删除活动任务",
-      "category": "图书管理相关接口 (BookController)",
-      "all_parameters": {
-        "id": {
-          "name": "id",
-          "type": "Long",
-          "description": "任务ID",
-          "location": "path",
-          "required": true,
-          "example": "ID"
         }
       }
     },
     "POST__book_languageLayers_upload": {
-      "name": "上传故事书语言层包到S3",
+      "name": "上传故事书语言层包",
       "method": "POST",
       "path": "/book/languageLayers/upload",
-      "full_name": "上传故事书语言层包到S3 (POST /book/languageLayers/upload)",
+      "full_name": "上传故事书语言层包 (POST /book/languageLayers/upload)",
       "endpoint": "POST /book/languageLayers/upload",
       "path_parameters": {},
-      "request_parameters": {
-        "file": {
-          "name": "file",
-          "type": "MultipartFile",
-          "description": "文件，必填",
-          "location": "query",
-          "required": true,
-          "example": "",
-          "constraints": {}
-        },
-        "bookId": {
-          "name": "bookId",
-          "type": "Long",
-          "description": "图书ID，必填",
-          "location": "query",
-          "required": true,
-          "example": "ID",
-          "constraints": {}
-        },
-        "languageCode": {
-          "name": "languageCode",
+      "request_parameters": {},
+      "request_body": {
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {
+          "s3Key": {
+            "name": "s3Key",
+            "type": "String",
+            "description": "s3Key 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          }
+        }
+      },
+      "response": {
+        "type": "",
+        "description": "",
+        "schema": ""
+      },
+      "description": "",
+      "category": "系统相关接口",
+      "all_parameters": {
+        "s3Key": {
+          "name": "s3Key",
           "type": "String",
-          "description": "语言代码，必填",
-          "location": "query",
+          "description": "s3Key 参数",
+          "location": "body",
           "required": true,
           "example": "",
           "constraints": {}
         }
-      },
+      }
+    },
+    "GET__system_info": {
+      "name": "获取系统信息",
+      "method": "GET",
+      "path": "/system/info",
+      "full_name": "获取系统信息 (GET /system/info)",
+      "endpoint": "GET /system/info",
+      "path_parameters": {},
+      "request_parameters": {},
       "request_body": {
-        "type": "",
-        "description": "",
-        "parameters": {}
+        "type": "application/json",
+        "description": "请求体参数",
+        "parameters": {
+          "status": {
+            "name": "status",
+            "type": "String",
+            "description": "status 状态",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "version": {
+            "name": "version",
+            "type": "String",
+            "description": "version 参数",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "buildTime": {
+            "name": "buildTime",
+            "type": "LocalDateTime",
+            "description": "buildTime 时间",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          },
+          "uptime": {
+            "name": "uptime",
+            "type": "LocalDateTime",
+            "description": "uptime 时间",
+            "location": "body",
+            "required": true,
+            "example": "",
+            "constraints": {}
+          }
+        }
       },
       "response": {
-        "type": "application/json",
-        "description": "响应数据",
-        "schema": "RestResponse<Map<String, String>> (包含s3Key)"
+        "type": "",
+        "description": "",
+        "schema": ""
       },
-      "description": "上传故事书语言层包到S3存储",
-      "category": "图书相关接口修改 (BookController)",
+      "description": "",
+      "category": "错误码更新",
       "all_parameters": {
-        "file": {
-          "name": "file",
-          "type": "MultipartFile",
-          "description": "文件，必填",
-          "location": "query",
+        "status": {
+          "name": "status",
+          "type": "String",
+          "description": "status 状态",
+          "location": "body",
           "required": true,
           "example": "",
           "constraints": {}
         },
-        "bookId": {
-          "name": "bookId",
-          "type": "Long",
-          "description": "图书ID，必填",
-          "location": "query",
+        "version": {
+          "name": "version",
+          "type": "String",
+          "description": "version 参数",
+          "location": "body",
           "required": true,
-          "example": "ID",
+          "example": "",
           "constraints": {}
         },
-        "languageCode": {
-          "name": "languageCode",
-          "type": "String",
-          "description": "语言代码，必填",
-          "location": "query",
+        "buildTime": {
+          "name": "buildTime",
+          "type": "LocalDateTime",
+          "description": "buildTime 时间",
+          "location": "body",
+          "required": true,
+          "example": "",
+          "constraints": {}
+        },
+        "uptime": {
+          "name": "uptime",
+          "type": "LocalDateTime",
+          "description": "uptime 时间",
+          "location": "body",
           "required": true,
           "example": "",
           "constraints": {}
