@@ -1,5 +1,5 @@
 {
-  "extract_time": "2025-09-23 12:50:16",
+  "extract_time": "2025-09-23 13:44:35",
   "document_version": "develop_vs_release_1.19.0",
   "interfaces": {
     "POST__admin_activity_create": {

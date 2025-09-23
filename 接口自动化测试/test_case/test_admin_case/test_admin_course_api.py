@@ -4,7 +4,7 @@ import os
 
 import pandas as pd
 
-from test_case.page_api.admin.admin_course_api import AdminApi
+from test_case.page_api.admin.admin_course_api import AdminCourseApi
 
 sys.path.append(os.getcwd())
 sys.path.append("..")
@@ -12,10 +12,11 @@ sys.path.append("..")
 import pytest
 
 @pytest.mark.Admin
-class TestAdmin:
+@pytest.mark.AdminCourse
+class TestAdminCourse:
 
     def setup_class(self):
-        self.admin = AdminApi()
+        self.admin = AdminCourseApi()
         self.authorization = self.admin.get_admin_authorization()
 
     @pytest.fixture(scope='class')
