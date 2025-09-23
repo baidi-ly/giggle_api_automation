@@ -436,10 +436,18 @@ def generate_single_method_to_api(
             summary = path
     
     # 读取并定位 API 类文件
-    api_file = os.path.join("test_case", "page_api", module, f"{module}_api.py")
+    # 根据路径前缀确定API文件路径
+    if path.startswith('/admin/'):
+        api_file = os.path.join("test_case", "page_api", "admin", f"admin_{module}_api.py")
+    else:
+        api_file = os.path.join("test_case", "page_api", module, f"{module}_api.py")
     if not os.path.exists(api_file):
         # 如果标准文件名不存在，尝试查找目录下的其他 .py 文件
-        module_dir = os.path.join("test_case", "page_api", module)
+        # 根据路径前缀确定模块目录
+        if path.startswith('/admin/'):
+            module_dir = os.path.join("test_case", "page_api", "admin")
+        else:
+            module_dir = os.path.join("test_case", "page_api", module)
         if os.path.exists(module_dir):
             py_files = [f for f in os.listdir(module_dir) if f.endswith('.py') and f != '__init__.py']
             if py_files:
@@ -453,8 +461,12 @@ def generate_single_method_to_api(
         content = f.read()
     
     # 检查目标类是否存在
-    if f"class {module.capitalize()}Api(" not in content:
-        raise RuntimeError(f"未在目标文件中找到 {module.capitalize()}Api 类定义")
+    if path.startswith('/admin/'):
+        if f"class Admin{module.capitalize()}Api(" not in content:
+            raise RuntimeError(f"未在目标文件中找到 Admin{module.capitalize()}Api 类定义")
+    else:
+        if f"class {module.capitalize()}Api(" not in content:
+            raise RuntimeError(f"未在目标文件中找到 {module.capitalize()}Api 类定义")
     
     # 生成方法名
     method_name = _camelize_from_path(path, http_method)

@@ -40,8 +40,18 @@ def generate_tests_for_api(
     file_params = [p for p in parameters if p.get('in') == 'formData' and p.get('type') == 'file']
 
     # 确定测试用例文件路径
-    module_name = path.split('/')[2] if len(path.split('/')) > 2 else 'api'
-    test_file_path = f"test_case/test_{module_name}_case/test_{module_name}_api.py"
+    # 根据路径前缀确定module名称
+    if path.startswith('/admin/'):
+        module_name = path.split('/')[2] if len(path.split('/')) > 2 else 'admin'
+    elif path.startswith('/api/'):
+        module_name = path.split('/')[2] if len(path.split('/')) > 2 else 'api'
+    else:
+        module_name = 'api'
+    # 根据路径前缀确定测试文件路径
+    if path.startswith('/admin/'):
+        test_file_path = f"test_case/test_admin_case/test_admin_{module_name}_api.py"
+    else:
+        test_file_path = f"test_case/test_{module_name}_case/test_{module_name}_api.py"
 
     # 确保测试文件目录存在
     os.makedirs(os.path.dirname(test_file_path), exist_ok=True)
@@ -60,7 +70,7 @@ def generate_tests_for_api(
         new_content = existing_content + "\n\n" + "\n".join(test_methods) + "\n"
     else:
         # 如果文件不存在，创建基础结构
-        new_content = _generate_basic_test_file(module_name, test_methods)
+        new_content = _generate_basic_test_file(module_name, test_methods, path)
 
     # 写入测试文件
     with open(test_file_path, 'w', encoding='utf-8') as f:
@@ -152,13 +162,18 @@ def _generate_test_methods(
     return test_methods
 
 
-def _generate_basic_test_file(module_name: str, test_methods: List[str]) -> str:
+def _generate_basic_test_file(module_name: str, test_methods: List[str], path: str) -> str:
     """生成基础测试文件结构"""
+    # 根据路径前缀确定导入路径
+    if path.startswith('/admin/'):
+        module_ = f"from test_case.page_api.admin.admin_{module_name}_api import Admin{module_name.capitalize()}Api",
+    else:
+        module_ = f"from test_case.page_api.{module_name}.{module_name}_api import {module_name.capitalize()}Api",
     imports = [
         "import pytest",
         "import time",
         "from test_case.page_api.base_api import BaseApi",
-        f"from test_case.page_api.{module_name}.{module_name}_api import {module_name.capitalize()}Api",
+        module_,
         "from config import RunConfig",
         "",
         "base_url = RunConfig.base_url"
@@ -169,7 +184,11 @@ def _generate_basic_test_file(module_name: str, test_methods: List[str]) -> str:
     content += f'    """\n    {module_name} 接口测试用例\n    """\n\n'
     content += "    @pytest.fixture(autouse=True)\n"
     content += "    def setup(self):\n"
-    content += f"        self.{module_name} = {module_name.capitalize()}Api()\n"
+    # 根据路径前缀确定实例化类名
+    if path.startswith('/admin/'):
+        content += f"        self.{module_name} = Admin{module_name.capitalize()}Api()\n"
+    else:
+        content += f"        self.{module_name} = {module_name.capitalize()}Api()\n"
     content += "        self.authorization = 'test_token'  # 测试用的token\n\n"
     content += "\n".join(test_methods)
     
