@@ -89,17 +89,18 @@ if __name__ == '__main__':
 
     for api, api_info in extracted_data['paths'].items():
         for info_k, info_v in api_info.items():
-            method_name = generate_single_method_to_api(
+            method_name, body_param = generate_single_method_to_api(
                 path=api,
                 http_method=info_k,
                 module=api.split('/')[2],
                 summary=info_v['summary'],
-                force=False,
+                force=False
             )
             # 基于 swagger 的参数信息生成测试用例（仅 query/body/path/formData 参与测试）
             # 不校验请求头中的参数（如authorization、content-type等）
             raw_parameters = info_v.get('parameters', [])
-            parameters = [p for p in raw_parameters if p.get('in') in ('query', 'body', 'path', 'formData')]
+            parameters = [p for p in raw_parameters if p.get('in') in ('query', 'path', 'formData')]
+            parameters.append(body_param)
             marker = api.split('/')[2] if len(api.split('/')) > 2 else 'api'
             generate_tests_for_api(
                 path=api,

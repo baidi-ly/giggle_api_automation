@@ -40,6 +40,42 @@ VersionId = RunConfig.VersionId
 SWAGGER_PATH = os.getcwd() + os.path.join(r"/test_data", "swagger", "swagger_fixed.json")
 
 
+def _generate_default_value_for_interface_param(param_type: str, example: str, required: bool) -> str:
+    """
+    根据 interface_info.json 中的参数信息生成默认值
+
+    Args:
+        param_type: 参数类型
+        example: 示例值
+        required: 是否必填
+
+    Returns:
+        默认值字符串
+    """
+    if param_type == 'String':
+        if example:
+            return f'"{example}"'
+        elif '名称' in example or 'name' in example.lower():
+            return '"示例名称"'
+        elif '编码' in example or 'code' in example.lower():
+            return '"ACT001"'
+        elif '描述' in example or 'description' in example.lower():
+            return '"示例描述"'
+        else:
+            return '""'
+    elif param_type in ['Long', 'Int', 'Integer']:
+        if example and example.isdigit():
+            return example
+        else:
+            return '1'
+    elif param_type == 'Boolean':
+        return 'True'
+    elif param_type == 'LocalDateTime':
+        return '"2024-01-01 12:00:00"'
+    elif param_type == 'MultipartFile':
+        return 'None'
+    else:
+        return 'None'
 
 def _camelize_from_path(path: str, http_method: str) -> str:
     """基于路径和 HTTP 方法生成方法名，如 GET /api/user/kids -> getKids"""
@@ -99,6 +135,17 @@ def _build_method_block(
 
     # 生成接口唯一标识
     interface_key = f"{http_method.upper()}__{path.replace('/api/', '').replace('/', '_').replace('{', '').replace('}', '')}"
+
+    # �� 新增：从 interface_info.json 中提取 body 参数
+    interface_body_params = {}
+    if interface_info and interface_key in interface_info.get('interfaces', {}):
+        interface_data = interface_info['interfaces'][interface_key]
+        all_parameters = interface_data.get('all_parameters', {})
+
+        # 筛选 location 为 body 的参数
+        for param_name, param_info in all_parameters.items():
+            if param_info.get('location') == 'body':
+                interface_body_params[param_name] = param_info
     
     # 构建方法参数
     method_params = ["self", "authorization"]
@@ -119,7 +166,18 @@ def _build_method_block(
             method_params.append(f"{pname}={default_value}")
     
     # 添加 body 参数到方法签名
-    if body_params:
+    # 🔥 修改：优先使用 interface_info.json 中的 body 参数
+    if interface_body_params:
+        for param_name, param_info in interface_body_params.items():
+            param_type = param_info.get('type', 'String')
+            param_required = param_info.get('required', False)
+            param_example = param_info.get('example', '')
+
+            # 根据参数类型和是否必填设置默认值
+            default_value = _generate_default_value_for_interface_param(param_type, param_example, param_required)
+            method_params.append(f"{param_name}={default_value}")
+    elif body_params:
+        # 如果没有 interface_info.json 信息，使用 swagger 信息
         for param in body_params:
             param_name = param.get("name", "")
             param_type = param.get("type", "string")
@@ -175,7 +233,7 @@ def _build_method_block(
     payload_code = ""
     payload_lines: List[str] = []
     has_query = bool(query_params)
-    has_body = bool(body_params)
+    has_body = bool(interface_body_params) or bool(body_params)  # 🔥 修改：包含 interface_info.json 的 body 参数
     # 同时存在 query 与 body 时，沿用 payload1/payload2；否则统一使用 payload
     if has_query and has_body:
         q_items = []
@@ -198,7 +256,16 @@ def _build_method_block(
             q_items.append(f'            "{pname}": {pname}')
         q_joined = ",\n".join(q_items)
         payload_lines.append("        payload = {\n" + q_joined + "\n        }")
+    elif interface_body_params:
+        # �� 新增：使用 interface_info.json 中的 body 参数生成 payload
+        b_items = []
+        for param_name in interface_body_params.keys():
+            b_items.append(f'            "{param_name}": {param_name}')
+        b_joined = ",\n".join(b_items)
+        payload_lines.append("        payload = {\n" + b_joined + "\n        }")
+        payload_lines.append("        payload = self.request_body(payload, **kwargs)")
     elif has_body:
+        # 如果没有 interface_info.json 信息，使用 swagger 信息
         b_items = []
         for param in body_params:
             pname = param.get("name", "")
@@ -280,7 +347,17 @@ def _build_method_block(
             req = "required" if p.get("required") else "optional"
             desc = _get_detailed_description(p, interface_info, interface_key)
             param_doc_lines.append(f"        :param {name}: ({typ}, path, {req}) {desc}")
-    if body_params:
+    if interface_body_params:
+        # �� 新增：使用 interface_info.json 中的 body 参数生成文档
+        for param_name, param_info in interface_body_params.items():
+            param_type = param_info.get('type', 'String')
+            param_required = param_info.get('required', False)
+            param_description = param_info.get('description', '')
+
+            req = "required" if param_required else "optional"
+            param_doc_lines.append(f"        :param {param_name}: ({param_type}, body, {req}) {param_description}")
+    elif body_params:
+        # 如果没有 interface_info.json 信息，使用 swagger 信息
         for p in body_params:
             name = p.get("name", "")
             if not name:
@@ -320,7 +397,7 @@ def _build_method_block(
         f"        assert response.status_code == code, f\"{{error_msg}}失败，url->{{url}}，失败信息->{{response.reason}}{{response.content}}\"\n"
         f"        response = response.json()\n"
         f"        return response\n"
-    )
+    ), interface_body_params
 
 
 def _extract_course_paths(
@@ -419,11 +496,14 @@ def generate_single_method_to_api(
         interface_info = paths[path].get(http_method.lower()) or paths[path].get(http_method.upper())
         if not summary:
             summary = interface_info.get("summary", "")
-        
+
         # 提取 parameters 中 in 类型为 body/path/query/formData 的参数
         parameters = interface_info.get("parameters", [])
         for param in parameters:
             if param.get("in") == "body":
+                # 🔥 新增：跳过有 schema 的 body 参数
+                if param.get("schema"):
+                    continue  # 跳过有 schema 的 body 参数
                 body_params.append(param)
             elif param.get("in") == "path":
                 path_params.append(param)
@@ -517,7 +597,7 @@ def generate_single_method_to_api(
         if insert_idx == -1:
             # 未找到 Create Data，则不做破坏性修改，直接返回
             print(f"方法 {method_name} 未找到 Create Data 注释，跳过追加")
-            return method_name
+            return method_name, ''
 
         # 计算插入位置到该行末尾
         line_start = old_method.rfind('\n', 0, insert_idx) + 1
@@ -547,10 +627,10 @@ def generate_single_method_to_api(
         with open(api_file, "w", encoding="utf-8") as f:
             f.write(new_content)
         print(f"已在方法 {method_name} 的注释下追加 Update 信息: {api_file}")
-        return method_name
+        return method_name, ''
 
     # 方法不存在：走新增逻辑，生成带 Create Data 注释的方法块
-    method_block = _build_method_block(
+    method_block, inner_body_param = _build_method_block(
         method_name,
         http_method,
         path,
@@ -565,11 +645,11 @@ def generate_single_method_to_api(
     with open(api_file, "w", encoding="utf-8") as f:
         f.write(new_content)
     print(f"已新增方法 {method_name} 到文件: {api_file}")
-    if body_params:
+    if inner_body_param:
         param_names = [param.get("name", "") for param in body_params]
         print(f"  - 包含 body 参数: {', '.join(param_names)}")
     
-    return method_name
+    return method_name, inner_body_param
 
 
 def load_interface_info(interface_info_path: str = "test_data/interface_info.json") -> Dict[str, Any]:
