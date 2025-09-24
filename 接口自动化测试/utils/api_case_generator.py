@@ -40,8 +40,12 @@ def generate_tests_for_api(
     file_params = [p for p in parameters if p.get('in') == 'formData' and p.get('type') == 'file']
 
     # 确定测试用例文件路径
-    module_name = path.split('/')[2] if len(path.split('/')) > 2 else 'api'
-    test_file_path = f"test_case/test_{module_name}_case/test_{module_name}_api.py"
+    # 如果marker包含"admin"，则使用admin目录结构
+    if "admin" in marker:
+        test_file_path = f"test_case/test_admin_case/{marker}.py"
+    else:
+        module_name = path.split('/')[2] if len(path.split('/')) > 2 else 'api'
+        test_file_path = f"test_case/test_{module_name}_case/test_{module_name}_api.py"
 
     # 确保测试文件目录存在
     os.makedirs(os.path.dirname(test_file_path), exist_ok=True)
