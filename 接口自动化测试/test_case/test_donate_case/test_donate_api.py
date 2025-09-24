@@ -1019,3 +1019,28 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
+
+    @pytest.mark.release
+    def test_donate_positive_getNetworkCurrencyMapping_ok(self):
+        """获取网络和币种对应关系-正向用例"""
+        res = self.donate.getNetworkCurrencyMapping()
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('未登录', 'missing'),
+            ('空token', ''),
+            ('鉴权异常-expired_token', 'expired_token'),
+            ('鉴权异常-invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_donate_permission_getNetworkCurrencyMapping(self, desc, value):
+        """获取网络和币种对应关系-{desc}"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.donate.getNetworkCurrencyMapping(value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
