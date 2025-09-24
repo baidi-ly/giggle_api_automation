@@ -72,3 +72,25 @@ class DonateApi(BaseAPI):
         response = response.json()
         return response
 
+    def getPaymentAddress(self, authorization='', currency='USDT', networkType='ETH', DeviceType="web", code=200, **kwargs):
+        """
+        获取支付地址
+        :param currency: (string, query, required) 币种
+        :param networkType: (string, query, required) 网络类型
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-09-24
+        url = f"https://{base_url}/api/donate/payment-address"
+        payload = {
+            "currency": currency,
+            "networkType": networkType
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "获取支付地址"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+

@@ -1028,3 +1028,186 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert res['data'] == {'defaultCurrency': 'USDT', 'defaultNetwork': 'BNB Chain', 'networks': {'BNB Chain': {'chainId': 56, 'code': 'BSC', 'currencies': [{'address': '0xC7f501D25Ea088aeFCa8B4b3ebD936aAe12bF4A4', 'symbol': 'USDT'}, {'address': '0xC7f501D25Ea088aeFCa8B4b3ebD936aAe12bF4A4', 'symbol': 'USDC'}, {'address': '0xC7f501D25Ea088aeFCa8B4b3ebD936aAe12bF4A4', 'symbol': 'BNB'}, {'address': '0xC7f501D25Ea088aeFCa8B4b3ebD936aAe12bF4A4', 'symbol': 'ETH'}]}}}
 
+
+    @pytest.mark.release
+    def test_donate_positive_getPaymentAddress_ok(self):
+        """获取支付地址-正向用例"""
+        res = self.donate.getPaymentAddress(authorization=self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert res['data']['address']
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unautorized', 'missing'),
+            ('empty', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_donate_permission_getPaymentAddress(self, desc, value):
+        """获取支付地址-{desc}"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.donate.getPaymentAddress(value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert res['data']['address']
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('lock',  'missing'),
+            ('empty', "''"),
+            ('None', None),
+        ]
+    )
+    def test_donate_required_getPaymentAddress_currency(self, desc, value):
+        """获取支付地址-必填字段测试-{desc}(currency)"""
+        if desc == 'missing':
+            pl, currency = {'pop_items': 'currency'}, ''
+        else:
+            pl, currency = {}, value
+        res = self.donate.getPaymentAddress(**pl, currency=value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert res['data']['address']
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('Integer', 123),
+            ('Float', 12.3),
+            ('Boolean', True),
+            ('Array', [1, 2, 3]),
+            ('Object', {'key': 'value'}),
+            ('Special characters', '!@#$%^&*()'),
+            ('Email format', 'test@example.com'),
+            ('Phone number format', '13800138000'),
+            ('Date format', '2023-12-25'),
+            ('Emoji', '😀🎉🚀'),
+            ('Very long string', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
+            ('Unicode characters', '中文测试'),
+            ('JSON', '{"key": "value"}'),
+            ('XML', '<root><item>test</item></root>'),
+            ('URL', 'https://www.example.com'),
+            ('Base64', 'SGVsbG8gV29ybGQ='),
+        ]
+    )
+    def test_donate_format_getPaymentAddress_currency(self, desc, value):
+        """获取支付地址-数据格式测试-{desc}(currency)"""
+        res = self.donate.getPaymentAddress(currency=value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert False
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('Minimum length', ""),
+            ('Maximum length', "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+        ]
+    )
+    def test_donate_boundary_getPaymentAddress_currency(self, desc, value):
+        """获取支付地址-边界值测试-{desc}(currency)"""
+        res = self.donate.getPaymentAddress(self.authorization, currency=value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert not res['data']['address']
+
+
+    @pytest.mark.release
+    def test_donate_scenario_getPaymentAddress_invalid_currency(self):
+        """获取支付地址-场景异常-无效的currency"""
+        test_params = {}
+        test_params['currency'] = 'INVALID_VALUE'
+        test_params['networkType'] = 'ETH'
+        res = self.donate.getPaymentAddress(authorization=self.authorization, **test_params)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert not res['data']['address']
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('lock',  'missing'),
+            ('empty', "''"),
+            ('None', None),
+        ]
+    )
+    def test_donate_required_getPaymentAddress_networkType(self, desc, value):
+        """获取支付地址-必填字段测试-{desc}(networkType)"""
+        if desc == 'missing':
+            pl, networkType = {'pop_items': 'networkType'}, ''
+        else:
+            pl, networkType = {}, value
+        res = self.donate.getPaymentAddress(networkType=value, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert not res['data']['address']
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('Integer', 123),
+            ('Float', 12.3),
+            ('Boolean', True),
+            ('Array', [1, 2, 3]),
+            ('Object', {'key': 'value'}),
+            ('Special characters', '!@#$%^&*()'),
+            ('Email format', 'test@example.com'),
+            ('Phone number format', '13800138000'),
+            ('Date format', '2023-12-25'),
+            ('Emoji', '😀🎉🚀'),
+            ('Very long string', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
+            ('Unicode characters', '中文测试'),
+            ('JSON', '{"key": "value"}'),
+            ('XML', '<root><item>test</item></root>'),
+            ('URL', 'https://www.example.com'),
+            ('Base64', 'SGVsbG8gV29ybGQ='),
+        ]
+    )
+    def test_donate_format_getPaymentAddress_networkType(self, desc, value):
+        """获取支付地址-数据格式测试-{desc}(networkType)"""
+        res = self.donate.getPaymentAddress(self.authorization, networkType=value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('Minimum length', ""),
+            ('Maximum length', "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+        ]
+    )
+    def test_donate_boundary_getPaymentAddress_networkType(self, desc, value):
+        """获取支付地址-边界值测试-{desc}(networkType)"""
+        res = self.donate.getPaymentAddress(networkType=value)
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert not res['data']['address']
+
+    @pytest.mark.release
+    def test_donate_scenario_getPaymentAddress_invalid_networkType(self):
+        """获取支付地址-场景异常-无效的networkType"""
+        test_params = {}
+        test_params['currency'] = 'Minimum length'
+        test_params['networkType'] = 'INVALID_VALUE'
+        res = self.donate.getPaymentAddress(authorization=self.authorization, **test_params)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert not res['data']['address']
+
