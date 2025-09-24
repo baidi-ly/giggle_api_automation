@@ -89,9 +89,19 @@ if __name__ == '__main__':
             # 合并两个数据源的结果
             # 特殊处理：如果swagger中的接口有in=body参数，用Markdown中的body参数替换
             for path, path_info in markdown_extracted_data['paths'].items():
+                # 查找匹配的swagger路径（考虑前缀差异）
+                swagger_path = None
                 if path in extracted_data['paths']:
+                    swagger_path = path
+                else:
+                    # 尝试添加/api前缀
+                    api_path = f"/api{path}"
+                    if api_path in extracted_data['paths']:
+                        swagger_path = api_path
+                
+                if swagger_path:
                     # 如果swagger中也有这个路径，需要特殊处理body参数
-                    swagger_path_info = extracted_data['paths'][path]
+                    swagger_path_info = extracted_data['paths'][swagger_path]
                     
                     # 遍历swagger中的每个HTTP方法
                     for method, method_info in swagger_path_info.items():
@@ -191,7 +201,8 @@ if __name__ == '__main__':
                     http_method=info_k,
                     module=api.split('/')[2],
                     summary=info_v['summary'],
-                    force=False,
+                    force=True,  # 强制重新生成以使用合并后的参数
+                    parameters=info_v.get('parameters', []),  # 传递合并后的参数
                 )
                 # 基于 swagger 的参数信息生成测试用例（仅 query/body/path/formData 参与测试）
                 # 不校验请求头中的参数（如authorization、content-type等）
