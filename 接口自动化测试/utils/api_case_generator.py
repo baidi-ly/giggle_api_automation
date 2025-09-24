@@ -303,22 +303,22 @@ def _generate_data_format_tests(method_name: str, query_params: List[Dict], body
             ]
         else:  # string类型
             format_tests = [
-                ("整数", 123),
-                ("浮点数", 12.3),
-                ("布尔值", True),
-                ("数组", [1, 2, 3]),
-                ("对象", {"key": "value"}),
-                ("特殊字符", "!@#$%^&*()"),
-                ("邮箱格式", "test@example.com"),
-                ("手机号格式", "13800138000"),
-                ("日期格式", "2023-12-25"),
-                ("表情符号", "😀🎉🚀"),
-                ("超长字符串", 'a' * 1000),
-                ("Unicode字符", "中文测试"),
-                ("JSON字符串", '{"key": "value"}'),
-                ("XML字符串", "<root><item>test</item></root>"),
-                ("URL字符串", "https://www.example.com"),
-                ("Base64字符串", "SGVsbG8gV29ybGQ=")
+                ("integer", 123),
+                ("float", 12.3),
+                ("boolean", True),
+                ("array", [1, 2, 3]),
+                ("object", {"key": "value"}),
+                ("special_chars", "!@#$%^&*()"),
+                ("email_format", "test@example.com"),
+                ("phone_format", "13800138000"),
+                ("date_format", "2023-12-25"),
+                ("emoji", "😀🎉🚀"),
+                ("long_string", 'a' * 1000),
+                ("unicode", "中文测试"),
+                ("json_string", '{"key": "value"}'),
+                ("xml_string", "<root><item>test</item></root>"),
+                ("url_string", "https://www.example.com"),
+                ("base64_string", "SGVsbG8gV29ybGQ=")
             ]
         
         methods.append(f"    @pytest.mark.release")
@@ -494,10 +494,10 @@ def _generate_permission_tests(method_name: str, query_params: List[Dict], body_
     
     # 权限测试用例
     permission_tests = [
-        ("未登录", "missing"),
-        ("空token", ""),
-        ("鉴权异常-expired_token", "expired_token"),
-        ("鉴权异常-invalid_token", "invalid_token"),
+        ("unauthorized", "missing"),
+        ("no_auth", ""),
+        ("expired_token", "expired_token"),
+        ("invalid_token", "invalid_token"),
     ]
     
     methods.append(f"    @pytest.mark.release")
@@ -577,9 +577,9 @@ def _generate_required_field_tests_for_param(method_name: str, query_params: Lis
     methods.append(f"    @pytest.mark.parametrize(")
     methods.append(f"        'desc, value',")
     methods.append(f"        [")
-    methods.append(f"            ('缺失',  'missing'),")
-    methods.append(f"            ('为空', \"''\"),")
-    methods.append(f"            ('None', None),")
+    methods.append(f"            ('missing',  'missing'),")
+    methods.append(f"            ('empty', \"''\"),")
+    methods.append(f"            ('null', None),")
     methods.append(f"        ]")
     methods.append(f"    )")
     methods.append(f"    def test_{module_name}_required_{method_name}_{param_name}(self, desc, value):")
@@ -606,7 +606,7 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
     elif param_type == 'boolean':
         format_tests = [("string", "字符串", '"abc"'), ("integer", "整数", "123"), ("float", "浮点数", "12.34"), ("array", "数组", "[1, 2, 3]"), ("object", "对象", '{"key": "value"}'), ("special_chars", "特殊字符", '"!@#$%^&*()"'), ("emoji", "表情符号", '"😀🎉🚀"'), ("long_string", "超长字符串", '"' + 'a' * 1000 + '"')]
     else:
-        format_tests = [("整数", 123), ("浮点数", 12.3), ("布尔值", True), ("数组", [1, 2, 3]), ("对象", {"key": "value"}), ("特殊字符", "!@#$%^&*()"), ("邮箱格式", "test@example.com"), ("手机号格式", "13800138000"), ("日期格式", "2023-12-25"), ("表情符号", "😀🎉🚀"), ("超长字符串", 'a' * 1000), ("Unicode字符", "中文测试"), ("JSON字符串", '{"key": "value"}'), ("XML字符串", "<root><item>test</item></root>"), ("URL字符串", "https://www.example.com"), ("Base64字符串", "SGVsbG8gV29ybGQ=")]
+        format_tests = [("integer", 123), ("float", 12.3), ("boolean", True), ("array", [1, 2, 3]), ("object", {"key": "value"}), ("special_chars", "!@#$%^&*()"), ("email_format", "test@example.com"), ("phone_format", "13800138000"), ("date_format", "2023-12-25"), ("emoji", "😀🎉🚀"), ("long_string", 'a' * 1000), ("unicode", "中文测试"), ("json_string", '{"key": "value"}'), ("xml_string", "<root><item>test</item></root>"), ("url_string", "https://www.example.com"), ("base64_string", "SGVsbG8gV29ybGQ=")]
     methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
     methods.append(f"        'desc, value',")
@@ -645,19 +645,19 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
             u = str(int(maximum))
             up = str(int(maximum) + 1)
             boundary_lines = [
-                f"            ('小于最小值', {l1}),",
-                f"            ('零值', 0),",
-                f"            ('最小值', {l}),",
-                f"            ('略大于最小值', {lp}),",
-                f"            ('略小于最大值', {um}),",
-                f"            ('最大值', {u}),",
-                f"            ('大于最大值', {up}),",
+                f"            ('below_min', {l1}),",
+                f"            ('zero', 0),",
+                f"            ('min', {l}),",
+                f"            ('min_plus_one', {lp}),",
+                f"            ('max_minus_one', {um}),",
+                f"            ('max', {u}),",
+                f"            ('above_max', {up}),",
             ]
         else:
             boundary_lines = [
-                "            ('最小值', -2147483648),",
-                "            ('零值', 0),",
-                "            ('最大值', 2147483647),",
+                "            ('min', -2147483648),",
+                "            ('zero', 0),",
+                "            ('max', 2147483647),",
             ]
     elif param_type == 'string':
         min_len = target_param.get('minLength')
@@ -667,24 +667,24 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
             max_len = int(max_len)
             candidates = [min_len, min_len + 1, max_len - 1, max_len, max_len + 1]
             names = ["min_len", "min_len_plus_one", "max_len_minus_one", "max_len", "max_len_plus_one"]
-            descs = ["最小长度", "略大于最小长度", "略小于最大长度", "最大长度", "大于最大长度"]
+            descs = ["min_length", "min_length_plus_one", "max_length_minus_one", "max_length", "max_length_plus_one"]
             for i, length in enumerate(candidates):
                 if length < 0: continue
                 value_expr = '"' + ("a" * length) + '"'
                 boundary_lines.append(f"            ('{descs[i]}', {value_expr}),")
         else:
             boundary_lines = [
-                "            ('最短长度', \"\"),",
-                "            ('最长长度', \"" + 'a' * 1000 + "\"),",
+                "            ('shortest', \"\"),",
+                "            ('longest', \"" + 'a' * 1000 + "\"),",
             ]
     elif param_type == 'file':
         # 文件类型的边界值测试：文件大小、文件格式等
         boundary_lines = [
-            "            ('空文件', 'test_files/empty.txt'),",
-            "            ('小文件', 'test_files/small.txt'),",
-            "            ('大文件', 'test_files/large.txt'),",
-            "            ('无效格式', 'test_files/invalid.exe'),",
-            "            ('最大尺寸', 'test_files/max_size.txt'),",
+            "            ('empty_file', 'test_files/empty.txt'),",
+            "            ('small_file', 'test_files/small.txt'),",
+            "            ('large_file', 'test_files/large.txt'),",
+            "            ('invalid_format', 'test_files/invalid.exe'),",
+            "            ('max_size', 'test_files/max_size.txt'),",
         ]
     else:
         return methods

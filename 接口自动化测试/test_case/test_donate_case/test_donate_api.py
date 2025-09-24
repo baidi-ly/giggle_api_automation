@@ -1211,3 +1211,27 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert not res['data']['address']
 
+    @pytest.mark.release
+    def test_donate_positive_getExchangeRate_ok(self):
+        """获取汇率信息-正向用例"""
+        res = self.donate.getExchangeRate(authorization=self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_donate_permission_getExchangeRate(self, desc, value):
+        """获取汇率信息-{desc}"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.donate.getExchangeRate(value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
