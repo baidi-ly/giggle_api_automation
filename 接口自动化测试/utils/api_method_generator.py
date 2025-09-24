@@ -246,7 +246,7 @@ def _build_method_block(
                 b_items.append(f'            "{pname}": {pname}')
             b_joined = ",\n".join(b_items)
             payload_lines.append("        payload = {\n" + b_joined + "\n        }")
-        payload_lines.append("        payload = self.request_body(payload, **kwargs)")
+            payload_lines.append("        payload = self.request_body(payload, **kwargs)")
     if payload_lines:
         payload_code = "\n".join(payload_lines) + "\n"
     
@@ -406,6 +406,101 @@ def generate_methods_to_api(
     return
 
 
+def _compare_interfaces(
+    existing_method: str,
+    new_path: str,
+    new_http_method: str,
+    new_parameters: Optional[List[Dict[str, Any]]] = None
+) -> bool:
+    """
+    比较两个接口是否相同
+    
+    Args:
+        existing_method: 已存在方法的完整代码
+        new_path: 新接口路径
+        new_http_method: 新接口HTTP方法
+        new_parameters: 新接口参数
+    
+    Returns:
+        bool: True表示接口相同，False表示接口不同
+    """
+    # 提取已存在方法的URL和HTTP方法
+    import re
+    
+    # 提取URL - 修复正则表达式
+    url_match = re.search(r'url = f"https://\{base_url\}([^"]+)"', existing_method)
+    existing_path = url_match.group(1) if url_match else ""
+    
+    # 提取HTTP方法
+    method_match = re.search(r'requests\.request\("([^"]+)"', existing_method)
+    existing_http_method = method_match.group(1) if method_match else ""
+    
+    print(f"调试: 已存在方法内容前100字符: {existing_method[:100]}")
+    print(f"调试: 已存在接口路径: '{existing_path}', HTTP方法: '{existing_http_method}'")
+    print(f"调试: 新接口路径: '{new_path}', HTTP方法: '{new_http_method}'")
+    
+    # 比较路径和HTTP方法
+    if existing_path != new_path or existing_http_method.upper() != new_http_method.upper():
+        print(f"调试: 接口不同 - 路径或HTTP方法不匹配")
+        return False
+    
+    # 如果提供了新参数，比较参数
+    if new_parameters is not None:
+        # 提取已存在方法的参数
+        param_matches = re.findall(r':param (\w+):', existing_method)
+        existing_param_names = set(param_matches)
+        
+        # 提取新参数的名称
+        new_param_names = set()
+        for param in new_parameters:
+            if param.get("in") in ["body", "path", "query", "formData"]:
+                new_param_names.add(param.get("name", ""))
+        
+        print(f"调试: 已存在参数: {existing_param_names}")
+        print(f"调试: 新参数: {new_param_names}")
+        
+        # 比较参数名称集合
+        if existing_param_names != new_param_names:
+            print(f"调试: 接口不同 - 参数不匹配")
+            return False
+    
+    print(f"调试: 接口相同")
+    return True
+
+
+def _find_next_method_name(content: str, base_method_name: str) -> str:
+    """
+    找到下一个可用的方法名
+    
+    Args:
+        content: 文件内容
+        base_method_name: 基础方法名
+    
+    Returns:
+        str: 下一个可用的方法名
+    """
+    import re
+    
+    # 查找所有已存在的方法名
+    existing_methods = re.findall(rf'\n    def ({base_method_name}\d*)\s*\(', content)
+    
+    if base_method_name not in existing_methods:
+        return base_method_name
+    
+    # 找到最大的数字后缀
+    max_num = 0
+    for method in existing_methods:
+        if method == base_method_name:
+            continue
+        # 提取数字后缀
+        match = re.match(rf'{base_method_name}(\d+)', method)
+        if match:
+            num = int(match.group(1))
+            max_num = max(max_num, num)
+    
+    return f"{base_method_name}{max_num + 1}"
+
+
 def generate_single_method_to_api(
     path: str,
     http_method: str,
@@ -549,8 +644,64 @@ class {class_name}:
     signature_token = f"\n    def {method_name}("
     method_exists = signature_token in content
 
-    # 若方法已存在：在原注释中追加 Update 行（不破坏原有 Create Data 等注释）
+    # 若方法已存在：检查接口是否相同
     if method_exists:
+        # 找到所有匹配的方法位置
+        import re
+        method_positions = []
+        for match in re.finditer(signature_token, content):
+            method_positions.append(match.start())
+        
+        print(f"调试: 找到 {len(method_positions)} 个匹配的方法: {method_name}")
+        
+        # 检查每个已存在的方法是否与新接口相同
+        for start_pos in method_positions:
+            # 切片出该方法的完整文本块
+            tail = content[start_pos:]
+            lines = tail.split('\n')
+            method_lines = []
+            indent_level = None
+            end_index = None
+            print(f"调试: 找到方法 {method_name}，开始提取...")
+            for i, line in enumerate(lines):
+                if i == 0:
+                    method_lines.append(line)
+                    print(f"调试: 第0行: '{line}'")
+                    continue
+                if indent_level is None and line.strip():
+                    indent_level = len(line) - len(line.lstrip())
+                    print(f"调试: 设置缩进级别为 {indent_level}")
+                if line.strip() and indent_level is not None:
+                    current_indent = len(line) - len(line.lstrip())
+                    print(f"调试: 第{i}行缩进: {current_indent}, 内容: '{line[:50]}...'")
+                    # 修复逻辑：如果当前行缩进小于方法缩进，且不是空行，则说明是下一个方法或类
+                    if current_indent < indent_level and line.strip():
+                        end_index = i
+                        print(f"调试: 找到方法结束位置 {end_index}")
+                        break
+                method_lines.append(line)
+            if end_index is None:
+                end_index = len(lines)
+                print(f"调试: 方法到文件末尾，共 {end_index} 行")
+
+            existing_method = '\n'.join(method_lines)
+            print(f"调试: 提取到的方法长度: {len(existing_method)}")
+            
+            # 比较接口是否相同
+            if _compare_interfaces(existing_method, path, http_method, parameters):
+                print(f"方法 {method_name} 已存在且接口相同，跳过生成")
+                return method_name
+        
+        # 如果所有已存在的方法都与新接口不同，需要生成新的方法名
+        method_name = _find_next_method_name(content, method_name)
+        print(f"方法名冲突，接口不同，使用新方法名: {method_name}")
+        # 重新检查新方法名是否存在
+        signature_token = f"\n    def {method_name}("
+        method_exists = signature_token in content
+
+    # 若方法已存在（可能是新生成的方法名）：在原注释中追加 Update 行（不破坏原有 Create Data 等注释）
+    if method_exists:
+        # 重新提取方法内容（因为方法名可能已经改变）
         start_pos = content.find(signature_token)
         if start_pos == -1:
             print(f"未能定位已存在的方法: {method_name}")
