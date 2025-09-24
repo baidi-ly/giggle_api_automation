@@ -30,7 +30,7 @@ class ActivityApi(BaseAPI):
             response = response.json()
             return response
 
-    def getInfo1(self, authorization, activityId=1, kidId=0, DeviceType="web", code=200, **kwargs):
+    def getInfo1(self, authorization, activityId=720712510713925, kidId=0, DeviceType="web", code=200, **kwargs):
         """
         获取用户抽奖信息
         :param activityId: (integer, query, required) activityId
