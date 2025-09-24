@@ -133,3 +133,37 @@ class DonateApi(BaseAPI):
         response = response.json()
         return response
 
+    def cancel(self, authorization='', orderId=0, DeviceType="web", code=200, **kwargs):
+        """
+        取消捐赠订单
+        :param orderId: (integer, path, required) 订单ID
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-09-24
+        url = f"https://{base_url}/api/donate/orders/{orderId}/cancel"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers)
+        error_msg = "取消捐赠订单"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def webhook(self, authorization='', DeviceType="web", code=200, **kwargs):
+        """
+        币安支付Webhook回调处理
+        :param
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-09-24
+        url = f"https://{base_url}/api/donate/orders/webhook"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers)
+        error_msg = "币安支付Webhook回调处理"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+

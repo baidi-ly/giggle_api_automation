@@ -1422,3 +1422,129 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
+    @pytest.mark.release
+    def test_donate_positive_cancel_ok(self):
+        """取消捐赠订单-正向用例"""
+        res = self.donate.cancel(self.authorization, **{})
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert res['data']['data']
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_donate_permission_cancel(self, desc, value):
+        """取消捐赠订单-{desc}"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.donate.cancel(value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert res['data']['data']
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('missing',  'missing'),
+            ('empty', "''"),
+            ('null', None),
+        ]
+    )
+    def test_donate_required_cancel_orderId(self, desc, value):
+        """取消捐赠订单-必填字段测试-{desc}(orderId)"""
+        if desc == 'missing':
+            pl, orderId = {'pop_items': 'orderId'}, 0
+        else:
+            pl, orderId = {}, value
+        res = self.donate.cancel(authorization=self.authorization, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert res['data']['data']
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('string', '字符串', '"abc"'),
+            ('float', '浮点数', '12.34'),
+            ('boolean', '布尔值', 'True'),
+            ('array', '数组', '[1, 2, 3]'),
+            ('object', '对象', '{"key": "value"}'),
+            ('special_chars', '特殊字符', '"!@#$%^&*()"'),
+            ('emoji', '表情符号', '"😀🎉🚀"'),
+            ('long_string', '超长字符串', '"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"'),
+        ]
+    )
+    def test_donate_format_cancel_orderId(self, desc, value):
+        """取消捐赠订单-数据格式测试-{desc}(orderId)"""
+        res = self.donate.cancel(self.authorization, orderId=value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert res['data']['data']
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('min', -2147483648),
+            ('zero', 0),
+            ('max', 2147483647),
+        ]
+    )
+    def test_donate_boundary_cancel_orderId(self, desc, value):
+        """取消捐赠订单-边界值测试-{desc}(orderId)"""
+        res = self.donate.cancel(self.authorization, orderId=value)
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert res['data']['data']
+
+    @pytest.mark.release
+    def test_donate_scenario_cancel_invalid_orderId(self):
+        """取消捐赠订单-场景异常-无效的orderId"""
+        test_params = {}
+        res = self.donate.cancel(authorization=self.authorization, **test_params)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert res['data']['data']
+
+    @pytest.mark.release
+    def test_donate_positive_webhook_ok(self):
+        """币安支付Webhook回调处理-正向用例"""
+        res = self.donate.webhook(authorization=self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert res['data']['data']
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_donate_permission_webhook(self, desc, value):
+        """币安支付Webhook回调处理-{desc}"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.donate.webhook(value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert res['data']['data']
+
