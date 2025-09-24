@@ -1216,7 +1216,9 @@ class TestDonateApi:
         """获取汇率信息-正向用例"""
         res = self.donate.getExchangeRate(authorization=self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert res['data']['data']
 
     @pytest.mark.release
     @pytest.mark.parametrize(
@@ -1232,6 +1234,191 @@ class TestDonateApi:
         """获取汇率信息-{desc}"""
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.donate.getExchangeRate(value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert res['data']['data']
+
+    @pytest.mark.release
+    def test_donate_positive_getWithdrawLimit_ok(self):
+        """获取限额信息-正向用例"""
+        res = self.donate.getWithdrawLimit(authorization=self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert res['data']['data']
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_donate_permission_getWithdrawLimit(self, desc, value):
+        """获取限额信息-{desc}"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.donate.getWithdrawLimit(value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert res['data']['data']
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('missing',  'missing'),
+            ('empty', "''"),
+            ('null', None),
+        ]
+    )
+    def test_donate_required_getWithdrawLimit_coin(self, desc, value):
+        """获取限额信息-必填字段测试-{desc}(coin)"""
+        if desc == 'missing':
+            pl, coin = {'pop_items': 'coin'}, ''
+        else:
+            pl, coin = {}, value
+        res = self.donate.getWithdrawLimit(coin=coin, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert False
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('integer', 123),
+            ('float', 12.3),
+            ('boolean', True),
+            ('array', [1, 2, 3]),
+            ('object', {'key': 'value'}),
+            ('special_chars', '!@#$%^&*()'),
+            ('email_format', 'test@example.com'),
+            ('phone_format', '13800138000'),
+            ('date_format', '2023-12-25'),
+            ('emoji', '😀🎉🚀'),
+            ('long_string', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
+            ('unicode', '中文测试'),
+            ('json_string', '{"key": "value"}'),
+            ('xml_string', '<root><item>test</item></root>'),
+            ('url_string', 'https://www.example.com'),
+            ('base64_string', 'SGVsbG8gV29ybGQ='),
+        ]
+    )
+    def test_donate_format_getWithdrawLimit_coin(self, desc, value):
+        """获取限额信息-数据格式测试-{desc}(coin)"""
+        res = self.donate.getWithdrawLimit(self.authorization, coin=value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert False
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('shortest', ""),
+            ('longest', "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+        ]
+    )
+    def test_donate_boundary_getWithdrawLimit_coin(self, desc, value):
+        """获取限额信息-边界值测试-{desc}(coin)"""
+        res = self.donate.getWithdrawLimit(self.authorization, coin=value)
+    @pytest.mark.release
+    def test_donate_scenario_getWithdrawLimit_invalid_coin(self):
+        """获取限额信息-场景异常-无效的coin"""
+        test_params = {}
+        test_params['coin'] = 'INVALID_VALUE'
+        test_params['network'] = ''
+        res = self.donate.getWithdrawLimit(authorization=self.authorization, **test_params)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('missing',  'missing'),
+            ('empty', "''"),
+            ('null', None),
+        ]
+    )
+    def test_donate_required_getWithdrawLimit_network(self, desc, value):
+        """获取限额信息-必填字段测试-{desc}(network)"""
+        if desc == 'missing':
+            pl, network = {'pop_items': 'network'}, ''
+        else:
+            pl, network = {}, value
+        res = self.donate.getWithdrawLimit(authorization=self.authorization, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('integer', 123),
+            ('float', 12.3),
+            ('boolean', True),
+            ('array', [1, 2, 3]),
+            ('object', {'key': 'value'}),
+            ('special_chars', '!@#$%^&*()'),
+            ('email_format', 'test@example.com'),
+            ('phone_format', '13800138000'),
+            ('date_format', '2023-12-25'),
+            ('emoji', '😀🎉🚀'),
+            ('long_string', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
+            ('unicode', '中文测试'),
+            ('json_string', '{"key": "value"}'),
+            ('xml_string', '<root><item>test</item></root>'),
+            ('url_string', 'https://www.example.com'),
+            ('base64_string', 'SGVsbG8gV29ybGQ='),
+        ]
+    )
+    def test_donate_format_getWithdrawLimit_network(self, desc, value):
+        """获取限额信息-数据格式测试-{desc}(network)"""
+        res = self.donate.getWithdrawLimit(self.authorization, network=value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('shortest', ""),
+            ('longest', "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+        ]
+    )
+    def test_donate_boundary_getWithdrawLimit_network(self, desc, value):
+        """获取限额信息-边界值测试-{desc}(network)"""
+        res = self.donate.getWithdrawLimit(self.authorization, network=value)
+    @pytest.mark.release
+    def test_donate_scenario_getWithdrawLimit_invalid_network(self):
+        """获取限额信息-场景异常-无效的network"""
+        test_params = {}
+        test_params['coin'] = ''
+        test_params['network'] = 'INVALID_VALUE'
+        res = self.donate.getWithdrawLimit(authorization=self.authorization, **test_params)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'test_type,test_desc,attack_value',
+        [
+        ]
+    )
+    def test_donate_security_getWithdrawLimit_network(self, test_type, test_desc, attack_value):
+        """获取限额信息-安全测试-{test_desc}(network)"""
+        test_params = {}
+        test_params['coin'] = ''
+        test_params['network'] = attack_value
+        res = self.donate.getWithdrawLimit(authorization=self.authorization, **test_params)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 

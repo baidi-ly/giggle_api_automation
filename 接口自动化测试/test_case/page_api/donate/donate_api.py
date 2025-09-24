@@ -94,7 +94,7 @@ class DonateApi(BaseAPI):
         response = response.json()
         return response
 
-    def getExchangeRate(self, authorization, DeviceType="web", code=200, **kwargs):
+    def getExchangeRate(self, authorization='', DeviceType="web", code=200, **kwargs):
         """
         获取汇率信息
 
@@ -107,6 +107,28 @@ class DonateApi(BaseAPI):
 
         response = requests.request("GET", url, headers=headers)
         error_msg = "获取汇率信息"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def getWithdrawLimit(self, authorization='', coin='USDT', network='ERC20', DeviceType="web", code=200, **kwargs):
+        """
+        获取限额信息
+        :param coin: (string, query, required) 币种 USDT, USDC, BTC, ETH, BNB, BUSD
+        :param network: (string, query, required) 网络 支持的网络: TRC20, ERC20, BTC, BSC
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-09-24
+        url = f"https://{base_url}/api/donate/withdraw-limit"
+        payload = {
+            "coin": coin,
+            "network": network
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "获取限额信息"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
