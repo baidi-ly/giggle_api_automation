@@ -3,15 +3,14 @@ import time
 from test_case.page_api.donate.donate_api import DonateApi
 from config import RunConfig
 
-base_url = RunConfig.base_url
+base_url = RunConfig.baseurl
 
 class TestDonateApi:
     """
     donate 接口测试用例
     """
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
+    def setup_class(self):
         self.donate = DonateApi()
         self.authorization = self.donate.get_authorization()
 
@@ -35,7 +34,7 @@ class TestDonateApi:
     def test_donate_permission_createdonateorder(self, input_param, desc, value):
         """创建捐赠订单-{desc}"""
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.donate.createdonateorder(input_param)
+        res = self.donate.createdonateorder(value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
