@@ -649,7 +649,9 @@ class {class_name}:
         # 找到所有匹配的方法位置
         import re
         method_positions = []
-        for match in re.finditer(signature_token, content):
+        # 转义正则表达式特殊字符
+        escaped_token = re.escape(signature_token)
+        for match in re.finditer(escaped_token, content):
             method_positions.append(match.start())
         
         print(f"调试: 找到 {len(method_positions)} 个匹配的方法: {method_name}")
