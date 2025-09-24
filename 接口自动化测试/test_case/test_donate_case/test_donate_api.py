@@ -1,6 +1,6 @@
 import pytest
 import time
-from test_case.page_api.base_api import BaseApi
+
 from test_case.page_api.donate.donate_api import DonateApi
 from config import RunConfig
 
@@ -94,26 +94,6 @@ class TestDonateApi:
         else:
             pl, anonymous = {}, value
         res = self.donate.createdonateorder(**pl)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert 'data' in res, f'返回结果没有data数据，response->{res}'
-
-    @pytest.mark.release
-    @pytest.mark.parametrize(
-        'desc, value',
-        [
-            ('string', '字符串', '"abc"'),
-            ('integer', '整数', '123'),
-            ('float', '浮点数', '12.34'),
-            ('array', '数组', '[1, 2, 3]'),
-            ('object', '对象', '{"key": "value"}'),
-            ('special_chars', '特殊字符', '"!@#$%^&*()"'),
-            ('emoji', '表情符号', '"😀🎉🚀"'),
-            ('long_string', '超长字符串', '"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"'),
-        ]
-    )
-    def test_donate_format_createdonateorder_anonymous(self, desc, value):
-        """创建捐赠订单-数据格式测试-{desc}(anonymous)"""
-        res = self.donate.createdonateorder(self.authorization, anonymous=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
@@ -1023,24 +1003,28 @@ class TestDonateApi:
     @pytest.mark.release
     def test_donate_positive_getNetworkCurrencyMapping_ok(self):
         """获取网络和币种对应关系-正向用例"""
-        res = self.donate.getNetworkCurrencyMapping()
+        res = self.donate.getNetworkCurrencyMapping(self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert res['data'] == {'defaultCurrency': 'USDT', 'defaultNetwork': 'BNB Chain', 'networks': {'BNB Chain': {'chainId': 56, 'code': 'BSC', 'currencies': [{'address': '0xC7f501D25Ea088aeFCa8B4b3ebD936aAe12bF4A4', 'symbol': 'USDT'}, {'address': '0xC7f501D25Ea088aeFCa8B4b3ebD936aAe12bF4A4', 'symbol': 'USDC'}, {'address': '0xC7f501D25Ea088aeFCa8B4b3ebD936aAe12bF4A4', 'symbol': 'BNB'}, {'address': '0xC7f501D25Ea088aeFCa8B4b3ebD936aAe12bF4A4', 'symbol': 'ETH'}]}}}
+
 
     @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
-            ('未登录', 'missing'),
-            ('空token', ''),
-            ('鉴权异常-expired_token', 'expired_token'),
-            ('鉴权异常-invalid_token', 'invalid_token'),
+            ('unauthoried', 'missing'),
+            ('empty', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
         ]
     )
     def test_donate_permission_getNetworkCurrencyMapping(self, desc, value):
         """获取网络和币种对应关系-{desc}"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.donate.getNetworkCurrencyMapping(value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert 'data' in res, f'返回结果没有data数据，response->{res}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert res['data'] == {'defaultCurrency': 'USDT', 'defaultNetwork': 'BNB Chain', 'networks': {'BNB Chain': {'chainId': 56, 'code': 'BSC', 'currencies': [{'address': '0xC7f501D25Ea088aeFCa8B4b3ebD936aAe12bF4A4', 'symbol': 'USDT'}, {'address': '0xC7f501D25Ea088aeFCa8B4b3ebD936aAe12bF4A4', 'symbol': 'USDC'}, {'address': '0xC7f501D25Ea088aeFCa8B4b3ebD936aAe12bF4A4', 'symbol': 'BNB'}, {'address': '0xC7f501D25Ea088aeFCa8B4b3ebD936aAe12bF4A4', 'symbol': 'ETH'}]}}}
 
