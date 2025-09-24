@@ -1,3 +1,4 @@
+import json
 import time
 
 from config import RunConfig
@@ -11,7 +12,7 @@ AUTH_KEY = RunConfig.AUTH_KEY
 class DonateApi(BaseAPI):
     """孩子学习统计接口"""
 
-    def createdonateorder(self, authorization, DeviceType="web", code=200, **kwargs):
+    def createdonateorder(self, authorization='', DeviceType="web", code=200, **kwargs):
         """
         创建捐赠订单
         :param amount: (string, body, required) amount 参数
