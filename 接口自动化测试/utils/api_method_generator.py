@@ -109,8 +109,16 @@ def _build_method_block(
                 default_value = f"'{pdefault}'" if isinstance(pdefault, str) and pdefault is not None else "''"
             method_params.append(f"{pname}={default_value}")
     
-    # 添加 body 参数到方法签名
+    # 检查body参数是否有示例数据
+    has_body_examples = False
     if body_params:
+        for param in body_params:
+            if 'schema' in param and 'example' in param['schema']:
+                has_body_examples = True
+                break
+    
+    # 只有当body参数没有示例数据时，才添加到方法签名中
+    if body_params and not has_body_examples:
         for param in body_params:
             param_name = param.get("name", "")
             param_type = param.get("type", "string")
@@ -125,6 +133,10 @@ def _build_method_block(
                     default_value = param_default if param_default else "0"
                 elif param_type == "boolean":
                     default_value = str(param_default).lower() if param_default is not None else "False"
+                elif param_type == "object":
+                    # 对于object类型，使用JSON字符串
+                    import json
+                    default_value = json.dumps(param_default, ensure_ascii=False) if param_default else "{}"
                 else:
                     default_value = "''"
             else:
@@ -134,6 +146,10 @@ def _build_method_block(
                     default_value = param_default if param_default else "0"
                 elif param_type == "boolean":
                     default_value = str(param_default).lower() if param_default is not None else "False"
+                elif param_type == "object":
+                    # 对于object类型，使用JSON字符串
+                    import json
+                    default_value = json.dumps(param_default, ensure_ascii=False) if param_default else "{}"
                 else:
                     default_value = "''"
             
@@ -190,12 +206,46 @@ def _build_method_block(
         q_joined = ",\n".join(q_items)
         payload_lines.append("        payload = {\n" + q_joined + "\n        }")
     elif has_body:
-        b_items = []
+        # 检查是否有JSON示例数据，将所有body参数的示例数据组合成完整的JSON
+        json_example = {}
+        has_examples = False
+        
         for param in body_params:
-            pname = param.get("name", "")
-            b_items.append(f'            "{pname}": {pname}')
-        b_joined = ",\n".join(b_items)
-        payload_lines.append("        payload = {\n" + b_joined + "\n        }")
+            if 'schema' in param and 'example' in param['schema']:
+                json_example[param['name']] = param['schema']['example']
+                has_examples = True
+        
+        if has_examples:
+            # 手动构建格式化的JSON字符串
+            payload_lines.append("        payload = {")
+            for i, (key, value) in enumerate(json_example.items()):
+                if isinstance(value, dict):
+                    # 处理嵌套对象
+                    payload_lines.append(f'            "{key}": {{')
+                    for j, (nested_key, nested_value) in enumerate(value.items()):
+                        comma = "," if j < len(value) - 1 else ""
+                        if isinstance(nested_value, str):
+                            payload_lines.append(f'                "{nested_key}": "{nested_value}"{comma}')
+                        else:
+                            payload_lines.append(f'                "{nested_key}": {nested_value}{comma}')
+                    comma = "," if i < len(json_example) - 1 else ""
+                    payload_lines.append(f'            }}{comma}')
+                else:
+                    # 处理简单值
+                    comma = "," if i < len(json_example) - 1 else ""
+                    if isinstance(value, str):
+                        payload_lines.append(f'            "{key}": "{value}"{comma}')
+                    else:
+                        payload_lines.append(f'            "{key}": {value}{comma}')
+            payload_lines.append("        }")
+        else:
+            # 使用参数构建payload
+            b_items = []
+            for param in body_params:
+                pname = param.get("name", "")
+                b_items.append(f'            "{pname}": {pname}')
+            b_joined = ",\n".join(b_items)
+            payload_lines.append("        payload = {\n" + b_joined + "\n        }")
         payload_lines.append("        payload = self.request_body(payload, **kwargs)")
     if payload_lines:
         payload_code = "\n".join(payload_lines) + "\n"
@@ -362,6 +412,7 @@ def generate_single_method_to_api(
     module: str = "course",
     summary: Optional[str] = None,
     force: bool = False,
+    parameters: Optional[List[Dict[str, Any]]] = None,
 ):
     """
     生成单个接口方法到指定的 API 文件中
@@ -373,27 +424,15 @@ def generate_single_method_to_api(
         summary: 接口摘要，如果不提供则从 swagger 中获取
         force: 是否强制覆盖已存在的方法
     """
-    # 读取 swagger 获取接口信息
-    if not os.path.exists(SWAGGER_PATH):
-        raise FileNotFoundError(f"未找到 Swagger 文件: {SWAGGER_PATH}")
-    
-    with open(SWAGGER_PATH, "r", encoding="utf-8") as f:
-        swagger = json.load(f)
-    
-    # 从 swagger 中获取接口摘要和 body/path/query/formData 参数
-    paths = swagger.get("paths", {})
+    # 初始化参数列表
     body_params: List[Dict[str, Any]] = []
     path_params: List[Dict[str, Any]] = []
     query_params: List[Dict[str, Any]] = []
     form_params: List[Dict[str, Any]] = []
     
-    if path in paths and (http_method.lower() in paths[path] or http_method.upper() in paths[path]):
-        interface_info = paths[path].get(http_method.lower()) or paths[path].get(http_method.upper())
-        if not summary:
-            summary = interface_info.get("summary", "")
-        
-        # 提取 parameters 中 in 类型为 body/path/query/formData 的参数
-        parameters = interface_info.get("parameters", [])
+    # 如果提供了参数，使用提供的参数；否则从 swagger 中读取
+    if parameters is not None:
+        # 使用提供的参数
         for param in parameters:
             if param.get("in") == "body":
                 body_params.append(param)
@@ -404,8 +443,34 @@ def generate_single_method_to_api(
             elif param.get("in") == "formData":
                 form_params.append(param)
     else:
-        if not summary:
-            summary = path
+        # 从 swagger 中读取参数（保持向后兼容）
+        if not os.path.exists(SWAGGER_PATH):
+            raise FileNotFoundError(f"未找到 Swagger 文件: {SWAGGER_PATH}")
+        
+        with open(SWAGGER_PATH, "r", encoding="utf-8") as f:
+            swagger = json.load(f)
+        
+        paths = swagger.get("paths", {})
+        
+        if path in paths and (http_method.lower() in paths[path] or http_method.upper() in paths[path]):
+            interface_info = paths[path].get(http_method.lower()) or paths[path].get(http_method.upper())
+            if not summary:
+                summary = interface_info.get("summary", "")
+            
+            # 提取 parameters 中 in 类型为 body/path/query/formData 的参数
+            swagger_parameters = interface_info.get("parameters", [])
+            for param in swagger_parameters:
+                if param.get("in") == "body":
+                    body_params.append(param)
+                elif param.get("in") == "path":
+                    path_params.append(param)
+                elif param.get("in") == "query":
+                    query_params.append(param)
+                elif param.get("in") == "formData":
+                    form_params.append(param)
+        else:
+            if not summary:
+                summary = path
     
     # 读取并定位 API 类文件
     # 判断是否为admin接口

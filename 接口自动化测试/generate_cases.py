@@ -119,11 +119,25 @@ if __name__ == '__main__':
                                 else:
                                     logger.warning(f"Markdown中 {method.upper()} {path} 没有找到body参数")
                             else:
-                                # 如果swagger中没有body参数，直接合并所有参数
+                                # 如果swagger中没有body参数，检查Markdown中是否有body参数
                                 markdown_method_info = path_info[method]
                                 markdown_parameters = markdown_method_info.get('parameters', [])
-                                method_info['parameters'].extend(markdown_parameters)
-                                logger.info(f"合并 {method.upper()} {path} 的所有参数")
+                                markdown_body_params = [p for p in markdown_parameters if p.get('in') == 'body']
+                                
+                                if markdown_body_params:
+                                    # 添加Markdown中的body参数
+                                    method_info['parameters'].extend(markdown_body_params)
+                                    logger.info(f"添加Markdown中 {method.upper()} {path} 的body参数: {[p['name'] for p in markdown_body_params]}")
+                                    
+                                    # 添加其他非body参数
+                                    other_params = [p for p in markdown_parameters if p.get('in') != 'body']
+                                    if other_params:
+                                        method_info['parameters'].extend(other_params)
+                                        logger.info(f"添加Markdown中 {method.upper()} {path} 的其他参数: {[p['name'] for p in other_params]}")
+                                else:
+                                    # 如果没有body参数，直接合并所有参数
+                                    method_info['parameters'].extend(markdown_parameters)
+                                    logger.info(f"合并 {method.upper()} {path} 的所有参数")
                 else:
                     # 如果swagger中没有这个接口，跳过不添加
                     logger.info(f"跳过Markdown中的接口 {path}，因为swagger中没有对应接口")
@@ -153,7 +167,8 @@ if __name__ == '__main__':
                     http_method=info_k,
                     module=f"admin_{module}_api",  # 这会生成 test_case/page_api/admin/admin_{module}_api.py
                     summary=info_v['summary'],
-                    force=False,
+                    force=True,  # 强制重新生成以使用合并后的参数
+                    parameters=info_v.get('parameters', []),  # 传递合并后的参数
                 )
                 # 基于 swagger 的参数信息生成测试用例（仅 query/body/path/formData 参与测试）
                 # 不校验请求头中的参数（如authorization、content-type等）
