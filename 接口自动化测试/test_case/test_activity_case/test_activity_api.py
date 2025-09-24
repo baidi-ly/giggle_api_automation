@@ -1,9 +1,11 @@
 import datetime
+import json
 import sys
 import os
 from time import strftime
 
 from test_case.page_api.activity.activity_api import ActivityApi
+from test_case.page_api.kid.kid_api import KidApi
 
 sys.path.append(os.getcwd())
 sys.path.append("..")
@@ -16,7 +18,14 @@ class TestActivity:
     def setup_class(self):
         self.activity = ActivityApi()
         self.authorization = self.activity.get_authorization()
+        self.kid = KidApi()
         self.now = strftime("%Y%m%d%H%M%S")
+
+    @pytest.fixture(scope="class")
+    def getkidId(self):
+        '''类前置 - 获取kidId'''
+        kidId = self.kid.getKids(self.authorization)
+        yield kidId
 
     @pytest.mark.release
     def test_activity_positive_getInfo_ok(self):

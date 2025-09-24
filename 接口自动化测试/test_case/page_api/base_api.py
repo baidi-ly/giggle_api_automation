@@ -408,15 +408,15 @@ class BaseAPI:
         return headers
 
     def request_body(self, payload, **kwargs):
-        if kwargs.get("pop_item"):
-            pop_item = kwargs.get("pop_item")
+        if kwargs.get("pop_items"):
+            pop_item = kwargs.get("pop_items")
             if isinstance(pop_item, list):
                 for item in pop_item:
                     payload.pop(item)
                     kwargs.pop(item)
             else:
                 payload.pop(pop_item)
-                kwargs.pop("pop_item")
+                kwargs.pop("pop_items")
         payload.update(kwargs)
         return payload
 
