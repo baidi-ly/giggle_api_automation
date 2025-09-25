@@ -1,1 +1,1 @@
-{"apis":  ["/api/school/class/list"]}
+{"apis":  ["/api/school/class/{classId}"]}
