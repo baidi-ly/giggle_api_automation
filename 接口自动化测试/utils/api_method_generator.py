@@ -221,6 +221,7 @@ def _build_method_block(
             q_items.append(f'            "{pname}": {pname}')
         q_joined = ",\n".join(q_items)
         payload_lines.append("        payload = {\n" + q_joined + "\n        }")
+        payload_lines.append("        payload = self.request_body(payload, **kwargs)")
     elif has_body:
         # 检查是否有JSON示例数据，将所有body参数的示例数据组合成完整的JSON
         json_example = {}
@@ -254,6 +255,7 @@ def _build_method_block(
                     else:
                         payload_lines.append(f'            "{key}": {value}{comma}')
             payload_lines.append("        }")
+            payload_lines.append("        payload = self.request_body(payload, **kwargs)")
         else:
             # 使用参数构建payload
             b_items = []
