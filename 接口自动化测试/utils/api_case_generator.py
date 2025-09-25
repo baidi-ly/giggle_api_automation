@@ -184,33 +184,14 @@ def _generate_positive_test(method_name: str, query_params: List[Dict], body_par
     """生成正向测试用例"""
     methods = []
     
-    # 构建正常参数
-    normal_params = []
-    if query_params:
-        for param in query_params:
-            param_name = param.get('name', '')
-            param_type = param.get('type', 'string')
-            default_value = _get_default_value(param, param_type)
-            normal_params.append(f"{param_name}={default_value}")
-    
-    if body_params:
-        for param in body_params:
-            param_name = param.get('name', '')
-            param_type = param.get('type', 'string')
-            default_value = _get_default_value(param, param_type)
-            normal_params.append(f"{param_name}={default_value}")
-    
-    param_str = ", ".join(normal_params) if normal_params else ""
-    
+    # 正向测试用例只传入authorization参数，其他参数使用接口中的默认值
     methods.append(f"    @pytest.mark.release")
     methods.append(f"    def test_{module_name}_positive_{method_name}_ok(self):")
     methods.append(f'        """{summary}-正向用例"""')
-    if param_str:
-        methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, {param_str})")
-    else:
-        methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **{{}})")
-    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
-    methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
+    methods.append(f"        res = self.{module_name}.{method_name}(self.authorization)")
+    
+    # 添加标准断言
+    methods.extend(_generate_standard_assertions())
     methods.append("")
     print(f"  ✓ 已添加正向用例: test_{module_name}_positive_{method_name}_ok")
     
@@ -239,7 +220,7 @@ def _generate_required_field_tests(method_name: str, query_params: List[Dict], b
         methods.append(f"        ]")
         methods.append(f"    )")
         methods.append(f"    def test_{module_name}_required_{method_name}_{param_name}(self, desc, value):")
-        methods.append(f'        """{summary}-必填字段测试-{{desc}}({param_name})"""')
+        methods.append(f'        """{summary}-必填字段测试({param_name})"""')
         methods.append(f"        call_args = []")
         for p in all_params:
             p_name = p.get('name', '')
@@ -262,8 +243,9 @@ def _generate_required_field_tests(method_name: str, query_params: List[Dict], b
         if param_in != 'path':
             methods.append(f"        kwargs.update(pl_{param_name})")
         methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **kwargs)")
-        methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
-        methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
+        
+        # 添加标准断言
+        methods.extend(_generate_standard_assertions())
         methods.append("")
         print(f"  ✓ 已添加必填字段用例: test_{module_name}_required_{method_name}_{param_name}")
     return methods
@@ -288,6 +270,7 @@ def _generate_data_format_tests(method_name: str, query_params: List[Dict], body
                 ("string", "字符串", '"abc"'),
                 ("float", "浮点数", "12.34"),
                 ("boolean", "布尔值", "True"),
+                ("negative", "负数", "-123"),
                 ("array", "数组", [1, 2, 3]),
                 ("object", "对象", '{"key": "value"}'),
                 ("special_chars", "特殊字符", '"!@#$%^&*()"'),
@@ -334,7 +317,7 @@ def _generate_data_format_tests(method_name: str, query_params: List[Dict], body
         methods.append(f"        ]")
         methods.append(f"    )")
         methods.append(f"    def test_{module_name}_format_{method_name}_{param_name}(self, desc, value):")
-        methods.append(f'        """{summary}-数据格式测试-{{desc}}({param_name})"""')
+        methods.append(f'        """{summary}-数据格式测试({param_name})"""')
         methods.append(f"        # 构建测试参数并发起请求")
         call_args = []
         for p in all_params:
@@ -346,8 +329,9 @@ def _generate_data_format_tests(method_name: str, query_params: List[Dict], body
                 default_value = _get_default_value(p, p_type)
                 call_args.append(f"{p_name}={default_value}")
         methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, {', '.join(call_args)})")
-        methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
-        methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
+        
+        # 添加标准断言
+        methods.extend(_generate_standard_assertions())
         methods.append("")
         print(f"  ✓ 已添加格式测试用例: test_{module_name}_format_{method_name}_{param_name}")
     
@@ -434,7 +418,7 @@ def _generate_boundary_value_tests(method_name: str, query_params: List[Dict], b
         methods.append(f"        ]")
         methods.append(f"    )")
         methods.append(f"    def test_{module_name}_boundary_{method_name}_{param_name}(self, desc, value):")
-        methods.append(f'        """{summary}-边界值测试-{{desc}}({param_name})"""')
+        methods.append(f'        """{summary}-边界值测试({param_name})"""')
         methods.append(f"        call_args = []")
         for p in all_params:
             p_name = p.get('name', '')
@@ -445,8 +429,9 @@ def _generate_boundary_value_tests(method_name: str, query_params: List[Dict], b
                 default_value = _get_default_value(p, p_type)
                 call_args.append(f"{p_name}={default_value}")
         methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, {', '.join(call_args)})")
-        methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
-        methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
+        
+        # 添加标准断言
+        methods.extend(_generate_standard_assertions())
         methods.append("")
         print(f"  ✓ 已添加边界值用例: test_{module_name}_boundary_{method_name}_{param_name}")
     return methods
@@ -475,8 +460,9 @@ def _generate_scenario_exception_tests(method_name: str, query_params: List[Dict
                 default_value = _get_default_value(p, p_t)
                 methods.append(f"        test_params['{p_name}'] = {default_value}")
         methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **test_params)")
-        methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
-        methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
+        
+        # 添加标准断言
+        methods.extend(_generate_standard_assertions())
         methods.append("")
         print(f"  ✓ 已添加场景异常用例: test_{module_name}_scenario_{method_name}_invalid_{param_name}")
     return methods
@@ -485,16 +471,6 @@ def _generate_scenario_exception_tests(method_name: str, query_params: List[Dict
 def _generate_permission_tests(method_name: str, query_params: List[Dict], body_params: List[Dict], module_name: str, summary: str = "") -> List[str]:
     """生成权限测试用例"""
     methods = []
-    
-    # 构建正常参数
-    normal_params = []
-    for param in query_params + body_params:
-        param_name = param.get('name', '')
-        param_type = param.get('type', 'string')
-        default_value = _get_default_value(param, param_type)
-        normal_params.append(f"{param_name}={default_value}")
-    
-    param_str = ", ".join(normal_params) if normal_params else ""
     
     # 权限测试用例
     permission_tests = [
@@ -513,14 +489,12 @@ def _generate_permission_tests(method_name: str, query_params: List[Dict], body_
     methods.append(f"        ]")
     methods.append(f"    )")
     methods.append(f"    def test_{module_name}_permission_{method_name}(self, desc, value):")
-    methods.append(f'        """{summary}-{{desc}}"""')
+    methods.append(f'        """{summary}-权限测试"""')
     methods.append(f"        # 鉴权作为位置参数直接传入（示例期望的极简风格）")
-    if param_str:
-        methods.append(f"        res = self.{module_name}.{method_name}(input_param, {param_str})")
-    else:
-        methods.append(f"        res = self.{module_name}.{method_name}(input_param)")
-    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
-    methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
+    methods.append(f"        res = self.{module_name}.{method_name}(value)")
+    
+    # 添加标准断言
+    methods.extend(_generate_standard_assertions())
     methods.append("")
     print(f"  ✓ 已添加权限测试用例: test_{module_name}_permission_{method_name}")
     
@@ -548,7 +522,7 @@ def _generate_security_tests(method_name: str, query_params: List[Dict], body_pa
         methods.append(f"        ]")
         methods.append(f"    )")
         methods.append(f"    def test_{module_name}_security_{method_name}_{param_name}(self, test_type, test_desc, attack_value):")
-        methods.append(f'        """{summary}-安全测试-{{test_desc}}({param_name})"""')
+        methods.append(f'        """{summary}-安全测试({param_name})"""')
         methods.append(f"        test_params = {{}}")
         for p in all_params:
             p_name = p.get('name', '')
@@ -559,8 +533,9 @@ def _generate_security_tests(method_name: str, query_params: List[Dict], body_pa
                 default_value = _get_default_value(p, p_type)
                 methods.append(f"        test_params['{p_name}'] = {default_value}")
         methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **test_params)")
-        methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
-        methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
+        
+        # 添加标准断言
+        methods.extend(_generate_standard_assertions())
         methods.append("")
         print(f"  ✓ 已添加安全测试用例: test_{module_name}_security_{method_name}_{param_name}")
     return methods
@@ -587,14 +562,15 @@ def _generate_required_field_tests_for_param(method_name: str, query_params: Lis
     methods.append(f"        ]")
     methods.append(f"    )")
     methods.append(f"    def test_{module_name}_required_{method_name}_{param_name}(self, desc, value):")
-    methods.append(f'        """{summary}-必填字段测试-{{desc}}({param_name})"""')
+    methods.append(f'        """{summary}-必填字段测试({param_name})"""')
     methods.append(f"        if desc == 'missing':")
     methods.append(f"            pl, {param_name} = {{'pop_items': '{param_name}'}}, 0")
     methods.append(f"        else:")
     methods.append(f"            pl, {param_name} = {{}}, value")
     methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **pl)")
-    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
-    methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
+    
+    # 添加标准断言
+    methods.extend(_generate_standard_assertions())
     methods.append("")
     print(f"  ✓ 已添加必填字段用例: test_{module_name}_required_{method_name}_{param_name}")
     return methods
@@ -606,7 +582,7 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
     param_type = target_param.get('type', 'string')
     methods: List[str] = []
     if param_type in ['integer', 'number']:
-        format_tests = [("string", "字符串", '"abc"'), ("float", "浮点数", "12.34"), ("boolean", "布尔值", "True"), ("array", "数组", "[1, 2, 3]"), ("object", "对象", '{"key": "value"}'), ("special_chars", "特殊字符", '"!@#$%^&*()"'), ("emoji", "表情符号", '"😀🎉🚀"'), ("long_string", "超长字符串", '"' + 'a' * 1000 + '"')]
+        format_tests = [("string", "字符串", '"abc"'), ("float", "浮点数", "12.34"), ("boolean", "布尔值", "True"), ("negative", "负数", "-123"), ("array", "数组", "[1, 2, 3]"), ("object", "对象", '{"key": "value"}'), ("special_chars", "特殊字符", '"!@#$%^&*()"'), ("emoji", "表情符号", '"😀🎉🚀"'), ("long_string", "超长字符串", '"' + 'a' * 1000 + '"')]
     elif param_type == 'boolean':
         format_tests = [("string", "字符串", '"abc"'), ("integer", "整数", "123"), ("float", "浮点数", "12.34"), ("array", "数组", "[1, 2, 3]"), ("object", "对象", '{"key": "value"}'), ("special_chars", "特殊字符", '"!@#$%^&*()"'), ("emoji", "表情符号", '"😀🎉🚀"'), ("long_string", "超长字符串", '"' + 'a' * 1000 + '"')]
     else:
@@ -620,10 +596,11 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
     methods.append(f"        ]")
     methods.append(f"    )")
     methods.append(f"    def test_{module_name}_format_{method_name}_{param_name}(self, desc, value):")
-    methods.append(f'        """{summary}-数据格式测试-{{desc}}({param_name})"""')
+    methods.append(f'        """{summary}-数据格式测试({param_name})"""')
     methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value)")
-    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
-    methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
+    
+    # 添加标准断言
+    methods.extend(_generate_standard_assertions())
     methods.append("")
     print(f"  ✓ 已添加格式测试用例: test_{module_name}_format_{method_name}_{param_name}")
     return methods
@@ -702,8 +679,13 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
     methods.append(f"        ]")
     methods.append(f"    )")
     methods.append(f"    def test_{module_name}_boundary_{method_name}_{param_name}(self, desc, value):")
-    methods.append(f'        """{summary}-边界值测试-{{desc}}({param_name})"""')
+    methods.append(f'        """{summary}-边界值测试({param_name})"""')
     methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value)")
+    
+    # 添加标准断言
+    methods.extend(_generate_standard_assertions())
+    methods.append("")
+    print(f"  ✓ 已添加边界值用例: test_{module_name}_boundary_{method_name}_{param_name}")
     return methods
 
 
@@ -726,8 +708,9 @@ def _generate_scenario_exception_tests_for_param(method_name: str, query_params:
             default_value = _get_default_value(p, p_t)
             methods.append(f"        test_params['{p_name}'] = {default_value}")
     methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **test_params)")
-    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
-    methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
+    
+    # 添加标准断言
+    methods.extend(_generate_standard_assertions())
     methods.append("")
     print(f"  ✓ 已添加场景异常用例: test_{module_name}_scenario_{method_name}_invalid_{param_name}")
     return methods
@@ -760,11 +743,65 @@ def _generate_security_tests_for_param(method_name: str, query_params: List[Dict
             default_value = _get_default_value(p, p_type)
             methods.append(f"        test_params['{p_name}'] = {default_value}")
     methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **test_params)")
-    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
-    methods.append(f"        assert 'data' in res, f'返回结果没有data数据，response->{{res}}'")
+    
+    # 添加标准断言
+    methods.extend(_generate_standard_assertions())
     methods.append("")
     print(f"  ✓ 已添加安全测试用例: test_{module_name}_security_{method_name}_{param_name}")
     return methods
+
+
+def _get_desc_chinese_mapping(desc: str) -> str:
+    """获取desc对应的中文描述"""
+    mapping = {
+        "unauthorized": "未登录",
+        "no_auth": "无认证",
+        "expired_token": "过期令牌",
+        "invalid_token": "无效令牌",
+        "missing": "缺失",
+        "empty": "为空",
+        "null": "空值",
+        "string": "字符串",
+        "integer": "整数",
+        "float": "浮点数",
+        "boolean": "布尔值",
+        "array": "数组",
+        "object": "对象",
+        "special_chars": "特殊字符",
+        "emoji": "表情符号",
+        "long_string": "超长字符串",
+        "unicode": "Unicode字符",
+        "email_format": "邮箱格式",
+        "phone_format": "手机号格式",
+        "date_format": "日期格式",
+        "json_string": "JSON字符串",
+        "xml_string": "XML字符串",
+        "url_string": "URL字符串",
+        "base64_string": "Base64字符串",
+        "negative": "负数",
+        "min": "最小值",
+        "max": "最大值",
+        "zero": "零值",
+        "invalid_format": "无效格式",
+        "max_size": "最大尺寸"
+    }
+    return mapping.get(desc, desc)
+
+
+def _generate_standard_assertions() -> List[str]:
+    """生成标准的断言逻辑"""
+    return [
+        "        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'",
+        "        assert res['code'] == 200, f\"接口返回状态码异常: 预期【200】，实际【{res['code']}】\"",
+        "        assert res['message'] == 'success', f\"接口返回message信息异常: 预期【success】，实际【{res['message']}】\"",
+        "        assert res['data'], f\"接口返回data数据异常：{res['data']}\""
+    ]
+
+
+def _has_default_value(param: Dict[str, Any]) -> bool:
+    """判断参数是否有默认值"""
+    default = param.get('default')
+    return default is not None and default != ''
 
 
 def _get_default_value(param: Dict[str, Any], param_type: str) -> str:
