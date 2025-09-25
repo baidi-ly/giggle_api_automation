@@ -30,6 +30,7 @@
 import json
 import os
 import re
+import keyword
 from datetime import datetime
 from typing import Dict, Any, List, Tuple, Optional, Iterable
 import argparse
@@ -73,6 +74,21 @@ def _camelize_from_path(path: str, http_method: str) -> str:
             name = verb + tail_camel
         else:
             name = verb + (tail_camel[0].upper() + tail_camel[1:] if tail_camel else "Auto")
+    
+    # 检查是否与Python关键字冲突
+    if keyword.iskeyword(name):
+        # 如果方法名与Python关键字冲突，使用倒数第二个单词作为前缀
+        if len(parts) >= 2:
+            prefix = parts[-2]  # 倒数第二个单词
+            prefix_camel = re.sub(r"[^A-Za-z0-9]", "", "".join([w.capitalize() for w in prefix.split("-") if w]))
+            if prefix_camel:
+                name = prefix_camel[0].lower() + prefix_camel[1:] + "_" + name
+            else:
+                name = prefix + "_" + name
+        else:
+            # 如果没有倒数第二个单词，添加默认前缀
+            name = "api_" + name
+    
     return name
 
 

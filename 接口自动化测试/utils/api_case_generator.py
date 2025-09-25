@@ -12,16 +12,16 @@ from datetime import datetime
 
 
 def generate_tests_for_api(
-        path: str,
-        http_method: str,
-        method_name: str,
-        summary: str,
-        parameters: List[Dict[str, Any]],
-        marker: str = "api"
+    path: str,
+    http_method: str,
+    method_name: str,
+    summary: str,
+    parameters: List[Dict[str, Any]],
+    marker: str = "api"
 ) -> str:
     """
     为指定API追加测试用例到现有测试文件
-
+    
     Args:
         path: API路径，如 "/api/user/login"
         http_method: HTTP方法，如 "GET", "POST" 等
@@ -29,7 +29,7 @@ def generate_tests_for_api(
         summary: 接口摘要
         parameters: 参数列表，包含query和body参数
         marker: 测试标记，用于pytest筛选
-
+    
     Returns:
         生成的测试用例文件路径
     """
@@ -38,7 +38,7 @@ def generate_tests_for_api(
     body_params = [p for p in parameters if p.get('in') == 'body']
     path_params = [p for p in parameters if p.get('in') == 'path']
     file_params = [p for p in parameters if p.get('in') == 'formData' and p.get('type') == 'file']
-
+    
     # 确定测试用例文件路径
     # 如果marker包含"admin"，则使用admin目录结构
     if "admin" in marker:
@@ -46,39 +46,39 @@ def generate_tests_for_api(
     else:
         module_name = path.split('/')[2] if len(path.split('/')) > 2 else 'api'
         test_file_path = f"test_case/test_{module_name}_case/test_{module_name}_api.py"
-
+    
     # 确保测试文件目录存在
     os.makedirs(os.path.dirname(test_file_path), exist_ok=True)
-
+    
     # 生成测试用例内容
     test_methods = _generate_test_methods(
         method_name, query_params, body_params, module_name, summary, path_params, file_params
     )
-
+    
     # 追加到现有文件
     if os.path.exists(test_file_path):
         with open(test_file_path, 'r', encoding='utf-8') as f:
             existing_content = f.read()
-
+        
         # 纯粹追加，不修改任何现有内容
         new_content = existing_content + "\n\n" + "\n".join(test_methods) + "\n"
     else:
         # 如果文件不存在，创建基础结构
         new_content = _generate_basic_test_file(module_name, test_methods)
-
+    
     # 写入测试文件
     with open(test_file_path, 'w', encoding='utf-8') as f:
         f.write(new_content)
-
+    
     print(f"已追加测试用例到文件: {test_file_path}")
     return test_file_path
 
 
 def _generate_test_methods(
-        method_name: str,
-        query_params: List[Dict[str, Any]],
-        body_params: List[Dict[str, Any]],
-        module_name: str,
+    method_name: str,
+    query_params: List[Dict[str, Any]],
+    body_params: List[Dict[str, Any]],
+    module_name: str,
         summary: str = "",
         path_params: List[Dict[str, Any]] = None,
         file_params: List[Dict[str, Any]] = None
@@ -549,8 +549,6 @@ def _generate_required_field_tests_for_param(method_name: str, query_params: Lis
     if not target_param.get('required', False):
         return methods
     param_name = target_param.get('name', '')
-    param_in = target_param.get('in', 'query')
-    cases = [("empty", "''"), ("null", "'None'")] if param_in == 'path' else [("missing", "''"), ("empty", "''"), ("null", "'None'")]
 
     methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
@@ -564,9 +562,9 @@ def _generate_required_field_tests_for_param(method_name: str, query_params: Lis
     methods.append(f"    def test_{module_name}_required_{method_name}_{param_name}(self, desc, value):")
     methods.append(f'        """{summary}-必填字段测试({param_name})"""')
     methods.append(f"        if desc == 'missing':")
-    methods.append(f"            pl, {param_name} = {{'pop_items': '{param_name}'}}, 0")
+    methods.append(f"            pl = {{'pop_items': '{param_name}'}}")
     methods.append(f"        else:")
-    methods.append(f"            pl, {param_name} = {{}}, value")
+    methods.append(f"            pl = {{'{param_name}': value}}")
     methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **pl)")
     
     # 添加标准断言
@@ -586,7 +584,7 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
     elif param_type == 'boolean':
         format_tests = [("string", "字符串", '"abc"'), ("integer", "整数", "123"), ("float", "浮点数", "12.34"), ("array", "数组", "[1, 2, 3]"), ("object", "对象", '{"key": "value"}'), ("special_chars", "特殊字符", '"!@#$%^&*()"'), ("emoji", "表情符号", '"😀🎉🚀"'), ("long_string", "超长字符串", '"' + 'a' * 1000 + '"')]
     else:
-        format_tests = [("integer", 123), ("float", 12.3), ("boolean", True), ("array", [1, 2, 3]), ("object", {"key": "value"}), ("special_chars", "!@#$%^&*()"), ("email_format", "test@example.com"), ("phone_format", "13800138000"), ("date_format", "2023-12-25"), ("emoji", "😀🎉🚀"), ("long_string", 'a' * 1000), ("unicode", "中文测试"), ("json_string", '{"key": "value"}'), ("xml_string", "<root><item>test</item></root>"), ("url_string", "https://www.example.com"), ("base64_string", "SGVsbG8gV29ybGQ=")]
+        format_tests = [("integer", 123), ("float", 12.3), ("boolean", True), ("array", [1, 2, 3]), ("object", {"key": "value"}), ("special_chars", "!@#$%^&*()_+-=[]{}|;':\",./<>?"), ("email_format", "test@example.com"), ("phone_format", "13800138000"), ("date_format", "2023-12-25"), ("emoji", "😀🎉🚀"), ("long_string", 'a' * 1000), ("unicode", "中文测试"), ("json_string", '{"key": "value"}'), ("xml_string", "<root><item>test</item></root>"), ("url_string", "https://www.example.com"), ("base64_string", "SGVsbG8gV29ybGQ="), ("html_entities", "&lt;script&gt;alert('test')&lt;/script&gt;"), ("url_encoding", "%3Cscript%3Ealert%28%27test%27%29%3C%2Fscript%3E"), ("base64_encoding", "PHNjcmlwdD5hbGVydCgndGVzdCcpPC9zY3JpcHQ+"), ("hex_encoding", "\\x3c\\x73\\x63\\x72\\x69\\x70\\x74\\x3e"), ("double_encoding", "%253Cscript%253E"), ("format_string", "%x%x%x%x%x%x%x%x%x%x")]
     methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
     methods.append(f"        'desc, value',")
@@ -666,7 +664,7 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
             "            ('large_file', 'test_files/large.txt'),",
             "            ('invalid_format', 'test_files/invalid.exe'),",
             "            ('max_size', 'test_files/max_size.txt'),",
-        ]
+            ]
     else:
         return methods
 
@@ -698,16 +696,8 @@ def _generate_scenario_exception_tests_for_param(method_name: str, query_params:
     methods.append(f"    @pytest.mark.release")
     methods.append(f"    def test_{module_name}_scenario_{method_name}_invalid_{param_name}(self):")
     methods.append(f'        """{summary}-场景异常-无效的{param_name}"""')
-    methods.append(f"        test_params = {{}}")
-    for p in all_params:
-        p_name = p.get('name', '')
-        p_t = p.get('type', 'string')
-        if p_name == param_name:
-            methods.append(f"        test_params['{p_name}'] = {invalid_expr}")
-        else:
-            default_value = _get_default_value(p, p_t)
-            methods.append(f"        test_params['{p_name}'] = {default_value}")
-    methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **test_params)")
+    methods.append(f"        {param_name} = {invalid_expr}")
+    methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}={param_name})")
     
     # 添加标准断言
     methods.extend(_generate_standard_assertions())
@@ -721,28 +711,34 @@ def _generate_security_tests_for_param(method_name: str, query_params: List[Dict
     if target_param.get('type', 'string') != 'string':
         return []
     param_name = target_param.get('name', '')
-    security_tests = []  # 移除SQL注入和XSS攻击测试项
+    
+    # 安全测试用例 - 只保留核心的安全攻击方式
+    security_tests = [
+        ("sql_injection", "' OR '1'='1"),
+        ("xss_script", "<script>alert('XSS')</script>"),
+        ("xss_img", "<img src=x onerror=alert('XSS')>"),
+        ("xss_iframe", "<iframe src=javascript:alert('XSS')></iframe>"),
+        ("xml_injection", "<!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]>"),
+        ("unicode_attack", "\\x00\\x01\\x02"),
+        ("crlf_injection", "test%0d%0aSet-Cookie: admin=true"),
+        ("http_header_injection", "test%0d%0aX-Injected: true"),
+        ("log_injection", "test%0d%0a[ERROR] Injected log entry"),
+        ("code_injection", "eval('alert(1)')"),
+        ("regex_dos", "((a+)+)+$"),
+    ]
+    
     methods: List[str] = []
     methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
-    methods.append(f"        'test_type,test_desc,attack_value',")
+    methods.append(f"        'desc, value',")
     methods.append(f"        [")
     for case in security_tests:
         methods.append(f"            {case},")
     methods.append(f"        ]")
     methods.append(f"    )")
-    methods.append(f"    def test_{module_name}_security_{method_name}_{param_name}(self, test_type, test_desc, attack_value):")
-    methods.append(f'        """{summary}-安全测试-{{test_desc}}({param_name})"""')
-    methods.append(f"        test_params = {{}}")
-    for p in all_params:
-        p_name = p.get('name', '')
-        p_type = p.get('type', 'string')
-        if p_name == param_name:
-            methods.append(f"        test_params['{p_name}'] = attack_value")
-        else:
-            default_value = _get_default_value(p, p_type)
-            methods.append(f"        test_params['{p_name}'] = {default_value}")
-    methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **test_params)")
+    methods.append(f"    def test_{module_name}_security_{method_name}_{param_name}(self, desc, value):")
+    methods.append(f'        """{summary}-安全测试({param_name})"""')
+    methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value)")
     
     # 添加标准断言
     methods.extend(_generate_standard_assertions())
