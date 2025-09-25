@@ -169,3 +169,46 @@ class SchoolApi(BaseAPI):
         response = response.json()
         return response
 
+    def putAuto1(self, authorization, studentId=0, DeviceType="web", code=200, **kwargs):
+        """
+        更新学生信息
+        :param studentId: (integer, path, required) studentId
+        :param avatarUrl: (string, body, required) avatarUrl 参数
+        :param studentName: (string, body, required) studentName 参数
+        :param username: (string, body, required) username 参数
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-09-25
+        url = f"https://{base_url}/api/school/student/{studentId}"
+        payload = {
+            "avatarUrl": "string",
+            "studentName": "xxx",
+            "username": "qqq"
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("PUT", url, headers=headers, json=payload)
+        error_msg = "更新学生信息"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def deleteAuto1(self, authorization, studentId=0, DeviceType="web", code=200, **kwargs):
+        """
+        删除学生
+        :param studentId: (integer, path, required) studentId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-09-25
+        url = f"https://{base_url}/api/school/student/{studentId}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("DELETE", url, headers=headers)
+        error_msg = "删除学生"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
