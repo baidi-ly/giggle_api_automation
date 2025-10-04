@@ -26,24 +26,24 @@ if __name__ == '__main__':
         raise FileNotFoundError(f"未找到差异文件: {file_path}，请先运行比较脚本生成")
     with open(file_path, "r", encoding="utf-8") as f:
         target_apis = json.load(f)['apis']
-    #
-    # parser = argparse.ArgumentParser(description='初始化Swagger文档')
-    # parser.add_argument('--url', '-u', default='https://creator.qakjukl.net/swagger-resources/v2/api-docs',
-    #                     help='Swagger文档的URL')
-    # parser.add_argument('--dir', '-d', default=os.path.abspath(
-    #     os.path.join(os.path.dirname(__file__), 'test_data')),
-    #                     help='Swagger文档目录')
-    # parser.add_argument('--no-backup', '-n', action='store_true',
-    #                     help='不备份原始文档（默认会保留原始下载文件）')
-    #
-    # args = parser.parse_args()
-    #
-    # # 初始化swagger文档 - 不传递target_apis，保存所有API
-    # swagger_success = init_swagger(args.url, args.dir, not args.no_backup, [])
-    # if swagger_success:
-    #     logger.info("Swagger文档初始化成功！")
-    # else:
-    #     logger.warning("Swagger文档初始化失败，但继续执行...")
+
+    parser = argparse.ArgumentParser(description='初始化Swagger文档')
+    parser.add_argument('--url', '-u', default='https://creator.qakjukl.net/swagger-resources/v2/api-docs',
+                        help='Swagger文档的URL')
+    parser.add_argument('--dir', '-d', default=os.path.abspath(
+        os.path.join(os.path.dirname(__file__), 'test_data')),
+                        help='Swagger文档目录')
+    parser.add_argument('--no-backup', '-n', action='store_true',
+                        help='不备份原始文档（默认会保留原始下载文件）')
+
+    args = parser.parse_args()
+
+    # 初始化swagger文档 - 不传递target_apis，保存所有API
+    swagger_success = init_swagger(args.url, args.dir, not args.no_backup, [])
+    if swagger_success:
+        logger.info("Swagger文档初始化成功！")
+    else:
+        logger.warning("Swagger文档初始化失败，但继续执行...")
         # 不直接退出，继续执行后续步骤
 
      # -----------------------------------步骤2： 解析swagger中的接口信息---------------------------------------
@@ -163,58 +163,58 @@ if __name__ == '__main__':
 
     # -----------------------------------步骤4： 封装接口---------------------------------------
 
-
-    for api, api_info in extracted_data['paths'].items():
-        for info_k, info_v in api_info.items():
-            # 判断是否为admin接口
-            is_admin_api = api.startswith('/admin/')
-            
-            if is_admin_api:
-                # admin接口的特殊处理
-                module = api.split('/')[2] if len(api.split('/')) > 2 else 'admin'
-                method_name = generate_single_method_to_api(
-                    path=api,
-                    http_method=info_k,
-                    module=f"admin_{module}_api",  # 这会生成 test_case/page_api/admin/admin_{module}_api.py
-                    summary=info_v['summary'],
-                    force=True,  # 强制重新生成以使用合并后的参数
-                    parameters=info_v.get('parameters', []),  # 传递合并后的参数
-                )
-                # 基于 swagger 的参数信息生成测试用例（仅 query/body/path/formData 参与测试）
-                # 不校验请求头中的参数（如authorization、content-type等）
-                raw_parameters = info_v.get('parameters', [])
-                parameters = [p for p in raw_parameters if p.get('in') in ('query', 'body', 'path', 'formData')]
-                marker = f"test_admin_{module}_api"  # test_admin_case下的test_admin_{module}_api.py文件
-                generate_tests_for_api(
-                    path=api,
-                    http_method=info_k,
-                    method_name=method_name,
-                    summary=info_v.get('summary', ''),
-                    parameters=parameters,
-                    marker=marker,
-                )
-                logger.info(f"生成admin接口: {info_k.upper()} {api} -> test_case/page_api/admin/admin_{module}_api.py/{method_name}, 测试用例: test_admin_case/test_admin_{module}_api.py")
-            else:
-                # 普通接口的处理（保持原有逻辑）
-                method_name = generate_single_method_to_api(
-                    path=api,
-                    http_method=info_k,
-                    module=api.split('/')[2],
-                    summary=info_v['summary'],
-                    force=True,  # 强制重新生成以使用合并后的参数
-                    parameters=info_v.get('parameters', []),  # 传递合并后的参数
-                )
-                # 基于 swagger 的参数信息生成测试用例（仅 query/body/path/formData 参与测试）
-                # 不校验请求头中的参数（如authorization、content-type等）
-                raw_parameters = info_v.get('parameters', [])
-                parameters = [p for p in raw_parameters if p.get('in') in ('query', 'body', 'path', 'formData')]
-                marker = api.split('/')[2] if len(api.split('/')) > 2 else 'api'
-                generate_tests_for_api(
-                    path=api,
-                    http_method=info_k,
-                    method_name=method_name,
-                    summary=info_v.get('summary', ''),
-                    parameters=parameters,
-                    marker=marker,
-                )
-                logger.info(f"生成普通接口: {info_k.upper()} {api} -> test_case/page_api/{api.split('/')[2]}/{api.split('/')[2]}_api.py/{method_name}, 测试用例: {marker}")
+    #
+    # for api, api_info in extracted_data['paths'].items():
+    #     for info_k, info_v in api_info.items():
+    #         # 判断是否为admin接口
+    #         is_admin_api = api.startswith('/admin/')
+    #
+    #         if is_admin_api:
+    #             # admin接口的特殊处理
+    #             module = api.split('/')[2] if len(api.split('/')) > 2 else 'admin'
+    #             method_name = generate_single_method_to_api(
+    #                 path=api,
+    #                 http_method=info_k,
+    #                 module=f"admin_{module}_api",  # 这会生成 test_case/page_api/admin/admin_{module}_api.py
+    #                 summary=info_v['summary'],
+    #                 force=True,  # 强制重新生成以使用合并后的参数
+    #                 parameters=info_v.get('parameters', []),  # 传递合并后的参数
+    #             )
+    #             # 基于 swagger 的参数信息生成测试用例（仅 query/body/path/formData 参与测试）
+    #             # 不校验请求头中的参数（如authorization、content-type等）
+    #             raw_parameters = info_v.get('parameters', [])
+    #             parameters = [p for p in raw_parameters if p.get('in') in ('query', 'body', 'path', 'formData')]
+    #             marker = f"test_admin_{module}_api"  # test_admin_case下的test_admin_{module}_api.py文件
+    #             generate_tests_for_api(
+    #                 path=api,
+    #                 http_method=info_k,
+    #                 method_name=method_name,
+    #                 summary=info_v.get('summary', ''),
+    #                 parameters=parameters,
+    #                 marker=marker,
+    #             )
+    #             logger.info(f"生成admin接口: {info_k.upper()} {api} -> test_case/page_api/admin/admin_{module}_api.py/{method_name}, 测试用例: test_admin_case/test_admin_{module}_api.py")
+    #         else:
+    #             # 普通接口的处理（保持原有逻辑）
+    #             method_name = generate_single_method_to_api(
+    #                 path=api,
+    #                 http_method=info_k,
+    #                 module=api.split('/')[2],
+    #                 summary=info_v['summary'],
+    #                 force=True,  # 强制重新生成以使用合并后的参数
+    #                 parameters=info_v.get('parameters', []),  # 传递合并后的参数
+    #             )
+    #             # 基于 swagger 的参数信息生成测试用例（仅 query/body/path/formData 参与测试）
+    #             # 不校验请求头中的参数（如authorization、content-type等）
+    #             raw_parameters = info_v.get('parameters', [])
+    #             parameters = [p for p in raw_parameters if p.get('in') in ('query', 'body', 'path', 'formData')]
+    #             marker = api.split('/')[2] if len(api.split('/')) > 2 else 'api'
+    #             generate_tests_for_api(
+    #                 path=api,
+    #                 http_method=info_k,
+    #                 method_name=method_name,
+    #                 summary=info_v.get('summary', ''),
+    #                 parameters=parameters,
+    #                 marker=marker,
+    #             )
+    #             logger.info(f"生成普通接口: {info_k.upper()} {api} -> test_case/page_api/{api.split('/')[2]}/{api.split('/')[2]}_api.py/{method_name}, 测试用例: {marker}")
