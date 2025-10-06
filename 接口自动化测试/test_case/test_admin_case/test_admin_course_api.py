@@ -24,7 +24,6 @@ class TestAdminCourse:
         courselistAll = self.admin.course_listAll(self.authorization, 641364052840517)
         yield courselistAll
 
-    @pytest.mark.release
     def test_admin_course_export_by_theme(self):
         """
         分页查询用户创建的书籍列表-验证page，
@@ -34,7 +33,6 @@ class TestAdminCourse:
         export_res = self.admin.export_byTheme(self.authorization, theme)
         assert export_res["data"]
 
-    @pytest.mark.release
     def test_admin_course_export_byTheme_notExsit(self):
         """
         分页查询用户创建的书籍列表-验证page，
@@ -44,7 +42,6 @@ class TestAdminCourse:
         export_res = self.admin.export_byTheme(self.authorization, theme)
         assert not export_res["data"]
 
-    @pytest.mark.release
     @pytest.mark.parametrize("theme", [123, 123.4, True, "!@#~", ''],
                              ids=["integer", "float", "boolen", "special characters", 'empty'])
     def test_admin_course_export_byTheme_abnormal_character(self, theme):
@@ -55,7 +52,6 @@ class TestAdminCourse:
         export_res = self.admin.export_byTheme(self.authorization, theme)
         assert export_res["data"]
 
-    @pytest.mark.release
     def test_admin_course_export_byTheme_abnormal_character(self):
         """
         分页查询用户创建的书籍列表-验证page，
@@ -64,7 +60,6 @@ class TestAdminCourse:
         theme = 'Colors'
         self.admin.export_byTheme('', theme)
 
-    @pytest.mark.release
     def test_admin_course_trial_list(self):
         """
         分页查询用户创建的书籍列表-验证page，
@@ -73,7 +68,6 @@ class TestAdminCourse:
         export_res = self.admin.trial_list(self.authorization)
         assert export_res["data"]
 
-    @pytest.mark.release
     def test_admin_course_trial_list_unauthorized(self):
         """
         分页查询用户创建的书籍列表-验证page，
@@ -81,7 +75,6 @@ class TestAdminCourse:
         """
         self.admin.trial_list('', code=401)
 
-    @pytest.mark.release
     def test_admin_course_update_to_trial(self, courselistAll):
         """
         分页查询用户创建的书籍列表-验证page，
@@ -91,7 +84,6 @@ class TestAdminCourse:
         export_res = self.admin.update_to_trial(self.authorization, courseId)
         assert export_res["message"] == 'success'
 
-    @pytest.mark.release
     def test_admin_course_remove_trial(self, courselistAll):
         """
         分页查询用户创建的书籍列表-验证page，
@@ -101,7 +93,6 @@ class TestAdminCourse:
         export_res = self.admin.remove_trial(self.authorization, courseId)
         assert export_res["message"] == 'success'
 
-    @pytest.mark.release
     def test_admin_course_update_blockedIds(self, courselistAll):
         """
         分页查询用户创建的书籍列表-验证page，
@@ -112,7 +103,6 @@ class TestAdminCourse:
         export_res = self.admin.update_blockedIds(self.authorization, courseIds)
         assert export_res["data"] == '更新成功'
 
-    @pytest.mark.release
     def test_admin_course_get_blockedIds(self, courselistAll):
         """
         分页查询用户创建的书籍列表-验证page，

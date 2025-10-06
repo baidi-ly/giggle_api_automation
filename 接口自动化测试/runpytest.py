@@ -18,7 +18,7 @@ if __name__ =="__main__":
     pytest.main([pathcase,
                  # "-vs",
                  # "-n 2",
-                 "-m pendingRelease",
+                 "-m release",
                  "--html=" + pathreport,
                  "--self-contained-html",
                  # "--reruns", "1"

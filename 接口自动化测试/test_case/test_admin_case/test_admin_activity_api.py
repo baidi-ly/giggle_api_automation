@@ -19,7 +19,6 @@ class TestAdminActivity:
         self.activity = AdminActivityApi()
         self.authorization = self.activity.get_admin_authorization()
 
-    @pytest.mark.release
     def test_activity_positive_create_ok(self):
         """创建活动-正向用例"""
         res = self.activity.create(self.authorization)
@@ -28,7 +27,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -47,7 +45,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -68,7 +65,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -104,7 +100,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -120,7 +115,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     def test_activity_scenario_create_invalid_name(self):
         """创建活动-场景异常-无效的name"""
         name = 'INVALID_VALUE'
@@ -130,7 +124,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -155,7 +148,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -176,7 +168,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -212,7 +203,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -228,7 +218,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     def test_activity_scenario_create_invalid_activityCode(self):
         """创建活动-场景异常-无效的activityCode"""
         activityCode = 'INVALID_VALUE'
@@ -238,7 +227,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -263,7 +251,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -284,7 +271,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -320,7 +306,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -336,7 +321,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     def test_activity_scenario_create_invalid_startTime(self):
         """创建活动-场景异常-无效的startTime"""
         startTime = 'INVALID_VALUE'
@@ -346,7 +330,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -371,7 +354,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -392,7 +374,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -428,7 +409,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -444,7 +424,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     def test_activity_scenario_create_invalid_endTime(self):
         """创建活动-场景异常-无效的endTime"""
         endTime = 'INVALID_VALUE'
@@ -454,7 +433,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -479,7 +457,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -500,7 +477,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -536,7 +512,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     def test_activity_scenario_create_invalid_config(self):
         """创建活动-场景异常-无效的config"""
         config = 'INVALID_VALUE'
@@ -546,7 +521,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -567,7 +541,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -603,7 +576,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -619,7 +591,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     def test_activity_scenario_create_invalid_status(self):
         """创建活动-场景异常-无效的status"""
         status = 'INVALID_VALUE'
@@ -629,7 +600,6 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [

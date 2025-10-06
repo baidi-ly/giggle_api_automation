@@ -20,7 +20,6 @@ class TestMaterial:
         self.materials = MaterialsApi()
         self.authorization = self.materials.get_authorization()
 
-    @pytest.mark.release
     def test_materials_upload_common_resource_ppt(self):
         """有效的kidId，返回完整统计数据"""
         # 获取有效的kidId
@@ -32,7 +31,6 @@ class TestMaterial:
         assert "data" in stats_res, f"获取孩子学习统计数据接口没有data数据，response->{stats_res}"
         assert stats_res["data"]["message"] == "文件上传成功"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [

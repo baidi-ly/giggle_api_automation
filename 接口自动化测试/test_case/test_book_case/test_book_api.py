@@ -36,7 +36,6 @@ class TestBook:
         bookList = self.book.book_list(self.authorization)
         yield bookList
 
-    @pytest.mark.release
     @pytest.mark.parametrize("isTranslatable", [True, False], ids=[True, False])
     def test_book_translationSetting_update_normal(self, isTranslatable, get_bookId):
         """有效的kidId，返回完整统计数据"""
@@ -47,7 +46,6 @@ class TestBook:
         assert event_res["data"] == "更新成功"
         assert event_res["message"] == "success"
 
-    @pytest.mark.release
     def test_book_translationSetting_update_bookId_not_exist(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -58,19 +56,16 @@ class TestBook:
         assert event_res["message"] == 'book not found'
 
 
-    @pytest.mark.release
     def test_book_translationSetting_update_bookId_not_current_owner(self, get_bookId):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
         pass
 
-    @pytest.mark.release
     def test_book_translationSetting_update_bookId_empty(self, get_bookId):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
         self.book.update_translationSetting(self.authorization, '', code=403)
 
-    @pytest.mark.release
     def test_book_translationSetting_update_isTranslatable_wrong(self, get_bookId):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -80,7 +75,6 @@ class TestBook:
         assert event_res["message"] == 'invalid parameter'
 
 
-    @pytest.mark.release
     def test_book_get_translationSetting_bookId_normal(self, get_bookId):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -90,7 +84,6 @@ class TestBook:
         assert event_res["data"]["isTranslatable"] == False
         assert event_res["message"] == "success"
 
-    @pytest.mark.release
     def test_book_get_translationSetting_bookId_not_exist(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -100,20 +93,17 @@ class TestBook:
         assert event_res["data"] == 'book not found'
         assert event_res["message"] == 'book not found'
 
-    @pytest.mark.release
     def test_book_get_translationSetting_bookId_not_current_owner(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
         pass
 
-    @pytest.mark.release
     def test_book_get_translationSetting_bookId_empty(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
         self.book.translationSetting(self.authorization, '', code=403)
 
 
-    @pytest.mark.release
     @pytest.mark.parametrize("word, interfaceLanguage, learningLanguage, header",
                              [("hello", "en", "en", 'hello · hello'),
                               ("", "en", "en",'happy · happy'),
@@ -131,7 +121,6 @@ class TestBook:
         assert self.book.check_str_language(res_interfaceDefin) == interfaceLanguage
         assert self.book.check_str_language(res_learningDefin) == learningLanguage
 
-    @pytest.mark.release
     def test_book_generateVideo_bookId_normal(self, get_bookId):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -141,7 +130,6 @@ class TestBook:
         assert event_res["data"] == True
         assert event_res["message"] == "success"
 
-    @pytest.mark.release
     def test_book_generateVideo_bookId_not_exist(self, get_bookId):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -151,13 +139,11 @@ class TestBook:
         assert event_res["data"] == 'book not found'
         assert event_res["message"] == 'book not found'
 
-    @pytest.mark.release
     def test_book_generateVideo_bookId_not_current_owner(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
         pass
 
-    @pytest.mark.release
     def test_book_generateVideo_bookId_empty(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -166,7 +152,6 @@ class TestBook:
         assert event_res["data"] == '''Failed to convert value of type 'java.lang.String' to required type 'long'; nested exception is java.lang.NumberFormatException: For input string: ""'''
         assert event_res["message"] == 'invalid parameter'
 
-    @pytest.mark.release
     def test_book_get_generateVideo_bookId_normal(self, get_bookId):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -176,7 +161,6 @@ class TestBook:
         assert event_res["data"]
         assert event_res["message"] == "success"
 
-    @pytest.mark.release
     def test_book_get_generateVideo_bookId_not_exist(self, get_bookId):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -185,13 +169,11 @@ class TestBook:
         assert event_res["message"] == 'book not found'
         assert event_res['data'] == 'book not found'
 
-    @pytest.mark.release
     def test_book_get_generateVideo_bookId_not_current_owner(self, get_bookId):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
         pass
 
-    @pytest.mark.release
     def test_book_get_generateVideo_bookId_empty(self, get_bookId):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -205,7 +187,6 @@ class TestBook:
         # 获取孩子学习统计数据
         event_res = self.book.get_generateVideos(self.authorization, '@#$%^&*', code=403)
 
-    @pytest.mark.release
     @pytest.mark.parametrize("includeBookCover", [True, False], ids=[True, False])
     def test_book_series_list_includeBookCover_normal(self, includeBookCover, get_bookId):
         """有效的kidId，返回完整统计数据"""
@@ -216,7 +197,6 @@ class TestBook:
         assert event_res["data"] == "更新成功"  # TOTEST
         assert event_res["message"] == "success"
 
-    @pytest.mark.release
     @pytest.mark.parametrize("includeBookCover", ["hello", 123, "!@#~"], ids=["string", "intger", "special characters"])
     def test_book_series_list_includeBookCover_wrong(self, get_bookId, includeBookCover):
         """有效的kidId，返回完整统计数据"""
@@ -227,7 +207,6 @@ class TestBook:
         assert event_res["data"] == "更新成功"  # TOTEST
         assert event_res["message"] == "success"
 
-    @pytest.mark.release
     def test_book_series_list_includeBookCover_empty(self, get_bookId):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -237,7 +216,6 @@ class TestBook:
         assert event_res["data"] == "更新成功"  # TOTEST
         assert event_res["message"] == "success"
 
-    @pytest.mark.release
     def test_book_series_list_bookCoverSize_default(self, get_bookId):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -247,7 +225,6 @@ class TestBook:
         assert event_res["data"] == "更新成功"  # TOTEST
         assert event_res["message"] == "success"
 
-    @pytest.mark.release
     def test_book_series_list_bookCoverSize_negative(self, get_bookId):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -257,7 +234,6 @@ class TestBook:
         assert event_res["data"] == "更新成功"  # TOTEST
         assert event_res["message"] == "success"
 
-    @pytest.mark.release
     def test_book_series_list_bookCoverSize_zero(self, get_bookId):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -267,7 +243,6 @@ class TestBook:
         assert event_res["data"] == "更新成功"  # TOTEST
         assert event_res["message"] == "success"
 
-    @pytest.mark.release
     def test_book_series_list_bookCoverSize_long(self, get_bookId):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -277,7 +252,6 @@ class TestBook:
         assert event_res["data"] == "更新成功"  # TOTEST
         assert event_res["message"] == "success"
 
-    @pytest.mark.release
     def test_book_series_list_bookCoverSize_empty(self, get_bookId):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -287,7 +261,6 @@ class TestBook:
         assert event_res["data"] == "更新成功"  # TOTEST
         assert event_res["message"] == "success"
 
-    @pytest.mark.release
     @pytest.mark.parametrize("includeBookCover", ["hello", True, "!@#~"], ids=["string", "boolen", "special characters"])
     def test_book_series_list_bookCoverSize_notInteger(self, get_bookId, includeBookCover):
         """有效的kidId，返回完整统计数据"""
@@ -298,7 +271,6 @@ class TestBook:
         assert event_res["data"] == "更新成功"  # TOTEST
         assert event_res["message"] == "success"
 
-    @pytest.mark.release
     def test_book_recommend_bookAndCourse_age_normal(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -308,7 +280,6 @@ class TestBook:
             assert event_res["data"]["courses"]
             assert event_res["data"]["book"]
 
-    @pytest.mark.release
     @pytest.mark.parametrize("age", ["hello", True, "!@#~"], ids=["string", "boolen", "special characters"])
     def test_book_recommend_bookAndCourse_age_typeWrong(self, age):
         """有效的kidId，返回完整统计数据"""
@@ -318,7 +289,6 @@ class TestBook:
         assert event_res["message"] == 'invalid parameter'
         assert event_res["data"] == f'''Failed to convert value of type 'java.lang.String' to required type 'java.lang.Integer'; nested exception is java.lang.NumberFormatException: For input string: "{age}"'''
 
-    @pytest.mark.release
     def test_book_recommend_bookAndCourse_age_empty(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -327,7 +297,6 @@ class TestBook:
         assert event_res["data"]["courses"]
         assert event_res["data"]["book"]
 
-    @pytest.mark.release
     def test_book_recommend_bookAndCourse_courseNum_default(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -336,7 +305,6 @@ class TestBook:
         assert event_res["data"]["courses"]
         assert event_res["data"]["book"]
 
-    @pytest.mark.release
     @pytest.mark.parametrize("age", ["hello", True, "!@#~"], ids=["string", "boolen", "special characters"])
     def test_book_recommend_bookAndCourse_courseNum_typeWrong(self, age):
         """有效的kidId，返回完整统计数据"""
@@ -346,7 +314,6 @@ class TestBook:
         assert event_res["message"] == 'invalid parameter'
         assert event_res["data"] == f'''Failed to convert value of type 'java.lang.String' to required type 'java.lang.Integer'; nested exception is java.lang.NumberFormatException: For input string: "{age}"'''
 
-    @pytest.mark.release
     def test_book_recommend_bookAndCourse_courseNum_empty(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -355,7 +322,6 @@ class TestBook:
         assert event_res["data"]["courses"]
         assert event_res["data"]["book"]
 
-    @pytest.mark.release
     @pytest.mark.parametrize("translateLanguage", ["en", "zh", "fr", "de", "ja", "ko", "ar"], ids=["en", "zh", "fr", "de", "ja", "ko", "ar"])
     def test_book_recommend_bookAndCourse_translateLanguage_iterate(self, translateLanguage):
         """有效的kidId，返回完整统计数据"""
@@ -365,7 +331,6 @@ class TestBook:
         assert event_res["data"]["courses"]
         assert event_res["data"]["book"]
 
-    @pytest.mark.release
     def test_book_recommend_bookAndCourse_translateLanguage_empty(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -374,7 +339,6 @@ class TestBook:
         assert event_res["data"]["courses"]
         assert event_res["data"]["book"]
 
-    @pytest.mark.release
     def test_book_recommend_bookAndCourse_translateLanguage_countryNotExist(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -383,7 +347,6 @@ class TestBook:
         assert event_res["data"]["courses"]
         assert event_res["data"]["book"]
 
-    @pytest.mark.release
     def test_book_recommend_get_newUserBookRules(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -391,13 +354,11 @@ class TestBook:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["data"]["rules"]
 
-    @pytest.mark.release
     def test_book_recommend_get_newUserBookRules_unauthorized(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
         self.book.recommend_newUserBookRules('', code=401)
 
-    @pytest.mark.release
     def test_book_recommend_update_newUserBookRules_normal(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -406,7 +367,6 @@ class TestBook:
         assert event_res["data"] == True
         assert event_res["message"] == "success"
 
-    @pytest.mark.release
     def test_book_recommend_update_newUserBookRules_empty(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -414,7 +374,6 @@ class TestBook:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == 'internal server error'
 
-    @pytest.mark.release
     @pytest.mark.parametrize("rules", [123, True, "!@#~"], ids=["intger", "boolen", "special characters"])
     def test_book_recommend_update_newUserBookRules_typeWrong(self, rules):
         """有效的kidId，返回完整统计数据"""
@@ -422,7 +381,6 @@ class TestBook:
         event_res = self.book.update_recommend_newUserBookRules(self.authorization, rules=rules, code=500)
         assert event_res["message"] == 'internal server error'
 
-    @pytest.mark.release
     def test_book_recommend_update_newUserBookRules_withoutRules(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -432,14 +390,12 @@ class TestBook:
 
 
 
-    @pytest.mark.release
     def test_book_positive_upload_ok(self):
         """上传故事书语言层包到S3-正向用例"""
         res = self.book.upload(authorization=self.authorization, bookId=0, languageCode='')
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'input_param, desc, value',
         [
@@ -456,7 +412,6 @@ class TestBook:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'input_param, desc, value',
         [
@@ -475,7 +430,6 @@ class TestBook:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'input_param, desc, value',
         [
@@ -495,7 +449,6 @@ class TestBook:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'input_param, desc, value',
         [
@@ -510,7 +463,6 @@ class TestBook:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     def test_book_scenario_upload_invalid_bookId(self):
         """上传故事书语言层包到S3-场景异常-无效的bookId"""
         test_params = {}
@@ -520,7 +472,6 @@ class TestBook:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'input_param, desc, value',
         [
@@ -539,7 +490,6 @@ class TestBook:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'input_param, desc, value',
         [
@@ -569,7 +519,6 @@ class TestBook:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'input_param, desc, value',
         [
@@ -583,7 +532,6 @@ class TestBook:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     def test_book_scenario_upload_invalid_languageCode(self):
         """上传故事书语言层包到S3-场景异常-无效的languageCode"""
         test_params = {}
@@ -593,7 +541,6 @@ class TestBook:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'test_type,test_desc,attack_value',
         [
@@ -610,7 +557,6 @@ class TestBook:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'input_param, desc, value',
         [
@@ -629,7 +575,6 @@ class TestBook:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'input_param, desc, value',
         [
@@ -659,7 +604,6 @@ class TestBook:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'input_param, desc, value',
         [

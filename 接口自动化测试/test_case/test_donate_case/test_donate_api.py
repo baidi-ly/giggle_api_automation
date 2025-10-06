@@ -16,14 +16,12 @@ class TestDonateApi:
         self.authorization = self.donate.get_authorization()
 
 
-    @pytest.mark.release
     def test_donate_positive_createdonateorder_ok(self):
         """创建捐赠订单-正向用例"""
         res = self.donate.createdonateorder(self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -40,7 +38,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -59,7 +56,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -78,7 +74,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -97,7 +92,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -116,7 +110,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -144,7 +137,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -155,7 +147,6 @@ class TestDonateApi:
     def test_donate_boundary_createdonateorder_currency(self, desc, value):
         """创建捐赠订单-边界值测试-{desc}(currency)"""
         res = self.donate.createdonateorder(self.authorization, currency=value)
-    @pytest.mark.release
     def test_donate_scenario_createdonateorder_invalid_currency(self):
         """创建捐赠订单-场景异常-无效的currency"""
         test_params = {}
@@ -175,7 +166,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'test_type,test_desc,attack_value',
         [
@@ -200,7 +190,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -219,7 +208,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -247,7 +235,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -258,7 +245,6 @@ class TestDonateApi:
     def test_donate_boundary_createdonateorder_donorType(self, desc, value):
         """创建捐赠订单-边界值测试-{desc}(donorType)"""
         res = self.donate.createdonateorder(self.authorization, donorType=value)
-    @pytest.mark.release
     def test_donate_scenario_createdonateorder_invalid_donorType(self):
         """创建捐赠订单-场景异常-无效的donorType"""
         test_params = {}
@@ -278,7 +264,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'test_type,test_desc,attack_value',
         [
@@ -303,7 +288,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -322,7 +306,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -350,7 +333,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -361,7 +343,6 @@ class TestDonateApi:
     def test_donate_boundary_createdonateorder_donorEmailAddress(self, desc, value):
         """创建捐赠订单-边界值测试-{desc}(donorEmailAddress)"""
         res = self.donate.createdonateorder(self.authorization, donorEmailAddress=value)
-    @pytest.mark.release
     def test_donate_scenario_createdonateorder_invalid_donorEmailAddress(self):
         """创建捐赠订单-场景异常-无效的donorEmailAddress"""
         test_params = {}
@@ -381,7 +362,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'test_type,test_desc,attack_value',
         [
@@ -406,7 +386,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -425,7 +404,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -453,7 +431,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -464,7 +441,6 @@ class TestDonateApi:
     def test_donate_boundary_createdonateorder_fundSource(self, desc, value):
         """创建捐赠订单-边界值测试-{desc}(fundSource)"""
         res = self.donate.createdonateorder(self.authorization, fundSource=value)
-    @pytest.mark.release
     def test_donate_scenario_createdonateorder_invalid_fundSource(self):
         """创建捐赠订单-场景异常-无效的fundSource"""
         test_params = {}
@@ -484,7 +460,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'test_type,test_desc,attack_value',
         [
@@ -509,7 +484,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -528,7 +502,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -556,7 +529,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -567,7 +539,6 @@ class TestDonateApi:
     def test_donate_boundary_createdonateorder_message(self, desc, value):
         """创建捐赠订单-边界值测试-{desc}(message)"""
         res = self.donate.createdonateorder(self.authorization, message=value)
-    @pytest.mark.release
     def test_donate_scenario_createdonateorder_invalid_message(self):
         """创建捐赠订单-场景异常-无效的message"""
         test_params = {}
@@ -587,7 +558,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'test_type,test_desc,attack_value',
         [
@@ -612,7 +582,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -631,7 +600,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -659,7 +627,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -670,7 +637,6 @@ class TestDonateApi:
     def test_donate_boundary_createdonateorder_platform(self, desc, value):
         """创建捐赠订单-边界值测试-{desc}(platform)"""
         res = self.donate.createdonateorder(self.authorization, platform=value)
-    @pytest.mark.release
     def test_donate_scenario_createdonateorder_invalid_platform(self):
         """创建捐赠订单-场景异常-无效的platform"""
         test_params = {}
@@ -690,7 +656,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'test_type,test_desc,attack_value',
         [
@@ -715,7 +680,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -734,7 +698,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -762,7 +725,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -773,7 +735,6 @@ class TestDonateApi:
     def test_donate_boundary_createdonateorder_donateChannel(self, desc, value):
         """创建捐赠订单-边界值测试-{desc}(donateChannel)"""
         res = self.donate.createdonateorder(self.authorization, donateChannel=value)
-    @pytest.mark.release
     def test_donate_scenario_createdonateorder_invalid_donateChannel(self):
         """创建捐赠订单-场景异常-无效的donateChannel"""
         test_params = {}
@@ -793,7 +754,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'test_type,test_desc,attack_value',
         [
@@ -818,7 +778,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -837,7 +796,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -865,7 +823,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -876,7 +833,6 @@ class TestDonateApi:
     def test_donate_boundary_createdonateorder_networkType(self, desc, value):
         """创建捐赠订单-边界值测试-{desc}(networkType)"""
         res = self.donate.createdonateorder(self.authorization, networkType=value)
-    @pytest.mark.release
     def test_donate_scenario_createdonateorder_invalid_networkType(self):
         """创建捐赠订单-场景异常-无效的networkType"""
         test_params = {}
@@ -896,7 +852,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'test_type,test_desc,attack_value',
         [
@@ -921,7 +876,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -940,7 +894,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -968,7 +921,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -979,7 +931,6 @@ class TestDonateApi:
     def test_donate_boundary_createdonateorder_transactionId(self, desc, value):
         """创建捐赠订单-边界值测试-{desc}(transactionId)"""
         res = self.donate.createdonateorder(self.authorization, transactionId=value)
-    @pytest.mark.release
     def test_donate_scenario_createdonateorder_invalid_transactionId(self):
         """创建捐赠订单-场景异常-无效的transactionId"""
         test_params = {}
@@ -1000,7 +951,6 @@ class TestDonateApi:
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
 
-    @pytest.mark.release
     def test_donate_positive_getNetworkCurrencyMapping_ok(self):
         """获取网络和币种对应关系-正向用例"""
         res = self.donate.getNetworkCurrencyMapping(self.authorization)
@@ -1010,7 +960,6 @@ class TestDonateApi:
         assert res['data'] == {'defaultCurrency': 'USDT', 'defaultNetwork': 'BNB Chain', 'networks': {'BNB Chain': {'chainId': 56, 'code': 'BSC', 'currencies': [{'address': '0xC7f501D25Ea088aeFCa8B4b3ebD936aAe12bF4A4', 'symbol': 'USDT'}, {'address': '0xC7f501D25Ea088aeFCa8B4b3ebD936aAe12bF4A4', 'symbol': 'USDC'}, {'address': '0xC7f501D25Ea088aeFCa8B4b3ebD936aAe12bF4A4', 'symbol': 'BNB'}, {'address': '0xC7f501D25Ea088aeFCa8B4b3ebD936aAe12bF4A4', 'symbol': 'ETH'}]}}}
 
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1029,7 +978,6 @@ class TestDonateApi:
         assert res['data'] == {'defaultCurrency': 'USDT', 'defaultNetwork': 'BNB Chain', 'networks': {'BNB Chain': {'chainId': 56, 'code': 'BSC', 'currencies': [{'address': '0xC7f501D25Ea088aeFCa8B4b3ebD936aAe12bF4A4', 'symbol': 'USDT'}, {'address': '0xC7f501D25Ea088aeFCa8B4b3ebD936aAe12bF4A4', 'symbol': 'USDC'}, {'address': '0xC7f501D25Ea088aeFCa8B4b3ebD936aAe12bF4A4', 'symbol': 'BNB'}, {'address': '0xC7f501D25Ea088aeFCa8B4b3ebD936aAe12bF4A4', 'symbol': 'ETH'}]}}}
 
 
-    @pytest.mark.release
     def test_donate_positive_getPaymentAddress_ok(self):
         """获取支付地址-正向用例"""
         res = self.donate.getPaymentAddress(authorization=self.authorization)
@@ -1038,7 +986,6 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert res['data']['address']
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1057,7 +1004,6 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert res['data']['address']
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1078,7 +1024,6 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert res['data']['address']
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1106,7 +1051,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert False
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1123,7 +1067,6 @@ class TestDonateApi:
         assert not res['data']['address']
 
 
-    @pytest.mark.release
     def test_donate_scenario_getPaymentAddress_invalid_currency(self):
         """获取支付地址-场景异常-无效的currency"""
         test_params = {}
@@ -1135,7 +1078,6 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert not res['data']['address']
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1156,7 +1098,6 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert not res['data']['address']
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1184,7 +1125,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1199,7 +1139,6 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert not res['data']['address']
 
-    @pytest.mark.release
     def test_donate_scenario_getPaymentAddress_invalid_networkType(self):
         """获取支付地址-场景异常-无效的networkType"""
         test_params = {}
@@ -1211,7 +1150,6 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert not res['data']['address']
 
-    @pytest.mark.release
     def test_donate_positive_getExchangeRate_ok(self):
         """获取汇率信息-正向用例"""
         res = self.donate.getExchangeRate(authorization=self.authorization)
@@ -1220,7 +1158,6 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert res['data']['data']
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1239,7 +1176,6 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert res['data']['data']
 
-    @pytest.mark.release
     def test_donate_positive_getWithdrawLimit_ok(self):
         """获取限额信息-正向用例"""
         res = self.donate.getWithdrawLimit(authorization=self.authorization)
@@ -1248,7 +1184,6 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert res['data']['data']
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1267,7 +1202,6 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert res['data']['data']
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1288,7 +1222,6 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert False
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1318,7 +1251,6 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert False
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1329,7 +1261,6 @@ class TestDonateApi:
     def test_donate_boundary_getWithdrawLimit_coin(self, desc, value):
         """获取限额信息-边界值测试-{desc}(coin)"""
         res = self.donate.getWithdrawLimit(self.authorization, coin=value)
-    @pytest.mark.release
     def test_donate_scenario_getWithdrawLimit_invalid_coin(self):
         """获取限额信息-场景异常-无效的coin"""
         test_params = {}
@@ -1339,7 +1270,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1358,7 +1288,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1386,7 +1315,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1397,7 +1325,6 @@ class TestDonateApi:
     def test_donate_boundary_getWithdrawLimit_network(self, desc, value):
         """获取限额信息-边界值测试-{desc}(network)"""
         res = self.donate.getWithdrawLimit(self.authorization, network=value)
-    @pytest.mark.release
     def test_donate_scenario_getWithdrawLimit_invalid_network(self):
         """获取限额信息-场景异常-无效的network"""
         test_params = {}
@@ -1407,7 +1334,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'test_type,test_desc,attack_value',
         [
@@ -1422,7 +1348,6 @@ class TestDonateApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     def test_donate_positive_cancel_ok(self):
         """取消捐赠订单-正向用例"""
         res = self.donate.cancel(self.authorization)
@@ -1432,7 +1357,6 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert res['data']['data']
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1451,7 +1375,6 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert res['data']['data']
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1472,7 +1395,6 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert res['data']['data']
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1494,7 +1416,6 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert res['data']['data']
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1511,7 +1432,6 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert res['data']['data']
 
-    @pytest.mark.release
     def test_donate_scenario_cancel_invalid_orderId(self):
         """取消捐赠订单-场景异常-无效的orderId"""
         test_params = {}
@@ -1521,7 +1441,6 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert res['data']['data']
 
-    @pytest.mark.release
     def test_donate_positive_webhook_ok(self):
         """币安支付Webhook回调处理-正向用例"""
         res = self.donate.webhook(authorization=self.authorization)
@@ -1530,7 +1449,6 @@ class TestDonateApi:
         assert res['message'] == 'success'
         assert res['data']['data']
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1551,7 +1469,6 @@ class TestDonateApi:
 
 
 
-    @pytest.mark.release
     def test_donate_positive_donateorderstatus_details_ok(self):
         """查询捐赠订单状态-正向用例"""
         res = self.donate.donateorderstatus_details(self.authorization)
@@ -1560,7 +1477,6 @@ class TestDonateApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1580,7 +1496,6 @@ class TestDonateApi:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -1606,7 +1521,6 @@ class TestDonateApi:
             assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
             assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -1634,7 +1548,6 @@ class TestDonateApi:
             assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
             assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -1656,7 +1569,6 @@ class TestDonateApi:
             assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
             assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
-    @pytest.mark.release
     def test_donate_scenario_donateorderstatus_details_invalid_orderId(self):
         """查询捐赠订单状态-场景异常-无效的orderId"""
         orderId = 999999999
@@ -1668,7 +1580,6 @@ class TestDonateApi:
 
 
 
-    @pytest.mark.release
     def test_donate_positive_getOrders_ok(self):
         """分页获取捐赠订单列表-正向用例"""
         res = self.donate.getOrders(self.authorization)
@@ -1677,7 +1588,6 @@ class TestDonateApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1697,7 +1607,6 @@ class TestDonateApi:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -1725,7 +1634,6 @@ class TestDonateApi:
             assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
             assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -1747,7 +1655,6 @@ class TestDonateApi:
             assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
             assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
-    @pytest.mark.release
     def test_donate_scenario_getOrders_invalid_currency(self):
         """分页获取捐赠订单列表-场景异常-无效的currency"""
         currency = 'INVALID_VALUE'
@@ -1757,7 +1664,6 @@ class TestDonateApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1782,7 +1688,6 @@ class TestDonateApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -1810,7 +1715,6 @@ class TestDonateApi:
             assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
             assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -1832,7 +1736,6 @@ class TestDonateApi:
             assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
             assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
-    @pytest.mark.release
     def test_donate_scenario_getOrders_invalid_donorName(self):
         """分页获取捐赠订单列表-场景异常-无效的donorName"""
         donorName = 'INVALID_VALUE'
@@ -1842,7 +1745,6 @@ class TestDonateApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1867,7 +1769,6 @@ class TestDonateApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -1895,7 +1796,6 @@ class TestDonateApi:
             assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
             assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -1917,7 +1817,6 @@ class TestDonateApi:
             assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
             assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
-    @pytest.mark.release
     def test_donate_scenario_getOrders_invalid_endDate(self):
         """分页获取捐赠订单列表-场景异常-无效的endDate"""
         endDate = 'INVALID_VALUE'
@@ -1927,7 +1826,6 @@ class TestDonateApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1952,7 +1850,6 @@ class TestDonateApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -1980,7 +1877,6 @@ class TestDonateApi:
             assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
             assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -2002,7 +1898,6 @@ class TestDonateApi:
             assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
             assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
-    @pytest.mark.release
     def test_donate_scenario_getOrders_invalid_page(self):
         """分页获取捐赠订单列表-场景异常-无效的page"""
         page = 999999999
@@ -2012,7 +1907,6 @@ class TestDonateApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -2040,7 +1934,6 @@ class TestDonateApi:
             assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
             assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -2062,7 +1955,6 @@ class TestDonateApi:
             assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
             assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
-    @pytest.mark.release
     def test_donate_scenario_getOrders_invalid_size(self):
         """分页获取捐赠订单列表-场景异常-无效的size"""
         size = 999999999
@@ -2072,7 +1964,6 @@ class TestDonateApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -2100,7 +1991,6 @@ class TestDonateApi:
             assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
             assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -2122,7 +2012,6 @@ class TestDonateApi:
             assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
             assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
-    @pytest.mark.release
     def test_donate_scenario_getOrders_invalid_startDate(self):
         """分页获取捐赠订单列表-场景异常-无效的startDate"""
         startDate = 'INVALID_VALUE'
@@ -2132,7 +2021,6 @@ class TestDonateApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [

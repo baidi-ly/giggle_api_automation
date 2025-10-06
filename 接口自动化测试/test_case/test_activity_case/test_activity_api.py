@@ -35,7 +35,6 @@ class TestActivity:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
     def test_activity_positive_getInfo_ok(self):
         """获取扭蛋当前活动信息-正向用例"""
         res = self.activity.getInfo(authorization=self.authorization)
@@ -46,7 +45,6 @@ class TestActivity:
         assert res['data']['activityName'] == '扭蛋活动-国庆'
         assert res['data']['activityStatus'] == 'ACTIVE'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -61,7 +59,6 @@ class TestActivity:
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.activity.getInfo(value, code=401)
 
-    @pytest.mark.release
     def test_activity_positive_getInfo1_ok(self, getkidId):
         """获取用户抽奖信息-正向用例"""
         kidId = getkidId[0]["id"]
@@ -71,7 +68,6 @@ class TestActivity:
         assert res['message'] == 'success'
         assert res['data']
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -87,7 +83,6 @@ class TestActivity:
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.activity.getInfo1(value, activityId=1, kidId=kidId, code=401)
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -115,7 +110,6 @@ class TestActivity:
             assert res['data'] == '''Failed to convert value of type 'java.lang.String' to required type 'long'; nested exception is java.lang.NumberFormatException: For input string: "''"'''
 
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -145,7 +139,6 @@ class TestActivity:
             assert res['data'] == 'Activity not found'
 
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -162,7 +155,6 @@ class TestActivity:
         assert res['message'] == 'Activity not found'
         assert res['data'] == 'Activity not found'
 
-    @pytest.mark.release
     def test_activity_scenario_getInfo1_invalid_activityId(self, getkidId):
         """获取用户抽奖信息-场景异常-无效的activityId"""
         kidId = getkidId[0]["id"]
@@ -172,7 +164,6 @@ class TestActivity:
         assert res['message'] == 'Activity not found'
         assert res['data'] == 'Activity not found'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -198,7 +189,6 @@ class TestActivity:
             assert res['message'] == 'invalid parameter'
             assert res['data'] == '''Failed to convert value of type 'java.lang.String' to required type 'long'; nested exception is java.lang.NumberFormatException: For input string: "''"'''
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -220,7 +210,6 @@ class TestActivity:
         assert res['message'] == 'invalid parameter'
         assert '''Failed to convert value of type 'java.lang.String' to required type 'long'; nested exception is java.lang.NumberFormatException: For input string: ''' in res['data']
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -237,7 +226,6 @@ class TestActivity:
         assert res['message'] == 'Kid id not exist'
         assert res['data'] == 'Kid id not exist'
 
-    @pytest.mark.release
     def test_activity_scenario_getInfo1_invalid_kidId(self):
         """获取用户抽奖信息-场景异常-无效的kidId"""
         res = self.activity.getInfo1(authorization=self.authorization, kidId=99999999)
@@ -245,7 +233,6 @@ class TestActivity:
         assert res['message'] == 'Kid id not exist'
         assert res['data'] == 'Kid id not exist'
 
-    @pytest.mark.release
     def test_activity_positive_share_ok(self, getkidId):
         """分享成功，增加抽奖次数-正向用例"""
         kidId = getkidId[0]["id"]
@@ -255,7 +242,6 @@ class TestActivity:
         assert res['message'] == 'success'
         assert res['data']
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -271,7 +257,6 @@ class TestActivity:
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.activity.share(value, kidId=kidId, code=401)
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -300,7 +285,6 @@ class TestActivity:
             assert res[
                        'data'] == '''Failed to convert value of type 'java.lang.String' to required type 'long'; nested exception is java.lang.NumberFormatException: For input string: "''"'''
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -330,7 +314,6 @@ class TestActivity:
             assert res['message'] == 'Activity not found'
             assert res['data'] == 'Activity not found'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -347,7 +330,6 @@ class TestActivity:
         assert res['message'] == 'Activity not found'
         assert res['data'] == 'Activity not found'
 
-    @pytest.mark.release
     def test_activity_scenario_share_invalid_activityId(self, getkidId):
         """分享成功，增加抽奖次数-场景异常-无效的activityId"""
         kidId = getkidId[0]["id"]
@@ -357,7 +339,6 @@ class TestActivity:
         assert res['message'] == 'Activity not found'
         assert res['data'] == 'Activity not found'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -385,7 +366,6 @@ class TestActivity:
             assert res[
                        'data'] == '''Failed to convert value of type 'java.lang.String' to required type 'long'; nested exception is java.lang.NumberFormatException: For input string: "''"'''
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -409,7 +389,6 @@ class TestActivity:
         assert '''Failed to convert value of type 'java.lang.String' to required type 'long'; nested exception is java.lang.NumberFormatException: For input string: ''' in \
                res['data']
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -426,7 +405,6 @@ class TestActivity:
         assert res['message'] == 'Kid id not exist'
         assert res['data'] == 'Kid id not exist'
 
-    @pytest.mark.release
     def test_activity_scenario_share_invalid_kidId(self):
         """分享成功，增加抽奖次数-场景异常-无效的kidId"""
         res = self.activity.share(authorization=self.authorization, kidId=99999999)
@@ -434,7 +412,6 @@ class TestActivity:
         assert res['message'] == 'Kid id not exist'
         assert res['data'] == 'Kid id not exist'
 
-    @pytest.mark.release
     def test_activity_positive_draw_ok(self, getkidId):
         """抽奖-正向用例"""
         kidId = getkidId[0]["id"]
@@ -444,7 +421,6 @@ class TestActivity:
         assert res['message'] == 'success'
         assert res['data']
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -460,7 +436,6 @@ class TestActivity:
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.activity.draw(value, kidId=kidId, code=401)
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -489,7 +464,6 @@ class TestActivity:
             assert res[
                        'data'] == '''Failed to convert value of type 'java.lang.String' to required type 'long'; nested exception is java.lang.NumberFormatException: For input string: "''"'''
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -519,7 +493,6 @@ class TestActivity:
             assert res['message'] == 'Activity not found'
             assert res['data'] == 'Activity not found'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -536,7 +509,6 @@ class TestActivity:
         assert res['message'] == 'Activity not found'
         assert res['data'] == 'Activity not found'
 
-    @pytest.mark.release
     def test_activity_scenario_draw_invalid_activityId(self, getkidId):
         """抽奖-场景异常-无效的activityId"""
         kidId = getkidId[0]["id"]
@@ -546,7 +518,6 @@ class TestActivity:
         assert res['message'] == 'Activity not found'
         assert res['data'] == 'Activity not found'
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -574,7 +545,6 @@ class TestActivity:
             assert res[
                        'data'] == '''Failed to convert value of type 'java.lang.String' to required type 'long'; nested exception is java.lang.NumberFormatException: For input string: "''"'''
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -598,7 +568,6 @@ class TestActivity:
         assert '''Failed to convert value of type 'java.lang.String' to required type 'long'; nested exception is java.lang.NumberFormatException: For input string: ''' in \
                res['data']
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -615,7 +584,6 @@ class TestActivity:
         assert res['message'] == 'Kid id not exist'
         assert res['data'] == 'Kid id not exist'
 
-    @pytest.mark.release
     def test_activity_scenario_draw_invalid_kidId(self):
         """抽奖-场景异常-无效的kidId"""
         res = self.activity.draw(authorization=self.authorization, kidId=99999999)
@@ -624,7 +592,6 @@ class TestActivity:
         assert res['data'] == 'Kid id not exist'
 
 
-    @pytest.mark.release
     def test_activity_positive_getRewardcenter_ok(self):
         """扭蛋奖励中心-正向用例"""
         res = self.activity.getRewardcenter(self.authorization)
@@ -633,7 +600,6 @@ class TestActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -652,7 +618,6 @@ class TestActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -673,7 +638,6 @@ class TestActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -696,7 +660,6 @@ class TestActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -713,7 +676,6 @@ class TestActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     def test_activity_scenario_getRewardcenter_invalid_activityId(self):
         """扭蛋奖励中心-场景异常-无效的activityId"""
         activityId = 999999999
@@ -723,7 +685,6 @@ class TestActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -744,7 +705,6 @@ class TestActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -767,7 +727,6 @@ class TestActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -784,7 +743,6 @@ class TestActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     def test_activity_scenario_getRewardcenter_invalid_kidId(self):
         """扭蛋奖励中心-场景异常-无效的kidId"""
         kidId = 999999999

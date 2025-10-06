@@ -24,7 +24,6 @@ class TestAdminUser:
         courselistAll = self.admin.course_listAll(self.authorization, 641364052840517)
         yield courselistAll
 
-    @pytest.mark.release
     def test_admin_user_positive_sendemail_ok(self):
         """发送邮件-正向用例"""
         res = self.admin_user.sendemail(self.authorization)
@@ -33,7 +32,6 @@ class TestAdminUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -52,7 +50,6 @@ class TestAdminUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -73,7 +70,6 @@ class TestAdminUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -109,7 +105,6 @@ class TestAdminUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -125,7 +120,6 @@ class TestAdminUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     def test_admin_user_scenario_sendemail_invalid_email(self):
         """发送邮件-场景异常-无效的email"""
         email = 'INVALID_VALUE'
@@ -135,7 +129,6 @@ class TestAdminUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -160,7 +153,6 @@ class TestAdminUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -181,7 +173,6 @@ class TestAdminUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -217,7 +208,6 @@ class TestAdminUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -233,7 +223,6 @@ class TestAdminUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     def test_admin_user_scenario_sendemail_invalid_subject(self):
         """发送邮件-场景异常-无效的subject"""
         subject = 'INVALID_VALUE'
@@ -243,7 +232,6 @@ class TestAdminUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -268,7 +256,6 @@ class TestAdminUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -289,7 +276,6 @@ class TestAdminUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -325,7 +311,6 @@ class TestAdminUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -341,7 +326,6 @@ class TestAdminUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     def test_admin_user_scenario_sendemail_invalid_content(self):
         """发送邮件-场景异常-无效的content"""
         content = 'INVALID_VALUE'
@@ -351,7 +335,6 @@ class TestAdminUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [

@@ -27,7 +27,6 @@ class TestSystem:
         except Exception as e:
             print(f"获取系统相关接口的指定token失败：{e}")
 
-    @pytest.mark.release
     def test_system_health_login(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -36,7 +35,6 @@ class TestSystem:
         assert health_res["data"]["isUp"]
         assert health_res["data"]["status"] == "UP"
 
-    @pytest.mark.release
     def test_system_health_customer(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -45,7 +43,6 @@ class TestSystem:
         assert health_res["data"]["isUp"]
         assert health_res["data"]["status"] == "UP"
 
-    @pytest.mark.release
     def test_system_health_with_wrong_token(self):
         """有效的kidId，返回完整统计数据"""
         token = 'xEr0:v1f7@A]DYXg6WL_?JEUp/>yDHsdsdsd'
@@ -54,7 +51,6 @@ class TestSystem:
         assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
         assert health_res["message"] == 'permission not allowed'
 
-    @pytest.mark.release
     def test_system_health_without_token(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -62,7 +58,6 @@ class TestSystem:
         assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
         assert health_res["message"] == 'permission not allowed'
 
-    @pytest.mark.release
     def test_system_info_login(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -71,7 +66,6 @@ class TestSystem:
         assert health_res["data"]["git"]
         assert health_res["data"]["build"]['name'] == 'Giggle-Server'
 
-    @pytest.mark.release
     def test_system_info_customer(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -80,7 +74,6 @@ class TestSystem:
         assert health_res["data"]["git"]
         assert health_res["data"]["build"]['name'] == 'Giggle-Server'
 
-    @pytest.mark.release
     def test_system_info_with_wrong_token(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -89,7 +82,6 @@ class TestSystem:
         assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
         assert health_res["message"] == 'permission not allowed'
 
-    @pytest.mark.release
     def test_system_info_without_token(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -98,7 +90,6 @@ class TestSystem:
         assert health_res["message"] == 'permission not allowed'
 
 
-    @pytest.mark.release
     def test_system_ping_with_login(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -106,7 +97,6 @@ class TestSystem:
         assert ping_res["data"]["message"] == 'pong'
         assert ping_res["data"]["server"] == "giggle-academy-server"
 
-    @pytest.mark.release
     def test_system_ping_with_customer(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -114,7 +104,6 @@ class TestSystem:
         assert ping_res["data"]["message"] == 'pong'
         assert ping_res["data"]["server"] == "giggle-academy-server"
 
-    @pytest.mark.release
     def test_system_ping_with_wrong_token(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -123,7 +112,6 @@ class TestSystem:
         assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
         assert health_res["message"] == 'permission not allowed'
 
-    @pytest.mark.release
     def test_system_ping_without_token(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -131,7 +119,6 @@ class TestSystem:
         assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
         assert health_res["message"] == 'permission not allowed'
 
-    @pytest.mark.release
     def test_system_positive_getMetadata_ok(self):
         """获取系统基础信息-正向用例"""
         res = self.sys.getMetadata(self.authorization)
@@ -140,7 +127,6 @@ class TestSystem:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
