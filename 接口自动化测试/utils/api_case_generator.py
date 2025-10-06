@@ -496,13 +496,12 @@ def _generate_permission_tests(method_name: str, query_params: List[Dict], body_
     methods.append(f"    def test_{module_name}_permission_{method_name}(self, desc, value):")
     methods.append(f'        """{summary}-权限测试"""')
     methods.append(f"        # 鉴权作为位置参数直接传入（示例期望的极简风格）")
-    methods.append(f"        res = self.{module_name}.{method_name}(value)")
+    methods.append(f"        res = self.{module_name}.{method_name}(value, code=401)")
     methods.append(f"        if res:")
-    
-    # 添加标准断言（需要缩进）
-    standard_assertions = _generate_standard_assertions()
-    for assertion in standard_assertions:
-        methods.append(f"    {assertion}")
+    methods.append(f"            assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
+    methods.append(f"            assert res['code'] == 401, f\"接口返回状态码异常: 预期【401】，实际【{{res['code']}}】\"")
+    methods.append(f"            assert res['message'] == 'unauthorized', f\"接口返回message信息异常: 预期【unauthorized】，实际【{{res['message']}}】\"")
+    methods.append(f"            assert res['data'], f\"接口返回data数据异常：{{res['data']}}\"")
     methods.append("")
     print(f"  ✓ 已添加权限测试用例: test_{module_name}_permission_{method_name}")
     
@@ -591,8 +590,11 @@ def _generate_required_field_tests_for_param(method_name: str, query_params: Lis
         methods.append(f"            pl = {{'{param_name}': value}}")
         methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **pl)")
     
-    # 添加标准断言
-    methods.extend(_generate_standard_assertions())
+    # 添加自定义断言（使用pending占位符）
+    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
+    methods.append(f"        assert res['code'] == '${{pending}}', f\"接口返回状态码异常: 预期【{{'pending'}}】，实际【{{res['code']}}】\"")
+    methods.append(f"        assert res['message'] == '${{pending}}', f\"接口返回message信息异常: 预期【{{'pending'}}】，实际【{{res['message']}}】\"")
+    methods.append(f"        assert res['data'] == '${{pending}}', f\"接口返回data数据异常：预期【{{'pending'}}】，实际【{{res['data']}}】\"")
     methods.append("")
     print(f"  ✓ 已添加必填字段用例: test_{module_name}_required_{method_name}_{param_name}")
     return methods
@@ -603,12 +605,20 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
     param_name = target_param.get('name', '')
     param_type = target_param.get('type', 'string')
     methods: List[str] = []
-    if param_type in ['integer', 'number']:
-        format_tests = [("string", 'abc'), ("float", 12.34), ("boolean", True), ("negative", -123), ("array", [1, 2, 3]), ("object", {"key": "value"}), ("special_chars", '!@#$%^&*()'), ("emoji", '😀🎉🚀'), ("long_string", 'a' * 1000)]
-    elif param_type == 'boolean':
-        format_tests = [("string", 'abc'), ("integer", 123), ("float", 12.34), ("boolean", True), ("array", [1, 2, 3]), ("object", {"key": "value"}), ("special_chars", '!@#$%^&*()'), ("emoji", '😀🎉🚀'), ("long_string", 'a' * 1000)]
-    else:
-        format_tests = [("integer", 123), ("float", 12.3), ("boolean", True), ("array", [1, 2, 3]), ("object", {"key": "value"}), ("special_chars", "!@#$%^&*()_+-=[]{}|;':\",./<>?"), ("email_format", "test@example.com"), ("phone_format", "13800138000"), ("date_format", "2023-12-25"), ("emoji", "😀🎉🚀"), ("long_string", 'a' * 1000), ("unicode", "中文测试"), ("json_string", '{"key": "value"}'), ("xml_string", "<root><item>test</item></root>"), ("url_string", "https://www.example.com"), ("base64_string", "SGVsbG8gV29ybGQ="), ("html_entities", "&lt;script&gt;alert('test')&lt;/script&gt;"), ("url_encoding", "%3Cscript%3Ealert%28%27test%27%29%3C%2Fscript%3E"), ("base64_encoding", "PHNjcmlwdD5hbGVydCgndGVzdCcpPC9zY3JpcHQ+"), ("hex_encoding", "\\x3c\\x73\\x63\\x72\\x69\\x70\\x74\\x3e"), ("double_encoding", "%253Cscript%253E"), ("format_string", "%x%x%x%x%x%x%x%x%x%x")]
+    
+    # 使用统一的测试用例格式
+    format_tests = [
+        ('string', 'abc'),
+        ('float', 12.34),
+        ('boolean', True),
+        ('negative', -123),
+        ('array', [1, 2, 3]),
+        ('object', {'key': 'value'}),
+        ('special_chars', '!@#$%^&*()'),
+        ('emoji', '😀🎉🚀'),
+        ('long_string', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
+    ]
+    
     methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
     methods.append(f"        'desc, value',")
@@ -631,8 +641,11 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
         # 其他类型参数：直接传递值
         methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value)")
     
-    # 添加标准断言
-    methods.extend(_generate_standard_assertions())
+    # 添加自定义断言（使用pending占位符）
+    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
+    methods.append(f"        assert res['code'] == '${{pending}}', f\"接口返回状态码异常: 预期【{{'pending'}}】，实际【{{res['code']}}】\"")
+    methods.append(f"        assert res['message'] == '${{pending}}', f\"接口返回message信息异常: 预期【{{'pending'}}】，实际【{{res['message']}}】\"")
+    methods.append(f"        assert res['data'] == '${{pending}}', f\"接口返回data数据异常：预期【{{'pending'}}】，实际【{{res['data']}}】\"")
     methods.append("")
     print(f"  ✓ 已添加格式测试用例: test_{module_name}_format_{method_name}_{param_name}")
     return methods
@@ -645,62 +658,13 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
     param_name = target_param.get('name', '')
     param_type = target_param.get('type', 'string')
     methods: List[str] = []
-    boundary_lines: List[str] = []
-
-    if param_type == 'integer':
-        minimum = target_param.get('minimum')
-        maximum = target_param.get('maximum')
-        if minimum is not None and maximum is not None:
-            l1 = str(int(minimum) - 1)
-            l = str(int(minimum))
-            lp = str(int(minimum) + 1)
-            um = str(int(maximum) - 1)
-            u = str(int(maximum))
-            up = str(int(maximum) + 1)
-            boundary_lines = [
-                f"            ('below_min', {l1}),",
-                f"            ('zero', 0),",
-                f"            ('min', {l}),",
-                f"            ('min_plus_one', {lp}),",
-                f"            ('max_minus_one', {um}),",
-                f"            ('max', {u}),",
-                f"            ('above_max', {up}),",
-            ]
-        else:
-            boundary_lines = [
-                "            ('min', -2147483648),",
-                "            ('zero', 0),",
-                "            ('max', 2147483647),",
-            ]
-    elif param_type == 'string':
-        min_len = target_param.get('minLength')
-        max_len = target_param.get('maxLength')
-        if min_len is not None and max_len is not None:
-            min_len = int(min_len)
-            max_len = int(max_len)
-            candidates = [min_len, min_len + 1, max_len - 1, max_len, max_len + 1]
-            names = ["min_len", "min_len_plus_one", "max_len_minus_one", "max_len", "max_len_plus_one"]
-            descs = ["min_length", "min_length_plus_one", "max_length_minus_one", "max_length", "max_length_plus_one"]
-            for i, length in enumerate(candidates):
-                if length < 0: continue
-                value_expr = '"' + ("a" * length) + '"'
-                boundary_lines.append(f"            ('{descs[i]}', {value_expr}),")
-        else:
-            boundary_lines = [
-                "            ('shortest', \"\"),",
-                "            ('longest', \"" + 'a' * 1000 + "\"),",
-            ]
-    elif param_type == 'file':
-        # 文件类型的边界值测试：文件大小、文件格式等
-        boundary_lines = [
-            "            ('empty_file', 'test_files/empty.txt'),",
-            "            ('small_file', 'test_files/small.txt'),",
-            "            ('large_file', 'test_files/large.txt'),",
-            "            ('invalid_format', 'test_files/invalid.exe'),",
-            "            ('max_size', 'test_files/max_size.txt'),",
-            ]
-    else:
-        return methods
+    
+    # 使用统一的边界值测试用例格式
+    boundary_lines = [
+        "            ('min', -2147483648),",
+        "            ('zero', 0),",
+        "            ('max', 2147483647),",
+    ]
 
     methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
@@ -724,8 +688,11 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
         # 其他类型参数：直接传递值
         methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value)")
     
-    # 添加标准断言
-    methods.extend(_generate_standard_assertions())
+    # 添加自定义断言（使用pending占位符）
+    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
+    methods.append(f"        assert res['code'] == '${{pending}}', f\"接口返回状态码异常: 预期【{{'pending'}}】，实际【{{res['code']}}】\"")
+    methods.append(f"        assert res['message'] == '${{pending}}', f\"接口返回message信息异常: 预期【{{'pending'}}】，实际【{{res['message']}}】\"")
+    methods.append(f"        assert res['data'] == '${{pending}}', f\"接口返回data数据异常：预期【{{'pending'}}】，实际【{{res['data']}}】\"")
     methods.append("")
     print(f"  ✓ 已添加边界值用例: test_{module_name}_boundary_{method_name}_{param_name}")
     return methods
@@ -743,8 +710,11 @@ def _generate_scenario_exception_tests_for_param(method_name: str, query_params:
     methods.append(f"        {param_name} = {invalid_expr}")
     methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}={param_name})")
     
-    # 添加标准断言
-    methods.extend(_generate_standard_assertions())
+    # 添加自定义断言
+    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
+    methods.append(f"        assert res['code'] == 200, f\"接口返回状态码异常: 预期【200】，实际【{{res['code']}}】\"")
+    methods.append(f"        assert res['message'] == 'success', f\"接口返回message信息异常: 预期【success】，实际【{{res['message']}}】\"")
+    methods.append(f"        assert res['data'], f\"接口返回data数据异常：{{res['data']}}\"")
     methods.append("")
     print(f"  ✓ 已添加场景异常用例: test_{module_name}_scenario_{method_name}_invalid_{param_name}")
     return methods
