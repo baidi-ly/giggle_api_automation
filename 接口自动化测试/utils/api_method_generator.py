@@ -374,8 +374,11 @@ def _build_method_block(
         f"        {request_line}\n"
         f"        error_msg = \"{summary_text}\"\n"
         f"        assert response.status_code == code, f\"{{error_msg}}失败，url->{{url}}，失败信息->{{response.reason}}{{response.content}}\"\n"
-        f"        response = response.json()\n"
-        f"        return response\n"
+        f"        try:\n"
+        f"            response = response.json()\n"
+        f"            return response\n"
+        f"        except json.decoder.JSONDecodeError:\n"
+        f"            return False\n"
     )
 
 

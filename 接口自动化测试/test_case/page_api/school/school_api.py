@@ -226,7 +226,7 @@ class SchoolApi(BaseAPI):
         payload = {
             "classId": 123,
             "lessonName": "英语课堂",
-            "teachingLanguage": "en",
+            "teachingLanguage": "英语",
             "resources": [{'id': 1, 'resourceType': 'course'}, {'id': 2, 'resourceType': 'quiz'}]
         }
         payload = self.request_body(payload, **kwargs)
@@ -240,4 +240,5 @@ class SchoolApi(BaseAPI):
             response = response.json()
             return response
         except json.decoder.JSONDecodeError:
-            return response
+            return False
+

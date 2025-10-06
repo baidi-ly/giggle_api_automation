@@ -497,9 +497,12 @@ def _generate_permission_tests(method_name: str, query_params: List[Dict], body_
     methods.append(f'        """{summary}-权限测试"""')
     methods.append(f"        # 鉴权作为位置参数直接传入（示例期望的极简风格）")
     methods.append(f"        res = self.{module_name}.{method_name}(value)")
+    methods.append(f"        if res:")
     
-    # 添加标准断言
-    methods.extend(_generate_standard_assertions())
+    # 添加标准断言（需要缩进）
+    standard_assertions = _generate_standard_assertions()
+    for assertion in standard_assertions:
+        methods.append(f"    {assertion}")
     methods.append("")
     print(f"  ✓ 已添加权限测试用例: test_{module_name}_permission_{method_name}")
     
