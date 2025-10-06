@@ -226,7 +226,7 @@ class SchoolApi(BaseAPI):
         payload = {
             "classId": 123,
             "lessonName": "英语课堂",
-            "teachingLanguage": "英语",
+            "teachingLanguage": "en",
             "resources": [{'id': 1, 'resourceType': 'course'}, {'id': 2, 'resourceType': 'quiz'}]
         }
         payload = self.request_body(payload, **kwargs)
