@@ -606,40 +606,40 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
     param_type = target_param.get('type', 'string')
     methods: List[str] = []
     
-    # 使用统一的测试用例格式
+    # 使用统一的测试用例格式，添加code参数
     format_tests = [
-        ('string', 'abc'),
-        ('float', 12.34),
-        ('boolean', True),
-        ('negative', -123),
-        ('array', [1, 2, 3]),
-        ('object', {'key': 'value'}),
-        ('special_chars', '!@#$%^&*()'),
-        ('emoji', '😀🎉🚀'),
-        ('long_string', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
+        ('string', 'abc', 500),
+        ('float', 12.34, 500),
+        ('boolean', True, 500),
+        ('negative', -123, 500),
+        ('array', [1, 2, 3], 500),
+        ('object', {'key': 'value'}, 500),
+        ('special_chars', '!@#$%^&*()', 500),
+        ('emoji', '😀🎉🚀', 500),
+        ('long_string', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 500),
     ]
     
     methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
-    methods.append(f"        'desc, value',")
+    methods.append(f"        'desc, value, code',")
     methods.append(f"        [")
     for case in format_tests:
         methods.append(f"            {case},")
     methods.append(f"        ]")
     methods.append(f"    )")
-    methods.append(f"    def test_{module_name}_format_{method_name}_{param_name}(self, desc, value):")
+    methods.append(f"    def test_{module_name}_format_{method_name}_{param_name}(self, desc, value, code):")
     methods.append(f'        """{summary}-数据格式测试({param_name})"""')
     
-    # 根据参数类型生成不同的调用方式
+    # 根据参数类型生成不同的调用方式，添加code参数
     if param_type == 'file':
         # 文件类型参数：使用文件对象格式
         methods.append(f"        file = {{")
         methods.append(f"            '{param_name}': (value, open(os.getcwd() + f'/test_data/{{value}}', 'rb'))")
         methods.append(f"        }}")
-        methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, file=file)")
+        methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, file=file, code=code)")
     else:
-        # 其他类型参数：直接传递值
-        methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value)")
+        # 其他类型参数：直接传递值，添加code参数
+        methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value, code=code)")
     
     # 添加自定义断言（使用pending占位符）
     methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
@@ -659,34 +659,34 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
     param_type = target_param.get('type', 'string')
     methods: List[str] = []
     
-    # 使用统一的边界值测试用例格式
+    # 使用统一的边界值测试用例格式，添加code参数
     boundary_lines = [
-        "            ('min', -2147483648),",
-        "            ('zero', 0),",
-        "            ('max', 2147483647),",
+        "            ('min', -2147483648, 500),",
+        "            ('zero', 0, 500),",
+        "            ('max', 2147483647, 500),",
     ]
 
     methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
-    methods.append(f"        'desc, value',")
+    methods.append(f"        'desc, value, code',")
     methods.append(f"        [")
     for line in boundary_lines:
         methods.append(line)
     methods.append(f"        ]")
     methods.append(f"    )")
-    methods.append(f"    def test_{module_name}_boundary_{method_name}_{param_name}(self, desc, value):")
+    methods.append(f"    def test_{module_name}_boundary_{method_name}_{param_name}(self, desc, value, code):")
     methods.append(f'        """{summary}-边界值测试({param_name})"""')
     
-    # 根据参数类型生成不同的调用方式
+    # 根据参数类型生成不同的调用方式，添加code参数
     if param_type == 'file':
         # 文件类型参数：使用文件对象格式
         methods.append(f"        file = {{")
         methods.append(f"            '{param_name}': (value, open(os.getcwd() + f'/test_data/{{value}}', 'rb'))")
         methods.append(f"        }}")
-        methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, file=file)")
+        methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, file=file, code=code)")
     else:
-        # 其他类型参数：直接传递值
-        methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value)")
+        # 其他类型参数：直接传递值，添加code参数
+        methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value, code=code)")
     
     # 添加自定义断言（使用pending占位符）
     methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
