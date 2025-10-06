@@ -187,8 +187,14 @@ def _build_method_block(
 
     # formData 文件上传：按照需求仅暴露 file 参数
     has_form = bool(form_params)
+    has_file_param = False
     if has_form:
         method_params.append("file=None")
+        # 检查是否有file类型的参数
+        for param in form_params:
+            if param.get("type") == "file":
+                has_file_param = True
+                break
     
     # 添加其他标准参数
     method_params.extend(["DeviceType=\"web\"", "code=200", "**kwargs"])
@@ -221,7 +227,6 @@ def _build_method_block(
             q_items.append(f'            "{pname}": {pname}')
         q_joined = ",\n".join(q_items)
         payload_lines.append("        payload = {\n" + q_joined + "\n        }")
-        payload_lines.append("        payload = self.request_body(payload, **kwargs)")
     elif has_body:
         # 检查是否有JSON示例数据，将所有body参数的示例数据组合成完整的JSON
         json_example = {}
@@ -277,7 +282,11 @@ def _build_method_block(
         if method_upper in ("POST", "PUT", "PATCH", "DELETE"):
             args_parts.append("json=payload2")
     elif has_query:
-        args_parts.append("params=payload")
+        # 如果有文件上传，query参数应该作为data传递（multipart/form-data）
+        if has_form and method_upper in ("POST", "PUT", "PATCH", "DELETE"):
+            args_parts.append("data=payload")
+        else:
+            args_parts.append("params=payload")
     elif has_body and method_upper in ("POST", "PUT", "PATCH", "DELETE"):
         args_parts.append("json=payload")
     if has_body and method_upper == "GET":
@@ -341,6 +350,13 @@ def _build_method_block(
     if has_form:
         param_doc_lines.append("        :param file: (file, formData, optional) 上传文件")
     params_doc = "\n".join(param_doc_lines)
+    
+    # 构建headers生成代码
+    if has_file_param:
+        # 当接口包含file类型参数时，设置Content-Type为multipart/form-data
+        headers_code = "        headers = self.request_header(timestamp, authorization, DeviceType, Content_Type='multipart/form-data')"
+    else:
+        headers_code = "        headers = self.request_header(timestamp, authorization, DeviceType)"
 
     return (
         f"\n    def {method_name}({method_signature}):\n"
@@ -353,7 +369,7 @@ def _build_method_block(
         f"        url = f\"https://{{base_url}}{path_code}\"\n"
         f"{payload_code}"
         f"        timestamp = str(int(time.time() * 1000))\n"
-        f"        headers = self.request_header(timestamp, authorization, DeviceType)\n"
+        f"{headers_code}\n"
         f"\n"
         f"        {request_line}\n"
         f"        error_msg = \"{summary_text}\"\n"

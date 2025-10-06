@@ -39,10 +39,15 @@ def generate_tests_for_api(
     path_params = [p for p in parameters if p.get('in') == 'path']
     file_params = [p for p in parameters if p.get('in') == 'formData' and p.get('type') == 'file']
     
-    # 确定测试用例文件路径
-    # 如果marker包含"admin"，则使用admin目录结构
+    # 确定测试用例文件路径和模块名
     if "admin" in marker:
-        test_file_path = f"test_case/test_admin_case/{marker}.py"
+        # admin接口路径生成逻辑：/admin/user/sendEmail -> admin_user
+        path_parts = path.strip('/').split('/')
+        if len(path_parts) >= 2 and path_parts[0] == 'admin':
+            module_name = f"admin_{path_parts[1]}"  # admin_user
+        else:
+            module_name = "admin"
+        test_file_path = f"test_case/test_admin_case/test_{module_name}_api.py"
     else:
         module_name = path.split('/')[2] if len(path.split('/')) > 2 else 'api'
         test_file_path = f"test_case/test_{module_name}_case/test_{module_name}_api.py"
@@ -210,7 +215,7 @@ def _generate_required_field_tests(method_name: str, query_params: List[Dict], b
             continue
         param_name = param.get('name', '')
         param_in = param.get('in', 'query')
-        cases = [("empty", "''"), ("null", "'None'")] if param_in == 'path' else [("missing", "''"), ("empty", "''"), ("null", "'None'")]
+        cases = [("empty", ""), ("null", "'None'")] if param_in == 'path' else [("missing", ""), ("empty", ""), ("null", "'None'")]
         methods.append(f"    @pytest.mark.release")
         methods.append(f"    @pytest.mark.parametrize(")
         methods.append(f"        'desc, value',")
@@ -555,17 +560,33 @@ def _generate_required_field_tests_for_param(method_name: str, query_params: Lis
     methods.append(f"        'desc, value',")
     methods.append(f"        [")
     methods.append(f"            ('missing',  'missing'),")
-    methods.append(f"            ('empty', \"''\"),")
+    methods.append(f"            ('empty', \"\"),")
     methods.append(f"            ('null', None),")
     methods.append(f"        ]")
     methods.append(f"    )")
     methods.append(f"    def test_{module_name}_required_{method_name}_{param_name}(self, desc, value):")
     methods.append(f'        """{summary}-必填字段测试({param_name})"""')
-    methods.append(f"        if desc == 'missing':")
-    methods.append(f"            pl = {{'pop_items': '{param_name}'}}")
-    methods.append(f"        else:")
-    methods.append(f"            pl = {{'{param_name}': value}}")
-    methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **pl)")
+    
+    # 获取参数类型
+    param_type = target_param.get('type', 'string')
+    
+    # 根据参数类型生成不同的调用方式
+    if param_type == 'file':
+        # 文件类型参数：使用文件对象格式
+        methods.append(f"        if desc == 'missing':")
+        methods.append(f"            res = self.{module_name}.{method_name}(authorization=self.authorization)")
+        methods.append(f"        else:")
+        methods.append(f"            file = {{")
+        methods.append(f"                '{param_name}': (value, open(os.getcwd() + f'/test_data/{{value}}', 'rb'))")
+        methods.append(f"            }}")
+        methods.append(f"            res = self.{module_name}.{method_name}(authorization=self.authorization, file=file)")
+    else:
+        # 其他类型参数：使用原有逻辑
+        methods.append(f"        if desc == 'missing':")
+        methods.append(f"            pl = {{'pop_items': '{param_name}'}}")
+        methods.append(f"        else:")
+        methods.append(f"            pl = {{'{param_name}': value}}")
+        methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **pl)")
     
     # 添加标准断言
     methods.extend(_generate_standard_assertions())
@@ -580,9 +601,9 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
     param_type = target_param.get('type', 'string')
     methods: List[str] = []
     if param_type in ['integer', 'number']:
-        format_tests = [("string", "字符串", '"abc"'), ("float", "浮点数", "12.34"), ("boolean", "布尔值", "True"), ("negative", "负数", "-123"), ("array", "数组", "[1, 2, 3]"), ("object", "对象", '{"key": "value"}'), ("special_chars", "特殊字符", '"!@#$%^&*()"'), ("emoji", "表情符号", '"😀🎉🚀"'), ("long_string", "超长字符串", '"' + 'a' * 1000 + '"')]
+        format_tests = [("string", 'abc'), ("float", 12.34), ("boolean", True), ("negative", -123), ("array", [1, 2, 3]), ("object", {"key": "value"}), ("special_chars", '!@#$%^&*()'), ("emoji", '😀🎉🚀'), ("long_string", 'a' * 1000)]
     elif param_type == 'boolean':
-        format_tests = [("string", "字符串", '"abc"'), ("integer", "整数", "123"), ("float", "浮点数", "12.34"), ("array", "数组", "[1, 2, 3]"), ("object", "对象", '{"key": "value"}'), ("special_chars", "特殊字符", '"!@#$%^&*()"'), ("emoji", "表情符号", '"😀🎉🚀"'), ("long_string", "超长字符串", '"' + 'a' * 1000 + '"')]
+        format_tests = [("string", 'abc'), ("integer", 123), ("float", 12.34), ("boolean", True), ("array", [1, 2, 3]), ("object", {"key": "value"}), ("special_chars", '!@#$%^&*()'), ("emoji", '😀🎉🚀'), ("long_string", 'a' * 1000)]
     else:
         format_tests = [("integer", 123), ("float", 12.3), ("boolean", True), ("array", [1, 2, 3]), ("object", {"key": "value"}), ("special_chars", "!@#$%^&*()_+-=[]{}|;':\",./<>?"), ("email_format", "test@example.com"), ("phone_format", "13800138000"), ("date_format", "2023-12-25"), ("emoji", "😀🎉🚀"), ("long_string", 'a' * 1000), ("unicode", "中文测试"), ("json_string", '{"key": "value"}'), ("xml_string", "<root><item>test</item></root>"), ("url_string", "https://www.example.com"), ("base64_string", "SGVsbG8gV29ybGQ="), ("html_entities", "&lt;script&gt;alert('test')&lt;/script&gt;"), ("url_encoding", "%3Cscript%3Ealert%28%27test%27%29%3C%2Fscript%3E"), ("base64_encoding", "PHNjcmlwdD5hbGVydCgndGVzdCcpPC9zY3JpcHQ+"), ("hex_encoding", "\\x3c\\x73\\x63\\x72\\x69\\x70\\x74\\x3e"), ("double_encoding", "%253Cscript%253E"), ("format_string", "%x%x%x%x%x%x%x%x%x%x")]
     methods.append(f"    @pytest.mark.release")
@@ -595,7 +616,17 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
     methods.append(f"    )")
     methods.append(f"    def test_{module_name}_format_{method_name}_{param_name}(self, desc, value):")
     methods.append(f'        """{summary}-数据格式测试({param_name})"""')
-    methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value)")
+    
+    # 根据参数类型生成不同的调用方式
+    if param_type == 'file':
+        # 文件类型参数：使用文件对象格式
+        methods.append(f"        file = {{")
+        methods.append(f"            '{param_name}': (value, open(os.getcwd() + f'/test_data/{{value}}', 'rb'))")
+        methods.append(f"        }}")
+        methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, file=file)")
+    else:
+        # 其他类型参数：直接传递值
+        methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value)")
     
     # 添加标准断言
     methods.extend(_generate_standard_assertions())
@@ -678,7 +709,17 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
     methods.append(f"    )")
     methods.append(f"    def test_{module_name}_boundary_{method_name}_{param_name}(self, desc, value):")
     methods.append(f'        """{summary}-边界值测试({param_name})"""')
-    methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value)")
+    
+    # 根据参数类型生成不同的调用方式
+    if param_type == 'file':
+        # 文件类型参数：使用文件对象格式
+        methods.append(f"        file = {{")
+        methods.append(f"            '{param_name}': (value, open(os.getcwd() + f'/test_data/{{value}}', 'rb'))")
+        methods.append(f"        }}")
+        methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, file=file)")
+    else:
+        # 其他类型参数：直接传递值
+        methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value)")
     
     # 添加标准断言
     methods.extend(_generate_standard_assertions())
