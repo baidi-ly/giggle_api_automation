@@ -1,4 +1,4 @@
-
+import json
 import time
 
 from test_case.page_api.base_api import BaseAPI
@@ -211,3 +211,33 @@ class SchoolApi(BaseAPI):
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
+
+    def lesson(self, authorization, DeviceType="web", code=200, **kwargs):
+        """
+        创建课堂
+        :param classId: (integer, body, required) classId 参数
+        :param lessonName: (string, body, required) lessonName 参数
+        :param teachingLanguage: (string, body, required) teachingLanguage 参数
+        :param resources: (array, body, required) resources 参数
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-06
+        url = f"https://{base_url}/api/school/lesson"
+        payload = {
+            "classId": 123,
+            "lessonName": "英语课堂",
+            "teachingLanguage": "en",
+            "resources": [{'id': 1, 'resourceType': 'course'}, {'id': 2, 'resourceType': 'quiz'}]
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "创建课堂"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return response
