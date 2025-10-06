@@ -44,6 +44,24 @@ SWAGGER_PATH = os.getcwd() + os.path.join(r"/test_data", "swagger", "swagger_fix
 
 def _camelize_from_path(path: str, http_method: str) -> str:
     """基于路径和 HTTP 方法生成方法名，如 GET /api/user/kids -> getKids"""
+    # 检查URL最后一个部分是否是参数（用{}包围）
+    path_parts = path.strip("/").split("/")
+    if path_parts and re.match(r"\{[^}]+\}", path_parts[-1]):
+        # 如果最后一个部分是参数，使用倒数第二个单词加_details
+        if len(path_parts) >= 2:
+            second_last_part = path_parts[-2]
+            # 去掉api前缀
+            if second_last_part == "api" and len(path_parts) >= 3:
+                second_last_part = path_parts[-3]
+            # 转换为驼峰命名
+            second_last_camel = re.sub(r"[^A-Za-z0-9]", "", "".join([w.capitalize() for w in second_last_part.split("-") if w]))
+            if second_last_camel:
+                return second_last_camel[0].lower() + second_last_camel[1:] + "_details"
+            else:
+                return second_last_part + "_details"
+        else:
+            return "auto_details"
+    
     # 去掉前缀与参数占位
     parts = [re.sub(r"\{[^}]+\}", "", p) for p in path.strip("/").split("/") if p and p not in ("api",)]
     if not parts:

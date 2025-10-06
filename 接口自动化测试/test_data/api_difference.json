@@ -1,1 +1,18 @@
-{"apis":  ["/api/school/lesson"]}
+{
+  "apis": [
+    "/donate/donateOrderStatus/{orderId}",
+    "/donate/orders",
+    "/school/lesson/{lessonId}",
+    "/school/class/{classId}/lessons",
+    "/school/lesson/{lessonId}/groups",
+    "/school/lesson/{lessonId}/resources",
+    "/school/lesson/{lessonId}/qrcode/{groupSeqNo}",
+    "/school/student/login/qrcode",
+    "/school/lesson/resource/normalCourse",
+    "/school/lesson/resource/quiz"
+  ],
+  "scan_time": "2025-10-06 18:33:34.940564",
+  "total_count": 10,
+  "original_count": 12,
+  "duplicates_removed": 2
+}

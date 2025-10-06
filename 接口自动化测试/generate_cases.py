@@ -14,11 +14,23 @@ from utils.api_method_generator import generate_single_method_to_api
 from utils.extract_apis import load_swagger_file, extract_api_info
 from utils.markdown_api_extractor import extract_api_info_from_markdown_file
 from utils.init_swagger import init_swagger, logger
+from utils.api_scanner import ApiScanner
 
 
 
 if __name__ == '__main__':
     ''' 前置需要对装饰器进行替换'''
+    
+    # -----------------------------------步骤0： 扫描接口文档并对比API方法---------------------------------------
+    # logger.info("开始扫描接口文档并对比API方法...")
+    # scanner = ApiScanner()
+    # missing_apis = scanner.run_scan()
+    #
+    # if missing_apis:
+    #     logger.info(f"发现 {len(missing_apis)} 个缺失的接口，已保存到 api_difference.json")
+    # else:
+    #     logger.info("所有接口都已实现！")
+
     # -----------------------------------步骤1： 初始化指定的接口到swagger文件---------------------------------------
     # 目标API列表
     file_path: str = os.path.join("test_data", "api_difference.json")

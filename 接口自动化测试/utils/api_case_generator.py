@@ -559,14 +559,14 @@ def _generate_required_field_tests_for_param(method_name: str, query_params: Lis
 
     methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
-    methods.append(f"        'desc, value',")
+    methods.append(f"        'desc, value, code',")
     methods.append(f"        [")
-    methods.append(f"            ('missing',  'missing'),")
-    methods.append(f"            ('empty', \"\"),")
-    methods.append(f"            ('null', None),")
+    methods.append(f"            ('missing',  'missing', 500),")
+    methods.append(f"            ('empty', \"\", 500),")
+    methods.append(f"            ('null', None, 500),")
     methods.append(f"        ]")
     methods.append(f"    )")
-    methods.append(f"    def test_{module_name}_required_{method_name}_{param_name}(self, desc, value):")
+    methods.append(f"    def test_{module_name}_required_{method_name}_{param_name}(self, desc, value, code):")
     methods.append(f'        """{summary}-必填字段测试({param_name})"""')
     
     # 获取参数类型
@@ -576,25 +576,30 @@ def _generate_required_field_tests_for_param(method_name: str, query_params: Lis
     if param_type == 'file':
         # 文件类型参数：使用文件对象格式
         methods.append(f"        if desc == 'missing':")
-        methods.append(f"            res = self.{module_name}.{method_name}(authorization=self.authorization)")
+        methods.append(f"            res = self.{module_name}.{method_name}(authorization=self.authorization, code=code)")
         methods.append(f"        else:")
         methods.append(f"            file = {{")
         methods.append(f"                '{param_name}': (value, open(os.getcwd() + f'/test_data/{{value}}', 'rb'))")
         methods.append(f"            }}")
-        methods.append(f"            res = self.{module_name}.{method_name}(authorization=self.authorization, file=file)")
+        methods.append(f"            res = self.{module_name}.{method_name}(authorization=self.authorization, file=file, code=code)")
     else:
         # 其他类型参数：使用原有逻辑
         methods.append(f"        if desc == 'missing':")
         methods.append(f"            pl = {{'pop_items': '{param_name}'}}")
         methods.append(f"        else:")
         methods.append(f"            pl = {{'{param_name}': value}}")
-        methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **pl)")
+        methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, **pl, code=code)")
     
-    # 添加自定义断言（使用pending占位符）
+    # 添加自定义断言（根据code值进行不同断言）
     methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
-    methods.append(f"        assert res['code'] == '${{pending}}', f\"接口返回状态码异常: 预期【{{'pending'}}】，实际【{{res['code']}}】\"")
-    methods.append(f"        assert res['message'] == '${{pending}}', f\"接口返回message信息异常: 预期【{{'pending'}}】，实际【{{res['message']}}】\"")
-    methods.append(f"        assert res['data'] == '${{pending}}', f\"接口返回data数据异常：预期【{{'pending'}}】，实际【{{res['data']}}】\"")
+    methods.append(f"        if code == 500:")
+    methods.append(f"            assert res['code'] == 500, f\"接口返回状态码异常: 预期【500】，实际【{{res['code']}}】\"")
+    methods.append(f"            assert res['message'] == 'internal server error', f\"接口返回message信息异常: 预期【'internal server error'】，实际【{{res['message']}}】\"")
+    methods.append(f"            assert res['data'], f\"接口返回data数据异常：预期【{{'pending'}}】，实际【{{res['data']}}】\"")
+    methods.append(f"        else:")
+    methods.append(f"            assert res['code'] == '${{pending}}', f\"接口返回状态码异常: 预期【{{'pending'}}】，实际【{{res['code']}}】\"")
+    methods.append(f"            assert res['message'] == '${{pending}}', f\"接口返回message信息异常: 预期【{{'pending'}}】，实际【{{res['message']}}】\"")
+    methods.append(f"            assert res['data'] == '${{pending}}', f\"接口返回data数据异常：预期【{{'pending'}}】，实际【{{res['data']}}】\"")
     methods.append("")
     print(f"  ✓ 已添加必填字段用例: test_{module_name}_required_{method_name}_{param_name}")
     return methods
@@ -609,13 +614,13 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
     # 使用统一的测试用例格式，添加code参数
     format_tests = [
         ('string', 'abc', 500),
-        ('float', 12.34, 500),
+        ('float', 12.34, 200),
         ('boolean', True, 500),
-        ('negative', -123, 500),
+        ('negative', -123, 200),
         ('array', [1, 2, 3], 500),
         ('object', {'key': 'value'}, 500),
         ('special_chars', '!@#$%^&*()', 500),
-        ('emoji', '😀🎉🚀', 500),
+        ('emoji', '😀🎉🚀', 200),
         ('long_string', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 500),
     ]
     
@@ -641,11 +646,16 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
         # 其他类型参数：直接传递值，添加code参数
         methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value, code=code)")
     
-    # 添加自定义断言（使用pending占位符）
+    # 添加自定义断言（根据code值进行不同断言）
     methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
-    methods.append(f"        assert res['code'] == '${{pending}}', f\"接口返回状态码异常: 预期【{{'pending'}}】，实际【{{res['code']}}】\"")
-    methods.append(f"        assert res['message'] == '${{pending}}', f\"接口返回message信息异常: 预期【{{'pending'}}】，实际【{{res['message']}}】\"")
-    methods.append(f"        assert res['data'] == '${{pending}}', f\"接口返回data数据异常：预期【{{'pending'}}】，实际【{{res['data']}}】\"")
+    methods.append(f"        if code == 500:")
+    methods.append(f"            assert res['code'] == 500, f\"接口返回状态码异常: 预期【500】，实际【{{res['code']}}】\"")
+    methods.append(f"            assert res['message'] == 'internal server error', f\"接口返回message信息异常: 预期【'internal server error'】，实际【{{res['message']}}】\"")
+    methods.append(f"            assert res['data'], f\"接口返回data数据异常：预期【{{'pending'}}】，实际【{{res['data']}}】\"")
+    methods.append(f"        else:")
+    methods.append(f"            assert res['code'] == '${{pending}}', f\"接口返回状态码异常: 预期【{{'pending'}}】，实际【{{res['code']}}】\"")
+    methods.append(f"            assert res['message'] == '${{pending}}', f\"接口返回message信息异常: 预期【{{'pending'}}】，实际【{{res['message']}}】\"")
+    methods.append(f"            assert res['data'] == '${{pending}}', f\"接口返回data数据异常：预期【{{'pending'}}】，实际【{{res['data']}}】\"")
     methods.append("")
     print(f"  ✓ 已添加格式测试用例: test_{module_name}_format_{method_name}_{param_name}")
     return methods
@@ -688,11 +698,16 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
         # 其他类型参数：直接传递值，添加code参数
         methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value, code=code)")
     
-    # 添加自定义断言（使用pending占位符）
+    # 添加自定义断言，根据code值进行不同断言
     methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
-    methods.append(f"        assert res['code'] == '${{pending}}', f\"接口返回状态码异常: 预期【{{'pending'}}】，实际【{{res['code']}}】\"")
-    methods.append(f"        assert res['message'] == '${{pending}}', f\"接口返回message信息异常: 预期【{{'pending'}}】，实际【{{res['message']}}】\"")
-    methods.append(f"        assert res['data'] == '${{pending}}', f\"接口返回data数据异常：预期【{{'pending'}}】，实际【{{res['data']}}】\"")
+    methods.append(f"        if code == 500:")
+    methods.append(f"            assert res['code'] == 500, f\"接口返回状态码异常: 预期【500】，实际【{{res['code']}}】\"")
+    methods.append(f"            assert res['message'] == 'internal server error', f\"接口返回message信息异常: 预期【'internal server error'】，实际【{{res['message']}}】\"")
+    methods.append(f"            assert res['data'], f\"接口返回data数据异常：预期【{{'pending'}}】，实际【{{res['data']}}】\"")
+    methods.append(f"        else:")
+    methods.append(f"            assert res['code'] == '${{pending}}', f\"接口返回状态码异常: 预期【{{'pending'}}】，实际【{{res['code']}}】\"")
+    methods.append(f"            assert res['message'] == '${{pending}}', f\"接口返回message信息异常: 预期【{{'pending'}}】，实际【{{res['message']}}】\"")
+    methods.append(f"            assert res['data'] == '${{pending}}', f\"接口返回data数据异常：预期【{{'pending'}}】，实际【{{res['data']}}】\"")
     methods.append("")
     print(f"  ✓ 已添加边界值用例: test_{module_name}_boundary_{method_name}_{param_name}")
     return methods
