@@ -180,20 +180,27 @@ if __name__ == '__main__':
                     force=True,  # 强制重新生成以使用合并后的参数
                     parameters=info_v.get('parameters', []),  # 传递合并后的参数
                 )
-                # 基于 swagger 的参数信息生成测试用例（仅 query/body/path/formData 参与测试）
-                # 不校验请求头中的参数（如authorization、content-type等）
-                raw_parameters = info_v.get('parameters', [])
-                parameters = [p for p in raw_parameters if p.get('in') in ('query', 'body', 'path', 'formData')]
-                marker = f"admin_{module}"  # admin接口标记，用于识别admin接口
-                generate_tests_for_api(
-                    path=api,
-                    http_method=info_k,
-                    method_name=method_name,
-                    summary=info_v.get('summary', ''),
-                    parameters=parameters,
-                    marker=marker,
-                )
-                logger.info(f"生成admin接口: {info_k.upper()} {api} -> test_case/page_api/admin/admin_{module}_api.py/{method_name}, 测试用例: test_admin_case/test_admin_{module}_api.py")
+                
+                # 检查是否跳过了接口生成
+                if method_name.startswith("SKIP:"):
+                    # 提取实际的方法名（去掉SKIP:前缀）
+                    actual_method_name = method_name[5:]  # 去掉"SKIP:"前缀
+                    logger.info(f"跳过admin接口: {info_k.upper()} {api} -> 接口已存在({actual_method_name})，跳过接口和用例生成")
+                else:
+                    # 基于 swagger 的参数信息生成测试用例（仅 query/body/path/formData 参与测试）
+                    # 不校验请求头中的参数（如authorization、content-type等）
+                    raw_parameters = info_v.get('parameters', [])
+                    parameters = [p for p in raw_parameters if p.get('in') in ('query', 'body', 'path', 'formData')]
+                    marker = f"admin_{module}"  # admin接口标记，用于识别admin接口
+                    generate_tests_for_api(
+                        path=api,
+                        http_method=info_k,
+                        method_name=method_name,
+                        summary=info_v.get('summary', ''),
+                        parameters=parameters,
+                        marker=marker,
+                    )
+                    logger.info(f"生成admin接口: {info_k.upper()} {api} -> test_case/page_api/admin/admin_{module}_api.py/{method_name}, 测试用例: test_admin_case/test_admin_{module}_api.py")
             else:
                 # 普通接口的处理（保持原有逻辑）
                 method_name = generate_single_method_to_api(
@@ -204,17 +211,24 @@ if __name__ == '__main__':
                     force=True,  # 强制重新生成以使用合并后的参数
                     parameters=info_v.get('parameters', []),  # 传递合并后的参数
                 )
-                # 基于 swagger 的参数信息生成测试用例（仅 query/body/path/formData 参与测试）
-                # 不校验请求头中的参数（如authorization、content-type等）
-                raw_parameters = info_v.get('parameters', [])
-                parameters = [p for p in raw_parameters if p.get('in') in ('query', 'body', 'path', 'formData')]
-                marker = api.split('/')[2] if len(api.split('/')) > 2 else 'api'
-                generate_tests_for_api(
-                    path=api,
-                    http_method=info_k,
-                    method_name=method_name,
-                    summary=info_v.get('summary', ''),
-                    parameters=parameters,
-                    marker=marker,
-                )
-                logger.info(f"生成普通接口: {info_k.upper()} {api} -> test_case/page_api/{api.split('/')[2]}/{api.split('/')[2]}_api.py/{method_name}, 测试用例: {marker}")
+                
+                # 检查是否跳过了接口生成
+                if method_name.startswith("SKIP:"):
+                    # 提取实际的方法名（去掉SKIP:前缀）
+                    actual_method_name = method_name[5:]  # 去掉"SKIP:"前缀
+                    logger.info(f"跳过普通接口: {info_k.upper()} {api} -> 接口已存在({actual_method_name})，跳过接口和用例生成")
+                else:
+                    # 基于 swagger 的参数信息生成测试用例（仅 query/body/path/formData 参与测试）
+                    # 不校验请求头中的参数（如authorization、content-type等）
+                    raw_parameters = info_v.get('parameters', [])
+                    parameters = [p for p in raw_parameters if p.get('in') in ('query', 'body', 'path', 'formData')]
+                    marker = api.split('/')[2] if len(api.split('/')) > 2 else 'api'
+                    generate_tests_for_api(
+                        path=api,
+                        http_method=info_k,
+                        method_name=method_name,
+                        summary=info_v.get('summary', ''),
+                        parameters=parameters,
+                        marker=marker,
+                    )
+                    logger.info(f"生成普通接口: {info_k.upper()} {api} -> test_case/page_api/{api.split('/')[2]}/{api.split('/')[2]}_api.py/{method_name}, 测试用例: {marker}")

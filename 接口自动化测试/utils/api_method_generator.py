@@ -480,9 +480,26 @@ def _compare_interfaces(
     
     # 如果提供了新参数，比较参数
     if new_parameters is not None:
-        # 提取已存在方法的参数
-        param_matches = re.findall(r':param (\w+):', existing_method)
-        existing_param_names = set(param_matches)
+        # 提取已存在方法的参数 - 只提取当前方法内的参数
+        # 查找方法定义开始到下一个方法定义之间的参数
+        method_start = existing_method.find('def ')
+        if method_start != -1:
+            # 找到方法定义后的第一个三引号
+            docstring_start = existing_method.find('"""', method_start)
+            if docstring_start != -1:
+                # 找到文档字符串结束
+                docstring_end = existing_method.find('"""', docstring_start + 3)
+                if docstring_end != -1:
+                    # 只在这个范围内提取参数
+                    docstring_content = existing_method[docstring_start:docstring_end + 3]
+                    param_matches = re.findall(r':param (\w+):', docstring_content)
+                    existing_param_names = set(param_matches)
+                else:
+                    existing_param_names = set()
+            else:
+                existing_param_names = set()
+        else:
+            existing_param_names = set()
         
         # 提取新参数的名称
         new_param_names = set()
@@ -726,7 +743,7 @@ class {class_name}:
             # 比较接口是否相同
             if _compare_interfaces(existing_method, path, http_method, parameters):
                 print(f"方法 {method_name} 已存在且接口相同，跳过生成")
-                return method_name
+                return f"SKIP:{method_name}"  # 返回特殊标识，表示跳过生成
         
         # 如果所有已存在的方法都与新接口不同，需要生成新的方法名
         method_name = _find_next_method_name(content, method_name)
