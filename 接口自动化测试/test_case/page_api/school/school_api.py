@@ -465,3 +465,97 @@ class SchoolApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def lesson_details3(self, authorization, lessonId=0, req='', DeviceType="web", code=200, **kwargs):
+        """
+        更新课堂信息
+        :param lessonId: (integer, path, required) lessonId
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-09
+        url = f"https://{base_url}/api/school/lesson/{lessonId}"
+        payload = {
+            "req": req
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("PUT", url, headers=headers, json=payload)
+        error_msg = "更新课堂信息"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def lesson_details4(self, authorization, lessonId=0, DeviceType="web", code=200, **kwargs):
+        """
+        删除课堂
+        :param lessonId: (integer, path, required) lessonId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-09
+        url = f"https://{base_url}/api/school/lesson/{lessonId}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("DELETE", url, headers=headers)
+        error_msg = "删除课堂"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def groups1(self, authorization, lessonId=0, req='', DeviceType="web", code=200, **kwargs):
+        """
+        创建学生分组
+        :param lessonId: (integer, path, required) lessonId
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-09
+        url = f"https://{base_url}/api/school/lesson/{lessonId}/groups"
+        payload = {
+            "req": req
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "创建学生分组"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def qrcode1(self, authorization, req='', DeviceType="web", code=200, **kwargs):
+        """
+        学生扫码登录
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-09
+        url = f"https://{base_url}/api/school/student/login/qrcode"
+        payload = {
+            "req": req
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "学生扫码登录"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+

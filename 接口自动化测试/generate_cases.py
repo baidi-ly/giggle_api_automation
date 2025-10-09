@@ -22,14 +22,14 @@ if __name__ == '__main__':
     ''' 前置需要对装饰器进行替换'''
     
     # -----------------------------------步骤0： 扫描接口文档并对比API方法---------------------------------------
-    # logger.info("开始扫描接口文档并对比API方法...")
-    # scanner = ApiScanner()
-    # missing_apis = scanner.run_scan()
-    #
-    # if missing_apis:
-    #     logger.info(f"发现 {len(missing_apis)} 个缺失的接口，已保存到 api_difference.json")
-    # else:
-    #     logger.info("所有接口都已实现！")
+    logger.info("开始扫描接口文档并对比API方法...")
+    scanner = ApiScanner()
+    missing_apis = scanner.run_scan()
+
+    if missing_apis:
+        logger.info(f"发现 {len(missing_apis)} 个缺失的接口，已保存到 api_difference.json")
+    else:
+        logger.info("所有接口都已实现！")
 
     # -----------------------------------步骤1： 初始化指定的接口到swagger文件---------------------------------------
     # 目标API列表
@@ -58,7 +58,7 @@ if __name__ == '__main__':
     #     logger.warning("Swagger文档初始化失败，但继续执行...")
         # 不直接退出，继续执行后续步骤
 
-     # -----------------------------------步骤2： 解析swagger中的接口信息---------------------------------------
+    #  # -----------------------------------步骤2： 解析swagger中的接口信息---------------------------------------
 
     # 输入文件路径
     input_file = os.path.join("test_data", "swagger", "swagger_fixed.json")
@@ -77,7 +77,7 @@ if __name__ == '__main__':
     print(f"已成功提取API信息")
     print(f"共提取了 {len(extracted_data['paths'])} 个API路径")
     print(f"共提取了 {len(extracted_data['definitions'])} 个相关定义")
-    
+
     # 显示提取的API路径
     if extracted_data['paths']:
         print("提取的API路径:")
@@ -89,7 +89,7 @@ if __name__ == '__main__':
         print("请检查api_difference.json中的API路径是否正确")
 
     # -----------------------------------步骤3： 从Markdown文档提取接口信息---------------------------------------
-    
+
     # 从Markdown文档提取接口信息
     markdown_file = os.path.join("test_data", "接口测试文档_v1.19.0.md")
     if os.path.exists(markdown_file):
@@ -97,7 +97,7 @@ if __name__ == '__main__':
         try:
             markdown_extracted_data = extract_api_info_from_markdown_file(markdown_file)
             logger.info(f"从Markdown文档提取了 {len(markdown_extracted_data['paths'])} 个API路径")
-            
+
             # 合并两个数据源的结果
             # 特殊处理：如果swagger中的接口有in=body参数，用Markdown中的body参数替换
             for path, path_info in markdown_extracted_data['paths'].items():
@@ -110,30 +110,30 @@ if __name__ == '__main__':
                     api_path = f"/api{path}"
                     if api_path in extracted_data['paths']:
                         swagger_path = api_path
-                
+
                 if swagger_path:
                     # 如果swagger中也有这个路径，需要特殊处理body参数
                     swagger_path_info = extracted_data['paths'][swagger_path]
-                    
+
                     # 遍历swagger中的每个HTTP方法
                     for method, method_info in swagger_path_info.items():
                         if method in path_info:
                             # 检查swagger中是否有in=body的参数
                             swagger_parameters = method_info.get('parameters', [])
                             body_params_in_swagger = [p for p in swagger_parameters if p.get('in') == 'body']
-                            
+
                             if body_params_in_swagger:
                                 # 如果swagger中有body参数，删除它们
                                 logger.info(f"删除swagger中 {method.upper()} {path} 的body参数: {[p['name'] for p in body_params_in_swagger]}")
-                                
+
                                 # 删除swagger中的body参数
                                 method_info['parameters'] = [p for p in swagger_parameters if p.get('in') != 'body']
-                                
+
                                 # 从Markdown中获取body参数
                                 markdown_method_info = path_info[method]
                                 markdown_parameters = markdown_method_info.get('parameters', [])
                                 markdown_body_params = [p for p in markdown_parameters if p.get('in') == 'body']
-                                
+
                                 if markdown_body_params:
                                     # 添加Markdown中的body参数
                                     method_info['parameters'].extend(markdown_body_params)
@@ -145,12 +145,12 @@ if __name__ == '__main__':
                                 markdown_method_info = path_info[method]
                                 markdown_parameters = markdown_method_info.get('parameters', [])
                                 markdown_body_params = [p for p in markdown_parameters if p.get('in') == 'body']
-                                
+
                                 if markdown_body_params:
                                     # 添加Markdown中的body参数
                                     method_info['parameters'].extend(markdown_body_params)
                                     logger.info(f"添加Markdown中 {method.upper()} {path} 的body参数: {[p['name'] for p in markdown_body_params]}")
-                                    
+
                                     # 添加其他非body参数
                                     other_params = [p for p in markdown_parameters if p.get('in') != 'body']
                                     if other_params:
@@ -163,9 +163,9 @@ if __name__ == '__main__':
                 else:
                     # 如果swagger中没有这个接口，跳过不添加
                     logger.info(f"跳过Markdown中的接口 {path}，因为swagger中没有对应接口")
-            
+
             print(f"合并后共提取了 {len(extracted_data['paths'])} 个API路径")
-            
+
         except Exception as e:
             logger.error(f"从Markdown文档提取接口信息失败: {e}")
             logger.info("继续使用swagger数据...")
@@ -180,7 +180,7 @@ if __name__ == '__main__':
         for info_k, info_v in api_info.items():
             # 判断是否为admin接口
             is_admin_api = api.startswith('/admin/')
-            
+
             if is_admin_api:
                 # admin接口的特殊处理
                 module = api.split('/')[2] if len(api.split('/')) > 2 else 'admin'
@@ -192,7 +192,7 @@ if __name__ == '__main__':
                     force=True,  # 强制重新生成以使用合并后的参数
                     parameters=info_v.get('parameters', []),  # 传递合并后的参数
                 )
-                
+
                 # 检查是否跳过了接口生成
                 if method_name.startswith("SKIP:"):
                     # 提取实际的方法名（去掉SKIP:前缀）
@@ -223,7 +223,7 @@ if __name__ == '__main__':
                     force=True,  # 强制重新生成以使用合并后的参数
                     parameters=info_v.get('parameters', []),  # 传递合并后的参数
                 )
-                
+
                 # 检查是否跳过了接口生成
                 if method_name.startswith("SKIP:"):
                     # 提取实际的方法名（去掉SKIP:前缀）
