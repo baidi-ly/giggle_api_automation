@@ -480,7 +480,7 @@ def extract_api_info_from_markdown_file(file_path: str) -> Dict[str, Any]:
 
 if __name__ == "__main__":
     # 测试代码
-    file_path = os.path.join("test_data", "接口测试文档_v1.19.0.md")
+    file_path = os.path.join("test_data", "giggle接口测试文档.md")
     
     try:
         extracted_data = extract_api_info_from_markdown_file(file_path)

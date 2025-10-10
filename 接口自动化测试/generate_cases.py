@@ -22,14 +22,14 @@ if __name__ == '__main__':
     ''' 前置需要对装饰器进行替换'''
     
     # -----------------------------------步骤0： 扫描接口文档并对比API方法---------------------------------------
-    logger.info("开始扫描接口文档并对比API方法...")
-    scanner = ApiScanner()
-    missing_apis = scanner.run_scan()
-
-    if missing_apis:
-        logger.info(f"发现 {len(missing_apis)} 个缺失的接口，已保存到 api_difference.json")
-    else:
-        logger.info("所有接口都已实现！")
+    # logger.info("开始扫描接口文档并对比API方法...")
+    # scanner = ApiScanner()
+    # missing_apis = scanner.run_scan()
+    #
+    # if missing_apis:
+    #     logger.info(f"发现 {len(missing_apis)} 个缺失的接口，已保存到 api_difference.json")
+    # else:
+    #     logger.info("所有接口都已实现！")
 
     # -----------------------------------步骤1： 初始化指定的接口到swagger文件---------------------------------------
     # 目标API列表
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     # -----------------------------------步骤3： 从Markdown文档提取接口信息---------------------------------------
 
     # 从Markdown文档提取接口信息
-    markdown_file = os.path.join("test_data", "接口测试文档_v1.19.0.md")
+    markdown_file = os.path.join("test_data", "giggle接口测试文档.md")
     if os.path.exists(markdown_file):
         logger.info("从Markdown文档提取接口信息...")
         try:

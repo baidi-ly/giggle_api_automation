@@ -27,7 +27,7 @@ class ApiInfo:
 class ApiScanner:
     """API接口扫描器"""
     
-    def __init__(self, doc_path: str = "test_data/接口测试文档_v1.19.0.md", 
+    def __init__(self, doc_path: str = "test_data/giggle接口测试文档.md", 
                  page_api_path: str = "test_case/page_api"):
         self.doc_path = doc_path
         self.page_api_path = page_api_path
