@@ -22,6 +22,7 @@ class ApiInfo:
     description: str = ""
     controller: str = ""
     module: str = ""
+    interface_type: str = "unknown"  # 接口类型：新增/修改/删除/unknown
 
 
 class ApiScanner:
@@ -69,6 +70,9 @@ class ApiScanner:
             # 提取控制器信息
             controller = self._extract_controller(content, method, url.strip())  # 使用原始URL提取控制器
             
+            # 提取接口类型
+            interface_type = self._extract_interface_type(content, method, url.strip())  # 使用原始URL提取接口类型
+            
             # 推断模块名
             module = self._infer_module_from_url(clean_url)
             
@@ -77,7 +81,8 @@ class ApiScanner:
                 method=method.upper(),
                 description=description,
                 controller=controller,
-                module=module
+                module=module,
+                interface_type=interface_type
             )
             apis.append(api_info)
         
@@ -101,6 +106,42 @@ class ApiScanner:
         if match:
             return match.group(1).strip()
         return ""
+    
+    def _extract_interface_type(self, content: str, method: str, url: str) -> str:
+        """提取接口类型（新增/修改/删除）"""
+        # 查找接口地址在文档中的位置
+        pattern = rf'\*\*接口地址\*\*:\s*`{method}\s+{re.escape(url)}`'
+        match = re.search(pattern, content)
+        if not match:
+            return "unknown"
+        
+        # 获取接口地址在文档中的位置
+        interface_pos = match.start()
+        
+        # 向前查找最近的章节标题
+        # 查找"### 新增接口"、"### 修改接口"、"### 删除接口"等章节
+        section_pattern = r'###\s*(新增接口|修改接口|删除接口)'
+        sections = list(re.finditer(section_pattern, content))
+        
+        # 找到接口地址之前的最后一个章节
+        current_section = None
+        for section in sections:
+            if section.start() < interface_pos:
+                current_section = section
+            else:
+                break
+        
+        if current_section:
+            section_title = current_section.group(1)
+            # 将章节标题转换为类型
+            if "新增" in section_title:
+                return "新增"
+            elif "修改" in section_title:
+                return "修改"
+            elif "删除" in section_title:
+                return "删除"
+        
+        return "unknown"
     
     def _infer_module_from_url(self, url: str) -> str:
         """从URL推断模块名"""
@@ -454,9 +495,16 @@ class ApiScanner:
             # 使用URL匹配检查接口是否已被覆盖
             is_covered = self._find_matching_url(api_info, page_api_dir)
             
-            if not is_covered:
+            # 如果是"修改"类型的接口，不跳过，依旧将接口写入api_difference.json
+            if not is_covered or api_info.interface_type == "修改":
                 # 生成期望的方法名（用于显示）
                 expected_method = self.generate_expected_method_name(api_info)
+                
+                # 根据接口类型设置不同的原因
+                if api_info.interface_type == "修改":
+                    reason = f'修改类型接口 {api_info.url}，需要重新生成或更新API方法'
+                else:
+                    reason = f'URL {api_info.url} 在page_api中未找到匹配的封装方法'
                 
                 missing_apis.append({
                     'url': api_info.url,
@@ -465,7 +513,8 @@ class ApiScanner:
                     'module': api_info.module,
                     'description': api_info.description,
                     'controller': api_info.controller,
-                    'reason': f'URL {api_info.url} 在page_api中未找到匹配的封装方法'
+                    'interface_type': api_info.interface_type,
+                    'reason': reason
                 })
         
         print(f"发现 {len(missing_apis)} 个缺失的接口")
@@ -504,16 +553,26 @@ class ApiScanner:
         # 去重处理：基于URL进行去重（忽略HTTP方法）
         deduplicated_apis = self._deduplicate_apis(missing_apis)
         
-        # 只保存URL信息（不包含HTTP方法）
-        urls_only = [api["url"] for api in deduplicated_apis]
+        # 分离修改接口和其他接口
+        update_apis = []
+        other_apis = []
+        
+        for api in deduplicated_apis:
+            if api.get('interface_type') == '修改':
+                update_apis.append(api["url"])
+            else:
+                other_apis.append(api["url"])
         
         # 转换为generate_cases.py期望的格式
         output_data = {
-            'apis': urls_only,
+            'apis': other_apis,
+            'update_apis': update_apis,
             'scan_time': str(datetime.now()),
             'total_count': len(deduplicated_apis),
             'original_count': len(missing_apis),
-            'duplicates_removed': len(missing_apis) - len(deduplicated_apis)
+            'duplicates_removed': len(missing_apis) - len(deduplicated_apis),
+            'update_count': len(update_apis),
+            'other_count': len(other_apis)
         }
         
         # 保存到JSON文件
@@ -523,6 +582,10 @@ class ApiScanner:
         print(f"缺失的接口已保存到: {self.api_difference_file}")
         if output_data['duplicates_removed'] > 0:
             print(f"已去除 {output_data['duplicates_removed']} 个重复接口")
+        if len(update_apis) > 0:
+            print(f"修改接口数量: {len(update_apis)}")
+        if len(other_apis) > 0:
+            print(f"其他接口数量: {len(other_apis)}")
     
     def run_scan(self) -> List[Dict]:
         """
@@ -552,7 +615,8 @@ def main():
     if missing_apis:
         print(f"\n发现 {len(missing_apis)} 个缺失的接口:")
         for i, api in enumerate(missing_apis, 1):
-            print(f"{i}. {api['method']} {api['url']} -> {api['expected_method_name']} ({api['module']})")
+            interface_type = api.get('interface_type', 'unknown')
+            print(f"{i}. {api['method']} {api['url']} -> {api['expected_method_name']} ({api['module']}) [{interface_type}]")
             print(f"   原因: {api['reason']}")
             print()
     else:

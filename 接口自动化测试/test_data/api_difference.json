@@ -1,7 +1,18 @@
 {
-  "apis": [],
-  "scan_time": "2025-10-10 13:08:56.585418",
-  "total_count": 0,
-  "original_count": 0,
-  "duplicates_removed": 0
+  "apis": [
+    "/email/statistics",
+    "/email/unsubscribe",
+    "/user/bookFavoriteEmailNotify",
+    "/admin/email/addEmailToPush",
+    "/admin/email/queryUnsubscribeEmails",
+    "/admin/email/queryEmailPushList",
+    "/admin/email/getEmailContent/{emailId}"
+  ],
+  "update_apis": [],
+  "scan_time": "2025-10-10 14:18:38.612363",
+  "total_count": 7,
+  "original_count": 7,
+  "duplicates_removed": 0,
+  "update_count": 0,
+  "other_count": 7
 }

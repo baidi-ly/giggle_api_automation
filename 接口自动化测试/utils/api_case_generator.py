@@ -17,7 +17,8 @@ def generate_tests_for_api(
     method_name: str,
     summary: str,
     parameters: List[Dict[str, Any]],
-    marker: str = "api"
+    marker: str = "api",
+    api_difference_file: str = "test_data/api_difference.json"
 ) -> str:
     """
     为指定API追加测试用例到现有测试文件
@@ -29,10 +30,28 @@ def generate_tests_for_api(
         summary: 接口摘要
         parameters: 参数列表，包含query和body参数
         marker: 测试标记，用于pytest筛选
+        api_difference_file: API差异文件路径，用于检测接口变更
     
     Returns:
         生成的测试用例文件路径
     """
+    # 检查接口是否在update_apis中，如果是则只校验新增参数
+    try:
+        from .parameter_diff_generator import ParameterDiffGenerator
+        diff_generator = ParameterDiffGenerator(api_difference_file)
+        
+        if diff_generator.is_api_in_update_list(path, http_method):
+            print(f"🔄 检测到接口 {http_method} {path} 在update_apis中，只校验新增参数")
+            return diff_generator.generate_tests_for_new_parameters(
+                path, http_method, method_name, summary, parameters, marker
+            )
+        else:
+            print(f"📝 接口 {http_method} {path} 不在update_apis中，校验所有参数")
+    except ImportError:
+        print(f"⚠️  无法导入参数差异生成器，使用原有逻辑校验所有参数")
+    except Exception as e:
+        print(f"⚠️  参数差异检测出错: {e}，使用原有逻辑校验所有参数")
+    
     # 分离不同类型的参数
     query_params = [p for p in parameters if p.get('in') == 'query']
     body_params = [p for p in parameters if p.get('in') == 'body']
