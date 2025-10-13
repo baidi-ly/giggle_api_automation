@@ -209,7 +209,6 @@ def _generate_positive_test(method_name: str, query_params: List[Dict], body_par
     methods = []
     
     # 正向测试用例只传入authorization参数，其他参数使用接口中的默认值
-    methods.append(f"    @pytest.mark.release")
     methods.append(f"    def test_{module_name}_positive_{method_name}_ok(self):")
     methods.append(f'        """{summary}-正向用例"""')
     methods.append(f"        res = self.{module_name}.{method_name}(self.authorization)")
@@ -235,7 +234,6 @@ def _generate_required_field_tests(method_name: str, query_params: List[Dict], b
         param_name = param.get('name', '')
         param_in = param.get('in', 'query')
         cases = [("empty", ""), ("null", "'None'")] if param_in == 'path' else [("missing", ""), ("empty", ""), ("null", "'None'")]
-        methods.append(f"    @pytest.mark.release")
         methods.append(f"    @pytest.mark.parametrize(")
         methods.append(f"        'desc, value',")
         methods.append(f"        [")
@@ -332,7 +330,6 @@ def _generate_data_format_tests(method_name: str, query_params: List[Dict], body
                 ("base64_string", "SGVsbG8gV29ybGQ=")
             ]
         
-        methods.append(f"    @pytest.mark.release")
         methods.append(f"    @pytest.mark.parametrize(")
         methods.append(f"        'desc, value',")
         methods.append(f"        [")
@@ -433,7 +430,6 @@ def _generate_boundary_value_tests(method_name: str, query_params: List[Dict], b
     else:
         return methods
     
-        methods.append(f"    @pytest.mark.release")
         methods.append(f"    @pytest.mark.parametrize(")
         methods.append(f"        'desc, value',")
         methods.append(f"        [")
@@ -471,7 +467,6 @@ def _generate_scenario_exception_tests(method_name: str, query_params: List[Dict
         param_name = param.get('name', '')
         p_type = param.get('type', 'string')
         invalid_expr = "999999999" if p_type in ['integer', 'number'] else "'INVALID_VALUE'"
-        methods.append(f"    @pytest.mark.release")
         methods.append(f"    def test_{module_name}_scenario_{method_name}_invalid_{param_name}(self):")
         methods.append(f'        """{summary}-场景异常-无效的{param_name}"""')
         methods.append(f"        test_params = {{}}")
@@ -504,7 +499,6 @@ def _generate_permission_tests(method_name: str, query_params: List[Dict], body_
         ("invalid_token", "invalid_token"),
     ]
     
-    methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
     methods.append(f"        'desc, value',")
     methods.append(f"        [")
@@ -539,7 +533,6 @@ def _generate_security_tests(method_name: str, query_params: List[Dict], body_pa
     ]
     for param in string_params:
         param_name = param.get('name', '')
-        methods.append(f"    @pytest.mark.release")
         methods.append(f"    @pytest.mark.parametrize(")
         methods.append(f"        'test_type,test_desc,attack_value',")
         methods.append(f"        [")
@@ -576,7 +569,6 @@ def _generate_required_field_tests_for_param(method_name: str, query_params: Lis
         return methods
     param_name = target_param.get('name', '')
 
-    methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
     methods.append(f"        'desc, value, code',")
     methods.append(f"        [")
@@ -738,7 +730,6 @@ def _generate_scenario_exception_tests_for_param(method_name: str, query_params:
     p_type = target_param.get('type', 'string')
     invalid_expr = "999999999" if p_type in ['integer', 'number'] else "'INVALID_VALUE'"
     methods: List[str] = []
-    methods.append(f"    @pytest.mark.release")
     methods.append(f"    def test_{module_name}_scenario_{method_name}_invalid_{param_name}(self):")
     methods.append(f'        """{summary}-场景异常-无效的{param_name}"""')
     methods.append(f"        {param_name} = {invalid_expr}")
@@ -776,7 +767,6 @@ def _generate_security_tests_for_param(method_name: str, query_params: List[Dict
     ]
     
     methods: List[str] = []
-    methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
     methods.append(f"        'desc, value',")
     methods.append(f"        [")
