@@ -381,13 +381,13 @@ def _generate_boundary_value_tests(method_name: str, query_params: List[Dict], b
             zero_val = "0"
             # 使用未加引号的数值字面量
             candidates = [
-                ("below_min", "小于最小值", lower_minus_one),
-                ("zero", "零值", zero_val),
-                ("min", "最小值", lower),
-                ("min_plus_one", "略大于最小值", lower_plus_one),
-                ("max_minus_one", "略小于最大值", upper_minus_one),
-                ("max", "最大值", upper),
-                ("above_max", "大于最大值", upper_plus_one),
+                ("below_min", "below_minimum", lower_minus_one),
+                ("zero", "zero_value", zero_val),
+                ("min", "minimum", lower),
+                ("min_plus_one", "min_plus_one", lower_plus_one),
+                ("max_minus_one", "max_minus_one", upper_minus_one),
+                ("max", "maximum", upper),
+                ("above_max", "above_maximum", upper_plus_one),
             ]
             seen = set()
             for key, desc, val in candidates:
@@ -398,9 +398,9 @@ def _generate_boundary_value_tests(method_name: str, query_params: List[Dict], b
         else:
             # 无范围: 使用32位整数极值与0
             boundary_lines = [
-                "            ('min', '最小值', -2147483648, 200),",
-                "            ('zero', '零值', 0, 200),",
-                "            ('max', '最大值', 2147483647, 200),",
+                "            ('min', 'minimum', -2147483648, 200),",
+                "            ('zero', 'zero_value', 0, 200),",
+                "            ('max', 'maximum', 2147483647, 200),",
             ]
     elif param_type == 'string':
         min_len = param.get('minLength')
@@ -413,7 +413,7 @@ def _generate_boundary_value_tests(method_name: str, query_params: List[Dict], b
             candidates = [min_len, min_len + 1, max_len - 1, max_len, max_len + 1]
             # 保障范围合理
             names = ["min_len", "min_len_plus_one", "max_len_minus_one", "max_len", "max_len_plus_one"]
-            descs = ["最小长度", "略大于最小长度", "略小于最大长度", "最大长度", "大于最大长度"]
+            descs = ["min_length", "min_length_plus_one", "max_length_minus_one", "max_length", "max_length_plus_one"]
             for i, length in enumerate(candidates):
                 if length < 0:
                     continue
@@ -422,8 +422,8 @@ def _generate_boundary_value_tests(method_name: str, query_params: List[Dict], b
         else:
             # 无长度要求: 最短与最长
             boundary_lines = [
-                "            ('shortest', '最短长度', \"\"),",
-                "            ('longest', '最长长度', \"' + 'a' * 1000 + '\"),",
+                "            ('shortest', 'min_length', \"\"),",
+                "            ('longest', 'max_length', \"' + 'a' * 1000 + '\"),",
             ]
     else:
         return methods
@@ -663,7 +663,7 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
             ('date_format', '2023-12-25', 200, 500),
             ('emoji', '😀🎉🚀', 200, 500),
             ('long_string', 'a' * 1000, 200, 500),
-            ('unicode', '中文测试', 200, 500),
+            ('unicode', 'chinese_test', 200, 500),
             ('json_string', '{"key": "value"}', 200, 500),
             ('xml_string', '<root><item>test</item></root>', 200, 500),
             ('url_string', 'https://www.example.com', 200, 500),
@@ -746,7 +746,7 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
             candidates = [min_len, min_len + 1, max_len - 1, max_len, max_len + 1]
             # 保障范围合理
             names = ["min_len", "min_len_plus_one", "max_len_minus_one", "max_len", "max_len_plus_one"]
-            descs = ["最小长度", "略大于最小长度", "略小于最大长度", "最大长度", "大于最大长度"]
+            descs = ["min_length", "min_length_plus_one", "max_length_minus_one", "max_length", "max_length_plus_one"]
             for i, length in enumerate(candidates):
                 if length < 0:
                     continue
@@ -755,8 +755,8 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
         else:
             # 无长度要求: 最短与最长
             boundary_lines = [
-                "            ('最短长度', \"\", 500),",
-                "            ('最长长度', \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", 500),",
+                "            ('min_length', \"\", 500),",
+                "            ('max_length', \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", 500),",
             ]
     elif param_type == 'boolean':
         # 布尔类型：测试布尔值边界
