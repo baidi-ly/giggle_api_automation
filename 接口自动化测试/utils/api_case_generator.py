@@ -113,7 +113,7 @@ def _generate_test_methods(
     1. 一条正向用例
     2. 一条权限校验用例
     3. 根据参数类型生成不同的校验规则：
-       - path参数：必填、数据格式、边界值、场景异常
+       - path参数：数据格式、边界值、场景异常（不包含必填测试，因为path参数在URL中无法缺失）
        - params与body参数：必填、数据格式、边界值、场景异常、安全
        - file参数：必填、数据格式、边界值
     """
@@ -136,11 +136,8 @@ def _generate_test_methods(
 
     # 3. 根据参数类型生成不同的校验规则
 
-    # 处理 path 参数：必填、数据格式、边界值、场景异常
+    # 处理 path 参数：数据格式、边界值、场景异常（不包含必填测试，因为path参数在URL中无法缺失）
     for param in path_params:
-        test_methods.extend(
-            _generate_required_field_tests_for_param(method_name, query_params, body_params, module_name, summary,
-                                                     param))
         test_methods.extend(
             _generate_data_format_tests_for_param(method_name, query_params, body_params, module_name, summary, param))
         test_methods.extend(
