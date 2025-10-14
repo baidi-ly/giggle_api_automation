@@ -620,6 +620,7 @@ class TestBook:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
+
     @pytest.mark.release
     def test_book_positive_indexaudio_details_ok(self):
         """查询故事书首页语音-正向用例"""
@@ -633,10 +634,10 @@ class TestBook:
     @pytest.mark.parametrize(
         'desc, value',
         [
-            ('unauthorized', 'missing'),
-            ('no_auth', ''),
-            ('expired_token', 'expired_token'),
-            ('invalid_token', 'invalid_token'),
+            ('unauthorized', 'missing'),    # todo
+            ('no_auth', ''),    # todo
+            ('expired_token', 'expired_token'),    # todo
+            ('invalid_token', 'invalid_token'),    # todo
         ]
     )
     def test_book_permission_indexaudio_details(self, desc, value):
@@ -924,9 +925,9 @@ class TestBook:
     @pytest.mark.parametrize(
         'desc, value, code',
         [
-            ('min', -2147483648),
-            ('zero', 0),
-            ('max', 2147483647),
+            ('min', -2147483648, 200),
+            ('zero', 0, 200),
+            ('max', 2147483647, 200),
         ]
     )
     def test_book_boundary_indexaudio_details1_bookId(self, desc, value, code):
