@@ -42,6 +42,56 @@ SWAGGER_PATH = os.getcwd() + os.path.join(r"/test_data", "swagger", "swagger_fix
 
 
 
+def _get_param_default_value(param: Dict[str, Any], param_type: str) -> str:
+    """
+    获取参数的默认值，优先使用swagger中的举例值
+    
+    Args:
+        param: 参数定义
+        param_type: 参数类型
+        
+    Returns:
+        默认值字符串
+    """
+    # 1. 优先使用 x-example 字段（swagger举例值）
+    x_example = param.get("x-example")
+    if x_example is not None:
+        if param_type == "integer":
+            return str(x_example)
+        elif param_type == "boolean":
+            return str(x_example).lower()
+        else:
+            return f"'{x_example}'"
+    
+    # 2. 其次使用 example 字段
+    example = param.get("example")
+    if example is not None:
+        if param_type == "integer":
+            return str(example)
+        elif param_type == "boolean":
+            return str(example).lower()
+        else:
+            return f"'{example}'"
+    
+    # 3. 最后使用 default 字段
+    default = param.get("default")
+    if default is not None:
+        if param_type == "integer":
+            return str(default)
+        elif param_type == "boolean":
+            return str(default).lower()
+        else:
+            return f"'{default}'" if isinstance(default, str) else "''"
+    
+    # 4. 如果没有任何默认值，根据类型返回默认值
+    if param_type == "integer":
+        return "0"
+    elif param_type == "boolean":
+        return "False"
+    else:
+        return "''"
+
+
 def _camelize_from_path(path: str, http_method: str) -> str:
     """基于路径和 HTTP 方法生成方法名，如 GET /api/user/kids -> getKids"""
     # 检查URL最后一个部分是否是参数（用{}包围）
@@ -134,20 +184,17 @@ def _build_method_block(
             pname = param.get("name", "")
             ptype = (param.get("type") or "string").lower()
             prequired = bool(param.get("required", False))
-            pdefault = param.get("default")
-            if ptype == "integer":
-                default_value = str(pdefault) if isinstance(pdefault, int) else "0"
-            elif ptype == "boolean":
-                default_value = (str(pdefault).lower() if isinstance(pdefault, bool) else "False")
-            else:
-                default_value = f"'{pdefault}'" if isinstance(pdefault, str) and pdefault is not None else "''"
+            
+            # 使用新的辅助函数获取默认值，优先使用swagger举例值
+            default_value = _get_param_default_value(param, ptype)
             method_params.append(f"{pname}={default_value}")
     
     # 检查body参数是否有示例数据
     has_body_examples = False
     if body_params:
         for param in body_params:
-            if 'schema' in param and 'example' in param['schema']:
+            # 检查schema中的example或x-example
+            if 'schema' in param and ('example' in param['schema'] or 'x-example' in param['schema']):
                 has_body_examples = True
                 break
     
@@ -157,35 +204,88 @@ def _build_method_block(
             param_name = param.get("name", "")
             param_type = param.get("type", "string")
             param_required = param.get("required", False)
-            param_default = param.get("default", "")
             
-            # 根据参数类型和是否必填设置默认值
-            if param_required:
-                if param_type == "string":
-                    default_value = f"'{param_default}'" if param_default else "''"
-                elif param_type == "integer":
-                    default_value = param_default if param_default else "0"
-                elif param_type == "boolean":
-                    default_value = str(param_default).lower() if param_default is not None else "False"
-                elif param_type == "object":
-                    # 对于object类型，使用JSON字符串
-                    import json
-                    default_value = json.dumps(param_default, ensure_ascii=False) if param_default else "{}"
+            # 对于body参数，优先检查schema中的举例值
+            schema = param.get("schema", {})
+            if schema:
+                # 检查schema中的x-example
+                x_example = schema.get("x-example")
+                if x_example is not None:
+                    if param_type == "integer":
+                        default_value = str(x_example)
+                    elif param_type == "boolean":
+                        default_value = str(x_example).lower()
+                    elif param_type == "object":
+                        import json
+                        default_value = json.dumps(x_example, ensure_ascii=False)
+                    else:
+                        default_value = f"'{x_example}'"
+                # 检查schema中的example
+                elif "example" in schema:
+                    example = schema["example"]
+                    if param_type == "integer":
+                        default_value = str(example)
+                    elif param_type == "boolean":
+                        default_value = str(example).lower()
+                    elif param_type == "object":
+                        import json
+                        default_value = json.dumps(example, ensure_ascii=False)
+                    else:
+                        default_value = f"'{example}'"
                 else:
-                    default_value = "''"
+                    # 使用原有的默认值逻辑
+                    param_default = param.get("default", "")
+                    if param_required:
+                        if param_type == "string":
+                            default_value = f"'{param_default}'" if param_default else "''"
+                        elif param_type == "integer":
+                            default_value = param_default if param_default else "0"
+                        elif param_type == "boolean":
+                            default_value = str(param_default).lower() if param_default is not None else "False"
+                        elif param_type == "object":
+                            import json
+                            default_value = json.dumps(param_default, ensure_ascii=False) if param_default else "{}"
+                        else:
+                            default_value = "''"
+                    else:
+                        if param_type == "string":
+                            default_value = f"'{param_default}'" if param_default else "''"
+                        elif param_type == "integer":
+                            default_value = param_default if param_default else "0"
+                        elif param_type == "boolean":
+                            default_value = str(param_default).lower() if param_default is not None else "False"
+                        elif param_type == "object":
+                            import json
+                            default_value = json.dumps(param_default, ensure_ascii=False) if param_default else "{}"
+                        else:
+                            default_value = "''"
             else:
-                if param_type == "string":
-                    default_value = f"'{param_default}'" if param_default else "''"
-                elif param_type == "integer":
-                    default_value = param_default if param_default else "0"
-                elif param_type == "boolean":
-                    default_value = str(param_default).lower() if param_default is not None else "False"
-                elif param_type == "object":
-                    # 对于object类型，使用JSON字符串
-                    import json
-                    default_value = json.dumps(param_default, ensure_ascii=False) if param_default else "{}"
+                # 没有schema，使用原有的默认值逻辑
+                param_default = param.get("default", "")
+                if param_required:
+                    if param_type == "string":
+                        default_value = f"'{param_default}'" if param_default else "''"
+                    elif param_type == "integer":
+                        default_value = param_default if param_default else "0"
+                    elif param_type == "boolean":
+                        default_value = str(param_default).lower() if param_default is not None else "False"
+                    elif param_type == "object":
+                        import json
+                        default_value = json.dumps(param_default, ensure_ascii=False) if param_default else "{}"
+                    else:
+                        default_value = "''"
                 else:
-                    default_value = "''"
+                    if param_type == "string":
+                        default_value = f"'{param_default}'" if param_default else "''"
+                    elif param_type == "integer":
+                        default_value = param_default if param_default else "0"
+                    elif param_type == "boolean":
+                        default_value = str(param_default).lower() if param_default is not None else "False"
+                    elif param_type == "object":
+                        import json
+                        default_value = json.dumps(param_default, ensure_ascii=False) if param_default else "{}"
+                    else:
+                        default_value = "''"
             
             method_params.append(f"{param_name}={default_value}")
 
@@ -194,13 +294,9 @@ def _build_method_block(
         for param in query_params:
             param_name = param.get("name", "")
             param_type = param.get("type", "string")
-            param_default = param.get("default", "")
-            if param_type == "integer":
-                default_value = param_default if isinstance(param_default, int) else "0"
-            elif param_type == "boolean":
-                default_value = str(param_default).lower() if isinstance(param_default, bool) else "False"
-            else:
-                default_value = f"'{param_default}'" if isinstance(param_default, str) and param_default else "''"
+            
+            # 使用新的辅助函数获取默认值，优先使用swagger举例值
+            default_value = _get_param_default_value(param, param_type)
             method_params.append(f"{param_name}={default_value}")
 
     # formData 文件上传：按照需求仅暴露 file 参数

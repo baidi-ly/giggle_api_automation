@@ -622,18 +622,48 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
     param_type = target_param.get('type', 'string')
     methods: List[str] = []
     
-    # 使用统一的测试用例格式，添加code参数
-    format_tests = [
-        ('string', 'abc', 500),
-        ('float', 12.34, 200),
-        ('boolean', True, 500),
-        ('negative', -123, 200),
-        ('array', [1, 2, 3], 500),
-        ('object', {'key': 'value'}, 500),
-        ('special_chars', '!@#$%^&*()', 500),
-        ('emoji', '😀🎉🚀', 200),
-        ('long_string', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 500),
-    ]
+    # 根据参数类型生成不同的测试用例
+    if param_type in ['integer', 'number']:
+        format_tests = [
+            ('字符串', 'abc', 500),
+            ('浮点数', 12.34, 500),
+            ('布尔值', True, 500),
+            ('负数', -123, 500),
+            ('数组', [1, 2, 3], 500),
+            ('对象', {'key': 'value'}, 500),
+            ('特殊字符', '!@#$%^&*()', 500),
+            ('表情符号', '😀🎉🚀', 500),
+            ('超长字符串', 'a' * 1000, 500),
+        ]
+    elif param_type == 'boolean':
+        format_tests = [
+            ('字符串', 'abc', 500),
+            ('整数', 123, 500),
+            ('浮点数', 12.34, 500),
+            ('数组', [1, 2, 3], 500),
+            ('对象', {'key': 'value'}, 500),
+            ('特殊字符', '!@#$%^&*()', 500),
+            ('表情符号', '😀🎉🚀', 500),
+        ]
+    else:  # string类型 - 使用丰富的测试用例
+        format_tests = [
+            ('整数', 123, 500),
+            ('浮点数', 12.3, 500),
+            ('布尔值', True, 500),
+            ('数组', [1, 2, 3], 500),
+            ('对象', {'key': 'value'}, 500),
+            ('特殊字符', '!@#$%^&*()', 500),
+            ('邮箱格式', 'test@example.com', 500),
+            ('手机号格式', '13800138000', 500),
+            ('日期格式', '2023-12-25', 500),
+            ('表情符号', '😀🎉🚀', 500),
+            ('超长字符串', 'a' * 1000, 500),
+            ('Unicode字符', '中文测试', 500),
+            ('JSON字符串', '{"key": "value"}', 500),
+            ('XML字符串', '<root><item>test</item></root>', 500),
+            ('URL字符串', 'https://www.example.com', 500),
+            ('Base64字符串', 'SGVsbG8gV29ybGQ=', 500),
+        ]
     
     methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
@@ -680,14 +710,61 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
     param_type = target_param.get('type', 'string')
     methods: List[str] = []
     
-    # 使用统一的边界值测试用例格式，添加code参数
-    boundary_lines = [
-        "            ('min', -2147483648, 500),",
-        "            ('zero', 0, 500),",
-        "            ('max', 2147483647, 500),",
-    ]
+    # 根据参数类型生成相应的边界值测试用例
+    boundary_lines = []
+    
+    if param_type in ['integer', 'number']:
+        # 整数/数值类型：测试整数边界值
+        boundary_lines = [
+            "            ('min', -2147483648),",
+            "            ('zero', 0),",
+            "            ('max', 2147483647),",
+        ]
+    elif param_type == 'string':
+        # 字符串类型：根据minLength/maxLength生成边界值测试
+        min_len = target_param.get('minLength')
+        max_len = target_param.get('maxLength')
+        boundary_lines: List[str] = []
+        if min_len is not None and max_len is not None:
+            min_len = int(min_len)
+            max_len = int(max_len)
+            # 生成长度: min, min+1, max-1, max, max+1
+            candidates = [min_len, min_len + 1, max_len - 1, max_len, max_len + 1]
+            # 保障范围合理
+            names = ["min_len", "min_len_plus_one", "max_len_minus_one", "max_len", "max_len_plus_one"]
+            descs = ["最小长度", "略大于最小长度", "略小于最大长度", "最大长度", "大于最大长度"]
+            for i, length in enumerate(candidates):
+                if length < 0:
+                    continue
+                value_expr = '"' + ("a" * length) + '"'
+                boundary_lines.append(f"            ('{names[i]}', {value_expr}),")
+        else:
+            # 无长度要求: 最短与最长
+            boundary_lines = [
+                "            ('最短长度', \"\", 500),",
+                "            ('最长长度', \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", 500),",
+            ]
+    elif param_type == 'boolean':
+        # 布尔类型：测试布尔值边界
+        boundary_lines = [
+            "            ('true', True, 500),",
+            "            ('false', False, 500),",
+        ]
+    elif param_type == 'array':
+        # 数组类型：测试数组边界值
+        boundary_lines = [
+            "            ('empty', [], 500),",
+            "            ('single', ['item'], 500),",
+            "            ('multiple', ['item1', 'item2', 'item3'], 500),",
+        ]
+    else:
+        # 其他类型：使用默认的字符串边界值
+        boundary_lines = [
+            "            ('empty', '', 500),",
+            "            ('short', 'a', 500),",
+            "            ('long', 'a' * 1000, 500),",
+        ]
 
-    methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
     methods.append(f"        'desc, value, code',")
     methods.append(f"        [")
@@ -698,27 +775,22 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
     methods.append(f"    def test_{module_name}_boundary_{method_name}_{param_name}(self, desc, value, code):")
     methods.append(f'        """{summary}-边界值测试({param_name})"""')
     
-    # 根据参数类型生成不同的调用方式，添加code参数
+    # 根据参数类型生成不同的调用方式
     if param_type == 'file':
         # 文件类型参数：使用文件对象格式
         methods.append(f"        file = {{")
         methods.append(f"            '{param_name}': (value, open(os.getcwd() + f'/test_data/{{value}}', 'rb'))")
         methods.append(f"        }}")
-        methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, file=file, code=code)")
+        methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, file=file)")
     else:
-        # 其他类型参数：直接传递值，添加code参数
-        methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value, code=code)")
+        # 其他类型参数：直接传递值
+        methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value)")
     
-    # 添加自定义断言，根据code值进行不同断言
-    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
-    methods.append(f"        if code == 500:")
-    methods.append(f"            assert res['code'] == 500, f\"接口返回状态码异常: 预期【500】，实际【{{res['code']}}】\"")
-    methods.append(f"            assert res['message'] == 'internal server error', f\"接口返回message信息异常: 预期【'internal server error'】，实际【{{res['message']}}】\"")
-    methods.append(f"            assert res['data'], f\"接口返回data数据异常：预期【{{'pending'}}】，实际【{{res['data']}}】\"")
-    methods.append(f"        else:")
-    methods.append(f"            assert res['code'] == '${{pending}}', f\"接口返回状态码异常: 预期【{{'pending'}}】，实际【{{res['code']}}】\"")
-    methods.append(f"            assert res['message'] == '${{pending}}', f\"接口返回message信息异常: 预期【{{'pending'}}】，实际【{{res['message']}}】\"")
-    methods.append(f"            assert res['data'] == '${{pending}}', f\"接口返回data数据异常：预期【{{'pending'}}】，实际【{{res['data']}}】\"")
+    # 添加边界值测试的断言逻辑
+    methods.append("        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'")
+    methods.append("        assert res['code'] == code, f\"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】\"")
+    methods.append("        assert res['message'] == 'success', f\"接口返回message信息异常: 预期【success】，实际【{res['message']}】\"")
+    methods.append("        assert res['data'], f\"接口返回data数据异常：{res['data']}\"")
     methods.append("")
     print(f"  ✓ 已添加边界值用例: test_{module_name}_boundary_{method_name}_{param_name}")
     return methods
