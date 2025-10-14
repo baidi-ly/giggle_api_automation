@@ -336,10 +336,12 @@ class BookApi(BaseAPI):
         headers = self.request_header(timestamp, authorization, DeviceType)
 
         response = requests.request("GET", url, headers=headers)
+        print(response.status_code)
         error_msg = "查询故事书首页语音"
-        # assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()
+            print(response)
             return response
         except json.decoder.JSONDecodeError:
             return False

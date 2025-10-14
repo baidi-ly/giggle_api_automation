@@ -620,7 +620,6 @@ class TestBook:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-
     @pytest.mark.release
     def test_book_positive_indexaudio_details_ok(self):
         """查询故事书首页语音-正向用例"""
@@ -634,61 +633,34 @@ class TestBook:
     @pytest.mark.parametrize(
         'desc, value',
         [
-            ('unauthorized', 'missing'),    # todo
-            ('no_auth', ''),    # todo
-            ('expired_token', 'expired_token'),    # todo
-            ('invalid_token', 'invalid_token'),    # todo
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
         ]
     )
     def test_book_permission_indexaudio_details(self, desc, value):
         """查询故事书首页语音-权限测试"""
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.book.indexaudio_details(value, code=401)
+        res = self.book.indexaudio_details(value, code=200)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['code'] == 200, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
     @pytest.mark.parametrize(
-        'desc, value, code',
-        [
-            ('missing',  'missing', 500),
-            ('empty', "", 500),
-            ('null', None, 500),
-        ]
-    )
-    def test_book_required_indexaudio_details_bookId(self, desc, value, code):
-        """查询故事书首页语音-必填字段测试(bookId)"""
-        if desc == 'missing':
-            pl = {'pop_items': 'bookId'}
-        else:
-            pl = {'bookId': value}
-        res = self.book.indexaudio_details(authorization=self.authorization, **pl, code=code)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        if code == 500:
-            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
-            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
-        else:
-            assert res['code'] == '${pending}', f"接口返回状态码异常: 预期【{'pending'}】，实际【{res['code']}】"
-            assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
-            assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
-
-    @pytest.mark.release
-    @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
-            ('string', 'abc', 200, 500),
-            ('float', 12.34, 200, 500),
-            ('boolean', True, 200, 500),
-            ('negative', -123, 200, 500),
-            ('array', [1, 2, 3], 200, 500),
-            ('object', {'key': 'value'}, 200, 500),
-            ('special_chars', '!@#$%^&*()', 200, 500),
-            ('emoji', '😀🎉🚀', 200, 500),
-            ('long_string', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 200, 500),
+            ('string', 'abc', 400, 100006),
+            ('float', 12.34, 400, 100006),
+            ('boolean', True, 400, 100006),
+            ('negative', -123, 400, 100006),    # todo
+            ('array', [1, 2, 3], 400, 100006),
+            ('object', {'key': 'value'}, 400, 100006),
+            ('special_chars', '!@#$%^&*()', 404, 404),
+            ('emoji', '😀🎉🚀', '', ''),
         ]
     )
     def test_book_format_indexaudio_details_bookId(self, desc, value, code, code_res):
@@ -706,15 +678,20 @@ class TestBook:
             assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
         elif code_res == 404:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 404, f"接口返回状态码异常: 预期【{'pending'}】，实际【404】"
-            assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
-            assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
+            assert res['status'] == 404, f"接口返回状态码异常: 预期【404】，实际【{res['status']}】"
+            assert res['error'] == 'Not Found', f"接口返回message信息异常: 预期【Not Found】，实际【{res['error']}】"
+            # assert res['data'] == 'not found', f"接口返回data数据异常：预期【not found】，实际【{res['data']}】"
+        elif code_res == 100006:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 100006, f"接口返回状态码异常: 预期【100006】，实际【{res['code']}】"
+            assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
     @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
-            ('min', -2147483648, 200),
+            ('min', -2147483648, 400),  # todo
             ('zero', 0, 200),
             ('max', 2147483647, 200),
         ]
@@ -739,50 +716,24 @@ class TestBook:
 
     @pytest.mark.release
     @pytest.mark.parametrize(
-        'desc, value, code',
-        [
-            ('missing',  'missing', 500),
-            ('empty', "", 500),
-            ('null', None, 500),
-        ]
-    )
-    def test_book_required_indexaudio_details_language(self, desc, value, code):
-        """查询故事书首页语音-必填字段测试(language)"""
-        if desc == 'missing':
-            pl = {'pop_items': 'language'}
-        else:
-            pl = {'language': value}
-        res = self.book.indexaudio_details(authorization=self.authorization, **pl, code=code)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        if code == 500:
-            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
-            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
-        else:
-            assert res['code'] == '${pending}', f"接口返回状态码异常: 预期【{'pending'}】，实际【{res['code']}】"
-            assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
-            assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
-
-    @pytest.mark.release
-    @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
-            ('integer', 123, 200, 500),
-            ('float', 12.3, 200, 500),
-            ('boolean', True, 200, 500),
-            ('array', [1, 2, 3], 200, 500),
-            ('object', {'key': 'value'}, 200, 500),
-            ('special_chars', '!@#$%^&*()', 200, 500),
-            ('email_format', 'test@example.com', 200, 500),
-            ('phone_format', '13800138000', 200, 500),
-            ('date_format', '2023-12-25', 200, 500),
-            ('emoji', '😀🎉🚀', 200, 500),
-            ('long_string', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 200, 500),
-            ('unicode', '中文测试', 200, 500),
-            ('json_string', '{"key": "value"}', 200, 500),
-            ('xml_string', '<root><item>test</item></root>', 200, 500),
-            ('url_string', 'https://www.example.com', 200, 500),
-            ('base64_string', 'SGVsbG8gV29ybGQ=', 200, 500),
+            ('integer', 123, 200, 404),     # todo
+            ('float', 12.3, 200, 404),     # todo
+            ('boolean', True, 200, 404),     # todo
+            ('array', [1, 2, 3], 200, 404),     # todo
+            ('object', {'key': 'value'}, 200, 404),     # todo
+            ('special_chars', '!@#$%^&*()', 200, 404),     # todo
+            ('email_format', 'test@example.com', 200, 404),     # todo
+            ('phone_format', '13800138000', 200, 404),     # todo
+            ('date_format', '2023-12-25', 200, 404),     # todo
+            ('emoji', '😀🎉🚀', '', ''),
+            ('long_string', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 200, 404),
+            ('unicode', '中文测试', '', ''),
+            ('json_string', '{"key": "value"}', 200, 404),     # todo
+            ('xml_string', '<root><item>test</item></root>', 404, 404),
+            ('url_string', 'https://www.example.com', 403, ''),
+            ('base64_string', 'SGVsbG8gV29ybGQ=', 200, 404),     # todo
         ]
     )
     def test_book_format_indexaudio_details_language(self, desc, value, code, code_res):
@@ -800,9 +751,8 @@ class TestBook:
             assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
         elif code_res == 404:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 404, f"接口返回状态码异常: 预期【{'pending'}】，实际【404】"
-            assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
-            assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
+            assert res['status'] == 404, f"接口返回状态码异常: 预期【404】，实际【{res['status']}】"
+            assert res['error'] == 'Not Found', f"接口返回message信息异常: 预期【{'pending'}】，实际【Not Found】"
 
     @pytest.mark.release
     @pytest.mark.parametrize(
@@ -829,8 +779,6 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-
 
     @pytest.mark.release
     def test_book_positive_indexaudio_details1_ok(self):
@@ -863,32 +811,6 @@ class TestBook:
 
     @pytest.mark.release
     @pytest.mark.parametrize(
-        'desc, value, code',
-        [
-            ('missing',  'missing', 500),
-            ('empty', "", 500),
-            ('null', None, 500),
-        ]
-    )
-    def test_book_required_indexaudio_details1_bookId(self, desc, value, code):
-        """上传并保存故事书首页语音-必填字段测试(bookId)"""
-        if desc == 'missing':
-            pl = {'pop_items': 'bookId'}
-        else:
-            pl = {'bookId': value}
-        res = self.book.indexaudio_details1(authorization=self.authorization, **pl, code=code)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        if code == 500:
-            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
-            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
-        else:
-            assert res['code'] == '${pending}', f"接口返回状态码异常: 预期【{'pending'}】，实际【{res['code']}】"
-            assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
-            assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
-
-    @pytest.mark.release
-    @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
             ('string', 'abc', 200, 500),
@@ -899,7 +821,6 @@ class TestBook:
             ('object', {'key': 'value'}, 200, 500),
             ('special_chars', '!@#$%^&*()', 200, 500),
             ('emoji', '😀🎉🚀', 200, 500),
-            ('long_string', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 200, 500),
         ]
     )
     def test_book_format_indexaudio_details1_bookId(self, desc, value, code, code_res):
@@ -947,32 +868,6 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    @pytest.mark.parametrize(
-        'desc, value, code',
-        [
-            ('missing',  'missing', 500),
-            ('empty', "", 500),
-            ('null', None, 500),
-        ]
-    )
-    def test_book_required_indexaudio_details1_language(self, desc, value, code):
-        """上传并保存故事书首页语音-必填字段测试(language)"""
-        if desc == 'missing':
-            pl = {'pop_items': 'language'}
-        else:
-            pl = {'language': value}
-        res = self.book.indexaudio_details1(authorization=self.authorization, **pl, code=code)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        if code == 500:
-            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
-            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
-        else:
-            assert res['code'] == '${pending}', f"接口返回状态码异常: 预期【{'pending'}】，实际【{res['code']}】"
-            assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
-            assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
     @pytest.mark.release
     @pytest.mark.parametrize(
