@@ -727,7 +727,16 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
     # 根据参数类型生成相应的边界值测试用例
     boundary_lines = []
     
-    if param_type in ['integer', 'number']:
+    if param_type == 'file':
+        # 文件类型参数：使用文件路径数组进行边界值测试
+        boundary_lines = [
+            "[('empty_file', '/test_files/empty.txt')],",
+            "[('small_file', '/test_files/small.txt')],",
+            "[('large_file', '/test_files/large.txt')],",
+            "[('invalid_format', '/test_files/invalid.exe')],",
+            "[('max_size', '/test_files/max_size.txt')],",
+        ]
+    elif param_type in ['integer', 'number']:
         # 整数/数值类型：测试整数边界值
         boundary_lines = [
             "            ('min', -2147483648, 200),",
@@ -779,33 +788,51 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
             "            ('long', 'a' * 1000, 500),",
         ]
 
-    methods.append(f"    @pytest.mark.release")
-    methods.append(f"    @pytest.mark.parametrize(")
-    methods.append(f"        'desc, value, code',")
-    methods.append(f"        [")
-    for line in boundary_lines:
-        methods.append(line)
-    methods.append(f"        ]")
-    methods.append(f"    )")
-    methods.append(f"    def test_{module_name}_boundary_{method_name}_{param_name}(self, desc, value, code):")
-    methods.append(f'        """{summary}-边界值测试({param_name})"""')
-    
-    # 根据参数类型生成不同的调用方式
     if param_type == 'file':
-        # 文件类型参数：使用文件对象格式
-        methods.append(f"        file = {{")
-        methods.append(f"            '{param_name}': (value, open(os.getcwd() + f'/test_data/{{value}}', 'rb'))")
-        methods.append(f"        }}")
+        # 文件类型参数：使用文件路径数组进行边界值测试
+        methods.append(f"    @pytest.mark.release")
+        methods.append(f"    @pytest.mark.parametrize(")
+        methods.append(f"        'file',")
+        methods.append(f"        [")
+        for line in boundary_lines:
+            methods.append(f"            {line}")
+        methods.append(f"        ]")
+        methods.append(f"    )")
+        methods.append(f"    def test_{module_name}_boundary_{method_name}_{param_name}(self, file):")
+        methods.append(f'        """{summary}-边界值测试({param_name})"""')
+        methods.append(f"        _audioFile = []")
+        methods.append(f"        for i in file:")
+        methods.append(f"            _audioFile.append((i[0], open(os.getcwd() + i[1], 'rb')))")
+        methods.append(f"        file = {{\"{param_name}\": _audioFile}}")
         methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, file=file)")
     else:
-        # 其他类型参数：直接传递值
+        # 其他类型参数：使用原有的参数化方式
+        methods.append(f"    @pytest.mark.release")
+        methods.append(f"    @pytest.mark.parametrize(")
+        methods.append(f"        'desc, value, code',")
+        methods.append(f"        [")
+        for line in boundary_lines:
+            methods.append(line)
+        methods.append(f"        ]")
+        methods.append(f"    )")
+        methods.append(f"    def test_{module_name}_boundary_{method_name}_{param_name}(self, desc, value, code):")
+        methods.append(f'        """{summary}-边界值测试({param_name})"""')
         methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value)")
     
     # 添加边界值测试的断言逻辑
-    methods.append("        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'")
-    methods.append("        assert res['code'] == code, f\"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】\"")
-    methods.append("        assert res['message'] == 'success', f\"接口返回message信息异常: 预期【success】，实际【{res['message']}】\"")
-    methods.append("        assert res['data'], f\"接口返回data数据异常：{res['data']}\"")
+    if param_type == 'file':
+        # 文件类型参数：使用简化的断言逻辑
+        methods.append("        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'")
+        methods.append("        assert res['code'] == 200, f\"接口返回状态码异常: 预期【200】，实际【{res['code']}】\"")
+        methods.append("        assert res['message'] == 'success', f\"接口返回message信息异常: 预期【success】，实际【{res['message']}】\"")
+        methods.append("        assert res['data'], f\"接口返回data数据异常：{res['data']}\"")
+    else:
+        # 其他类型参数：使用原有的断言逻辑
+        methods.append("        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'")
+        methods.append("        assert res['code'] == code, f\"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】\"")
+        methods.append("        assert res['message'] == 'success', f\"接口返回message信息异常: 预期【success】，实际【{res['message']}】\"")
+        methods.append("        assert res['data'], f\"接口返回data数据异常：{res['data']}\"")
+    
     methods.append("")
     print(f"  ✓ 已添加边界值用例: test_{module_name}_boundary_{method_name}_{param_name}")
     return methods
