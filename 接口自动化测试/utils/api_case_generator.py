@@ -209,6 +209,7 @@ def _generate_positive_test(method_name: str, query_params: List[Dict], body_par
     methods = []
     
     # 正向测试用例只传入authorization参数，其他参数使用接口中的默认值
+    methods.append(f"    @pytest.mark.release")
     methods.append(f"    def test_{module_name}_positive_{method_name}_ok(self):")
     methods.append(f'        """{summary}-正向用例"""')
     methods.append(f"        res = self.{module_name}.{method_name}(self.authorization)")
@@ -234,6 +235,7 @@ def _generate_required_field_tests(method_name: str, query_params: List[Dict], b
         param_name = param.get('name', '')
         param_in = param.get('in', 'query')
         cases = [("empty", ""), ("null", "'None'")] if param_in == 'path' else [("missing", ""), ("empty", ""), ("null", "'None'")]
+        methods.append(f"    @pytest.mark.release")
         methods.append(f"    @pytest.mark.parametrize(")
         methods.append(f"        'desc, value',")
         methods.append(f"        [")
@@ -430,6 +432,7 @@ def _generate_boundary_value_tests(method_name: str, query_params: List[Dict], b
     else:
         return methods
     
+        methods.append(f"    @pytest.mark.release")
         methods.append(f"    @pytest.mark.parametrize(")
         methods.append(f"        'desc, value',")
         methods.append(f"        [")
@@ -467,6 +470,7 @@ def _generate_scenario_exception_tests(method_name: str, query_params: List[Dict
         param_name = param.get('name', '')
         p_type = param.get('type', 'string')
         invalid_expr = "999999999" if p_type in ['integer', 'number'] else "'INVALID_VALUE'"
+        methods.append(f"    @pytest.mark.release")
         methods.append(f"    def test_{module_name}_scenario_{method_name}_invalid_{param_name}(self):")
         methods.append(f'        """{summary}-场景异常-无效的{param_name}"""')
         methods.append(f"        test_params = {{}}")
@@ -499,6 +503,7 @@ def _generate_permission_tests(method_name: str, query_params: List[Dict], body_
         ("invalid_token", "invalid_token"),
     ]
     
+    methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
     methods.append(f"        'desc, value',")
     methods.append(f"        [")
@@ -533,6 +538,7 @@ def _generate_security_tests(method_name: str, query_params: List[Dict], body_pa
     ]
     for param in string_params:
         param_name = param.get('name', '')
+        methods.append(f"    @pytest.mark.release")
         methods.append(f"    @pytest.mark.parametrize(")
         methods.append(f"        'test_type,test_desc,attack_value',")
         methods.append(f"        [")
@@ -569,6 +575,7 @@ def _generate_required_field_tests_for_param(method_name: str, query_params: Lis
         return methods
     param_name = target_param.get('name', '')
 
+    methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
     methods.append(f"        'desc, value, code',")
     methods.append(f"        [")
@@ -622,81 +629,90 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
     param_type = target_param.get('type', 'string')
     methods: List[str] = []
     
-    # 根据参数类型生成不同的测试用例
+    # 根据参数类型生成不同的测试用例，现在包含4个参数：desc, value, code, code_res
     if param_type in ['integer', 'number']:
         format_tests = [
-            ('字符串', 'abc', 500),
-            ('浮点数', 12.34, 500),
-            ('布尔值', True, 500),
-            ('负数', -123, 500),
-            ('数组', [1, 2, 3], 500),
-            ('对象', {'key': 'value'}, 500),
-            ('特殊字符', '!@#$%^&*()', 500),
-            ('表情符号', '😀🎉🚀', 500),
-            ('超长字符串', 'a' * 1000, 500),
+            ('string', 'abc', 200, 500),
+            ('float', 12.34, 200, 500),
+            ('boolean', True, 200, 500),
+            ('negative', -123, 200, 500),
+            ('array', [1, 2, 3], 200, 500),
+            ('object', {'key': 'value'}, 200, 500),
+            ('special_chars', '!@#$%^&*()', 200, 500),
+            ('emoji', '😀🎉🚀', 200, 500),
+            ('long_string', 'a' * 1000, 200, 500),
         ]
     elif param_type == 'boolean':
         format_tests = [
-            ('字符串', 'abc', 500),
-            ('整数', 123, 500),
-            ('浮点数', 12.34, 500),
-            ('数组', [1, 2, 3], 500),
-            ('对象', {'key': 'value'}, 500),
-            ('特殊字符', '!@#$%^&*()', 500),
-            ('表情符号', '😀🎉🚀', 500),
+            ('string', 'abc', 200, 500),
+            ('integer', 123, 200, 500),
+            ('float', 12.34, 200, 500),
+            ('array', [1, 2, 3], 200, 500),
+            ('object', {'key': 'value'}, 200, 500),
+            ('special_chars', '!@#$%^&*()', 200, 500),
+            ('emoji', '😀🎉🚀', 200, 500),
         ]
     else:  # string类型 - 使用丰富的测试用例
         format_tests = [
-            ('整数', 123, 500),
-            ('浮点数', 12.3, 500),
-            ('布尔值', True, 500),
-            ('数组', [1, 2, 3], 500),
-            ('对象', {'key': 'value'}, 500),
-            ('特殊字符', '!@#$%^&*()', 500),
-            ('邮箱格式', 'test@example.com', 500),
-            ('手机号格式', '13800138000', 500),
-            ('日期格式', '2023-12-25', 500),
-            ('表情符号', '😀🎉🚀', 500),
-            ('超长字符串', 'a' * 1000, 500),
-            ('Unicode字符', '中文测试', 500),
-            ('JSON字符串', '{"key": "value"}', 500),
-            ('XML字符串', '<root><item>test</item></root>', 500),
-            ('URL字符串', 'https://www.example.com', 500),
-            ('Base64字符串', 'SGVsbG8gV29ybGQ=', 500),
+            ('integer', 123, 200, 500),
+            ('float', 12.3, 200, 500),
+            ('boolean', True, 200, 500),
+            ('array', [1, 2, 3], 200, 500),
+            ('object', {'key': 'value'}, 200, 500),
+            ('special_chars', '!@#$%^&*()', 200, 500),
+            ('email_format', 'test@example.com', 200, 500),
+            ('phone_format', '13800138000', 200, 500),
+            ('date_format', '2023-12-25', 200, 500),
+            ('emoji', '😀🎉🚀', 200, 500),
+            ('long_string', 'a' * 1000, 200, 500),
+            ('unicode', '中文测试', 200, 500),
+            ('json_string', '{"key": "value"}', 200, 500),
+            ('xml_string', '<root><item>test</item></root>', 200, 500),
+            ('url_string', 'https://www.example.com', 200, 500),
+            ('base64_string', 'SGVsbG8gV29ybGQ=', 200, 500),
         ]
     
     methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
-    methods.append(f"        'desc, value, code',")
+    methods.append(f"        'desc, value, code, code_res',")
     methods.append(f"        [")
     for case in format_tests:
         methods.append(f"            {case},")
     methods.append(f"        ]")
     methods.append(f"    )")
-    methods.append(f"    def test_{module_name}_format_{method_name}_{param_name}(self, desc, value, code):")
+    methods.append(f"    def test_{module_name}_format_{method_name}_{param_name}(self, desc, value, code, code_res):")
     methods.append(f'        """{summary}-数据格式测试({param_name})"""')
     
     # 根据参数类型生成不同的调用方式，添加code参数
     if param_type == 'file':
         # 文件类型参数：使用文件对象格式
-        methods.append(f"        file = {{")
-        methods.append(f"            '{param_name}': (value, open(os.getcwd() + f'/test_data/{{value}}', 'rb'))")
-        methods.append(f"        }}")
-        methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, file=file, code=code)")
+        methods.append(f"        try:")
+        methods.append(f"            file = {{")
+        methods.append(f"                '{param_name}': (value, open(os.getcwd() + f'/test_data/{{value}}', 'rb'))")
+        methods.append(f"            }}")
+        methods.append(f"            res = self.{module_name}.{method_name}(self.authorization, file=file, code=code)")
+        methods.append(f"        except Exception as res:")
+        methods.append(f"            assert not code")
     else:
         # 其他类型参数：直接传递值，添加code参数
-        methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value, code=code)")
+        methods.append(f"        try:")
+        methods.append(f"            res = self.{module_name}.{method_name}(self.authorization, {param_name}=value, code=code)")
+        methods.append(f"        except Exception as res:")
+        methods.append(f"            assert not code")
     
-    # 添加自定义断言（根据code值进行不同断言）
-    methods.append(f"        assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
-    methods.append(f"        if code == 500:")
+    # 添加完整的断言逻辑
+    methods.append(f"        if code and not code_res:")
+    methods.append(f"            assert not res")
+    methods.append(f"        elif code_res == 500:")
+    methods.append(f"            assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
     methods.append(f"            assert res['code'] == 500, f\"接口返回状态码异常: 预期【500】，实际【{{res['code']}}】\"")
     methods.append(f"            assert res['message'] == 'internal server error', f\"接口返回message信息异常: 预期【'internal server error'】，实际【{{res['message']}}】\"")
     methods.append(f"            assert res['data'], f\"接口返回data数据异常：预期【{{'pending'}}】，实际【{{res['data']}}】\"")
-    methods.append(f"        else:")
-    methods.append(f"            assert res['code'] == '${{pending}}', f\"接口返回状态码异常: 预期【{{'pending'}}】，实际【{{res['code']}}】\"")
-    methods.append(f"            assert res['message'] == '${{pending}}', f\"接口返回message信息异常: 预期【{{'pending'}}】，实际【{{res['message']}}】\"")
-    methods.append(f"            assert res['data'] == '${{pending}}', f\"接口返回data数据异常：预期【{{'pending'}}】，实际【{{res['data']}}】\"")
+    methods.append(f"        elif code_res == 404:")
+    methods.append(f"            assert isinstance(res, dict), f'接口返回类型异常: {{type(res)}}'")
+    methods.append(f"            assert res['code'] == 404, f\"接口返回状态码异常: 预期【{{'pending'}}】，实际【404】\"")
+    methods.append(f"            assert res['message'] == 'not found', f\"接口返回message信息异常: 预期【{{'pending'}}】，实际【'not found'】\"")
+    methods.append(f"            assert res['data'] == 'not found', f\"接口返回data数据异常：预期【{{'pending'}}】，实际【'not found'】\"")
     methods.append("")
     print(f"  ✓ 已添加格式测试用例: test_{module_name}_format_{method_name}_{param_name}")
     return methods
@@ -765,6 +781,7 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
             "            ('long', 'a' * 1000, 500),",
         ]
 
+    methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
     methods.append(f"        'desc, value, code',")
     methods.append(f"        [")
@@ -802,6 +819,7 @@ def _generate_scenario_exception_tests_for_param(method_name: str, query_params:
     p_type = target_param.get('type', 'string')
     invalid_expr = "999999999" if p_type in ['integer', 'number'] else "'INVALID_VALUE'"
     methods: List[str] = []
+    methods.append(f"    @pytest.mark.release")
     methods.append(f"    def test_{module_name}_scenario_{method_name}_invalid_{param_name}(self):")
     methods.append(f'        """{summary}-场景异常-无效的{param_name}"""')
     methods.append(f"        {param_name} = {invalid_expr}")
@@ -837,6 +855,7 @@ def _generate_security_tests_for_param(method_name: str, query_params: List[Dict
     ]
     
     methods: List[str] = []
+    methods.append(f"    @pytest.mark.release")
     methods.append(f"    @pytest.mark.parametrize(")
     methods.append(f"        'desc, value, code, code_res',")
     methods.append(f"        [")

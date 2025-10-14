@@ -752,6 +752,7 @@ class TestActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
+    @pytest.mark.release
     def test_activity_positive_getList_ok(self):
         """获取当前正在进行的扭蛋活动-正向用例"""
         res = self.activity.getList(self.authorization)
@@ -760,6 +761,7 @@ class TestActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
+    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -820,6 +822,7 @@ class TestActivity:
             assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
             assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
 
+    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -835,6 +838,7 @@ class TestActivity:
         assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
         assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
 
+    @pytest.mark.release
     def test_activity_scenario_getList_invalid_language(self):
         """获取当前正在进行的扭蛋活动-场景异常-无效的language"""
         language = 'INVALID_VALUE'
@@ -844,6 +848,7 @@ class TestActivity:
         assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
         assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
 
+    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
