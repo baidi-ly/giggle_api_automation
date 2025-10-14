@@ -1,6 +1,5 @@
 {
   "apis": [
-    "/api/activity/gacha/list",
     "/api/book/{bookId}/indexAudio/{language}"
   ],
   "update_apis": [
