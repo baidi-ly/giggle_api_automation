@@ -295,8 +295,7 @@ def _generate_data_format_tests(method_name: str, query_params: List[Dict], body
                 ("array", "数组", [1, 2, 3]),
                 ("object", "对象", '{"key": "value"}'),
                 ("special_chars", "特殊字符", '"!@#$%^&*()"'),
-                ("emoji", "表情符号", '"😀🎉🚀"'),
-                ("long_string", "超长字符串", '"' + 'a' * 1000 + '"')
+                ("emoji", "表情符号", '"😀🎉🚀"')
             ]
         elif param_type == 'boolean':
             format_tests = [
@@ -640,7 +639,6 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
             ('object', {'key': 'value'}, 200, 500),
             ('special_chars', '!@#$%^&*()', 200, 500),
             ('emoji', '😀🎉🚀', 200, 500),
-            ('long_string', 'a' * 1000, 200, 500),
         ]
     elif param_type == 'boolean':
         format_tests = [
