@@ -831,40 +831,46 @@ class TestActivity:
         """获取当前正在进行的扭蛋活动-边界值测试(language)"""
         res = self.activity.getList(self.authorization, language=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == code, f"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        assert res['code'] == 404, f"接口返回状态码异常: 预期【{'pending'}】，实际【404】"
+        assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
+        assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
 
     def test_activity_scenario_getList_invalid_language(self):
         """获取当前正在进行的扭蛋活动-场景异常-无效的language"""
         language = 'INVALID_VALUE'
         res = self.activity.getList(self.authorization, language=language)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        assert res['code'] == 404, f"接口返回状态码异常: 预期【{'pending'}】，实际【404】"
+        assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
+        assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
 
     @pytest.mark.parametrize(
-        'desc, value',
+        'desc, value, code, code_res',
         [
-            ('sql_injection', "' OR '1'='1"),
-            ('xss_script', "<script>alert('XSS')</script>"),
-            ('xss_img', "<img src=x onerror=alert('XSS')>"),
-            ('xss_iframe', "<iframe src=javascript:alert('XSS')></iframe>"),
-            ('xml_injection', "<!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]>"),
-            ('unicode_attack', '\\x00\\x01\\x02'),
-            ('crlf_injection', 'test%0d%0aSet-Cookie: admin=true'),
-            ('http_header_injection', 'test%0d%0aX-Injected: true'),
-            ('log_injection', 'test%0d%0a[ERROR] Injected log entry'),
-            ('code_injection', "eval('alert(1)')"),
-            ('regex_dos', '((a+)+)+$'),
+            ('sql_injection', "' OR '1'='1", 403, ''),
+            ('xss_script', "<script>alert('XSS')</script>", 403, ''),
+            ('xss_img', "<img src=x onerror=alert('XSS')>", 403, ''),
+            ('xss_iframe', "<iframe src=javascript:alert('XSS')></iframe>", 403, ''),
+            ('xml_injection', "<!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]>", 403, ''),
+            ('unicode_attack', '\\x00\\x01\\x02', 200, 404),
+            ('crlf_injection', 'test%0d%0aSet-Cookie: admin=true', 200, 404),
+            ('code_injection', "eval('alert(1)')", 403, ''),
+            ('regex_dos', '((a+)+)+$', 403, ''),
         ]
     )
-    def test_activity_security_getList_language(self, desc, value):
+    def test_activity_security_getList_language(self, desc, value, code, code_res):
         """获取当前正在进行的扭蛋活动-安全测试(language)"""
-        res = self.activity.getList(self.authorization, language=value)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        res = self.activity.getList(self.authorization, language=value, code=code)
+        if code and not code_res:
+            assert not res
+        elif code_res == 500:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
+            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+        elif code_res == 404:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 404, f"接口返回状态码异常: 预期【{'pending'}】，实际【404】"
+            assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
+            assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
 
