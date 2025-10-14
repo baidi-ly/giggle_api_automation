@@ -398,13 +398,13 @@ def _generate_boundary_value_tests(method_name: str, query_params: List[Dict], b
                 if (key, val) in seen:
                     continue
                 seen.add((key, val))
-                boundary_lines.append(f"            ('{key}', '{desc}', {val}),")
+                boundary_lines.append(f"            ('{key}', '{desc}', {val}, 200),")
         else:
             # 无范围: 使用32位整数极值与0
             boundary_lines = [
-                "            ('min', '最小值', -2147483648),",
-                "            ('zero', '零值', 0),",
-                "            ('max', '最大值', 2147483647),",
+                "            ('min', '最小值', -2147483648, 200),",
+                "            ('zero', '零值', 0, 200),",
+                "            ('max', '最大值', 2147483647, 200),",
             ]
     elif param_type == 'string':
         min_len = param.get('minLength')
@@ -434,13 +434,13 @@ def _generate_boundary_value_tests(method_name: str, query_params: List[Dict], b
     
         methods.append(f"    @pytest.mark.release")
         methods.append(f"    @pytest.mark.parametrize(")
-        methods.append(f"        'desc, value',")
+        methods.append(f"        'desc, value, code',")
         methods.append(f"        [")
         for line in boundary_lines:
             methods.append(line)
         methods.append(f"        ]")
         methods.append(f"    )")
-        methods.append(f"    def test_{module_name}_boundary_{method_name}_{param_name}(self, desc, value):")
+        methods.append(f"    def test_{module_name}_boundary_{method_name}_{param_name}(self, desc, value, code):")
         methods.append(f'        """{summary}-边界值测试({param_name})"""')
         methods.append(f"        call_args = []")
         for p in all_params:
@@ -453,8 +453,11 @@ def _generate_boundary_value_tests(method_name: str, query_params: List[Dict], b
                 call_args.append(f"{p_name}={default_value}")
         methods.append(f"        res = self.{module_name}.{method_name}(authorization=self.authorization, {', '.join(call_args)})")
         
-        # 添加标准断言
-        methods.extend(_generate_standard_assertions())
+        # 添加边界值测试的断言逻辑
+        methods.append("        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'")
+        methods.append("        assert res['code'] == code, f\"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】\"")
+        methods.append("        assert res['message'] == 'success', f\"接口返回message信息异常: 预期【success】，实际【{res['message']}】\"")
+        methods.append("        assert res['data'], f\"接口返回data数据异常：{res['data']}\"")
         methods.append("")
         print(f"  ✓ 已添加边界值用例: test_{module_name}_boundary_{method_name}_{param_name}")
     return methods
@@ -732,9 +735,9 @@ def _generate_boundary_value_tests_for_param(method_name: str, query_params: Lis
     if param_type in ['integer', 'number']:
         # 整数/数值类型：测试整数边界值
         boundary_lines = [
-            "            ('min', -2147483648),",
-            "            ('zero', 0),",
-            "            ('max', 2147483647),",
+            "            ('min', -2147483648, 200),",
+            "            ('zero', 0, 200),",
+            "            ('max', 2147483647, 200),",
         ]
     elif param_type == 'string':
         # 字符串类型：根据minLength/maxLength生成边界值测试

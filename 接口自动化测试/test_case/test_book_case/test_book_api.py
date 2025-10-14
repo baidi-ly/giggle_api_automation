@@ -713,9 +713,9 @@ class TestBook:
     @pytest.mark.parametrize(
         'desc, value, code',
         [
-            ('min', -2147483648),
-            ('zero', 0),
-            ('max', 2147483647),
+            ('min', -2147483648, 200),
+            ('zero', 0, 200),
+            ('max', 2147483647, 200),
         ]
     )
     def test_book_boundary_indexaudio_details_bookId(self, desc, value, code):
