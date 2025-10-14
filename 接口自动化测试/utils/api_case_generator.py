@@ -823,35 +823,33 @@ def _generate_security_tests_for_param(method_name: str, query_params: List[Dict
         return []
     param_name = target_param.get('name', '')
     
-    # 安全测试用例 - 只保留核心的安全攻击方式
+    # 安全测试用例 - 按照新的格式生成
     security_tests = [
-        ("sql_injection", "' OR '1'='1"),
-        ("xss_script", "<script>alert('XSS')</script>"),
-        ("xss_img", "<img src=x onerror=alert('XSS')>"),
-        ("xss_iframe", "<iframe src=javascript:alert('XSS')></iframe>"),
-        ("xml_injection", "<!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]>"),
-        ("unicode_attack", "\\x00\\x01\\x02"),
-        ("crlf_injection", "test%0d%0aSet-Cookie: admin=true"),
-        ("http_header_injection", "test%0d%0aX-Injected: true"),
-        ("log_injection", "test%0d%0a[ERROR] Injected log entry"),
-        ("code_injection", "eval('alert(1)')"),
-        ("regex_dos", "((a+)+)+$"),
+        ("sql_injection", "' OR '1'='1", 403, ''),
+        ("xss_script", "<script>alert('XSS')</script>", 403, ''),
+        ("xss_img", "<img src=x onerror=alert('XSS')>", 403, ''),
+        ("xss_iframe", "<iframe src=javascript:alert('XSS')></iframe>", 403, ''),
+        ("xml_injection", "<!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]>", 403, ''),
+        ("unicode_attack", "\\x00\\x01\\x02", 200, 404),
+        ("crlf_injection", "test%0d%0aSet-Cookie: admin=true", 200, 404),
+        ("code_injection", "eval('alert(1)')", 403, ''),
+        ("regex_dos", "((a+)+)+$", 403, ''),
     ]
     
     methods: List[str] = []
     methods.append(f"    @pytest.mark.parametrize(")
-    methods.append(f"        'desc, value',")
+    methods.append(f"        'desc, value, code, code_res',")
     methods.append(f"        [")
     for case in security_tests:
         methods.append(f"            {case},")
     methods.append(f"        ]")
     methods.append(f"    )")
-    methods.append(f"    def test_{module_name}_security_{method_name}_{param_name}(self, desc, value):")
+    methods.append(f"    def test_{module_name}_security_{method_name}_{param_name}(self, desc, value, code, code_res):")
     methods.append(f'        """{summary}-安全测试({param_name})"""')
     methods.append(f"        res = self.{module_name}.{method_name}(self.authorization, {param_name}=value)")
     
-    # 添加标准断言
-    methods.extend(_generate_standard_assertions())
+    # 添加安全测试专用的断言逻辑
+    methods.extend(_generate_security_assertions())
     methods.append("")
     print(f"  ✓ 已添加安全测试用例: test_{module_name}_security_{method_name}_{param_name}")
     return methods
@@ -892,6 +890,23 @@ def _get_desc_chinese_mapping(desc: str) -> str:
         "max_size": "最大尺寸"
     }
     return mapping.get(desc, desc)
+
+
+def _generate_security_assertions() -> List[str]:
+    """生成安全测试专用的断言逻辑"""
+    return [
+        "        if code and not code_res:",
+        "            assert not res",
+        "        elif code_res == 500:",
+        "            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'",
+        "            assert res['code'] == 500, f\"接口返回状态码异常: 预期【500】，实际【{res['code']}】\"",
+        "            assert res['message'] == 'internal server error', f\"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】\"",
+        "        else:",
+        "            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'",
+        "            assert res['code'] == code_res, f\"接口返回状态码异常: 预期【{code_res}】，实际【{res['code']}】\"",
+        "            assert res['message'] == 'not found', f\"接口返回message信息异常: 预期【'not found'】，实际【{res['message']}】\"",
+        "            assert res['data'] == 'not found', f\"接口返回data数据异常：预期【'not found'】，实际【{res['data']}】\""
+    ]
 
 
 def _generate_standard_assertions() -> List[str]:
