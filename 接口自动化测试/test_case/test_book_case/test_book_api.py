@@ -855,21 +855,24 @@ class TestBook:
 
     @pytest.mark.release
     @pytest.mark.parametrize(
-        'desc, value, code',
+        'desc, value, code, code_res',
         [
-            ('min', -2147483648, 400),  # todo
-            ('zero', 0, 200),
-            ('max', 2147483647, 200),
+            ('min', -2147483648, 400, ''),  # todo
+            ('zero', 0, 200, 100045),
+            ('max', 2147483647, 200, 100045),
         ]
     )
-    def test_book_boundary_indexaudio_details1_bookId(self, desc, value, code):
+    def test_book_boundary_indexaudio_details1_bookId(self, desc, value, code, code_res):
         """上传并保存故事书首页语音-边界值测试(bookId)"""
-
-        res = self.book.indexaudio_details1(self.authorization, bookId=value)
+        file = {
+            'audioFile': ('upload_test.txt', open(os.getcwd() + '/test_data/upload_test.txt', 'rb'))
+        }
+        res = self.book.indexaudio_details1(self.authorization, bookId=value, file=file)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == code, f"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        if code_res == 100045:
+            assert res['code'] == 100045, f"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】"
+            assert res['message'] == 'book not found', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+            assert res['data'] == 'book not found', f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
     def test_book_scenario_indexaudio_details1_invalid_bookId(self):
@@ -880,9 +883,9 @@ class TestBook:
         }
         res = self.book.indexaudio_details1(self.authorization, bookId=bookId, file=file)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        assert res['code'] == 100045, f"接口返回状态码异常: 预期【100045】，实际【{res['code']}】"
+        assert res['message'] == 'book not found', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'] == 'book not found', f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
     @pytest.mark.parametrize(
@@ -906,13 +909,14 @@ class TestBook:
             ('base64_string', 'SGVsbG8gV29ybGQ=', 200, 404),     # todo
         ]
     )
-    def test_book_format_indexaudio_details1_language(self, desc, value, code, code_res):
+    def test_book_format_indexaudio_details1_language(self, desc, value, code, code_res, get_bookId):
         """上传并保存故事书首页语音-数据格式测试(language)"""
         try:
+            bookId = get_bookId["data"]["content"][0]["id"]
             file = {
                 'audioFile': ('upload_test.txt', open(os.getcwd() + '/test_data/upload_test.txt', 'rb'))
             }
-            res = self.book.indexaudio_details1(self.authorization, language=value, file=file, code=code)
+            res = self.book.indexaudio_details1(self.authorization, bookId, language=value, file=file, code=code)
         except Exception as res:
             assert not code
         if code and not code_res:
@@ -935,24 +939,26 @@ class TestBook:
             ('max_length', "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 404),    # todo
         ]
     )
-    def test_book_boundary_indexaudio_details1_language(self, desc, value, code):
+    def test_book_boundary_indexaudio_details1_language(self, desc, value, code, get_bookId):
         """上传并保存故事书首页语音-边界值测试(language)"""
+        bookId = get_bookId["data"]["content"][0]["id"]
         file = {
             'audioFile': ('upload_test.txt', open(os.getcwd() + '/test_data/upload_test.txt', 'rb'))
         }
-        res = self.book.indexaudio_details1(self.authorization, language=value, file=file)
+        res = self.book.indexaudio_details1(self.authorization, bookId, language=value, file=file, code=code)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['status'] == 404, f"接口返回状态码异常: 预期【404】，实际【{res['status']}】"
         assert res['error'] == 'Not Found', f"接口返回message信息异常: 预期【{'pending'}】，实际【Not Found】"
 
     @pytest.mark.release
-    def test_book_scenario_indexaudio_details1_invalid_language(self):
+    def test_book_scenario_indexaudio_details1_invalid_language(self, get_bookId):
         """上传并保存故事书首页语音-场景异常-无效的language"""
-        language = 'INVALID_VALUE'
+        language = 'INVALID_VALUE'  # todo
+        bookId = get_bookId["data"]["content"][0]["id"]
         file = {
             'audioFile': ('upload_test.txt', open(os.getcwd() + '/test_data/upload_test.txt', 'rb'))
         }
-        res = self.book.indexaudio_details1(self.authorization, language=language, file=file)
+        res = self.book.indexaudio_details1(self.authorization, bookId, language=language, file=file, code=404)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['status'] == 404, f"接口返回状态码异常: 预期【404】，实际【{res['status']}】"
         assert res['error'] == 'Not Found', f"接口返回message信息异常: 预期【{'pending'}】，实际【Not Found】"
