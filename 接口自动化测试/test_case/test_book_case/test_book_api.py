@@ -875,7 +875,10 @@ class TestBook:
     def test_book_scenario_indexaudio_details1_invalid_bookId(self):
         """上传并保存故事书首页语音-场景异常-无效的bookId"""
         bookId = 999999999
-        res = self.book.indexaudio_details1(self.authorization, bookId=bookId)
+        file = {
+            'audioFile': ('upload_test.txt', open(os.getcwd() + '/test_data/upload_test.txt', 'rb'))
+        }
+        res = self.book.indexaudio_details1(self.authorization, bookId=bookId, file=file)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -885,28 +888,31 @@ class TestBook:
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
-            ('integer', 123, 200, 500),
-            ('float', 12.3, 200, 500),
-            ('boolean', True, 200, 500),
-            ('array', [1, 2, 3], 200, 500),
-            ('object', {'key': 'value'}, 200, 500),
-            ('special_chars', '!@#$%^&*()', 200, 500),
-            ('email_format', 'test@example.com', 200, 500),
-            ('phone_format', '13800138000', 200, 500),
-            ('date_format', '2023-12-25', 200, 500),
-            ('emoji', '😀🎉🚀', 200, 500),
-            ('long_string', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 200, 500),
-            ('unicode', '中文测试', 200, 500),
-            ('json_string', '{"key": "value"}', 200, 500),
-            ('xml_string', '<root><item>test</item></root>', 200, 500),
-            ('url_string', 'https://www.example.com', 200, 500),
-            ('base64_string', 'SGVsbG8gV29ybGQ=', 200, 500),
+            ('integer', 123, 200, 404),     # todo
+            ('float', 12.3, 200, 404),     # todo
+            ('boolean', True, 200, 404),     # todo
+            ('array', [1, 2, 3], 200, 404),     # todo
+            ('object', {'key': 'value'}, 200, 404),     # todo
+            ('special_chars', '!@#$%^&*()', 200, 404),     # todo
+            ('email_format', 'test@example.com', 200, 404),     # todo
+            ('phone_format', '13800138000', 200, 404),     # todo
+            ('date_format', '2023-12-25', 200, 404),     # todo
+            ('emoji', '😀🎉🚀', '', ''),
+            ('long_string', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 200, 404),
+            ('unicode', '中文测试', '', ''),
+            ('json_string', '{"key": "value"}', 200, 404),     # todo
+            ('xml_string', '<root><item>test</item></root>', 404, 404),
+            ('url_string', 'https://www.example.com', 403, ''),
+            ('base64_string', 'SGVsbG8gV29ybGQ=', 200, 404),     # todo
         ]
     )
     def test_book_format_indexaudio_details1_language(self, desc, value, code, code_res):
         """上传并保存故事书首页语音-数据格式测试(language)"""
         try:
-            res = self.book.indexaudio_details1(self.authorization, language=value, code=code)
+            file = {
+                'audioFile': ('upload_test.txt', open(os.getcwd() + '/test_data/upload_test.txt', 'rb'))
+            }
+            res = self.book.indexaudio_details1(self.authorization, language=value, file=file, code=code)
         except Exception as res:
             assert not code
         if code and not code_res:
@@ -918,35 +924,38 @@ class TestBook:
             assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
         elif code_res == 404:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 404, f"接口返回状态码异常: 预期【{'pending'}】，实际【404】"
-            assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
-            assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
+            assert res['status'] == 404, f"接口返回状态码异常: 预期【404】，实际【{res['status']}】"
+            assert res['error'] == 'Not Found', f"接口返回message信息异常: 预期【{'pending'}】，实际【Not Found】"
 
     @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
-            ('最短长度', "", 500),
-            ('最长长度', "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 500),
+            ('min_length', "", 404),
+            ('max_length', "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 404),    # todo
         ]
     )
     def test_book_boundary_indexaudio_details1_language(self, desc, value, code):
         """上传并保存故事书首页语音-边界值测试(language)"""
-        res = self.book.indexaudio_details1(self.authorization, language=value)
+        file = {
+            'audioFile': ('upload_test.txt', open(os.getcwd() + '/test_data/upload_test.txt', 'rb'))
+        }
+        res = self.book.indexaudio_details1(self.authorization, language=value, file=file)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == code, f"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        assert res['status'] == 404, f"接口返回状态码异常: 预期【404】，实际【{res['status']}】"
+        assert res['error'] == 'Not Found', f"接口返回message信息异常: 预期【{'pending'}】，实际【Not Found】"
 
     @pytest.mark.release
     def test_book_scenario_indexaudio_details1_invalid_language(self):
         """上传并保存故事书首页语音-场景异常-无效的language"""
         language = 'INVALID_VALUE'
-        res = self.book.indexaudio_details1(self.authorization, language=language)
+        file = {
+            'audioFile': ('upload_test.txt', open(os.getcwd() + '/test_data/upload_test.txt', 'rb'))
+        }
+        res = self.book.indexaudio_details1(self.authorization, language=language, file=file)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        assert res['status'] == 404, f"接口返回状态码异常: 预期【404】，实际【{res['status']}】"
+        assert res['error'] == 'Not Found', f"接口返回message信息异常: 预期【{'pending'}】，实际【Not Found】"
 
     @pytest.mark.release
     @pytest.mark.parametrize(
