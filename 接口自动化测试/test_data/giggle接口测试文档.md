@@ -37,9 +37,9 @@
 - **请求路径**: `/book/{bookId}/indexAudio/{language}`
 - **鉴权**: 需要登录（与书籍管理相关接口一致）
 - **请求参数**:
-  - `bookId` (path, long, 必填)
-  - `language` (path, string, 必填)
-  - `audioFile` (form-data, file, 必填)
+  - `bookId` (path, long, 必填): 故事书ID
+  - `language` (path, string, 必填): 语言代码，例如 "zh"
+  - `audioFile` (form-data, file, 必填): 音频文件
 - **成功响应**: 200，返回 `{ "s3Key": "..." }`
 - **所在类**: `com.giggleacademy.app.api.controller.BookController`
 
@@ -49,8 +49,8 @@
 - **请求路径**: `/book/{bookId}/indexAudio/{language}`
 - **鉴权**: PublicApi（公开）
 - **请求参数**:
-  - `bookId` (path, long, 必填)
-  - `language` (path, string, 必填)
+  - `bookId` (path, long, 必填): 故事书ID
+  - `language` (path, string, 必填): 语言代码，例如 "zh"
 - **成功响应**: 200，返回 `{ "indexAudioKey": "..." }`
 - **所在类**: `com.giggleacademy.app.api.controller.BookController`
 
@@ -65,7 +65,7 @@
 - **变更点**: 新增 `abTest` 参数
 - **鉴权**: PublicApi
 - **请求参数（新增/变更）**:
-  - `abTest` (query, boolean, 可选，默认 false)
+  - `abTest` (query, boolean, 可选，默认 false): A/B测试标识
 - **影响**: 推荐策略可能根据 A/B 测试参数返回不同结果
 - **所在类**: `com.giggleacademy.app.api.controller.BookController`
 
@@ -76,7 +76,7 @@
 - **变更点**: 新增 `abTest` 参数
 - **鉴权**: AdminApi
 - **请求参数（新增/变更）**:
-  - `abTest` (query, boolean, 可选，默认 false)
+  - `abTest` (query, boolean, 可选，默认 false): A/B测试标识
 - **所在类**: `com.giggleacademy.app.admin.controller.AdminController`
 
 ### 3.3 后台-设置体验课推荐规则
@@ -86,8 +86,8 @@
 - **变更点**: 新增 `abTest` 参数
 - **鉴权**: AdminApi
 - **请求参数（新增/变更）**:
-  - `abTest` (query, boolean, 可选，默认 false)
-  - `rules` (body, `CourseRecommendRulesReq`, 必填)
+  - `abTest` (query, boolean, 可选，默认 false): A/B测试标识
+  - `rules` (body, `CourseRecommendRulesReq`, 必填): 推荐规则配置
 - **所在类**: `com.giggleacademy.app.admin.controller.AdminController`
 
 ---

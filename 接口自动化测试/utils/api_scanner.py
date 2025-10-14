@@ -51,8 +51,8 @@ class ApiScanner:
         apis = []
         
         # 使用正则表达式匹配接口信息
-        # 匹配模式：**接口地址**: `METHOD /path`
-        pattern = r'\*\*接口地址\*\*:\s*`(GET|POST|PUT|DELETE|PATCH)\s+([^`]+)`'
+        # 匹配模式：- **请求方法**: METHOD 和 - **请求路径**: /path
+        pattern = r'-\s*\*\*请求方法\*\*:\s*(GET|POST|PUT|DELETE|PATCH)\s*\n[^-\n]*-\s*\*\*请求路径\*\*:\s*([^\n]+)'
         
         matches = re.findall(pattern, content)
         
@@ -91,8 +91,8 @@ class ApiScanner:
     
     def _extract_description(self, content: str, method: str, url: str) -> str:
         """提取接口描述"""
-        # 查找接口地址后面的描述
-        pattern = rf'\*\*接口地址\*\*:\s*`{method}\s+{re.escape(url)}`\s*\n\*\*接口描述\*\*:\s*([^\n]+)'
+        # 查找接口描述
+        pattern = rf'-\s*\*\*请求方法\*\*:\s*{method}\s*\n[^-\n]*-\s*\*\*请求路径\*\*:\s*{re.escape(url)}\s*\n[^-\n]*-\s*\*\*接口描述\*\*:\s*([^\n]+)'
         match = re.search(pattern, content)
         if match:
             return match.group(1).strip()
@@ -101,7 +101,7 @@ class ApiScanner:
     def _extract_controller(self, content: str, method: str, url: str) -> str:
         """提取控制器信息"""
         # 查找控制器信息
-        pattern = rf'\*\*接口地址\*\*:\s*`{method}\s+{re.escape(url)}`[\s\S]*?\*\*控制器\*\*:\s*([^\n]+)'
+        pattern = rf'-\s*\*\*请求方法\*\*:\s*{method}\s*\n[^-\n]*-\s*\*\*请求路径\*\*:\s*{re.escape(url)}[\s\S]*?-\s*\*\*所在类\*\*:\s*([^\n]+)'
         match = re.search(pattern, content)
         if match:
             return match.group(1).strip()
@@ -110,7 +110,7 @@ class ApiScanner:
     def _extract_interface_type(self, content: str, method: str, url: str) -> str:
         """提取接口类型（新增/修改/删除）"""
         # 查找接口地址在文档中的位置
-        pattern = rf'\*\*接口地址\*\*:\s*`{method}\s+{re.escape(url)}`'
+        pattern = rf'-\s*\*\*请求方法\*\*:\s*{method}\s*\n[^-\n]*-\s*\*\*请求路径\*\*:\s*{re.escape(url)}'
         match = re.search(pattern, content)
         if not match:
             return "unknown"
@@ -119,8 +119,8 @@ class ApiScanner:
         interface_pos = match.start()
         
         # 向前查找最近的章节标题
-        # 查找"### 新增接口"、"### 修改接口"、"### 删除接口"等章节
-        section_pattern = r'###\s*(新增接口|修改接口|删除接口)'
+        # 查找"## 2. 新增接口测试"、"## 3. 修改接口测试"、"## 4. 删除接口测试"等章节
+        section_pattern = r'##\s*\d+\.\s*(新增接口测试|修改接口测试|删除接口测试)'
         sections = list(re.finditer(section_pattern, content))
         
         # 找到接口地址之前的最后一个章节
@@ -134,11 +134,11 @@ class ApiScanner:
         if current_section:
             section_title = current_section.group(1)
             # 将章节标题转换为类型
-            if "新增" in section_title:
+            if "新增接口测试" in section_title:
                 return "新增"
-            elif "修改" in section_title:
+            elif "修改接口测试" in section_title:
                 return "修改"
-            elif "删除" in section_title:
+            elif "删除接口测试" in section_title:
                 return "删除"
         
         return "unknown"
@@ -558,10 +558,20 @@ class ApiScanner:
         other_apis = []
         
         for api in deduplicated_apis:
+            # 处理URL：如果不是/admin/开头，则添加/api/前缀
+            url = api["url"]
+            # 去掉所有反引号
+            url = url.replace('`', '')
+            
+            if not url.startswith('/admin/'):
+                # 确保URL以/api/开头
+                if not url.startswith('/api/'):
+                    url = f"/api{url}" if url.startswith('/') else f"/api/{url}"
+            
             if api.get('interface_type') == '修改':
-                update_apis.append(api["url"])
+                update_apis.append(url)
             else:
-                other_apis.append(api["url"])
+                other_apis.append(url)
         
         # 转换为generate_cases.py期望的格式
         output_data = {
