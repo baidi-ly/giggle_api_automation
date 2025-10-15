@@ -1,15 +1,10 @@
 {
-  "apis": [
-    "/api/book/{bookId}/indexAudio/{language}"
-  ],
-  "update_apis": [
-    "/api/book/recommend/bookAndCourse",
-    "/api/course/recommend/spelRules"
-  ],
-  "scan_time": "2025-10-14 09:45:31.486347",
-  "total_count": 4,
-  "original_count": 6,
-  "duplicates_removed": 2,
-  "update_count": 2,
-  "other_count": 2
+  "apis": [],
+  "update_apis": [],
+  "scan_time": "2025-10-15 10:06:57.801799",
+  "total_count": 0,
+  "original_count": 0,
+  "duplicates_removed": 0,
+  "update_count": 0,
+  "other_count": 0
 }
