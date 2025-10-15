@@ -51,8 +51,8 @@ class ApiScanner:
         apis = []
         
         # 使用正则表达式匹配接口信息
-        # 匹配模式：- **请求方法**: METHOD 和 - **请求路径**: /path
-        pattern = r'-\s*\*\*请求方法\*\*:\s*(GET|POST|PUT|DELETE|PATCH)\s*\n[^-\n]*-\s*\*\*请求路径\*\*:\s*([^\n]+)'
+        # 匹配模式：**接口地址**: `METHOD /path`
+        pattern = r'\*\*接口地址\*\*:\s*`(GET|POST|PUT|DELETE|PATCH)\s+([^`]+)`'
         
         matches = re.findall(pattern, content)
         
@@ -92,7 +92,7 @@ class ApiScanner:
     def _extract_description(self, content: str, method: str, url: str) -> str:
         """提取接口描述"""
         # 查找接口描述
-        pattern = rf'-\s*\*\*请求方法\*\*:\s*{method}\s*\n[^-\n]*-\s*\*\*请求路径\*\*:\s*{re.escape(url)}\s*\n[^-\n]*-\s*\*\*接口描述\*\*:\s*([^\n]+)'
+        pattern = rf'\*\*接口地址\*\*:\s*`{method}\s+{re.escape(url)}`[\s\S]*?\*\*接口描述\*\*:\s*([^\n]+)'
         match = re.search(pattern, content)
         if match:
             return match.group(1).strip()
@@ -101,7 +101,7 @@ class ApiScanner:
     def _extract_controller(self, content: str, method: str, url: str) -> str:
         """提取控制器信息"""
         # 查找控制器信息
-        pattern = rf'-\s*\*\*请求方法\*\*:\s*{method}\s*\n[^-\n]*-\s*\*\*请求路径\*\*:\s*{re.escape(url)}[\s\S]*?-\s*\*\*所在类\*\*:\s*([^\n]+)'
+        pattern = rf'\*\*接口地址\*\*:\s*`{method}\s+{re.escape(url)}`[\s\S]*?\*\*控制器\*\*:\s*([^\n]+)'
         match = re.search(pattern, content)
         if match:
             return match.group(1).strip()
@@ -110,7 +110,7 @@ class ApiScanner:
     def _extract_interface_type(self, content: str, method: str, url: str) -> str:
         """提取接口类型（新增/修改/删除）"""
         # 查找接口地址在文档中的位置
-        pattern = rf'-\s*\*\*请求方法\*\*:\s*{method}\s*\n[^-\n]*-\s*\*\*请求路径\*\*:\s*{re.escape(url)}'
+        pattern = rf'\*\*接口地址\*\*:\s*`{method}\s+{re.escape(url)}`'
         match = re.search(pattern, content)
         if not match:
             return "unknown"

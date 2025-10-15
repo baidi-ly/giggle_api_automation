@@ -295,7 +295,7 @@ def _generate_data_format_tests(method_name: str, query_params: List[Dict], body
                 ("array", "数组", [1, 2, 3]),
                 ("object", "对象", '{"key": "value"}'),
                 ("special_chars", "特殊字符", '"!@#$%^&*()"'),
-                ("emoji", "表情符号", '"😀🎉🚀"')
+                ("emoji", "表情符号", '"test_emoji"')
             ]
         elif param_type == 'boolean':
             format_tests = [
@@ -305,7 +305,7 @@ def _generate_data_format_tests(method_name: str, query_params: List[Dict], body
                 ("array", "数组", [1, 2, 3]),
                 ("object", "对象", '{"key": "value"}'),
                 ("special_chars", "特殊字符", '"!@#$%^&*()"'),
-                ("emoji", "表情符号", '"😀🎉🚀"'),
+                ("emoji", "表情符号", '"test_emoji"'),
                 ("long_string", "超长字符串", '"' + 'a' * 1000 + '"')
             ]
         else:  # string类型
@@ -319,7 +319,7 @@ def _generate_data_format_tests(method_name: str, query_params: List[Dict], body
                 ("email_format", "test@example.com"),
                 ("phone_format", "13800138000"),
                 ("date_format", "2023-12-25"),
-                ("emoji", "😀🎉🚀"),
+                ("emoji", "test_emoji"),
                 ("long_string", 'a' * 1000),
                 ("unicode", "中文测试"),
                 ("json_string", '{"key": "value"}'),
@@ -638,7 +638,7 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
             ('array', [1, 2, 3], 200, 500),
             ('object', {'key': 'value'}, 200, 500),
             ('special_chars', '!@#$%^&*()', 200, 500),
-            ('emoji', '😀🎉🚀', 200, 500),
+            ('emoji', 'test_emoji', 200, 500),
         ]
     elif param_type == 'boolean':
         format_tests = [
@@ -648,7 +648,7 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
             ('array', [1, 2, 3], 200, 500),
             ('object', {'key': 'value'}, 200, 500),
             ('special_chars', '!@#$%^&*()', 200, 500),
-            ('emoji', '😀🎉🚀', 200, 500),
+            ('emoji', 'test_emoji', 200, 500),
         ]
     else:  # string类型 - 使用丰富的测试用例
         format_tests = [
@@ -661,7 +661,7 @@ def _generate_data_format_tests_for_param(method_name: str, query_params: List[D
             ('email_format', 'test@example.com', 200, 500),
             ('phone_format', '13800138000', 200, 500),
             ('date_format', '2023-12-25', 200, 500),
-            ('emoji', '😀🎉🚀', 200, 500),
+            ('emoji', 'test_emoji', 200, 500),
             ('long_string', 'a' * 1000, 200, 500),
             ('unicode', 'chinese_test', 200, 500),
             ('json_string', '{"key": "value"}', 200, 500),

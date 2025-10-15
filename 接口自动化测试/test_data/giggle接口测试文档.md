@@ -2,7 +2,7 @@
 
 ## 1. 版本概述
 
-**对比版本**: develop vs release/1.20.0  
+**版本号**: develop vs release/1.20.0  
 **发布日期**: 2025年1月  
 **测试环境**: [待填写]  
 **生产环境**: [待填写]  
@@ -18,23 +18,23 @@
 ### 1.2 数据库变更
 - 新增 `donate_expend` 表：支出记录管理
 - 修改 `books_multilingual` 表：增加首页语音字段
-- 修改相关表结构以支持A/B测试功能
+- 相关表结构优化以支持A/B测试功能
 
 ## 2. 新增接口测试
 
-### 2.1 扭蛋活动系统-获取活动列表
+### 2.1 扭蛋活动相关接口 (GachaActivityController)
+
+#### 2.1.1 获取扭蛋活动列表
 **接口地址**: `GET /activity/gacha/list`  
 **接口描述**: 获取当前正在进行的扭蛋活动  
 **请求方式**: GET  
 **是否需要认证**: 否 (@PublicApi)  
 **控制器**: GachaActivityController.getActivityList()  
 
-**变更点**: 新增接口
-
 **请求参数**:
-| 参数名 | 类型 | 必填 | 说明 | 示例 |
-|--------|------|------|------|------|
-| language | String | 否 | 语言代码 | "zh" |
+| 参数名 | 类型 | 必填 | 验证规则 | 说明 | 示例 |
+|--------|------|------|----------|------|------|
+| language | String | 否 | - | 语言代码 | "zh" |
 
 **响应示例**:
 ```json
@@ -64,22 +64,22 @@
 
 ---
 
-### 2.2 捐赠订单系统-更新支出记录备注
+### 2.2 捐赠订单相关接口 (DonateOrderController)
+
+#### 2.2.1 更新支出记录备注
 **接口地址**: `POST /expend/update-remark`  
 **接口描述**: 更新支出记录的备注、详情URL和分类  
 **请求方式**: POST  
 **是否需要认证**: 否 (@PublicApi)  
 **控制器**: DonateOrderController.updateExpendRemark()  
 
-**变更点**: 新增接口
-
 **请求参数**:
-| 参数名 | 类型 | 必填 | 说明 | 示例 |
-|--------|------|------|------|------|
-| transactionId | String | 是 | 交易ID | "tx_123456789" |
-| remark | String | 否 | 备注信息 | "购买服务器" |
-| detailUrl | String | 否 | 详情URL | "https://example.com/detail" |
-| category | String | 否 | 分类 | "infrastructure" |
+| 参数名 | 类型 | 必填 | 验证规则 | 说明 | 示例 |
+|--------|------|------|----------|------|------|
+| transactionId | String | 是 | @NotBlank | 交易ID | "tx_123456789" |
+| remark | String | 否 | - | 备注信息 | "购买服务器" |
+| detailUrl | String | 否 | - | 详情URL | "https://example.com/detail" |
+| category | String | 否 | - | 分类 | "infrastructure" |
 
 **响应示例**:
 ```json
@@ -102,24 +102,22 @@
 
 ---
 
-### 2.3 捐赠订单系统-分页查询支出记录列表
+#### 2.2.2 分页查询支出记录列表
 **接口地址**: `GET /expend/list`  
 **接口描述**: 分页查询支出记录列表  
 **请求方式**: GET  
 **是否需要认证**: 否 (@PublicApi)  
 **控制器**: DonateOrderController.getExpendList()  
 
-**变更点**: 新增接口
-
 **请求参数**:
-| 参数名 | 类型 | 必填 | 说明 | 示例 |
-|--------|------|------|------|------|
-| page | Int | 否 | 页码，默认0 | 0 |
-| size | Int | 否 | 每页数量，默认10 | 10 |
-| keyword | String | 否 | 搜索关键词 | "服务器" |
-| category | String | 否 | 分类筛选 | "infrastructure" |
-| startDate | String | 否 | 开始日期 | "2025-01-01" |
-| endDate | String | 否 | 结束日期 | "2025-01-31" |
+| 参数名 | 类型 | 必填 | 验证规则 | 说明 | 示例 |
+|--------|------|------|----------|------|------|
+| page | Int | 否 | @Min(0) | 页码，默认0 | 0 |
+| size | Int | 否 | @Min(1) @Max(100) | 每页数量，默认10 | 10 |
+| keyword | String | 否 | - | 搜索关键词 | "服务器" |
+| category | String | 否 | - | 分类筛选 | "infrastructure" |
+| startDate | String | 否 | - | 开始日期 | "2025-01-01" |
+| endDate | String | 否 | - | 结束日期 | "2025-01-31" |
 
 **响应示例**:
 ```json
@@ -157,20 +155,20 @@
 
 ---
 
-### 2.4 学校管理系统-更新班级学生默认分组
-**接口地址**: `PUT /class/{classId}/groups`  
+### 2.3 学校管理相关接口 (SchoolController)
+
+#### 2.3.1 更新班级学生默认分组
+**接口地址**: `PUT /school/class/{classId}/groups`  
 **接口描述**: 更新班级学生默认分组  
 **请求方式**: PUT  
 **是否需要认证**: 是  
 **控制器**: SchoolController.updateClassStudentGroups()  
 
-**变更点**: 新增接口
-
 **请求参数**:
-| 参数名 | 类型 | 必填 | 说明 | 示例 |
-|--------|------|------|------|------|
-| classId | Long | 是 | 班级ID | 123 |
-| groups | List<SchoolClassStudentGroupReq> | 是 | 分组信息 | [{"name":"组1","studentIds":[1,2,3]}] |
+| 参数名 | 类型 | 必填 | 验证规则 | 说明 | 示例 |
+|--------|------|------|----------|------|------|
+| classId | Long | 是 | @Min(1) | 班级ID | 123 |
+| groups | List<SchoolClassStudentGroupReq> | 是 | @NotEmpty | 分组信息 | [{"name":"组1","studentIds":[1,2,3]}] |
 
 **响应示例**:
 ```json
@@ -193,21 +191,19 @@
 
 ---
 
-### 2.5 学校管理系统-课程资源列表
+#### 2.3.2 Normal课程资源列表
 **接口地址**: `GET /lesson/resource/normalCourse`  
 **接口描述**: Normal课程资源列表  
 **请求方式**: GET  
 **是否需要认证**: 是  
 **控制器**: SchoolController.normalCourseList()  
 
-**变更点**: 新增接口
-
 **请求参数**:
-| 参数名 | 类型 | 必填 | 说明 | 示例 |
-|--------|------|------|------|------|
-| page | Int | 否 | 页码，默认0 | 0 |
-| size | Int | 否 | 每页数量，默认10 | 10 |
-| keyword | String | 否 | 搜索关键词 | "数学" |
+| 参数名 | 类型 | 必填 | 验证规则 | 说明 | 示例 |
+|--------|------|------|----------|------|------|
+| page | Int | 否 | @Min(0) | 页码，默认0 | 0 |
+| size | Int | 否 | @Min(1) @Max(100) | 每页数量，默认10 | 10 |
+| keyword | String | 否 | - | 搜索关键词 | "数学" |
 
 **响应示例**:
 ```json
@@ -241,21 +237,19 @@
 
 ---
 
-### 2.6 学校管理系统-测验列表
+#### 2.3.3 测验列表
 **接口地址**: `GET /lesson/resource/quiz`  
 **接口描述**: 测验列表  
 **请求方式**: GET  
 **是否需要认证**: 是  
 **控制器**: SchoolController.quizList()  
 
-**变更点**: 新增接口
-
 **请求参数**:
-| 参数名 | 类型 | 必填 | 说明 | 示例 |
-|--------|------|------|------|------|
-| page | Int | 否 | 页码，默认0 | 0 |
-| size | Int | 否 | 每页数量，默认10 | 10 |
-| keyword | String | 否 | 搜索关键词 | "英语" |
+| 参数名 | 类型 | 必填 | 验证规则 | 说明 | 示例 |
+|--------|------|------|----------|------|------|
+| page | Int | 否 | @Min(0) | 页码，默认0 | 0 |
+| size | Int | 否 | @Min(1) @Max(100) | 每页数量，默认10 | 10 |
+| keyword | String | 否 | - | 搜索关键词 | "英语" |
 
 **响应示例**:
 ```json
@@ -289,21 +283,21 @@
 
 ---
 
-### 2.7 故事书管理-上传首页语音
+### 2.4 故事书管理相关接口 (BookController)
+
+#### 2.4.1 上传故事书首页语音
 **接口地址**: `POST /book/{bookId}/indexAudio/{language}`  
 **接口描述**: 上传并保存故事书首页语音  
 **请求方式**: POST  
 **是否需要认证**: 是  
 **控制器**: BookController.uploadBookIndexAudio()  
 
-**变更点**: 新增接口
-
 **请求参数**:
-| 参数名 | 类型 | 必填 | 说明 | 示例 |
-|--------|------|------|------|------|
-| bookId | Long | 是 | 故事书ID | 123 |
-| language | String | 是 | 语言代码 | "zh" |
-| audioFile | MultipartFile | 是 | 音频文件 | audio.mp3 |
+| 参数名 | 类型 | 必填 | 验证规则 | 说明 | 示例 |
+|--------|------|------|----------|------|------|
+| bookId | Long | 是 | @Min(1) | 故事书ID | 123 |
+| language | String | 是 | @NotBlank | 语言代码 | "zh" |
+| audioFile | MultipartFile | 是 | @NotNull | 音频文件 | audio.mp3 |
 
 **响应示例**:
 ```json
@@ -327,20 +321,18 @@
 
 ---
 
-### 2.8 故事书管理-查询首页语音
+#### 2.4.2 查询故事书首页语音
 **接口地址**: `GET /book/{bookId}/indexAudio/{language}`  
 **接口描述**: 查询故事书首页语音  
 **请求方式**: GET  
 **是否需要认证**: 否 (@PublicApi)  
 **控制器**: BookController.getBookIndexAudio()  
 
-**变更点**: 新增接口
-
 **请求参数**:
-| 参数名 | 类型 | 必填 | 说明 | 示例 |
-|--------|------|------|------|------|
-| bookId | Long | 是 | 故事书ID | 123 |
-| language | String | 是 | 语言代码 | "zh" |
+| 参数名 | 类型 | 必填 | 验证规则 | 说明 | 示例 |
+|--------|------|------|----------|------|------|
+| bookId | Long | 是 | @Min(1) | 故事书ID | 123 |
+| language | String | 是 | @NotBlank | 语言代码 | "zh" |
 
 **响应示例**:
 ```json
@@ -363,20 +355,18 @@
 
 ---
 
-### 2.9 故事书Quiz管理-生成Quiz
+#### 2.4.3 生成故事书的quiz
 **接口地址**: `POST /book/{bookId}/quiz/generate`  
 **接口描述**: 生成故事书的quiz  
 **请求方式**: POST  
 **是否需要认证**: 是  
 **控制器**: BookController.generateBookQuiz()  
 
-**变更点**: 新增接口
-
 **请求参数**:
-| 参数名 | 类型 | 必填 | 说明 | 示例 |
-|--------|------|------|------|------|
-| bookId | Long | 是 | 故事书ID | 123 |
-| content | String | 是 | 故事内容 | "从前有一个..." |
+| 参数名 | 类型 | 必填 | 验证规则 | 说明 | 示例 |
+|--------|------|------|----------|------|------|
+| bookId | Long | 是 | @Min(1) | 故事书ID | 123 |
+| content | String | 是 | @NotBlank | 故事内容 | "从前有一个..." |
 
 **响应示例**:
 ```json
@@ -408,20 +398,18 @@
 
 ---
 
-### 2.10 故事书Quiz管理-异步生成Quiz
+#### 2.4.4 异步生成故事书的quiz
 **接口地址**: `POST /book/{bookId}/quiz/generateAsync`  
 **接口描述**: 异步生成故事书的quiz  
 **请求方式**: POST  
 **是否需要认证**: 是  
 **控制器**: BookController.generateStoryQuizAsync()  
 
-**变更点**: 新增接口
-
 **请求参数**:
-| 参数名 | 类型 | 必填 | 说明 | 示例 |
-|--------|------|------|------|------|
-| bookId | Long | 是 | 故事书ID | 123 |
-| content | String | 是 | 故事内容 | "从前有一个..." |
+| 参数名 | 类型 | 必填 | 验证规则 | 说明 | 示例 |
+|--------|------|------|----------|------|------|
+| bookId | Long | 是 | @Min(1) | 故事书ID | 123 |
+| content | String | 是 | @NotBlank | 故事内容 | "从前有一个..." |
 
 **响应示例**:
 ```json
@@ -443,20 +431,18 @@
 
 ---
 
-### 2.11 故事书Quiz管理-查询生成状态
+#### 2.4.5 查询故事quiz生成任务状态
 **接口地址**: `GET /book/{bookId}/quiz/{taskId}/status`  
 **接口描述**: 查询故事quiz生成任务状态  
 **请求方式**: GET  
 **是否需要认证**: 是  
 **控制器**: BookController.getStoryQuizTaskStatus()  
 
-**变更点**: 新增接口
-
 **请求参数**:
-| 参数名 | 类型 | 必填 | 说明 | 示例 |
-|--------|------|------|------|------|
-| bookId | Long | 是 | 故事书ID | 123 |
-| taskId | String | 是 | 任务ID | "task_abc123def456" |
+| 参数名 | 类型 | 必填 | 验证规则 | 说明 | 示例 |
+|--------|------|------|----------|------|------|
+| bookId | Long | 是 | @Min(1) | 故事书ID | 123 |
+| taskId | String | 是 | @NotBlank | 任务ID | "task_abc123def456" |
 
 **响应示例**:
 ```json
@@ -482,20 +468,18 @@
 
 ---
 
-### 2.12 故事书Quiz管理-保存Quiz
+#### 2.4.6 保存故事书的quiz
 **接口地址**: `POST /book/{bookId}/quiz`  
 **接口描述**: 保存故事书的quiz  
 **请求方式**: POST  
 **是否需要认证**: 是  
 **控制器**: BookController.saveBookQuiz()  
 
-**变更点**: 新增接口
-
 **请求参数**:
-| 参数名 | 类型 | 必填 | 说明 | 示例 |
-|--------|------|------|------|------|
-| bookId | Long | 是 | 故事书ID | 123 |
-| content | String | 是 | 测验内容 | "{\"questions\":[...]}" |
+| 参数名 | 类型 | 必填 | 验证规则 | 说明 | 示例 |
+|--------|------|------|----------|------|------|
+| bookId | Long | 是 | @Min(1) | 故事书ID | 123 |
+| content | String | 是 | @NotBlank | 测验内容 | "{\"questions\":[...]}" |
 
 **响应示例**:
 ```json
@@ -518,19 +502,17 @@
 
 ---
 
-### 2.13 故事书Quiz管理-查询Quiz
+#### 2.4.7 查询故事书的quiz
 **接口地址**: `GET /book/{bookId}/quiz`  
 **接口描述**: 查询故事书的quiz  
 **请求方式**: GET  
 **是否需要认证**: 否 (@PublicApi)  
 **控制器**: BookController.getBookQuiz()  
 
-**变更点**: 新增接口
-
 **请求参数**:
-| 参数名 | 类型 | 必填 | 说明 | 示例 |
-|--------|------|------|------|------|
-| bookId | Long | 是 | 故事书ID | 123 |
+| 参数名 | 类型 | 必填 | 验证规则 | 说明 | 示例 |
+|--------|------|------|----------|------|------|
+| bookId | Long | 是 | @Min(1) | 故事书ID | 123 |
 
 **响应示例**:
 ```json
@@ -561,19 +543,17 @@
 
 ---
 
-### 2.14 故事书Quiz管理-上传图片
+#### 2.4.8 上传故事书quiz图片
 **接口地址**: `POST /book/quiz/uploadImageBase64`  
 **接口描述**: 上传故事书quiz图片，图片格式为base64  
 **请求方式**: POST  
 **是否需要认证**: 是  
 **控制器**: BookController.uploadImageBase64()  
 
-**变更点**: 新增接口
-
 **请求参数**:
-| 参数名 | 类型 | 必填 | 说明 | 示例 |
-|--------|------|------|------|------|
-| imageBase64 | String | 是 | base64格式的图片数据 | "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..." |
+| 参数名 | 类型 | 必填 | 验证规则 | 说明 | 示例 |
+|--------|------|------|----------|------|------|
+| imageBase64 | String | 是 | @NotBlank | base64格式的图片数据 | "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..." |
 
 **响应示例**:
 ```json
@@ -598,28 +578,28 @@
 
 ## 3. 修改接口测试
 
-### 3.1 书籍推荐-体验课与故事书
+### 3.1 书籍推荐相关接口 (BookController)
+
+#### 3.1.1 推荐体验课与故事书
 **接口地址**: `GET /book/recommend/bookAndCourse`  
 **接口描述**: 推荐体验课与故事书，新增A/B测试支持  
 **请求方式**: GET  
 **是否需要认证**: 否 (@PublicApi)  
 **控制器**: BookController.recommendBookAndCourse()  
 
-**变更点**: 新增 `abTest` 参数
-
 **请求参数（新增/变更）**:
-| 参数名 | 类型 | 必填 | 默认值 | 说明 | 示例 |
-|--------|------|------|--------|------|------|
-| abTest | Boolean | 否 | false | A/B测试标识 | true |
+| 参数名 | 类型 | 必填 | 验证规则 | 默认值 | 说明 | 示例 |
+|--------|------|------|----------|--------|------|------|
+| abTest | Boolean | 否 | - | false | A/B测试标识 | true |
 
 **原有参数保持不变**:
-| 参数名 | 类型 | 必填 | 默认值 | 说明 | 示例 |
-|--------|------|------|--------|------|------|
-| courseNum | Int | 否 | 3 | 课程数量 | 3 |
-| englishLevel | Int | 否 | -1 | 英语等级 | 1 |
-| learningPurposes | String | 否 | "" | 学习目的 | "1,3" |
-| age | Int | 否 | null | 年龄 | 8 |
-| translateLanguage | String | 否 | null | 翻译语言 | "zh" |
+| 参数名 | 类型 | 必填 | 验证规则 | 默认值 | 说明 | 示例 |
+|--------|------|------|----------|--------|------|------|
+| courseNum | Int | 否 | @Min(1) @Max(10) | 3 | 课程数量 | 3 |
+| englishLevel | Int | 否 | @Min(-1) @Max(10) | -1 | 英语等级 | 1 |
+| learningPurposes | String | 否 | - | "" | 学习目的 | "1,3" |
+| age | Int | 否 | @Min(0) @Max(100) | null | 年龄 | 8 |
+| translateLanguage | String | 否 | - | null | 翻译语言 | "zh" |
 
 **测试用例**:
 | 用例ID | 测试场景 | 预期结果 | 优先级 |
@@ -631,19 +611,19 @@
 
 ---
 
-### 3.2 后台-获取体验课推荐规则
+### 3.2 管理后台相关接口 (AdminController)
+
+#### 3.2.1 获取体验课推荐规则
 **接口地址**: `GET /course/recommend/spelRules`  
 **接口描述**: 获取体验课程推荐SpEL表达式规则，新增A/B测试支持  
 **请求方式**: GET  
 **是否需要认证**: 是 (@AdminApi)  
 **控制器**: AdminController.getCourseRecommendSpelRules()  
 
-**变更点**: 新增 `abTest` 参数
-
 **请求参数（新增/变更）**:
-| 参数名 | 类型 | 必填 | 默认值 | 说明 | 示例 |
-|--------|------|------|--------|------|------|
-| abTest | Boolean | 否 | false | A/B测试标识 | true |
+| 参数名 | 类型 | 必填 | 验证规则 | 默认值 | 说明 | 示例 |
+|--------|------|------|----------|--------|------|------|
+| abTest | Boolean | 否 | - | false | A/B测试标识 | true |
 
 **测试用例**:
 | 用例ID | 测试场景 | 预期结果 | 优先级 |
@@ -653,24 +633,22 @@
 
 ---
 
-### 3.3 后台-设置体验课推荐规则
+#### 3.2.2 设置体验课推荐规则
 **接口地址**: `POST /course/recommend/spelRules`  
 **接口描述**: 设置体验课程推荐SpEL表达式规则，新增A/B测试支持  
 **请求方式**: POST  
 **是否需要认证**: 是 (@AdminApi)  
 **控制器**: AdminController.updateCourseRecommendSpelRules()  
 
-**变更点**: 新增 `abTest` 参数
-
 **请求参数（新增/变更）**:
-| 参数名 | 类型 | 必填 | 默认值 | 说明 | 示例 |
-|--------|------|------|--------|------|------|
-| abTest | Boolean | 否 | false | A/B测试标识 | true |
+| 参数名 | 类型 | 必填 | 验证规则 | 默认值 | 说明 | 示例 |
+|--------|------|------|----------|--------|------|------|
+| abTest | Boolean | 否 | - | false | A/B测试标识 | true |
 
 **原有参数保持不变**:
-| 参数名 | 类型 | 必填 | 说明 | 示例 |
-|--------|------|------|------|------|
-| rules | CourseRecommendRulesReq | 是 | 推荐规则 | {...} |
+| 参数名 | 类型 | 必填 | 验证规则 | 说明 | 示例 |
+|--------|------|------|----------|------|------|
+| rules | CourseRecommendRulesReq | 是 | @NotNull | 推荐规则 | {...} |
 
 **测试用例**:
 | 用例ID | 测试场景 | 预期结果 | 优先级 |
@@ -913,4 +891,4 @@
 
 **文档版本**: v1.0  
 **最后更新**: 2025年1月  
-**文档状态**: 待审核  
+**文档状态**: 待审核

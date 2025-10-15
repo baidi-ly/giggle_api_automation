@@ -1,10 +1,15 @@
 {
-  "apis": [],
-  "update_apis": [],
-  "scan_time": "2025-10-15 10:06:57.801799",
-  "total_count": 0,
-  "original_count": 0,
-  "duplicates_removed": 0,
-  "update_count": 0,
-  "other_count": 0
+  "apis": [
+    "/api/school/class/{classId}/groups"
+  ],
+  "update_apis": [
+    "/api/book/recommend/bookAndCourse",
+    "/api/course/recommend/spelRules"
+  ],
+  "scan_time": "2025-10-15 10:25:13.716258",
+  "total_count": 12,
+  "original_count": 14,
+  "duplicates_removed": 2,
+  "update_count": 2,
+  "other_count": 10
 }
