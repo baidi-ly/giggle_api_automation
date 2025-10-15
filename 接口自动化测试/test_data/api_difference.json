@@ -1,6 +1,6 @@
 {
   "apis": [
-    "/api/school/class/{classId}/groups"
+    "/api/school/lesson/resource/normalCourse"
   ],
   "update_apis": [
     "/api/book/recommend/bookAndCourse",

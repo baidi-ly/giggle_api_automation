@@ -411,33 +411,6 @@ class SchoolApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def getNormalcourse(self, authorization, keyword='', page=0, size=10, DeviceType="web", code=200, **kwargs):
-        """
-        Normal课程资源列表
-        :param keyword: (string, query, optional) keyword
-        :param page: (integer, query, optional) page
-        :param size: (integer, query, optional) size
-        :return: 接口原始返回（已 json 解析）
-        """
-        # Create Data:  V1.19.0  &  2025-10-06
-        url = f"https://{base_url}/api/school/lesson/resource/normalCourse"
-        payload = {
-            "keyword": keyword,
-            "page": page,
-            "size": size
-        }
-        timestamp = str(int(time.time() * 1000))
-        headers = self.request_header(timestamp, authorization, DeviceType)
-
-        response = requests.request("GET", url, headers=headers, params=payload)
-        error_msg = "Normal课程资源列表"
-        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        try:
-            response = response.json()
-            return response
-        except json.decoder.JSONDecodeError:
-            return False
-
     def getQuiz(self, authorization, keyword='', page=0, size=10, DeviceType="web", code=200, **kwargs):
         """
         测验列表
@@ -580,6 +553,33 @@ class SchoolApi(BaseAPI):
 
         response = requests.request("PUT", url, headers=headers, json=payload)
         error_msg = "更新班级学生默认分组"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def getNormalcourse(self, authorization, keyword='', page=0, size=10, DeviceType="web", code=200, **kwargs):
+        """
+        Normal课程资源列表
+        :param keyword: (string, query, optional) keyword
+        :param page: (integer, query, optional) page
+        :param size: (integer, query, optional) size
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-15
+        url = f"https://{base_url}/api/school/lesson/resource/normalCourse"
+        payload = {
+            "keyword": keyword,
+            "page": page,
+            "size": size
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "Normal课程资源列表"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()
