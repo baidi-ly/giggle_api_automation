@@ -1431,9 +1431,10 @@ class TestBook:
     @pytest.mark.release
     def test_book_positive_uploadimagebase64_ok(self):
         """上传故事书quiz图片，图片格式为base64-正向用例"""
-        file = {
-            'imageBase64': ("upload_test.txt", open(os.getcwd() + f'/test_data/upload_test.txt', 'rb'))
-        }
+        # file = {
+        #     'imageBase64': ("upload_test.txt", open(os.getcwd() + f'/test_data/upload_test.txt', 'rb'))
+        # }
+        file = {'imageBase64': open(os.getcwd()+'/test_data/upload_img.png', 'rb'),'name': 'upload_img.png'}
         res = self.book.uploadimagebase64(self.authorization, file=file)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
