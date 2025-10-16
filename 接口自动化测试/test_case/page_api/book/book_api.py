@@ -734,7 +734,10 @@ class BookApi(BaseAPI):
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
-        response = requests.request("POST", url, headers=headers, json=payload)
+        try:
+            response = requests.request("POST", url, headers=headers, json=payload)
+        except:
+            return "call_error"
         error_msg = "保存故事书的quiz"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
