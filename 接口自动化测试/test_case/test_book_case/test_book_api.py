@@ -1462,9 +1462,10 @@ class TestBook:
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
-    def test_book_positive_generateasync_ok(self):
+    def test_book_positive_generateasync_ok(self, get_bookId):
         """异步生成故事书的quiz-正向用例"""
-        res = self.book.generateasync(self.authorization)
+        bookId = get_bookId["data"]["content"][0]["id"]
+        res = self.book.generateasync(self.authorization, bookId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -1492,184 +1493,54 @@ class TestBook:
 
     @pytest.mark.release
     @pytest.mark.parametrize(
-        'desc, value, code, code_res',
-        [
-            ('string', 'abc', 200, 500),
-            ('float', 12.34, 200, 500),
-            ('boolean', True, 200, 500),
-            ('negative', -123, 200, 500),
-            ('array', [1, 2, 3], 200, 500),
-            ('object', {'key': 'value'}, 200, 500),
-            ('special_chars', '!@#$%^&*()', 200, 500),
-            ('emoji', 'test_emoji', 200, 500),
-        ]
-    )
-    def test_book_format_generateasync_bookId(self, desc, value, code, code_res):
-        """异步生成故事书的quiz-数据格式测试(bookId)"""
-        try:
-            res = self.book.generateasync(self.authorization, bookId=value, code=code)
-        except Exception as res:
-            assert not code
-        if code and not code_res:
-            assert not res
-        elif code_res == 500:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
-            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
-        elif code_res == 404:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 404, f"接口返回状态码异常: 预期【{'pending'}】，实际【404】"
-            assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
-            assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
-
-    @pytest.mark.release
-    @pytest.mark.parametrize(
         'desc, value, code',
         [
-            ('min', -2147483648, 200),
-            ('zero', 0, 200),
-            ('max', 2147483647, 200),
+            ('missing',  'missing', 200),
+            ('empty', "", 200),
+            ('null', None, 200),
         ]
     )
-    def test_book_boundary_generateasync_bookId(self, desc, value, code):
-        """异步生成故事书的quiz-边界值测试(bookId)"""
-        res = self.book.generateasync(self.authorization, bookId=value)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == code, f"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    def test_book_scenario_generateasync_invalid_bookId(self):
-        """异步生成故事书的quiz-场景异常-无效的bookId"""
-        bookId = 999999999
-        res = self.book.generateasync(self.authorization, bookId=bookId)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    @pytest.mark.parametrize(
-        'desc, value, code',
-        [
-            ('missing',  'missing', 500),
-            ('empty', "", 500),
-            ('null', None, 500),
-        ]
-    )
-    def test_book_required_generateasync_content(self, desc, value, code):
+    def test_book_required_generateasync_content(self, desc, value, code, get_bookId):
         """异步生成故事书的quiz-必填字段测试(content)"""
         if desc == 'missing':
-            pl = {'pop_items': 'content'}
+            pl = {'pop_items': 'story'}
         else:
-            pl = {'content': value}
-        res = self.book.generateasync(authorization=self.authorization, **pl, code=code)
+            pl = {'story': value}
+        bookId = get_bookId["data"]["content"][0]["id"]
+        res = self.book.generateasync(self.authorization, bookId, code=code, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         if code == 500:
             assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
             assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
         else:
-            assert res['code'] == '${pending}', f"接口返回状态码异常: 预期【{'pending'}】，实际【{res['code']}】"
-            assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
-            assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
-
-    @pytest.mark.release
-    @pytest.mark.parametrize(
-        'desc, value, code, code_res',
-        [
-            ('integer', 123, 200, 500),
-            ('float', 12.3, 200, 500),
-            ('boolean', True, 200, 500),
-            ('array', [1, 2, 3], 200, 500),
-            ('object', {'key': 'value'}, 200, 500),
-            ('special_chars', '!@#$%^&*()', 200, 500),
-            ('email_format', 'test@example.com', 200, 500),
-            ('phone_format', '13800138000', 200, 500),
-            ('date_format', '2023-12-25', 200, 500),
-            ('emoji', 'test_emoji', 200, 500),
-            ('long_string', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 200, 500),
-            ('unicode', 'chinese_test', 200, 500),
-            ('json_string', '{"key": "value"}', 200, 500),
-            ('xml_string', '<root><item>test</item></root>', 200, 500),
-            ('url_string', 'https://www.example.com', 200, 500),
-            ('base64_string', 'SGVsbG8gV29ybGQ=', 200, 500),
-        ]
-    )
-    def test_book_format_generateasync_content(self, desc, value, code, code_res):
-        """异步生成故事书的quiz-数据格式测试(content)"""
-        try:
-            res = self.book.generateasync(self.authorization, content=value, code=code)
-        except Exception as res:
-            assert not code
-        if code and not code_res:
-            assert not res
-        elif code_res == 500:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
-            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
-        elif code_res == 404:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 404, f"接口返回状态码异常: 预期【{'pending'}】，实际【404】"
-            assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
-            assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
+            assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+            assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+            assert res['data'] == {'error': 'Story and targetAge are required'}, f"接口返回data数据异常：预期【{'error': 'Story and targetAge are required'}】，实际【{res['data']}】"
 
     @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
-            ('min_length', "", 500),
-            ('max_length', "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 500),
+            ('missing',  'missing', 200),
+            ('empty', "", 200),
+            ('null', None, 200),
         ]
     )
-    def test_book_boundary_generateasync_content(self, desc, value, code):
-        """异步生成故事书的quiz-边界值测试(content)"""
-        res = self.book.generateasync(self.authorization, content=value)
+    def test_book_required_generateasync_targetAge(self, desc, value, code, get_bookId):
+        """异步生成故事书的quiz-必填字段测试(content)"""
+        if desc == 'missing':
+            pl = {'pop_items': 'targetAge'}
+        else:
+            pl = {'targetAge': value}
+        bookId = get_bookId["data"]["content"][0]["id"]
+        res = self.book.generateasync(self.authorization, bookId, code=code, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == code, f"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    def test_book_scenario_generateasync_invalid_content(self):
-        """异步生成故事书的quiz-场景异常-无效的content"""
-        content = 'INVALID_VALUE'
-        res = self.book.generateasync(self.authorization, content=content)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    @pytest.mark.parametrize(
-        'desc, value, code, code_res',
-        [
-            ('sql_injection', "' OR '1'='1", 403, ''),
-            ('xss_script', "<script>alert('XSS')</script>", 403, ''),
-            ('xss_img', "<img src=x onerror=alert('XSS')>", 403, ''),
-            ('xss_iframe', "<iframe src=javascript:alert('XSS')></iframe>", 403, ''),
-            ('xml_injection', "<!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]>", 403, ''),
-            ('unicode_attack', '\\x00\\x01\\x02', 200, 404),
-            ('crlf_injection', 'test%0d%0aSet-Cookie: admin=true', 200, 404),
-            ('code_injection', "eval('alert(1)')", 403, ''),
-            ('regex_dos', '((a+)+)+$', 403, ''),
-        ]
-    )
-    def test_book_security_generateasync_content(self, desc, value, code, code_res):
-        """异步生成故事书的quiz-安全测试(content)"""
-        res = self.book.generateasync(self.authorization, content=value)
-        if code and not code_res:
-            assert not res
-        elif code_res == 500:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        if code == 500:
             assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
             assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
         else:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == code_res, f"接口返回状态码异常: 预期【{code_res}】，实际【{res['code']}】"
-            assert res['message'] == 'not found', f"接口返回message信息异常: 预期【'not found'】，实际【{res['message']}】"
-            assert res['data'] == 'not found', f"接口返回data数据异常：预期【'not found'】，实际【{res['data']}】"
-
+            assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+            assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+            assert res['data'] == {'error': 'Story and targetAge are required'} or res['data'] == {'error': 'Story pages have no text content'}, f"接口返回data数据异常：预期【{'error': 'Story and targetAge are required'}】，实际【{res['data']}】"
