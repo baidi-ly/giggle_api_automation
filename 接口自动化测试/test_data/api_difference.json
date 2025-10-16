@@ -1,6 +1,6 @@
 {
   "apis": [
-    "/api/school/lesson/resource/quiz"
+    "/api/book/{bookId}/quiz/generate"
   ],
   "update_apis": [
     "/api/book/recommend/bookAndCourse",
