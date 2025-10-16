@@ -1,6 +1,6 @@
 {
   "apis": [
-    "/api/book/quiz/uploadImageBase64"
+    "/api/book/{bookId}/quiz/generateAsync"
   ],
   "update_apis": [
     "/api/book/recommend/bookAndCourse",
