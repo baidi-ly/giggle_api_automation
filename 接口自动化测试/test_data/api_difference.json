@@ -1,6 +1,6 @@
 {
   "apis": [
-    "/api/book/{bookId}/quiz"
+    "/api/book/quiz/uploadImageBase64"
   ],
   "update_apis": [
     "/api/book/recommend/bookAndCourse",

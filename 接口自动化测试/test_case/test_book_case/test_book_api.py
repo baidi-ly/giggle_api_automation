@@ -1427,3 +1427,36 @@ class TestBook:
         bookId = get_bookId["data"]["content"][0]["id"]
         res = self.book.quiz(self.authorization, bookId, **pl)
         assert res == "call_error"
+
+    @pytest.mark.release
+    def test_book_positive_uploadimagebase64_ok(self):
+        """上传故事书quiz图片，图片格式为base64-正向用例"""
+        file = {
+            'imageBase64': ("upload_test.txt", open(os.getcwd() + f'/test_data/upload_test.txt', 'rb'))
+        }
+        res = self.book.uploadimagebase64(self.authorization, file=file)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_book_permission_uploadimagebase64(self, desc, value):
+        """上传故事书quiz图片，图片格式为base64-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.book.uploadimagebase64(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+

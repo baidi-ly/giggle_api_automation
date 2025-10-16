@@ -746,3 +746,23 @@ class BookApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def uploadimagebase64(self, authorization, file=None, DeviceType="web", code=200, **kwargs):
+        """
+        上传故事书quiz图片，图片格式为base64
+        :param file: (file, formData, optional) 上传文件
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-16
+        url = f"https://{base_url}/api/book/quiz/uploadImageBase64"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, files=file)
+        error_msg = "上传故事书quiz图片，图片格式为base64"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
