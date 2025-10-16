@@ -123,11 +123,29 @@ if __name__ == '__main__':
                             body_params_in_swagger = [p for p in swagger_parameters if p.get('in') == 'body']
 
                             if body_params_in_swagger:
-                                # 如果swagger中有body参数，删除它们
-                                logger.info(f"删除swagger中 {method.upper()} {path} 的body参数: {[p['name'] for p in body_params_in_swagger]}")
-
-                                # 删除swagger中的body参数
-                                method_info['parameters'] = [p for p in swagger_parameters if p.get('in') != 'body']
+                                # 检查swagger中的body参数类型，保留非对象类型的参数
+                                preserved_body_params = []
+                                removed_body_params = []
+                                
+                                for param in body_params_in_swagger:
+                                    # 检查参数类型
+                                    param_type = param.get('type', 'string')
+                                    schema = param.get('schema', {})
+                                    schema_type = schema.get('type', param_type)
+                                    
+                                    # 如果参数类型不是对象，则保留该参数
+                                    if schema_type != 'object':
+                                        preserved_body_params.append(param)
+                                        logger.info(f"保留swagger中非对象类型的body参数: {param['name']} (类型: {schema_type})")
+                                    else:
+                                        removed_body_params.append(param)
+                                
+                                # 删除对象类型的body参数
+                                if removed_body_params:
+                                    logger.info(f"删除swagger中对象类型的body参数: {[p['name'] for p in removed_body_params]}")
+                                
+                                # 保留非对象类型的body参数，删除对象类型的body参数
+                                method_info['parameters'] = [p for p in swagger_parameters if p.get('in') != 'body'] + preserved_body_params
 
                                 # 从Markdown中获取body参数
                                 markdown_method_info = path_info[method]

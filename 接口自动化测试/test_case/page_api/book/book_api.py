@@ -390,3 +390,28 @@ class BookApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def generate(self, authorization, bookId=0, content='test_book_content', DeviceType="web", code=200, **kwargs):
+        """
+        生成故事书的quiz
+        :param bookId: (integer, path, required) 故事书ID
+        :param content: (string, body, required) 故事内容
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-16
+        url = f"https://{base_url}/api/book/{bookId}/quiz/generate"
+        payload = {
+            "content": content
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "生成故事书的quiz"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
