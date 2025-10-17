@@ -395,35 +395,28 @@ class BaseAPI:
     def request_header(self, timestamp, authorization, DeviceType, **kwargs):
         """生成AuthToken"""
         Authtoken = self._generate_auth_token(timestamp)
+        headers = {
+            "authorization": authorization,
+            "AuthToken": Authtoken,
+            "DeviceId": DeviceId,
+            "DeviceType": DeviceType,  # android/ios/web
+            "Timestamp": timestamp
+        }
+        headers.update(kwargs)
         if authorization == 'missing':
-            headers = {
-                "AuthToken": Authtoken,
-                "DeviceId": DeviceId,
-                "DeviceType": DeviceType,    # android/ios/web
-                "Timestamp": timestamp
-            }
-            headers.update(kwargs)
-        else:
-            headers = {
-                "authorization": authorization,
-                "AuthToken": Authtoken,
-                "DeviceId": DeviceId,
-                "DeviceType": DeviceType,    # android/ios/web
-                "Timestamp": timestamp
-            }
-            headers.update(kwargs)
+            headers.pop("authorization")
         return headers
 
     def request_body(self, payload, **kwargs):
-        if kwargs.get("pop_item"):
-            pop_item = kwargs.get("pop_item")
+        if kwargs.get("pop_items"):
+            pop_item = kwargs.get("pop_items")
             if isinstance(pop_item, list):
                 for item in pop_item:
                     payload.pop(item)
                     kwargs.pop(item)
             else:
                 payload.pop(pop_item)
-                kwargs.pop("pop_item")
+                kwargs.pop("pop_items")
         payload.update(kwargs)
         return payload
 

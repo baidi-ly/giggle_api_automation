@@ -30,6 +30,7 @@
 import json
 import os
 import re
+import keyword
 from datetime import datetime
 from typing import Dict, Any, List, Tuple, Optional, Iterable
 import argparse
@@ -40,45 +41,77 @@ VersionId = RunConfig.VersionId
 SWAGGER_PATH = os.getcwd() + os.path.join(r"/test_data", "swagger", "swagger_fixed.json")
 
 
-def _generate_default_value_for_interface_param(param_type: str, example: str, required: bool) -> str:
+
+def _get_param_default_value(param: Dict[str, Any], param_type: str) -> str:
     """
-    根据 interface_info.json 中的参数信息生成默认值
-
+    获取参数的默认值，优先使用swagger中的举例值
+    
     Args:
+        param: 参数定义
         param_type: 参数类型
-        example: 示例值
-        required: 是否必填
-
+        
     Returns:
         默认值字符串
     """
-    if param_type == 'String':
-        if example:
-            return f'"{example}"'
-        elif '名称' in example or 'name' in example.lower():
-            return '"示例名称"'
-        elif '编码' in example or 'code' in example.lower():
-            return '"ACT001"'
-        elif '描述' in example or 'description' in example.lower():
-            return '"示例描述"'
+    # 1. 优先使用 x-example 字段（swagger举例值）
+    x_example = param.get("x-example")
+    if x_example is not None:
+        if param_type == "integer":
+            return str(x_example)
+        elif param_type == "boolean":
+            return str(x_example).lower()
         else:
-            return '""'
-    elif param_type in ['Long', 'Int', 'Integer']:
-        if example and example.isdigit():
-            return example
+            return f"'{x_example}'"
+    
+    # 2. 其次使用 example 字段
+    example = param.get("example")
+    if example is not None:
+        if param_type == "integer":
+            return str(example)
+        elif param_type == "boolean":
+            return str(example).lower()
         else:
-            return '1'
-    elif param_type == 'Boolean':
-        return 'True'
-    elif param_type == 'LocalDateTime':
-        return '"2024-01-01 12:00:00"'
-    elif param_type == 'MultipartFile':
-        return 'None'
+            return f"'{example}'"
+    
+    # 3. 最后使用 default 字段
+    default = param.get("default")
+    if default is not None:
+        if param_type == "integer":
+            return str(default)
+        elif param_type == "boolean":
+            return str(default).lower()
+        else:
+            return f"'{default}'" if isinstance(default, str) else "''"
+    
+    # 4. 如果没有任何默认值，根据类型返回默认值
+    if param_type == "integer":
+        return "0"
+    elif param_type == "boolean":
+        return "False"
     else:
-        return 'None'
+        return "''"
+
 
 def _camelize_from_path(path: str, http_method: str) -> str:
     """基于路径和 HTTP 方法生成方法名，如 GET /api/user/kids -> getKids"""
+    # 检查URL最后一个部分是否是参数（用{}包围）
+    path_parts = path.strip("/").split("/")
+    if path_parts and re.match(r"\{[^}]+\}", path_parts[-1]):
+        # 如果最后一个部分是参数，使用倒数第二个单词加_details
+        if len(path_parts) >= 2:
+            second_last_part = path_parts[-2]
+            # 去掉api前缀
+            if second_last_part == "api" and len(path_parts) >= 3:
+                second_last_part = path_parts[-3]
+            # 转换为驼峰命名
+            second_last_camel = re.sub(r"[^A-Za-z0-9]", "", "".join([w.capitalize() for w in second_last_part.split("-") if w]))
+            if second_last_camel:
+                return second_last_camel[0].lower() + second_last_camel[1:] + "_details"
+            else:
+                return second_last_part + "_details"
+        else:
+            return "auto_details"
+    
     # 去掉前缀与参数占位
     parts = [re.sub(r"\{[^}]+\}", "", p) for p in path.strip("/").split("/") if p and p not in ("api",)]
     if not parts:
@@ -109,6 +142,21 @@ def _camelize_from_path(path: str, http_method: str) -> str:
             name = verb + tail_camel
         else:
             name = verb + (tail_camel[0].upper() + tail_camel[1:] if tail_camel else "Auto")
+    
+    # 检查是否与Python关键字冲突
+    if keyword.iskeyword(name):
+        # 如果方法名与Python关键字冲突，使用倒数第二个单词作为前缀
+        if len(parts) >= 2:
+            prefix = parts[-2]  # 倒数第二个单词
+            prefix_camel = re.sub(r"[^A-Za-z0-9]", "", "".join([w.capitalize() for w in prefix.split("-") if w]))
+            if prefix_camel:
+                name = prefix_camel[0].lower() + prefix_camel[1:] + "_" + name
+            else:
+                name = prefix + "_" + name
+        else:
+            # 如果没有倒数第二个单词，添加默认前缀
+            name = "api_" + name
+    
     return name
 
 
@@ -124,28 +172,8 @@ def _build_method_block(
     form_params: Optional[List[Dict[str, Any]]] = None,
 ) -> str:
     """构建符合用户模板的方法代码块（缩进与现有文件一致，4空格）"""
-
-
-
     summary_text = summary or path
     today = datetime.now().strftime("%Y-%m-%d")
-
-    # 加载接口信息
-    interface_info = load_interface_info()
-
-    # 生成接口唯一标识
-    interface_key = f"{http_method.upper()}__{path.replace('/api/', '').replace('/', '_').replace('{', '').replace('}', '').lstrip('_')}"
-
-    # �� 新增：从 interface_info.json 中提取 body 参数
-    interface_body_params = {}
-    if interface_info and interface_key in interface_info.get('interfaces', {}):
-        interface_data = interface_info['interfaces'][interface_key]
-        all_parameters = interface_data.get('all_parameters', {})
-
-        # 筛选 location 为 body 的参数
-        for param_name, param_info in all_parameters.items():
-            if param_info.get('location') == 'body':
-                interface_body_params[param_name] = param_info
     
     # 构建方法参数
     method_params = ["self", "authorization"]
@@ -156,53 +184,108 @@ def _build_method_block(
             pname = param.get("name", "")
             ptype = (param.get("type") or "string").lower()
             prequired = bool(param.get("required", False))
-            pdefault = param.get("default")
-            if ptype == "integer":
-                default_value = str(pdefault) if isinstance(pdefault, int) else "0"
-            elif ptype == "boolean":
-                default_value = (str(pdefault).lower() if isinstance(pdefault, bool) else "False")
-            else:
-                default_value = f"'{pdefault}'" if isinstance(pdefault, str) and pdefault is not None else "''"
+            
+            # 使用新的辅助函数获取默认值，优先使用swagger举例值
+            default_value = _get_param_default_value(param, ptype)
             method_params.append(f"{pname}={default_value}")
     
-    # 添加 body 参数到方法签名
-    # 🔥 修改：优先使用 interface_info.json 中的 body 参数
-    if interface_body_params:
-        for param_name, param_info in interface_body_params.items():
-            param_type = param_info.get('type', 'String')
-            param_required = param_info.get('required', False)
-            param_example = param_info.get('example', '')
-
-            # 根据参数类型和是否必填设置默认值
-            default_value = _generate_default_value_for_interface_param(param_type, param_example, param_required)
-            method_params.append(f"{param_name}={default_value}")
-    elif body_params:
-        # 如果没有 interface_info.json 信息，使用 swagger 信息
+    # 检查body参数是否有示例数据
+    has_body_examples = False
+    if body_params:
+        for param in body_params:
+            # 检查schema中的example或x-example
+            if 'schema' in param and ('example' in param['schema'] or 'x-example' in param['schema']):
+                has_body_examples = True
+                break
+    
+    # 只有当body参数没有示例数据时，才添加到方法签名中
+    if body_params and not has_body_examples:
         for param in body_params:
             param_name = param.get("name", "")
             param_type = param.get("type", "string")
             param_required = param.get("required", False)
-            param_default = param.get("default", "")
             
-            # 根据参数类型和是否必填设置默认值
-            if param_required:
-                if param_type == "string":
-                    default_value = f"'{param_default}'" if param_default else "''"
-                elif param_type == "integer":
-                    default_value = param_default if param_default else "0"
-                elif param_type == "boolean":
-                    default_value = str(param_default).lower() if param_default is not None else "False"
+            # 对于body参数，优先检查schema中的举例值
+            schema = param.get("schema", {})
+            if schema:
+                # 检查schema中的x-example
+                x_example = schema.get("x-example")
+                if x_example is not None:
+                    if param_type == "integer":
+                        default_value = str(x_example)
+                    elif param_type == "boolean":
+                        default_value = str(x_example).lower()
+                    elif param_type == "object":
+                        import json
+                        default_value = json.dumps(x_example, ensure_ascii=False)
+                    else:
+                        default_value = f"'{x_example}'"
+                # 检查schema中的example
+                elif "example" in schema:
+                    example = schema["example"]
+                    if param_type == "integer":
+                        default_value = str(example)
+                    elif param_type == "boolean":
+                        default_value = str(example).lower()
+                    elif param_type == "object":
+                        import json
+                        default_value = json.dumps(example, ensure_ascii=False)
+                    else:
+                        default_value = f"'{example}'"
                 else:
-                    default_value = "''"
+                    # 使用原有的默认值逻辑
+                    param_default = param.get("default", "")
+                    if param_required:
+                        if param_type == "string":
+                            default_value = f"'{param_default}'" if param_default else "''"
+                        elif param_type == "integer":
+                            default_value = param_default if param_default else "0"
+                        elif param_type == "boolean":
+                            default_value = str(param_default).lower() if param_default is not None else "False"
+                        elif param_type == "object":
+                            import json
+                            default_value = json.dumps(param_default, ensure_ascii=False) if param_default else "{}"
+                        else:
+                            default_value = "''"
+                    else:
+                        if param_type == "string":
+                            default_value = f"'{param_default}'" if param_default else "''"
+                        elif param_type == "integer":
+                            default_value = param_default if param_default else "0"
+                        elif param_type == "boolean":
+                            default_value = str(param_default).lower() if param_default is not None else "False"
+                        elif param_type == "object":
+                            import json
+                            default_value = json.dumps(param_default, ensure_ascii=False) if param_default else "{}"
+                        else:
+                            default_value = "''"
             else:
-                if param_type == "string":
-                    default_value = f"'{param_default}'" if param_default else "''"
-                elif param_type == "integer":
-                    default_value = param_default if param_default else "0"
-                elif param_type == "boolean":
-                    default_value = str(param_default).lower() if param_default is not None else "False"
+                # 没有schema，使用原有的默认值逻辑
+                param_default = param.get("default", "")
+                if param_required:
+                    if param_type == "string":
+                        default_value = f"'{param_default}'" if param_default else "''"
+                    elif param_type == "integer":
+                        default_value = param_default if param_default else "0"
+                    elif param_type == "boolean":
+                        default_value = str(param_default).lower() if param_default is not None else "False"
+                    elif param_type == "object":
+                        import json
+                        default_value = json.dumps(param_default, ensure_ascii=False) if param_default else "{}"
+                    else:
+                        default_value = "''"
                 else:
-                    default_value = "''"
+                    if param_type == "string":
+                        default_value = f"'{param_default}'" if param_default else "''"
+                    elif param_type == "integer":
+                        default_value = param_default if param_default else "0"
+                    elif param_type == "boolean":
+                        default_value = str(param_default).lower() if param_default is not None else "False"
+                    elif param_type == "object":
+                        import json
+                        default_value = json.dumps(param_default, ensure_ascii=False) if param_default else "{}"
+                    else:
+                        default_value = "''"
             
             method_params.append(f"{param_name}={default_value}")
 
@@ -211,19 +294,21 @@ def _build_method_block(
         for param in query_params:
             param_name = param.get("name", "")
             param_type = param.get("type", "string")
-            param_default = param.get("default", "")
-            if param_type == "integer":
-                default_value = param_default if isinstance(param_default, int) else "0"
-            elif param_type == "boolean":
-                default_value = str(param_default).lower() if isinstance(param_default, bool) else "False"
-            else:
-                default_value = f"'{param_default}'" if isinstance(param_default, str) and param_default else "''"
+            
+            # 使用新的辅助函数获取默认值，优先使用swagger举例值
+            default_value = _get_param_default_value(param, param_type)
             method_params.append(f"{param_name}={default_value}")
 
     # formData 文件上传：按照需求仅暴露 file 参数
     has_form = bool(form_params)
+    has_file_param = False
     if has_form:
         method_params.append("file=None")
+        # 检查是否有file类型的参数
+        for param in form_params:
+            if param.get("type") == "file":
+                has_file_param = True
+                break
     
     # 添加其他标准参数
     method_params.extend(["DeviceType=\"web\"", "code=200", "**kwargs"])
@@ -233,7 +318,7 @@ def _build_method_block(
     payload_code = ""
     payload_lines: List[str] = []
     has_query = bool(query_params)
-    has_body = bool(interface_body_params) or bool(body_params)  # 🔥 修改：包含 interface_info.json 的 body 参数
+    has_body = bool(body_params)
     # 同时存在 query 与 body 时，沿用 payload1/payload2；否则统一使用 payload
     if has_query and has_body:
         q_items = []
@@ -256,23 +341,49 @@ def _build_method_block(
             q_items.append(f'            "{pname}": {pname}')
         q_joined = ",\n".join(q_items)
         payload_lines.append("        payload = {\n" + q_joined + "\n        }")
-    elif interface_body_params:
-        # �� 新增：使用 interface_info.json 中的 body 参数生成 payload
-        b_items = []
-        for param_name in interface_body_params.keys():
-            b_items.append(f'            "{param_name}": {param_name}')
-        b_joined = ",\n".join(b_items)
-        payload_lines.append("        payload = {\n" + b_joined + "\n        }")
-        payload_lines.append("        payload = self.request_body(payload, **kwargs)")
     elif has_body:
-        # 如果没有 interface_info.json 信息，使用 swagger 信息
-        b_items = []
+        # 检查是否有JSON示例数据，将所有body参数的示例数据组合成完整的JSON
+        json_example = {}
+        has_examples = False
+        
         for param in body_params:
-            pname = param.get("name", "")
-            b_items.append(f'            "{pname}": {pname}')
-        b_joined = ",\n".join(b_items)
-        payload_lines.append("        payload = {\n" + b_joined + "\n        }")
-        payload_lines.append("        payload = self.request_body(payload, **kwargs)")
+            if 'schema' in param and 'example' in param['schema']:
+                json_example[param['name']] = param['schema']['example']
+                has_examples = True
+        
+        if has_examples:
+            # 手动构建格式化的JSON字符串
+            payload_lines.append("        payload = {")
+            for i, (key, value) in enumerate(json_example.items()):
+                if isinstance(value, dict):
+                    # 处理嵌套对象
+                    payload_lines.append(f'            "{key}": {{')
+                    for j, (nested_key, nested_value) in enumerate(value.items()):
+                        comma = "," if j < len(value) - 1 else ""
+                        if isinstance(nested_value, str):
+                            payload_lines.append(f'                "{nested_key}": "{nested_value}"{comma}')
+                        else:
+                            payload_lines.append(f'                "{nested_key}": {nested_value}{comma}')
+                    comma = "," if i < len(json_example) - 1 else ""
+                    payload_lines.append(f'            }}{comma}')
+                else:
+                    # 处理简单值
+                    comma = "," if i < len(json_example) - 1 else ""
+                    if isinstance(value, str):
+                        payload_lines.append(f'            "{key}": "{value}"{comma}')
+                    else:
+                        payload_lines.append(f'            "{key}": {value}{comma}')
+            payload_lines.append("        }")
+            payload_lines.append("        payload = self.request_body(payload, **kwargs)")
+        else:
+            # 使用参数构建payload
+            b_items = []
+            for param in body_params:
+                pname = param.get("name", "")
+                b_items.append(f'            "{pname}": {pname}')
+            b_joined = ",\n".join(b_items)
+            payload_lines.append("        payload = {\n" + b_joined + "\n        }")
+            payload_lines.append("        payload = self.request_body(payload, **kwargs)")
     if payload_lines:
         payload_code = "\n".join(payload_lines) + "\n"
     
@@ -285,7 +396,11 @@ def _build_method_block(
         if method_upper in ("POST", "PUT", "PATCH", "DELETE"):
             args_parts.append("json=payload2")
     elif has_query:
-        args_parts.append("params=payload")
+        # 如果有文件上传，query参数应该作为data传递（multipart/form-data）
+        if has_form and method_upper in ("POST", "PUT", "PATCH", "DELETE"):
+            args_parts.append("data=payload")
+        else:
+            args_parts.append("params=payload")
     elif has_body and method_upper in ("POST", "PUT", "PATCH", "DELETE"):
         args_parts.append("json=payload")
     if has_body and method_upper == "GET":
@@ -318,25 +433,6 @@ def _build_method_block(
             t = p["schema"].get("type", "object")
         return (t or "string")
 
-    def _get_detailed_description(param: Dict[str, Any], interface_info: Dict[str, Any], interface_key: str) -> str:
-        """获取参数的详细描述"""
-        param_name = param.get("name", "")
-        if not param_name:
-            return param.get("description") or ""
-
-        # 优先使用接口信息中的详细描述
-        if interface_info and interface_key:
-            interface_data = interface_info.get('interfaces', {}).get(interface_key)
-            if interface_data:
-                all_parameters = interface_data.get('all_parameters', {})
-                if param_name in all_parameters:
-                    detailed_desc = all_parameters[param_name].get('description', '')
-                    if detailed_desc:
-                        return detailed_desc
-
-        # 如果没有详细描述，使用swagger中的描述
-        return param.get("description") or param_name
-
     param_doc_lines: List[str] = []
     if path_params:
         for p in path_params:
@@ -345,26 +441,16 @@ def _build_method_block(
                 continue
             typ = _param_type(p)
             req = "required" if p.get("required") else "optional"
-            desc = _get_detailed_description(p, interface_info, interface_key)
+            desc = p.get("description") or name
             param_doc_lines.append(f"        :param {name}: ({typ}, path, {req}) {desc}")
-    if interface_body_params:
-        # �� 新增：使用 interface_info.json 中的 body 参数生成文档
-        for param_name, param_info in interface_body_params.items():
-            param_type = param_info.get('type', 'String')
-            param_required = param_info.get('required', False)
-            param_description = param_info.get('description', '')
-
-            req = "required" if param_required else "optional"
-            param_doc_lines.append(f"        :param {param_name}: ({param_type}, body, {req}) {param_description}")
-    elif body_params:
-        # 如果没有 interface_info.json 信息，使用 swagger 信息
+    if body_params:
         for p in body_params:
             name = p.get("name", "")
             if not name:
                 continue
             typ = _param_type(p)
             req = "required" if p.get("required") else "optional"
-            desc = _get_detailed_description(p, interface_info, interface_key)
+            desc = p.get("description") or name
             param_doc_lines.append(f"        :param {name}: ({typ}, body, {req}) {desc}")
     if query_params:
         for p in query_params:
@@ -373,11 +459,18 @@ def _build_method_block(
                 continue
             typ = _param_type(p)
             req = "required" if p.get("required") else "optional"
-            desc = _get_detailed_description(p, interface_info, interface_key)
+            desc = p.get("description") or name
             param_doc_lines.append(f"        :param {name}: ({typ}, query, {req}) {desc}")
     if has_form:
         param_doc_lines.append("        :param file: (file, formData, optional) 上传文件")
     params_doc = "\n".join(param_doc_lines)
+    
+    # 构建headers生成代码
+    if has_file_param:
+        # 当接口包含file类型参数时，设置Content-Type为multipart/form-data
+        headers_code = "        headers = self.request_header(timestamp, authorization, DeviceType, Content_Type='multipart/form-data')"
+    else:
+        headers_code = "        headers = self.request_header(timestamp, authorization, DeviceType)"
 
     return (
         f"\n    def {method_name}({method_signature}):\n"
@@ -390,14 +483,17 @@ def _build_method_block(
         f"        url = f\"https://{{base_url}}{path_code}\"\n"
         f"{payload_code}"
         f"        timestamp = str(int(time.time() * 1000))\n"
-        f"        headers = self.request_header(timestamp, authorization, DeviceType)\n"
+        f"{headers_code}\n"
         f"\n"
         f"        {request_line}\n"
         f"        error_msg = \"{summary_text}\"\n"
         f"        assert response.status_code == code, f\"{{error_msg}}失败，url->{{url}}，失败信息->{{response.reason}}{{response.content}}\"\n"
-        f"        response = response.json()\n"
-        f"        return response\n"
-    ), interface_body_params
+        f"        try:\n"
+        f"            response = response.json()\n"
+        f"            return response\n"
+        f"        except json.decoder.JSONDecodeError:\n"
+        f"            return False\n"
+    )
 
 
 def _extract_course_paths(
@@ -461,12 +557,125 @@ def generate_methods_to_api(
     return
 
 
+def _compare_interfaces(
+    existing_method: str,
+    new_path: str,
+    new_http_method: str,
+    new_parameters: Optional[List[Dict[str, Any]]] = None
+) -> bool:
+    """
+    比较两个接口是否相同
+    
+    Args:
+        existing_method: 已存在方法的完整代码
+        new_path: 新接口路径
+        new_http_method: 新接口HTTP方法
+        new_parameters: 新接口参数
+    
+    Returns:
+        bool: True表示接口相同，False表示接口不同
+    """
+    # 提取已存在方法的URL和HTTP方法
+    import re
+    
+    # 提取URL - 修复正则表达式
+    url_match = re.search(r'url = f"https://\{base_url\}([^"]+)"', existing_method)
+    existing_path = url_match.group(1) if url_match else ""
+    
+    # 提取HTTP方法
+    method_match = re.search(r'requests\.request\("([^"]+)"', existing_method)
+    existing_http_method = method_match.group(1) if method_match else ""
+    
+    print(f"调试: 已存在方法内容前100字符: {existing_method[:100]}")
+    print(f"调试: 已存在接口路径: '{existing_path}', HTTP方法: '{existing_http_method}'")
+    print(f"调试: 新接口路径: '{new_path}', HTTP方法: '{new_http_method}'")
+    
+    # 比较路径和HTTP方法
+    if existing_path != new_path or existing_http_method.upper() != new_http_method.upper():
+        print(f"调试: 接口不同 - 路径或HTTP方法不匹配")
+        return False
+    
+    # 如果提供了新参数，比较参数
+    if new_parameters is not None:
+        # 提取已存在方法的参数 - 只提取当前方法内的参数
+        # 查找方法定义开始到下一个方法定义之间的参数
+        method_start = existing_method.find('def ')
+        if method_start != -1:
+            # 找到方法定义后的第一个三引号
+            docstring_start = existing_method.find('"""', method_start)
+            if docstring_start != -1:
+                # 找到文档字符串结束
+                docstring_end = existing_method.find('"""', docstring_start + 3)
+                if docstring_end != -1:
+                    # 只在这个范围内提取参数
+                    docstring_content = existing_method[docstring_start:docstring_end + 3]
+                    param_matches = re.findall(r':param (\w+):', docstring_content)
+                    existing_param_names = set(param_matches)
+                else:
+                    existing_param_names = set()
+            else:
+                existing_param_names = set()
+        else:
+            existing_param_names = set()
+        
+        # 提取新参数的名称
+        new_param_names = set()
+        for param in new_parameters:
+            if param.get("in") in ["body", "path", "query", "formData"]:
+                new_param_names.add(param.get("name", ""))
+        
+        print(f"调试: 已存在参数: {existing_param_names}")
+        print(f"调试: 新参数: {new_param_names}")
+        
+        # 比较参数名称集合
+        if existing_param_names != new_param_names:
+            print(f"调试: 接口不同 - 参数不匹配")
+            return False
+    
+    print(f"调试: 接口相同")
+    return True
+
+
+def _find_next_method_name(content: str, base_method_name: str) -> str:
+    """
+    找到下一个可用的方法名
+    
+    Args:
+        content: 文件内容
+        base_method_name: 基础方法名
+    
+    Returns:
+        str: 下一个可用的方法名
+    """
+    import re
+    
+    # 查找所有已存在的方法名
+    existing_methods = re.findall(rf'\n    def ({base_method_name}\d*)\s*\(', content)
+    
+    if base_method_name not in existing_methods:
+        return base_method_name
+    
+    # 找到最大的数字后缀
+    max_num = 0
+    for method in existing_methods:
+        if method == base_method_name:
+            continue
+        # 提取数字后缀
+        match = re.match(rf'{base_method_name}(\d+)', method)
+        if match:
+            num = int(match.group(1))
+            max_num = max(max_num, num)
+    
+    return f"{base_method_name}{max_num + 1}"
+
+
 def generate_single_method_to_api(
     path: str,
     http_method: str,
     module: str = "course",
     summary: Optional[str] = None,
     force: bool = False,
+    parameters: Optional[List[Dict[str, Any]]] = None,
 ):
     """
     生成单个接口方法到指定的 API 文件中
@@ -478,32 +687,17 @@ def generate_single_method_to_api(
         summary: 接口摘要，如果不提供则从 swagger 中获取
         force: 是否强制覆盖已存在的方法
     """
-    # 读取 swagger 获取接口信息
-    if not os.path.exists(SWAGGER_PATH):
-        raise FileNotFoundError(f"未找到 Swagger 文件: {SWAGGER_PATH}")
-    
-    with open(SWAGGER_PATH, "r", encoding="utf-8") as f:
-        swagger = json.load(f)
-    
-    # 从 swagger 中获取接口摘要和 body/path/query/formData 参数
-    paths = swagger.get("paths", {})
+    # 初始化参数列表
     body_params: List[Dict[str, Any]] = []
     path_params: List[Dict[str, Any]] = []
     query_params: List[Dict[str, Any]] = []
     form_params: List[Dict[str, Any]] = []
     
-    if path in paths and (http_method.lower() in paths[path] or http_method.upper() in paths[path]):
-        interface_info = paths[path].get(http_method.lower()) or paths[path].get(http_method.upper())
-        if not summary:
-            summary = interface_info.get("summary", "")
-
-        # 提取 parameters 中 in 类型为 body/path/query/formData 的参数
-        parameters = interface_info.get("parameters", [])
+    # 如果提供了参数，使用提供的参数；否则从 swagger 中读取
+    if parameters is not None:
+        # 使用提供的参数
         for param in parameters:
             if param.get("in") == "body":
-                # 🔥 新增：跳过有 schema 的 body 参数
-                if param.get("schema"):
-                    continue  # 跳过有 schema 的 body 参数
                 body_params.append(param)
             elif param.get("in") == "path":
                 path_params.append(param)
@@ -512,41 +706,104 @@ def generate_single_method_to_api(
             elif param.get("in") == "formData":
                 form_params.append(param)
     else:
-        if not summary:
-            summary = path
+        # 从 swagger 中读取参数（保持向后兼容）
+        if not os.path.exists(SWAGGER_PATH):
+            raise FileNotFoundError(f"未找到 Swagger 文件: {SWAGGER_PATH}")
+        
+        with open(SWAGGER_PATH, "r", encoding="utf-8") as f:
+            swagger = json.load(f)
+        
+        paths = swagger.get("paths", {})
+        
+        if path in paths and (http_method.lower() in paths[path] or http_method.upper() in paths[path]):
+            interface_info = paths[path].get(http_method.lower()) or paths[path].get(http_method.upper())
+            if not summary:
+                summary = interface_info.get("summary", "")
+            
+            # 提取 parameters 中 in 类型为 body/path/query/formData 的参数
+            swagger_parameters = interface_info.get("parameters", [])
+            for param in swagger_parameters:
+                if param.get("in") == "body":
+                    body_params.append(param)
+                elif param.get("in") == "path":
+                    path_params.append(param)
+                elif param.get("in") == "query":
+                    query_params.append(param)
+                elif param.get("in") == "formData":
+                    form_params.append(param)
+        else:
+            if not summary:
+                summary = path
     
     # 读取并定位 API 类文件
-    # 根据路径前缀确定API文件路径
-    if path.startswith('/admin/'):
-        api_file = os.path.join("test_case", "page_api", "admin", f"admin_{module}_api.py")
+    # 判断是否为admin接口
+    if module.startswith("admin_"):
+        # admin接口写入到test_case/page_api/admin目录
+        api_file = os.path.join("test_case", "page_api", "admin", f"{module}.py")
     else:
+        # 普通接口写入到test_case/page_api目录
         api_file = os.path.join("test_case", "page_api", module, f"{module}_api.py")
     if not os.path.exists(api_file):
-        # 如果标准文件名不存在，尝试查找目录下的其他 .py 文件
-        # 根据路径前缀确定模块目录
-        if path.startswith('/admin/'):
-            module_dir = os.path.join("test_case", "page_api", "admin")
+        if module.startswith("admin_"):
+            # admin接口文件不存在，创建admin目录和文件
+            admin_dir = os.path.join("test_case", "page_api", "admin")
+            os.makedirs(admin_dir, exist_ok=True)
+            # 创建基本的API类文件
+            class_name = f"Admin{module.replace('admin_', '').replace('_api', '').capitalize()}Api"
+            basic_content = f'''#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+{module} API接口
+"""
+
+import requests
+import time
+from config import RunConfig
+
+base_url = RunConfig.base_url
+
+
+class {class_name}:
+    """API接口类"""
+    
+    def __init__(self):
+        self.base_url = base_url
+    
+    def request_header(self, timestamp, authorization, DeviceType="web"):
+        """构建请求头"""
+        return {{
+            "Authorization": authorization,
+            "DeviceType": DeviceType,
+            "timestamp": timestamp,
+            "Content-Type": "application/json"
+        }}
+'''
+            with open(api_file, "w", encoding="utf-8") as f:
+                f.write(basic_content)
         else:
+            # 如果标准文件名不存在，尝试查找目录下的其他 .py 文件
             module_dir = os.path.join("test_case", "page_api", module)
-        if os.path.exists(module_dir):
-            py_files = [f for f in os.listdir(module_dir) if f.endswith('.py') and f != '__init__.py']
-            if py_files:
-                api_file = os.path.join(module_dir, py_files[0])
+            if os.path.exists(module_dir):
+                py_files = [f for f in os.listdir(module_dir) if f.endswith('.py') and f != '__init__.py']
+                if py_files:
+                    api_file = os.path.join(module_dir, py_files[0])
+                else:
+                    raise FileNotFoundError(f"未找到 API 文件: {api_file}")
             else:
                 raise FileNotFoundError(f"未找到 API 文件: {api_file}")
-        else:
-            raise FileNotFoundError(f"未找到 API 文件: {api_file}")
     
     with open(api_file, "r", encoding="utf-8") as f:
         content = f.read()
     
     # 检查目标类是否存在
-    if path.startswith('/admin/'):
-        if f"class Admin{module.capitalize()}Api(" not in content:
-            raise RuntimeError(f"未在目标文件中找到 Admin{module.capitalize()}Api 类定义")
+    if module.startswith("admin_"):
+        class_name = f"Admin{module.replace('admin_', '').replace('_api', '').capitalize()}Api"
     else:
-        if f"class {module.capitalize()}Api(" not in content:
-            raise RuntimeError(f"未在目标文件中找到 {module.capitalize()}Api 类定义")
+        class_name = f"{module.capitalize()}Api"
+    
+    if f"class {class_name}(" not in content:
+        raise RuntimeError(f"未在目标文件中找到 {class_name} 类定义")
     
     # 生成方法名
     method_name = _camelize_from_path(path, http_method)
@@ -555,8 +812,66 @@ def generate_single_method_to_api(
     signature_token = f"\n    def {method_name}("
     method_exists = signature_token in content
 
-    # 若方法已存在：在原注释中追加 Update 行（不破坏原有 Create Data 等注释）
+    # 若方法已存在：检查接口是否相同
     if method_exists:
+        # 找到所有匹配的方法位置
+        import re
+        method_positions = []
+        # 转义正则表达式特殊字符
+        escaped_token = re.escape(signature_token)
+        for match in re.finditer(escaped_token, content):
+            method_positions.append(match.start())
+        
+        print(f"调试: 找到 {len(method_positions)} 个匹配的方法: {method_name}")
+        
+        # 检查每个已存在的方法是否与新接口相同
+        for start_pos in method_positions:
+            # 切片出该方法的完整文本块
+            tail = content[start_pos:]
+            lines = tail.split('\n')
+            method_lines = []
+            indent_level = None
+            end_index = None
+            print(f"调试: 找到方法 {method_name}，开始提取...")
+            for i, line in enumerate(lines):
+                if i == 0:
+                    method_lines.append(line)
+                    print(f"调试: 第0行: '{line}'")
+                    continue
+                if indent_level is None and line.strip():
+                    indent_level = len(line) - len(line.lstrip())
+                    print(f"调试: 设置缩进级别为 {indent_level}")
+                if line.strip() and indent_level is not None:
+                    current_indent = len(line) - len(line.lstrip())
+                    print(f"调试: 第{i}行缩进: {current_indent}, 内容: '{line[:50]}...'")
+                    # 修复逻辑：如果当前行缩进小于方法缩进，且不是空行，则说明是下一个方法或类
+                    if current_indent < indent_level and line.strip():
+                        end_index = i
+                        print(f"调试: 找到方法结束位置 {end_index}")
+                        break
+                method_lines.append(line)
+            if end_index is None:
+                end_index = len(lines)
+                print(f"调试: 方法到文件末尾，共 {end_index} 行")
+
+            existing_method = '\n'.join(method_lines)
+            print(f"调试: 提取到的方法长度: {len(existing_method)}")
+            
+            # 比较接口是否相同
+            if _compare_interfaces(existing_method, path, http_method, parameters):
+                print(f"方法 {method_name} 已存在且接口相同，跳过生成")
+                return f"SKIP:{method_name}"  # 返回特殊标识，表示跳过生成
+        
+        # 如果所有已存在的方法都与新接口不同，需要生成新的方法名
+        method_name = _find_next_method_name(content, method_name)
+        print(f"方法名冲突，接口不同，使用新方法名: {method_name}")
+        # 重新检查新方法名是否存在
+        signature_token = f"\n    def {method_name}("
+        method_exists = signature_token in content
+
+    # 若方法已存在（可能是新生成的方法名）：在原注释中追加 Update 行（不破坏原有 Create Data 等注释）
+    if method_exists:
+        # 重新提取方法内容（因为方法名可能已经改变）
         start_pos = content.find(signature_token)
         if start_pos == -1:
             print(f"未能定位已存在的方法: {method_name}")
@@ -597,7 +912,7 @@ def generate_single_method_to_api(
         if insert_idx == -1:
             # 未找到 Create Data，则不做破坏性修改，直接返回
             print(f"方法 {method_name} 未找到 Create Data 注释，跳过追加")
-            return method_name, ''
+            return method_name
 
         # 计算插入位置到该行末尾
         line_start = old_method.rfind('\n', 0, insert_idx) + 1
@@ -627,10 +942,10 @@ def generate_single_method_to_api(
         with open(api_file, "w", encoding="utf-8") as f:
             f.write(new_content)
         print(f"已在方法 {method_name} 的注释下追加 Update 信息: {api_file}")
-        return method_name, ''
+        return method_name
 
     # 方法不存在：走新增逻辑，生成带 Create Data 注释的方法块
-    method_block, inner_body_param = _build_method_block(
+    method_block = _build_method_block(
         method_name,
         http_method,
         path,
@@ -645,20 +960,12 @@ def generate_single_method_to_api(
     with open(api_file, "w", encoding="utf-8") as f:
         f.write(new_content)
     print(f"已新增方法 {method_name} 到文件: {api_file}")
-    if inner_body_param:
+    if body_params:
         param_names = [param.get("name", "") for param in body_params]
         print(f"  - 包含 body 参数: {', '.join(param_names)}")
     
-    return method_name, inner_body_param
+    return method_name
 
-
-def load_interface_info(interface_info_path: str = "test_data/interface_info.json") -> Dict[str, Any]:
-    """加载接口信息文件"""
-    if not os.path.exists(interface_info_path):
-        return {}
-
-    with open(interface_info_path, 'r', encoding='utf-8') as f:
-        return json.load(f)
 
 
 if __name__ == "__main__":

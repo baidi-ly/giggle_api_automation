@@ -211,3 +211,28 @@ class UserApi(BaseAPI):
         response = response.json()
         return response
 
+    def sendemail(self, authorization, DeviceType="web", code=200, **kwargs):
+        """
+        发送邮箱验证码接口
+        :param email: (string, body, required) email 参数
+        :param scene: (string, body, required) scene 参数
+        :param language: (string, body, required) language 参数
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-09-26
+        url = f"https://{base_url}/api/user/sendEmail"
+        payload = {
+            "email": "bd22434@163.com",
+            "scene": "RESET_PASSWORD",
+            "language": "zh-CN"
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "发送邮箱验证码接口"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+

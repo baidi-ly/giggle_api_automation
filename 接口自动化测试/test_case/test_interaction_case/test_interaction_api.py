@@ -29,7 +29,6 @@ class TestInteraction:
         couerseList = self.course.listAllWithLevel(self.authorization)["data"]
         yield couerseList
 
-    @pytest.mark.release
     def test_interaction_event_single(self, get_couerseList):
         """有效的kidId，返回完整统计数据"""
         # 获取有效的kidId
@@ -49,7 +48,6 @@ class TestInteraction:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
 
-    @pytest.mark.release
     def test_interaction_event_empty(self):
         """有效的kidId，返回完整统计数据"""
         # 获取有效的kidId
@@ -59,7 +57,6 @@ class TestInteraction:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
 
-    @pytest.mark.release
     def test_interaction_event_multi(self, get_couerseList):
         """有效的kidId，返回完整统计数据"""
         # 获取有效的kidId
@@ -78,7 +75,6 @@ class TestInteraction:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
 
-    @pytest.mark.release
     def test_interaction_event_course_not_exist(self):
         """有效的kidId，返回完整统计数据"""
         # 获取有效的kidId
@@ -97,7 +93,6 @@ class TestInteraction:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
 
-    @pytest.mark.release
     def test_interaction_event_name_empty(self, get_couerseList):
         """有效的kidId，返回完整统计数据"""
         # 获取有效的kidId
@@ -117,7 +112,6 @@ class TestInteraction:
         assert event_res["message"] == 'invalid parameter'
         assert event_res["data"] == 'invalid parameter'
 
-    @pytest.mark.release
     def test_interaction_event_name_wrong(self, get_couerseList):
         """有效的kidId，返回完整统计数据"""
         # 获取有效的kidId
