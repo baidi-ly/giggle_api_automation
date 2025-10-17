@@ -1826,3 +1826,88 @@ class TestBook:
             assert res['code'] == 100105, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
             assert res['message'] == 'Kid id not exist', f"接口返回message信息异常: 预期【'Kid id not exist'】，实际【{res['message']}】"
             assert res['data'] == 'Kid id not exist', f"接口返回data数据异常，预期：【'Kid id not exist'】，实际【{res['data']}】"
+
+    @pytest.mark.release
+    def test_book_positive_getFeedbackOptions_ok(self):
+        """获取评价反馈选项配置-正向用例"""
+        res = self.book.getFeedbackOptions(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_book_permission_getFeedbackOptions(self, desc, value):
+        """获取评价反馈选项配置-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.book.getFeedbackOptions(value, code=200)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 200, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'success', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+
+    @pytest.mark.release
+    def test_book_positive_feedbackOptions_ok(self):
+        """更新评价反馈选项配置-正向用例"""
+        res = self.book.feedbackOptions(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'] == None, f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_book_permission_feedbackOptions(self, desc, value):
+        """更新评价反馈选项配置-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.book.feedbackOptions(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value, code',
+        [
+            ('missing',  'missing', 200),
+            ('empty', "", 200),
+            ('null', None, 200),
+        ]
+    )
+    def test_book_required_feedbackOptions_optionsJson(self, desc, value, code):
+        """更新评价反馈选项配置-必填字段测试(optionsJson)"""
+        if desc == 'missing':
+            pl = {'pop_items': 'optionsJson'}
+        else:
+            pl = {'optionsJson': value}
+        res = self.book.feedbackOptions(authorization=self.authorization, **pl, code=code)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        if code == 500:
+            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
+            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+        else:
+            assert res['code'] == 200, f"接口返回状态码异常: 预期【{'pending'}】，实际【{res['code']}】"
+            assert res['message'] == 'success', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
+            assert res['data'] == None, f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
