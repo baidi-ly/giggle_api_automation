@@ -1763,4 +1763,66 @@ class TestBook:
             assert res['message'] == 'invalid parameter'
             assert res['data']
 
+    @pytest.mark.release
+    def test_book_positive_rating_ok(self, get_bookId):
+        """保存故事书评价-正向用例"""
+        kidId = self.kid.getKids(self.authorization)['data'][0]['id']
+        bookId = get_bookId["data"]["content"][0]["id"]
+        res = self.book.rating(self.authorization, bookId, kidId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
 
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_book_permission_rating(self, desc, value):
+        """保存故事书评价-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.book.rating(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value, code',
+        [
+            ('missing',  'missing', 200),
+            ('empty', "", 200),
+            ('null', None, 200),
+        ]
+    )
+    def test_book_required_rating_kidId(self, desc, value, code, get_bookId):
+        """检查kid是否读过某本故事书-必填字段测试(kidId)"""
+        if desc == 'missing':
+            pl, kidId = {'pop_items': 'kidId'}, 0
+        else:
+            pl, kidId = {}, value
+        # res = self.book.getReadingStatus(authorization=self.authorization, **pl, code=code)
+        # kidId = self.kid.getKids(self.authorization)['data'][0]['id']
+        bookId = get_bookId["data"]["content"][0]["id"]
+        res = self.book.rating(self.authorization, bookId, kidId, code=code, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        if code == 500:
+            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
+            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+        elif code == 400:
+            assert res['code'] == 100006
+            assert res['message'] == 'invalid parameter'
+            assert res['data']
+        else:
+            assert res['code'] == 100105, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+            assert res['message'] == 'Kid id not exist', f"接口返回message信息异常: 预期【'Kid id not exist'】，实际【{res['message']}】"
+            assert res['data'] == 'Kid id not exist', f"接口返回data数据异常，预期：【'Kid id not exist'】，实际【{res['data']}】"
