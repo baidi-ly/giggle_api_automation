@@ -1,6 +1,6 @@
 {
   "apis": [
-    "api/book/{bookId}/quiz/{taskId}/status"
+    "/api/donate/expend/list"
   ],
   "update_apis": [
     "/api/book/recommend/bookAndCourse",
