@@ -4,6 +4,7 @@ import os
 from time import strftime
 
 from test_case.page_api.book.book_api import BookApi
+from test_case.page_api.kid.kid_api import KidApi
 
 sys.path.append(os.getcwd())
 sys.path.append("..")
@@ -15,6 +16,7 @@ class TestBook:
 
     def setup_class(self):
         self.book = BookApi()
+        self.kid = KidApi()
         self.authorization = self.book.get_authorization()
         self.now = strftime("%Y%m%d%H%M%S")
 
@@ -1626,4 +1628,139 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+
+    @pytest.mark.release
+    def test_book_positive_getReadingStatus_ok(self, get_bookId):
+        """检查kid是否读过某本故事书-正向用例"""
+        kidId = self.kid.getKids(self.authorization)['data'][0]['id']
+        bookId = get_bookId["data"]["content"][0]["id"]
+        res = self.book.getReadingStatus(self.authorization, bookId, kidId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_book_permission_getReadingStatus(self, desc, value):
+        """检查kid是否读过某本故事书-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.book.getReadingStatus(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value, code, code_res',
+        [
+            ('string', 'abc', 400, 100006),
+            ('float', 12.34, 400, 100006),
+            ('boolean', True, 400, 100006),
+            ('negative', -123, 400, 100006),    # todo
+            ('array', [1, 2, 3], 400, 100006),
+            ('object', {'key': 'value'}, 400, 100006),
+            ('emoji', 'test_emoji', 400, 100006),
+        ]
+    )
+    def test_book_format_getReadingStatus_bookId(self, desc, value, code, code_res):
+        """检查kid是否读过某本故事书-数据格式测试(bookId)"""
+        try:
+            res = self.book.getReadingStatus(self.authorization, bookId=value, code=code)
+        except Exception as res:
+            assert not code
+        if code and not code_res:
+            assert not res
+        elif code_res == 500:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
+            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+        elif code_res == 404:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 404, f"接口返回状态码异常: 预期【{'pending'}】，实际【404】"
+            assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
+            assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
+        elif code_res == 100006:
+            assert res['code'] == 100006
+            assert res['message'] == 'invalid parameter'
+            assert res['data']
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value, code',
+        [
+            ('missing',  'missing', 200),
+            ('empty', "", 400),
+            ('null', None, 500),
+        ]
+    )
+    def test_book_required_getReadingStatus_kidId(self, desc, value, code):
+        """检查kid是否读过某本故事书-必填字段测试(kidId)"""
+        if desc == 'missing':
+            pl = {'pop_items': 'kidId'}
+        else:
+            pl = {'kidId': value}
+        res = self.book.getReadingStatus(authorization=self.authorization, **pl, code=code)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        if code == 500:
+            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
+            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+        elif code == 400:
+            assert res['code'] == 100006
+            assert res['message'] == 'invalid parameter'
+            assert res['data']
+        else:
+            assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+            assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常，实际【{res['data']}】"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value, code, code_res',
+        [
+            ('string', 'abc', 400, 100006),
+            ('float', 12.34, 400, 100006),
+            ('boolean', True, 400, 100006),
+            ('negative', -123, 400, 100006),  # todo
+            ('array', [1, 2, 3], 400, 100006),  # todo
+            ('object', {'key': 'value'}, 400, 100006),
+            ('emoji', 'test_emoji', 400, 100006),
+        ]
+    )
+    def test_book_format_getReadingStatus_kidId(self, desc, value, code, code_res):
+        """检查kid是否读过某本故事书-数据格式测试(kidId)"""
+        try:
+            res = self.book.getReadingStatus(self.authorization, kidId=value, code=code)
+        except Exception as res:
+            assert not code
+        if code and not code_res:
+            assert not res
+        elif code_res == 500:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
+            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+        elif code_res == 404:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 404, f"接口返回状态码异常: 预期【{'pending'}】，实际【404】"
+            assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
+            assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
+        elif code_res == 100006:
+            assert res['code'] == 100006
+            assert res['message'] == 'invalid parameter'
+            assert res['data']
+
 

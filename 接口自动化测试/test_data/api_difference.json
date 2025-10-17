@@ -1,15 +1,12 @@
 {
   "apis": [
-    "api/book/{bookId}/quiz/{taskId}/status"
+    "/api/book/{bookId}/reading-status"
   ],
-  "update_apis": [
-    "/api/book/recommend/bookAndCourse",
-    "/api/course/recommend/spelRules"
-  ],
-  "scan_time": "2025-10-15 10:25:13.716258",
-  "total_count": 12,
-  "original_count": 14,
-  "duplicates_removed": 2,
-  "update_count": 2,
-  "other_count": 10
+  "update_apis": [],
+  "scan_time": "2025-10-17 10:54:39.746089",
+  "total_count": 0,
+  "original_count": 0,
+  "duplicates_removed": 0,
+  "update_count": 0,
+  "other_count": 0
 }

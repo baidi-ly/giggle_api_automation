@@ -30,5 +30,5 @@ class KidApi(BaseAPI):
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         assert "data" in response,  f"{error_msg}返回结果没有data数据，url->{url}，response->{response}"
-        return response["data"]
+        return response
 
