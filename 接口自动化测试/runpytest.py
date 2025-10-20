@@ -15,14 +15,23 @@ if __name__ =="__main__":
     #              "--html=" + pathreport,
     #              "--self-contained-html",
     #              "--reruns", "1"])
-    pytest.main([pathcase,
-                 # "-vs",
-                 # "-n 2",
-                 "-m release",
-                 "--html=" + pathreport,
-                 "--self-contained-html",
-                 # "--reruns", "1"
-                 "--full-trace"
-                 ])
+    # pytest.main([pathcase,
+    #              # "-vs",
+    #              # "-n 2",
+    #              "-m donate",
+    #              "--html=" + pathreport,
+    #              "--self-contained-html",
+    #              # "--reruns", "1"
+    #              "--full-trace"
+    #              ])
+
+    # 2. 确保Pytest参数正确
+    pytest.main([
+        pathcase,
+        "-m donate",  # 测试标记
+        f"--html={pathreport}",  # 路径需用引号包裹（避免空格）
+        # "--self-contained-html",
+        # "--full-trace"  # 可选，根据调试需求
+    ])
 
 

@@ -330,26 +330,6 @@ class SchoolApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def groups(self, authorization, lessonId=0, DeviceType="web", code=200, **kwargs):
-        """
-        创建学生分组
-        :param lessonId: (integer, path, required) lessonId
-        :return: 接口原始返回（已 json 解析）
-        """
-        # Create Data:  V1.19.0  &  2025-10-06
-        url = f"https://{base_url}/api/school/lesson/{lessonId}/groups"
-        timestamp = str(int(time.time() * 1000))
-        headers = self.request_header(timestamp, authorization, DeviceType)
-
-        response = requests.request("POST", url, headers=headers)
-        error_msg = "创建学生分组"
-        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        try:
-            response = response.json()
-            return response
-        except json.decoder.JSONDecodeError:
-            return False
-
     def getResources(self, authorization, lessonId=0, DeviceType="web", code=200, **kwargs):
         """
         获取课堂学习资源
@@ -449,31 +429,6 @@ class SchoolApi(BaseAPI):
 
         response = requests.request("DELETE", url, headers=headers)
         error_msg = "删除课堂"
-        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        try:
-            response = response.json()
-            return response
-        except json.decoder.JSONDecodeError:
-            return False
-
-    def groups1(self, authorization, lessonId=0, req='', DeviceType="web", code=200, **kwargs):
-        """
-        创建学生分组
-        :param lessonId: (integer, path, required) lessonId
-        :param req: (object, body, required) req
-        :return: 接口原始返回（已 json 解析）
-        """
-        # Create Data:  V1.19.0  &  2025-10-09
-        url = f"https://{base_url}/api/school/lesson/{lessonId}/groups"
-        payload = {
-            "req": req
-        }
-        payload = self.request_body(payload, **kwargs)
-        timestamp = str(int(time.time() * 1000))
-        headers = self.request_header(timestamp, authorization, DeviceType)
-
-        response = requests.request("POST", url, headers=headers, json=payload)
-        error_msg = "创建学生分组"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()
@@ -581,6 +536,116 @@ class SchoolApi(BaseAPI):
         response = requests.request("GET", url, headers=headers, params=payload)
         error_msg = "测验列表"
         # assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def getList1(self, authorization, lessonId=0, DeviceType="web", code=200, **kwargs):
+        """
+        测验报告列表
+        :param lessonId: (integer, path, required) lessonId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-17
+        url = f"https://{base_url}/api/school/lesson/{lessonId}/quiz/report/list"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "测验报告列表"
+        # assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def create_lesson(self, authorization, classId=0, DeviceType="web", code=200, **kwargs):
+        """
+        创建课堂
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-17
+        url = f"https://{base_url}/api/school/lesson"
+        payload = {
+          "classId": classId,
+          "lessonName": "string",
+          "resources": [
+            {
+              "id": 0,
+              "resourceType": "string"
+            }
+          ],
+          "teachingLanguage": "zh",
+          "voiceRecognition": True
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "创建课堂"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def create_groups(self, authorization, lessonId=0, groupCount=0, DeviceType="web", code=200, **kwargs):
+        """
+        创建学生分组
+        :param lessonId: (integer, path, required) lessonId
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-17
+        url = f"https://{base_url}/api/school/lesson/{lessonId}/groups"
+        payload = {
+          "groupCount": groupCount
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "创建学生分组"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def update_groups(self, authorization, lessonId=0, DeviceType="web", code=200, **kwargs):
+        """
+        更新课堂学生默认分组
+        :param lessonId: (integer, path, required) lessonId
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-17
+        url = f"https://{base_url}/api/school/lesson/{lessonId}/groups"
+        payload = {
+          "studentsGroup": [
+            {
+              "groupSeqNo": 0,
+              "studentIds": [
+                0
+              ]
+            }
+          ]
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("PUT", url, headers=headers, json=payload)
+        error_msg = "更新课堂学生默认分组"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()
             return response

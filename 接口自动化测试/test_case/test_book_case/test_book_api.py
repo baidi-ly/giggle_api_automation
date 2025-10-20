@@ -1911,3 +1911,137 @@ class TestBook:
             assert res['code'] == 200, f"接口返回状态码异常: 预期【{'pending'}】，实际【{res['code']}】"
             assert res['message'] == 'success', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
             assert res['data'] == None, f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+
+    @pytest.mark.release
+    def test_book_positive_getRecommend_ok(self, get_bookId):
+        """根据用户年龄随机推荐故事书-正向用例"""
+        bookId = get_bookId["data"]["content"][0]["id"]
+        res = self.book.getRecommend(self.authorization, bookId=bookId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_book_permission_getRecommend(self, desc, value, get_bookId):
+        """根据用户年龄随机推荐故事书-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        bookId = get_bookId["data"]["content"][0]["id"]
+        res = self.book.getRecommend(value, bookId=bookId)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 200, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'success', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value, code, code_res',
+        [
+            ('string', 'abc', 400, 100006),
+            ('float', 12.34, 400, 100006),
+            ('boolean', True, 400, 100006),
+            ('negative', -123, 400, 100006),   #todo
+            ('array', [1, 2, 3], 400, 100006),  # todo
+            ('object', {'key': 'value'}, 400, 100006),
+            ('special_chars', '!@#$%^&*()', 400, 100006),
+            ('emoji', 'test_emoji', 400, 100006),
+        ]
+    )
+    def test_book_format_getRecommend_age(self, desc, value, code, code_res, get_bookId):
+        """根据用户年龄随机推荐故事书-数据格式测试(age)"""
+        try:
+            bookId = get_bookId["data"]["content"][0]["id"]
+            res = self.book.getRecommend(self.authorization, age=value, bookId=bookId, code=code)
+        except Exception as res:
+            assert not code
+        if code and not code_res:
+            assert not res
+        elif code_res == 500:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
+            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+        elif code_res == 404:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 404, f"接口返回状态码异常: 预期【{'pending'}】，实际【404】"
+            assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
+            assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
+        elif code_res == 100006:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 100006, f"接口返回状态码异常: 预期【100006】，实际【{res['code']}】"
+            assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value, code, code_res',
+        [
+            ('string', 'abc', 400, 100006),
+            ('float', 12.34, 400, 100006),
+            ('boolean', True, 400, 100006),
+            ('negative', -123, 400, 100006),  # todo
+            ('array', [1, 2, 3], 400, 100006),  # todo
+            ('object', {'key': 'value'}, 400, 100006),
+            ('special_chars', '!@#$%^&*()', 400, 100006),
+            ('emoji', 'test_emoji', 400, 100006),
+        ]
+    )
+    def test_book_format_getRecommend_bookId(self, desc, value, code, code_res):
+        """根据用户年龄随机推荐故事书-数据格式测试(age)"""
+        try:
+            res = self.book.getRecommend(self.authorization, bookId=value, code=code)
+        except Exception as res:
+            assert not code
+        if code and not code_res:
+            assert not res
+        elif code_res == 500:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
+            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+        elif code_res == 404:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 404, f"接口返回状态码异常: 预期【{'pending'}】，实际【404】"
+            assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
+            assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
+        elif code_res == 100006:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 100006, f"接口返回状态码异常: 预期【100006】，实际【{res['code']}】"
+            assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+
+    def test_book_recommend_bookAndCourse_abTest_normal(self):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        event_res = self.book.recommend_bookAndCourse(self.authorization)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
+        assert event_res["data"]["book"]
+
+    def test_book_recommend_bookAndCourse_abTest_false(self):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        event_res = self.book.recommend_bookAndCourse(self.authorization, abTest=False)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["code"] == 200
+        assert event_res["message"] == "success"
+        assert event_res["data"]["book"]
+
+    def test_book_recommend_bookAndCourse_abTest_int(self):
+        """有效的kidId，返回完整统计数据"""
+        # 获取孩子学习统计数据
+        event_res = self.book.recommend_bookAndCourse(self.authorization, abTest="9495345", code=400)
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res['code'] == 100006, f"接口返回状态码异常: 预期【100006】，实际【{event_res['code']}】"
+        assert event_res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{event_res['message']}】"

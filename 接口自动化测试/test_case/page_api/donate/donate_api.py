@@ -43,7 +43,7 @@ class DonateApi(BaseAPI):
             "platform": "WEB",
             "donateChannel": "binance_pay",
             "networkType": "BSC",
-            "transactionId": "0x1234567890abcdef"
+            "transactionId": "0x66711962a74056d7e6bd4dab7be5c03ec35b76ace90cc38e120b1d0e2087e8d8"
         }
         payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))
@@ -52,8 +52,11 @@ class DonateApi(BaseAPI):
         response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "创建捐赠订单"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        response = response.json()
-        return response
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
 
     def getNetworkCurrencyMapping(self, authorization='', DeviceType="web", code=200, **kwargs):
         """
@@ -150,7 +153,7 @@ class DonateApi(BaseAPI):
         response = response.json()
         return response
 
-    def webhook(self, authorization='', DeviceType="web", code=200, **kwargs):
+    def webhook(self, authorization='', requestBodyString="", DeviceType="web", code=200, **kwargs):
         """
         币安支付Webhook回调处理
         :param
@@ -160,8 +163,9 @@ class DonateApi(BaseAPI):
         url = f"https://{base_url}/api/donate/orders/webhook"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
+        payload = {"requestBodyString": requestBodyString}
 
-        response = requests.request("POST", url, headers=headers)
+        response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "币安支付Webhook回调处理"
         # assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
@@ -238,6 +242,35 @@ class DonateApi(BaseAPI):
 
         response = requests.request("GET", url, headers=headers, params=payload)
         error_msg = "分页查询支出记录列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def updateRemark(self, authorization, category='test1', detailUrl='https://baidu.com', remark='', transactionId='0xd3563ddfd3849b81d68216287a0263aaea6b6b8afb2be53cb72a319fad83e3d2', DeviceType="web", code=200, **kwargs):
+        """
+        更新支出记录的备注、详情URL和分类
+        :param category: (string, query, optional) 分类
+        :param detailUrl: (string, query, optional) 详情URL
+        :param remark: (string, query, optional) 备注
+        :param transactionId: (string, query, required) 交易ID
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-20
+        url = f"https://{base_url}/api/donate/expend/update-remark"
+        payload = {
+            "category": category,
+            "detailUrl": detailUrl,
+            "remark": remark,
+            "transactionId": transactionId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "更新支出记录的备注、详情URL和分类"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()

@@ -220,20 +220,25 @@ class BookApi(BaseAPI):
         response = response.json()
         return response
 
-    def recommend_bookAndCourse(self, authorization, age='', courseNum=3, translateLanguage="en", DeviceType="web", code=200):
+    def recommend_bookAndCourse(self, authorization, age=1, courseNum=3, translateLanguage="en", DeviceType="web", code=200, **kwargs):
         """
         推荐体验课与故事书
         :param:
         :return:
         """
         # Create Data:  v.18.0  2025-09-08
+        # Update Data:  v.20.0  2025-10-20
         # Creator: Baidi
         url = f"https://{base_url}/api/book/recommend/bookAndCourse"
         payload = {
             "age": age,
             "courseNum": courseNum,
-            "translateLanguage": translateLanguage
+            "englishLevel": 1,
+            "learningPurposes": "1,3",
+            "translateLanguage": translateLanguage,
+            "abTest": True
         }
+        payload.update(kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
         response = requests.request("GET", url, headers=headers, params=payload)
@@ -947,6 +952,37 @@ class BookApi(BaseAPI):
 
         response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "更新评价反馈选项配置"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def getRecommend(self, authorization, age=0, bookId=0, localTime='', recommendType='', translateLanguage='zh', DeviceType="web", code=200, **kwargs):
+        """
+        根据用户年龄随机推荐故事书
+        :param age: (integer, query, optional) age
+        :param bookId: (integer, query, optional) bookId
+        :param localTime: (string, query, optional) localTime
+        :param recommendType: (string, query, required) recommendType
+        :param translateLanguage: (string, query, optional) translateLanguage
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-17
+        url = f"https://{base_url}/api/book/recommend"
+        payload = {
+            "age": age,
+            "bookId": bookId,
+            "localTime": localTime,
+            "recommendType": recommendType,
+            "translateLanguage": translateLanguage
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "根据用户年龄随机推荐故事书"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()
