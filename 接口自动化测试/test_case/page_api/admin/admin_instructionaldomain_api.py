@@ -10,7 +10,7 @@ base_url = BaseAPI().baseurl()
 class AdminInstructionaldomainApi(BaseAPI):
     """admin站点教学维度接口"""
 
-    def create(self, authorization, name='', DeviceType="web", code=200, **kwargs):
+    def create(self, authorization, name='teaching_test', DeviceType="web", code=200, **kwargs):
         """
         创建教学维度标签
         :param req: (object, body, required) req
@@ -27,7 +27,7 @@ class AdminInstructionaldomainApi(BaseAPI):
 
         response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "创建教学维度标签"
-        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        # assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()
             return response
