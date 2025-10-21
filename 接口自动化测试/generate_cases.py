@@ -200,7 +200,12 @@ if __name__ == '__main__':
 
             if is_admin_api:
                 # admin接口的特殊处理
-                module = api.split('/')[2] if len(api.split('/')) > 2 else 'admin'
+                path_parts = api.split('/')
+                if len(path_parts) > 2:
+                    # 去掉-符号，如 instructional-domain -> instructionaldomain
+                    module = path_parts[2].replace('-', '')
+                else:
+                    module = 'admin'
                 method_name = generate_single_method_to_api(
                     path=api,
                     http_method=info_k,

@@ -158,13 +158,14 @@ class ApiScanner:
         if not parts:
             return "unknown"
         
+        # 特殊处理：admin开头的接口
+        if parts[0] == 'admin' and len(parts) > 1:
+            # 对于 /admin/instructional-domain/create，取 instructional-domain 并去掉-符号
+            module_part = parts[1].replace('-', '')
+            return f"admin_{module_part}"
+        
         # 取第一个路径段作为模块名
         module = parts[0]
-        
-        # 特殊处理：admin开头的接口
-        if module.startswith('admin'):
-            return f"admin_{module.replace('admin', '').lstrip('_')}"
-        
         return module
     
     def scan_page_api_methods(self) -> Dict[str, Set[str]]:
