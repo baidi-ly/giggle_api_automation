@@ -1,10 +1,9 @@
 from time import strftime
 
 import pytest
-from pandas import DataFrame
 
-from test_case.page_api.admin.admin_quiz_api import AdminQuizApi
-from test_case.page_api.school.school_api import SchoolApi
+from test_case.page_api.admin.admin_flashcards_api import AdminFlashcardsApi
+from test_case.page_api.admin.admin_studyplan_api import AdminStudyplanApi
 from config import RunConfig
 from test_case.page_api.study_plan.study_plan_api import Study_planApi
 
@@ -17,8 +16,29 @@ class TestStudyPlanApi:
 
     def setup_class(self):
         self.study_plan = Study_planApi()
+        self.admin_flashcard = AdminFlashcardsApi()
+        self.admin_study = AdminStudyplanApi()
         self.authorization = self.study_plan.get_authorization()
         self.now = strftime("%Y%m%d%H%M%S")
+
+        name = 'create_flashcards' + self.now
+        quiz_res = self.admin_flashcard.flashcards_create(self.authorization, name=name)["data"]
+        contents = [
+            {
+                "contentId": quiz_res["id"],
+                "contentType": "flash_card",
+                "difficulty": "easy",
+                "name": "基础词汇测验",
+                "sortOrder": 1,
+                "wordCount": 20,
+                "contentConfig": {
+                    "words": ["apple", "banana", "cat"]
+                }
+            }
+        ]
+        res = self.admin_study.study_plan_create(self.authorization, contents)
+        res = self.admin_study.putStatus(self.authorization, studyPlanId=res["data"]["id"])
+        assert res
 
     @pytest.mark.release
     def test_study_plan_positive_getList_ok(self):

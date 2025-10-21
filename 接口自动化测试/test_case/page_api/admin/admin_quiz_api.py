@@ -18,16 +18,14 @@ class AdminQuizApi(BaseAPI):
         # Create Data:  V1.19.0  &  2025-10-20
         url = f"https://{base_url}/admin/quiz/generate"
         payload = {
-            "courseContent": [
-            0
-            ],
-            "difficulty": 0,
-            "language": "zh",
-            "name": "string",
-            "preferenceKey": "3333",
-            "questionCount": 0,
+            "name": "基础词汇测验",
             "quizType": "LESSON",
-            "targetAge": 0
+            "targetAge": 5,
+            "difficulty": 1,
+            "questionCount": 10,
+            "language": "en",
+            "preferenceKey": None,
+            "courseContent": []
         }
         payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))

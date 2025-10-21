@@ -10,7 +10,7 @@ base_url = BaseAPI().baseurl()
 class Study_planApi(BaseAPI):
     """学习计划接口"""
 
-    def study_plan_list(self, authorization, ageGroup='3-5', all=True, category='preschool', page=0, size=10,
+    def study_plan_list(self, authorization, ageGroup='3-5', all=True, category='vocabulary', page=0, size=10,
                 DeviceType="web", code=200, **kwargs):
         """
         学习计划包列表

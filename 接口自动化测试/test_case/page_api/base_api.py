@@ -21,6 +21,9 @@ class BaseAPI:
     def baseurl(self):
         return RunConfig.baseurl
 
+    def admin_baseurl(self):
+        return RunConfig.admin_baseurl
+
     def get_user_account(self, file_name="account.txt"):
         '''获取人员帐号信息'''
         base_dir = os.path.abspath(__file__)
