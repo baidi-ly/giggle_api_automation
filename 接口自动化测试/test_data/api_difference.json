@@ -1,6 +1,6 @@
 {
   "apis": [
-    "/api/study-plan/list"
+    "/api/school/lesson/{lessonId}/quiz/reports"
   ],
   "update_apis": [],
   "scan_time": "2025-10-17 10:54:39.746089",
