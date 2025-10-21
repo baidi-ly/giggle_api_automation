@@ -111,4 +111,106 @@ class TestAdminCourse:
         export_res = self.admin.blockedIds(self.authorization)
         assert export_res["data"]['blockedIds']
 
+    @pytest.mark.release
+    def test_admin_course_positive_getSpelrules_ok(self):
+        """获取体验课程推荐SpEL表达式规则-正向用例"""
+        res = self.admin.getSpelrules(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
 
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_admin_course_permission_getSpelrules(self, desc, value):
+        """获取体验课程推荐SpEL表达式规则-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.admin.getSpelrules(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+            assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value, code, code_res',
+        [
+            ('string', 'abc', 400, 100006),
+            ('integer', 123, 400, 100006),
+            ('float', 12.34, 400, 100006),
+            ('object', {'key': 'value'}, 400, 100006),
+            ('emoji', 'test_emoji', 400, 100006),
+        ]
+    )
+    def test_admin_course_format_getSpelrules_abTest(self, desc, value, code, code_res):
+        """获取体验课程推荐SpEL表达式规则-数据格式测试(abTest)"""
+        try:
+            res = self.admin.getSpelrules(self.authorization, abTest=value, code=code)
+        except Exception as res:
+            assert not code
+        if code and not code_res:
+            assert not res
+        elif code_res == 500:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
+            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+        elif code_res == 404:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 404, f"接口返回状态码异常: 预期【{'pending'}】，实际【404】"
+            assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
+            assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value, code',
+        [
+            ('true', True, 200),
+            ('false', False, 200),
+        ]
+    )
+    def test_admin_course_boundary_getSpelrules_abTest(self, desc, value, code):
+        """获取体验课程推荐SpEL表达式规则-边界值测试(abTest)"""
+        res = self.admin.getSpelrules(self.authorization, abTest=value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == code, f"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_course_positive_spelrules_ok(self):
+        """设置体验课程推荐SpEL表达式规则-正向用例"""
+        res = self.admin.spelrules(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_admin_course_permission_spelrules(self, desc, value):
+        """设置体验课程推荐SpEL表达式规则-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.admin.spelrules(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"

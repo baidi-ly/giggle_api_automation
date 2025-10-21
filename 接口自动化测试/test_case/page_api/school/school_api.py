@@ -226,7 +226,7 @@ class SchoolApi(BaseAPI):
         payload = {
             "classId": 123,
             "lessonName": "英语课堂",
-            "teachingLanguage": "英语",
+            "teachingLanguage": "zh",
             "resources": [{'id': 1, 'resourceType': 'course'}, {'id': 2, 'resourceType': 'quiz'}]
         }
         payload = self.request_body(payload, **kwargs)
@@ -645,6 +645,53 @@ class SchoolApi(BaseAPI):
 
         response = requests.request("PUT", url, headers=headers, json=payload)
         error_msg = "更新课堂学生默认分组"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def report(self, authorization, lessonId=0, quizId=0, DeviceType="web", code=200, **kwargs):
+        """
+        测验结果上报
+        :param lessonId: (integer, path, required) lessonId
+        :param quizId: (integer, path, required) quizId
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-20
+        url = f"https://{base_url}/api/school/lesson/{lessonId}/quiz/{quizId}/report"
+        payload = {
+          "studentId": 123,
+          "resourceId": 456,
+          "answers": [
+            {
+              "instructionalDomain": "认知维度",
+              "questionSeqNo": 1,
+              "questionType": "选择题",
+              "score": 10,
+              "answerData": "{\"selected\":\"A\"}",
+              "answerTime": "2024-01-15T10:30:00",
+              "duration": 30
+            },
+            {
+              "instructionalDomain": "理解维度",
+              "questionSeqNo": 2,
+              "questionType": "填空题",
+              "score": 0,
+              "answerData": "{\"answer\":\"\"}",
+              "answerTime": "2024-01-15T10:31:00",
+              "duration": 45
+            }
+          ]
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "测验结果上报"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()

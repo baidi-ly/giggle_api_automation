@@ -37,10 +37,32 @@ class TestGame:
         for game in gameNames:
             assert key in game, f"根据关键词搜索游戏内容失败，预期内容包含：{key}，实际：{game}"
 
-    @pytest.mark.flaky(reruns=3, reruns_delay=2)
-    def test_AB_game_search_size(self):
-        """参考上述逻辑验证size"""
-        pytest.assume(1 == 3)
-        pytest.assume(2 == 3)
-        pytest.assume(2 == 2)
+    @pytest.mark.release
+    def test_game_positive_getVisible_ok(self):
+        """查询故事书Tab是否显示-正向用例"""
+        res = self.game.getVisible(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data']['visible'] in [True, False], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_game_permission_getVisible(self, desc, value):
+        """查询故事书Tab是否显示-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.game.getVisible(value, code=200)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+            assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+            assert res['data']['visible'] in [True, False], f"接口返回data数据异常：{res['data']}"
 

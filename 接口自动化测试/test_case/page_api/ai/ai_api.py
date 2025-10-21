@@ -1,0 +1,40 @@
+import json
+import time
+
+from config import RunConfig
+from test_case.page_api.base_api import BaseAPI
+
+requests = BaseAPI().http_timeout()
+base_url = BaseAPI().baseurl()
+AUTH_KEY = RunConfig.AUTH_KEY
+
+
+class AiApi(BaseAPI):
+    """AI相关接口"""
+
+    def translate(self, authorization, targetLanguageCode='zh', text='hello', DeviceType="web", code=200, **kwargs):
+        """
+        翻译文本
+        :param targetLanguageCode: (string, query, required) 目标语言代码
+        :param text: (string, query, required) 要翻译的文本
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-20
+        url = f"https://{base_url}/api/ai/translate"
+        payload = {
+            "targetLanguageCode": targetLanguageCode,
+            "text": text
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "翻译文本"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
