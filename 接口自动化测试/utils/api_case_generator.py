@@ -70,7 +70,13 @@ def generate_tests_for_api(
             module_name = "admin"
         test_file_path = f"test_case/test_admin_case/test_{module_name}_api.py"
     else:
-        module_name = path.split('/')[2] if len(path.split('/')) > 2 else 'api'
+        # 处理普通接口的模块名，将-转换为_
+        path_parts = path.split('/')
+        if len(path_parts) > 2:
+            # 将-符号转换为_，如 study-plan -> study_plan
+            module_name = path_parts[2].replace('-', '_')
+        else:
+            module_name = 'api'
         test_file_path = f"test_case/test_{module_name}_case/test_{module_name}_api.py"
     
     # 确保测试文件目录存在

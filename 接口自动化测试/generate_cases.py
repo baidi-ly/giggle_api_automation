@@ -237,10 +237,18 @@ if __name__ == '__main__':
                     logger.info(f"生成admin接口: {info_k.upper()} {api} -> test_case/page_api/admin/admin_{module}_api.py/{method_name}, 测试用例: test_admin_case/test_admin_{module}_api.py")
             else:
                 # 普通接口的处理（保持原有逻辑）
+                # 处理普通接口的模块名，将-转换为_
+                path_parts = api.split('/')
+                if len(path_parts) > 2:
+                    # 将-符号转换为_，如 study-plan -> study_plan
+                    module = path_parts[2].replace('-', '_')
+                else:
+                    module = 'api'
+                
                 method_name = generate_single_method_to_api(
                     path=api,
                     http_method=info_k,
-                    module=api.split('/')[2],
+                    module=module,
                     summary=info_v['summary'],
                     force=True,  # 强制重新生成以使用合并后的参数
                     parameters=info_v.get('parameters', []),  # 传递合并后的参数
@@ -256,7 +264,8 @@ if __name__ == '__main__':
                     # 不校验请求头中的参数（如authorization、content-type等）
                     raw_parameters = info_v.get('parameters', [])
                     parameters = [p for p in raw_parameters if p.get('in') in ('query', 'body', 'path', 'formData')]
-                    marker = api.split('/')[2] if len(api.split('/')) > 2 else 'api'
+                    # 处理普通接口的标记名，将-转换为_
+                    marker = module
                     generate_tests_for_api(
                         path=api,
                         http_method=info_k,
@@ -265,4 +274,4 @@ if __name__ == '__main__':
                         parameters=parameters,
                         marker=marker,
                     )
-                    logger.info(f"生成普通接口: {info_k.upper()} {api} -> test_case/page_api/{api.split('/')[2]}/{api.split('/')[2]}_api.py/{method_name}, 测试用例: {marker}")
+                    logger.info(f"生成普通接口: {info_k.upper()} {api} -> test_case/page_api/{module}/{module}_api.py/{method_name}, 测试用例: {marker}")

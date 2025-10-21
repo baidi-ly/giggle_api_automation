@@ -164,8 +164,8 @@ class ApiScanner:
             module_part = parts[1].replace('-', '')
             return f"admin_{module_part}"
         
-        # 取第一个路径段作为模块名
-        module = parts[0]
+        # 取第一个路径段作为模块名，将-转换为_
+        module = parts[0].replace('-', '_')
         return module
     
     def scan_page_api_methods(self) -> Dict[str, Set[str]]:
