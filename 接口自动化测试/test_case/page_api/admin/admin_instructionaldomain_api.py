@@ -34,7 +34,7 @@ class AdminInstructionaldomainApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def getList(self, authorization, DeviceType="web", code=200, **kwargs):
+    def instructional_domain_getList(self, authorization, DeviceType="web", code=200, **kwargs):
         """
         获取所有教学维度标签
 

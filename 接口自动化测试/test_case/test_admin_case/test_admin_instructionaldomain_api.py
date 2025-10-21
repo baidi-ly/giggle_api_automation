@@ -101,7 +101,7 @@ class TestAdminInstructionalDomain:
     @pytest.mark.release
     def test_admin_instructionaldomain_positive_getList_ok(self):
         """获取所有教学维度标签-正向用例"""
-        res = self.admin_instructionaldomain.getList(self.authorization)
+        res = self.admin_instructional.instructional_domain_getList(self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -120,7 +120,7 @@ class TestAdminInstructionalDomain:
     def test_admin_instructionaldomain_permission_getList(self, desc, value):
         """获取所有教学维度标签-权限测试"""
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin_instructionaldomain.getList(value, code=401)
+        res = self.admin_instructional.instructional_domain_getList(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
