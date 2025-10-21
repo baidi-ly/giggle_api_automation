@@ -1,6 +1,6 @@
 {
   "apis": [
-    "/admin/book/book-translation/concurrent-threshold"
+    "/admin/book-translation/concurrent-threshold"
   ],
   "update_apis": [],
   "scan_time": "2025-10-17 10:54:39.746089",
