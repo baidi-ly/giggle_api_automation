@@ -63,7 +63,9 @@ def generate_tests_for_api(
         # admin接口路径生成逻辑：/admin/user/sendEmail -> admin_user
         path_parts = path.strip('/').split('/')
         if len(path_parts) >= 2 and path_parts[0] == 'admin':
-            module_name = f"admin_{path_parts[1]}"  # admin_user
+            # 去掉-符号，如 author-ranking -> authorranking
+            module_part = path_parts[1].replace('-', '')
+            module_name = f"admin_{module_part}"  # admin_user
         else:
             module_name = "admin"
         test_file_path = f"test_case/test_admin_case/test_{module_name}_api.py"
