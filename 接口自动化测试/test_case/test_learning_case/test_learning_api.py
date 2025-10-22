@@ -16,7 +16,7 @@ class TestLearning:
 
     def setup_class(self):
         self.learning = LearningApi()
-        self.authorization = self.learning.get_authorization()
+        self.authorization = self.learning.get_authorization()[0]
         self.kid = KidApi()
 
         self.today = datetime.date.today().strftime("%Y-%m-%d")

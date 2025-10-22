@@ -17,7 +17,7 @@ class TestSchoolApi:
     def setup_class(self):
         self.school = SchoolApi()
         self.admin = AdminQuizApi()
-        self.authorization = self.school.get_authorization()
+        self.authorization = self.school.get_authorization()[0]
         self.now = strftime("%Y%m%d%H%M%S")
 
     @pytest.mark.release

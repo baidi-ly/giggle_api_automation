@@ -18,7 +18,7 @@ class TestActivity:
 
     def setup_class(self):
         self.activity = ActivityApi()
-        self.authorization = self.activity.get_authorization()
+        self.authorization = self.activity.get_authorization()[0]
         self.kid = KidApi()
         self.adminActivity = AdminActivityApi()
         self.now = strftime("%Y%m%d%H%M%S")

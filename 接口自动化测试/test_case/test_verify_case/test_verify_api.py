@@ -11,7 +11,7 @@ from test_case.page_api.verify.verify_api import VerifyApi
 class TestVerifyApiGenerated:
     def setup_class(self):
         self.api = VerifyApi()
-        self.authorization = self.api.get_authorization()
+        self.authorization = self.api.get_authorization()[0]
 
 
     def test_noargs_getAuditors_basic(self):

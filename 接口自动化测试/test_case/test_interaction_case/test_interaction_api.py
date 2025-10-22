@@ -17,7 +17,7 @@ class TestInteraction:
 
     def setup_class(self):
         self.interaction = InteractionApi()
-        self.authorization = self.interaction.get_authorization()
+        self.authorization = self.interaction.get_authorization()[0]
         self.course = CourseApi()
         self.now = strftime("%Y%m%d%H%M%S")
 

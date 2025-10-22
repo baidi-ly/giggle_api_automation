@@ -15,7 +15,7 @@ class TestKid:
 
     def setup_class(self):
         self.kid = KidApi()
-        self.authorization = self.book.get_authorization()
+        self.authorization = self.book.get_authorization()[0]
 
     def test_AA_book_list_page(self):
         """

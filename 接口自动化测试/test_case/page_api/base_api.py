@@ -353,14 +353,15 @@ class BaseAPI:
         names, emails, passwords, tokens = self.get_user_account()
         for i in range(10):
             try:
-                authorization = self.login(emails[position], passwords[position], token=tokens[position])["data"]["token"]
+                login_res = self.login(emails[position], passwords[position], token=tokens[position])["data"]
+                authorization, userId = login_res["token"], login_res['userInfo']["userId"]
                 break
             except Exception as e:
                 error_msg = e
                 time.sleep(.5)
         else:
             assert False, "登录失败-->{}".format(error_msg)
-        return authorization
+        return authorization, userId
 
     def get_admin_authorization(self, position=0):
         '''根据position登录后获取对应的authorization'''

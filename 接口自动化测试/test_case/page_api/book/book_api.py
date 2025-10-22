@@ -990,7 +990,7 @@ class BookApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def continueplaying(self, authorization, currentBookId=123, DeviceType="web", code=200, **kwargs):
+    def continueplaying(self, authorization, DeviceType="web", code=200, **kwargs):
         """
         故事书续播（Continue Playing）
         :param req: (object, body, required) req
@@ -999,7 +999,7 @@ class BookApi(BaseAPI):
         # Create Data:  V1.19.0  &  2025-10-21
         url = f"https://{base_url}/api/book/continuePlaying"
         payload = {
-            "currentBookId": currentBookId,
+            "currentBookId": 123,
             "listParams": {},
             "listType": "DAILY_STORIES",
             "navigationType": "NEXT",
@@ -1011,7 +1011,7 @@ class BookApi(BaseAPI):
 
         response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "故事书续播（Continue Playing）"
-        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        # assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()
             return response

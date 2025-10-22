@@ -18,7 +18,7 @@ class TestMaterial:
 
     def setup_class(self):
         self.materials = MaterialsApi()
-        self.authorization = self.materials.get_authorization()
+        self.authorization = self.materials.get_authorization()[0]
 
     def test_materials_upload_common_resource_ppt(self):
         """有效的kidId，返回完整统计数据"""

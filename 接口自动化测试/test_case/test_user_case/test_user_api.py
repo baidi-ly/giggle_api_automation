@@ -17,7 +17,7 @@ class TestUser:
 
     def setup_class(self):
         self.user = UserApi()
-        self.authorization = self.user.get_authorization()
+        self.authorization = self.user.get_authorization()[0]
         self.course = CourseApi()
 
         self.now = strftime("%Y%m%d%H%M%S")

@@ -15,7 +15,7 @@ class TestAiApi:
 
     def setup_class(self):
         self.ai = AiApi()
-        self.authorization = self.ai.get_authorization()
+        self.authorization = self.ai.get_authorization()[0]
         self.now = strftime("%Y%m%d%H%M%S")
 
     @pytest.mark.release

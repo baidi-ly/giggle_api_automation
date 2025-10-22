@@ -13,4 +13,4 @@ class TestEmailApi:
 
     def setup_class(self):
         self.email = EmailApi()
-        self.authorization = self.email.get_authorization()
+        self.authorization = self.email.get_authorization()[0]

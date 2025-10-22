@@ -14,7 +14,7 @@ class TestDonateApi:
 
     def setup_class(self):
         self.donate = DonateApi()
-        self.authorization = self.donate.get_authorization()
+        self.authorization = self.donate.get_authorization()[0]
 
 
     def test_donate_positive_createdonateorder_ok(self):

@@ -15,7 +15,7 @@ class TestCourse:
 
     def setup_class(self):
         self.course = CourseApi()
-        self.authorization = self.course.get_authorization()
+        self.authorization = self.course.get_authorization()[0]
 
     def test_course_blockedCourseIds_login(self):
         """有效的kidId，返回完整统计数据"""

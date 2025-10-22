@@ -15,7 +15,7 @@ class TestGame:
 
     def setup_class(self):
         self.game = GameApi()
-        self.authorization = self.game.get_authorization()
+        self.authorization = self.game.get_authorization()[0]
 
     def teardown_class(self):
         '''

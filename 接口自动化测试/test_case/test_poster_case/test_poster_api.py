@@ -15,7 +15,7 @@ class TestPoster:
 
     def setup_class(self):
         self.poster = PosterApi()
-        self.authorization = self.poster.get_authorization()
+        self.authorization = self.poster.get_authorization()[0]
 
     @pytest.fixture(scope="class")
     def posterList(self):

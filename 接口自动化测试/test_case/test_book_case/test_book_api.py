@@ -17,7 +17,7 @@ class TestBook:
     def setup_class(self):
         self.book = BookApi()
         self.kid = KidApi()
-        self.authorization = self.book.get_authorization()
+        self.authorization, self.userId = self.book.get_authorization()
         self.now = strftime("%Y%m%d%H%M%S")
 
     def teardown_class(self):
@@ -2047,9 +2047,17 @@ class TestBook:
         assert event_res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{event_res['message']}】"
 
     @pytest.mark.release
-    def test_book_positive_continueplaying_ok(self):
+    def test_book_positive_continueplaying_ok(self, get_bookId):
         """故事书续播（Continue Playing）-正向用例"""
-        res = self.book.continueplaying(self.authorization)
+        bookId = get_bookId["data"]["content"][0]["id"]
+        pl = {
+            "currentBookId": bookId,
+            "listParams": {"translateLanguage": "zh"},
+            "listType": "MY_STORYBOOKS",
+            "navigationType": "NEXT",
+            "userId": self.userId
+        }
+        res = self.book.continueplaying(self.authorization, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -2065,12 +2073,19 @@ class TestBook:
             ('invalid_token', 'invalid_token'),
         ]
     )
-    def test_book_permission_continueplaying(self, desc, value):
+    def test_book_permission_continueplaying(self, desc, value, get_bookId):
         """故事书续播（Continue Playing）-权限测试"""
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.book.continueplaying(value, code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
+        bookId = get_bookId["data"]["content"][0]["id"]
+        pl = {
+            "currentBookId": bookId,
+            "listParams": {"translateLanguage": "zh"},
+            "listType": "MY_STORYBOOKS",
+            "navigationType": "NEXT",
+            "userId": self.userId
+        }
+        res = self.book.continueplaying(value, code=401, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"

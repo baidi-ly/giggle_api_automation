@@ -20,7 +20,7 @@ class TestStudyPlanApi:
         self.admin_flashcard = AdminFlashcardsApi()
         self.admin_study = AdminStudyplanApi()
         self.kid = KidApi()
-        self.authorization = self.study_plan.get_authorization()
+        self.authorization = self.study_plan.get_authorization()[0]
         self.now = strftime("%Y%m%d%H%M%S")
 
         name = 'create_flashcards' + self.now

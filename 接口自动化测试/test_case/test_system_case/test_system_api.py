@@ -16,7 +16,7 @@ class TestSystem:
 
     def setup_class(self):
         self.sys = SystemApi()
-        self.authorization = self.sys.get_authorization()
+        self.authorization = self.sys.get_authorization()[0]
         self.now = strftime("%Y%m%d%H%M%S")
 
         try:
