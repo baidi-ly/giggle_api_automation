@@ -38,3 +38,27 @@ class AiApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def generatespeechstyleprompt(self, authorization, DeviceType="web", code=200, **kwargs):
+        """
+        根据内容生成语音风格的prompt
+        :param content: (object, body, required) content
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-22
+        url = f"https://{base_url}/api/ai/generateSpeechStylePrompt"
+        payload = {
+          "content": "Once upon a time, there was a brave little mouse who lived in a cozy hole..."
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "根据内容生成语音风格的prompt"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+

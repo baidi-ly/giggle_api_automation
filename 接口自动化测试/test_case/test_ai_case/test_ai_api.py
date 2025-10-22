@@ -94,3 +94,58 @@ class TestAiApi:
             assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
+    @pytest.mark.release
+    def test_ai_positive_generatespeechstyleprompt_ok(self):
+        """根据内容生成语音风格的prompt-正向用例"""
+        res = self.ai.generatespeechstyleprompt(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data']['recommended_model'] == 'Achird', f"接口返回data数据异常：{res['data']}"
+        assert res['data']['tts_prompt'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_ai_permission_generatespeechstyleprompt(self, desc, value):
+        """根据内容生成语音风格的prompt-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.ai.generatespeechstyleprompt(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value, code',
+        [
+            ('missing',  'missing', 500),
+            ('empty', "", 200),
+            ('null', None, 500),
+        ]
+    )
+    def test_ai_required_generatespeechstyleprompt_content(self, desc, value, code):
+        """根据内容生成语音风格的prompt-必填字段测试(req)"""
+        if desc == 'missing':
+            pl = {'pop_items': 'content'}
+        else:
+            pl = {'content': value}
+        res = self.ai.generatespeechstyleprompt(authorization=self.authorization, **pl, code=code)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        if code == 500:
+            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
+            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+        else:
+            assert res['code'] == 100006, f"接口返回状态码异常: 预期【100006】，实际【{res['code']}】"
+            assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常，实际【{res['data']}】"
