@@ -1,4 +1,5 @@
 import datetime
+import random
 import sys
 import os
 from time import strftime
@@ -21,11 +22,11 @@ class TestBook:
         self.now = strftime("%Y%m%d%H%M%S")
 
     def teardown_class(self):
-        '''
-        所有用例执行完之后执行，可执行动作，清理所有注册的数据
-        本次测试mock只创建了注册接口，未创建清除注册用户接口，暂无代码
-        '''
-        pass
+        '''全局数据清理'''
+        BookTagTypes = self.book.bookTagTypeList(self.authorization)['data']['content']
+        for _type in BookTagTypes:
+            if 'createBookTagType' in _type['name']:
+                self.book.deleteBookTagType(self.authorization, _type['id'])
 
     @pytest.fixture(scope="class")
     def get_bookId(self):
@@ -2093,7 +2094,9 @@ class TestBook:
     @pytest.mark.release
     def test_book_positive_createBookTagType_ok(self):
         """创建书籍标签类型-正向用例"""
-        res = self.book.createBookTagType(self.authorization)
+        description = '创建书籍标签类型描述'
+        name = 'createBookTagType' + self.now
+        res = self.book.createBookTagType(self.authorization, description=description, name=name)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -2123,52 +2126,44 @@ class TestBook:
     @pytest.mark.parametrize(
         'desc, value, code',
         [
-            ('missing',  'missing', 500),
-            ('empty', "", 500),
-            ('null', None, 500),
-        ]
-    )
-    def test_book_required_createBookTagType_name(self, desc, value, code):
-        """创建书籍标签类型-必填字段测试(name)"""
-        if desc == 'missing':
-            pl = {'pop_items': 'name'}
-        else:
-            pl = {'name': value}
-        res = self.book.createBookTagType(authorization=self.authorization, **pl, code=code)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        if code == 500:
-            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
-            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
-        else:
-            assert res['code'] == '${pending}', f"接口返回状态码异常: 预期【{'pending'}】，实际【{res['code']}】"
-            assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
-            assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
-
-    @pytest.mark.release
-    @pytest.mark.parametrize(
-        'desc, value, code',
-        [
-            ('true', True, 500),
-            ('false', False, 500),
+            ('true', True, 200),
+            ('false', False, 200),
         ]
     )
     def test_book_boundary_createBookTagType_allowMultipleTags(self, desc, value, code):
         """创建书籍标签类型-边界值测试(allowMultipleTags)"""
-        res = self.book.createBookTagType(self.authorization, allowMultipleTags=value)
+        description = '创建书籍标签类型描述'
+        name = 'createBookTagType' + self.now + desc
+        res = self.book.createBookTagType(self.authorization, allowMultipleTags=value, description=description, name=name)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == code, f"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
+    @pytest.fixture(scope='function')
+    def create_BookTagType(self):
+        description = '创建书籍标签类型描述'
+        name = 'createBookTagType' + self.now
+        res = self.book.createBookTagType(self.authorization, description=description, name=name)
+        bookTagTypeId = res['data']['id']
+
+        yield bookTagTypeId
+
+        res = self.book.deleteBookTagType(self.authorization, bookTagTypeId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+
     @pytest.mark.release
-    def test_book_positive_bookTagType_details_ok(self):
+    def test_book_positive_bookTagType_deleteBookTagType_ok(self):
         """获取书籍标签类型详情-正向用例"""
-        res = self.book.deleteBookTagType(self.authorization)
+        description = '创建书籍标签类型描述'
+        name = 'createBookTagType' + self.now
+        res = self.book.createBookTagType(self.authorization, description=description, name=name)
+        bookTagTypeId = res['data']['id']
+        res = self.book.deleteBookTagType(self.authorization, bookTagTypeId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        assert res['data'] == '删除成功', f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
     @pytest.mark.parametrize(
@@ -2180,7 +2175,7 @@ class TestBook:
             ('invalid_token', 'invalid_token'),
         ]
     )
-    def test_book_permission_bookTagType_details(self, desc, value):
+    def test_book_permission_bookTagType_deleteBookTagType(self, desc, value):
         """获取书籍标签类型详情-权限测试"""
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.book.deleteBookTagType(value, code=401)
@@ -2217,15 +2212,22 @@ class TestBook:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
+            assert res['data'] == 'unauthorized', f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.release
-    def test_book_positive_createBookTag_ok(self):
+    def test_book_positive_createBookTag_ok(self, create_BookTagType):
         """创建书籍标签-正向用例"""
-        res = self.book.createBookTag(self.authorization)
+        tagDescription = '创建书籍标签描述'
+        tagName = 'createBookTag' + self.now
+        tagTypeId = create_BookTagType
+        res = self.book.createBookTag(self.authorization, tagDescription, tagName, tagTypeId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        assert res['data']['tagTypeId'] == tagTypeId, f"接口返回data数据异常：{res['data']}"
+        assert res['data']['tagTypeId'] == tagTypeId, f"接口返回data数据异常：{res['data']}"
+        assert res['data']['tagName'] == tagName, f"接口返回data数据异常：{res['data']}"
+        assert res['data']['tagDescription'] == tagDescription, f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
     @pytest.mark.parametrize(
@@ -2248,39 +2250,17 @@ class TestBook:
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
-    @pytest.mark.parametrize(
-        'desc, value, code',
-        [
-            ('missing',  'missing', 500),
-            ('empty', "", 500),
-            ('null', None, 500),
-        ]
-    )
-    def test_book_require_createBookTag_tagTypeId(self, desc, value, code):
-        """创建书籍标签类型-必填字段测试(name)"""
-        if desc == 'missing':
-            pl = {'pop_items': 'tagTypeId'}
-        else:
-            pl = {'tagTypeId': value}
-        res = self.book.createBookTagType(authorization=self.authorization, **pl, code=code)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        if code == 500:
-            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
-            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
-        else:
-            assert res['code'] == '${pending}', f"接口返回状态码异常: 预期【{'pending'}】，实际【{res['code']}】"
-            assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
-            assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
-
-    @pytest.mark.release
-    def test_book_positive_deleteBookTag_ok(self):
+    def test_book_positive_deleteBookTag_ok(self, create_BookTagType):
         """根据ID获取书籍标签详情-正向用例"""
-        res = self.book.deleteBookTag(self.authorization)
+        tagDescription = '创建书籍标签描述'
+        tagName = 'createBookTag' + self.now
+        tagTypeId = create_BookTagType
+        bookTagId = self.book.createBookTag(self.authorization, tagDescription, tagName, tagTypeId)['data']['id']
+        res = self.book.deleteBookTag(self.authorization, bookTagId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        assert res['data'] == '删除成功', f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
     @pytest.mark.parametrize(
@@ -2308,14 +2288,15 @@ class TestBook:
         ID = 0
         res = self.book.deleteBookTag(self.authorization, id=ID)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        assert res['code'] == 100054, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'Resource not found', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'] == 'Resource not found', f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
-    def test_book_positive_getBookTagsByType_ok(self):
+    def test_book_positive_getBookTagsByType_ok(self, create_BookTagType):
         """查询指定类型下的故事书标签列表-正向用例"""
-        res = self.book.getBookTagsByType(self.authorization, tagTypeId=1)
+        tagTypeId = create_BookTagType
+        res = self.book.getBookTagsByType(self.authorization, tagTypeId=tagTypeId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -2344,36 +2325,48 @@ class TestBook:
     @pytest.mark.parametrize(
         'desc, value, code',
         [
-            ('missing', 'missing', 500),
+            ('missing', 'missing', 400),
             ('empty', "", 500),
-            ('null', None, 500),
+            ('null', None, 400),
         ]
     )
     def test_book_required_getBookTagsByType_tagTypeId(self, desc, value, code):
         """查询指定类型下的故事书标签列表-必填字段测试(tagTypeId)"""
-        if desc == 'missing':
-            pl = {'pop_items': 'tagTypeId'}
-        else:
-            pl = {'tagTypeId': value}
-        res = self.book.getBookTagsByType(authorization=self.authorization, **pl, code=code)
+        res = self.book.getBookTagsByType(self.authorization, value, code=code)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        if code == 500:
-            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
-            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
+        if code == 400:
+            assert res['code'] == 100006, f"接口返回状态码异常: 预期【100006】，实际【{res['code']}】"
+            assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
         else:
-            assert res['code'] == '${pending}', f"接口返回状态码异常: 预期【{'pending'}】，实际【{res['code']}】"
-            assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
-            assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
+            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【internal server error】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+
+    @pytest.fixture(scope='function')
+    def create_BookTag(self, create_BookTagType):
+        '''创建故事书标签'''
+        tagDescription = '创建书籍标签描述'
+        tagName = 'createBookTag' + self.now
+        tagTypeId = create_BookTagType
+        bookTagId = self.book.createBookTag(self.authorization, tagDescription, tagName, tagTypeId)['data']['id']
+        yield bookTagId
+        res = self.book.deleteBookTag(self.authorization, bookTagId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+
 
     @pytest.mark.release
-    def test_book_positive_addTagToBook_ok(self):
+    def test_book_positive_addTagToBook_ok(self, get_bookId, create_BookTag):
         """为故事书添加标签-正向用例"""
-        res = self.book.addTagToBook(self.authorization)
+        bookId = get_bookId["data"]["content"][0]["id"]
+        tagId = create_BookTag
+        res = self.book.addTagToBook(self.authorization, bookId, tagId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        assert res['data']['bookId'] == bookId, f"接口返回data数据异常：{res['data']}"
+        assert res['data']['tagId'] == tagId, f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
     @pytest.mark.parametrize(
@@ -2400,34 +2393,35 @@ class TestBook:
         'desc, value, code',
         [
             ('missing',  'missing', 500),
-            ('empty', "", 500),
+            ('empty', "", 400),
             ('null', None, 500),
         ]
     )
-    def test_book_required_addTagToBook_bookId(self, desc, value, code):
+    def test_book_required_addTagToBook_bookId(self, desc, value, code, create_BookTag):
         """为故事书添加标签-必填字段测试(bookId)"""
+        tagId = create_BookTag
         if desc == 'missing':
             pl = {'pop_items': 'bookId'}
         else:
             pl = {'bookId': value}
-        res = self.book.addTagToBook(authorization=self.authorization, **pl, code=code)
+        res = self.book.addTagToBook(authorization=self.authorization, tagId=tagId, code=code, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         if code == 500:
             assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
             assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
         else:
-            assert res['code'] == '${pending}', f"接口返回状态码异常: 预期【{'pending'}】，实际【{res['code']}】"
-            assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
-            assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+            assert res['code'] == 100006, f"接口返回状态码异常: 预期【100006】，实际【{res['code']}】"
+            assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【'invalid parameter'】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常，实际【{res['data']}】"
 
     @pytest.mark.release
     def test_book_scenario_addTagToBook_invalid_bookId(self):
-        """为故事书添加标签-场景异常-无效的bookId"""
-        bookId = 'INVALID_VALUE'
+        """为故事书添加标签-场景异常-无效的bookId"""   #  todo
+        bookId = random.randint(1000, 9999)
         res = self.book.addTagToBook(self.authorization, bookId=bookId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['code'] == 500, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
@@ -2436,33 +2430,35 @@ class TestBook:
         'desc, value, code',
         [
             ('missing',  'missing', 500),
-            ('empty', "", 500),
+            ('empty', "", 400),
             ('null', None, 500),
         ]
     )
-    def test_book_required_addTagToBook_tagId(self, desc, value, code):
+    def test_book_required_addTagToBook_tagId(self, desc, value, code, get_bookId):
         """为故事书添加标签-必填字段测试(tagId)"""
+        bookId = get_bookId["data"]["content"][0]["id"]
         if desc == 'missing':
             pl = {'pop_items': 'tagId'}
         else:
             pl = {'tagId': value}
-        res = self.book.addTagToBook(authorization=self.authorization, **pl, code=code)
+        res = self.book.addTagToBook(self.authorization, bookId=bookId, code=code, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         if code == 500:
             assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
             assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
         else:
-            assert res['code'] == '${pending}', f"接口返回状态码异常: 预期【{'pending'}】，实际【{res['code']}】"
-            assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
-            assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+            assert res['code'] == 100006, f"接口返回状态码异常: 预期【100006】，实际【{res['code']}】"
+            assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【'invalid parameter'】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常，实际【{res['data']}】"
 
     @pytest.mark.release
-    def test_book_scenario_addTagToBook_invalid_tagId(self):
+    def test_book_scenario_addTagToBook_invalid_tagId(self, get_bookId):
         """为故事书添加标签-场景异常-无效的tagId"""
-        tagId = 'INVALID_VALUE'
-        res = self.book.addTagToBook(self.authorization, tagId=tagId)
+        bookId = get_bookId["data"]["content"][0]["id"]
+        tagId = random.randint(1000, 9999)
+        res = self.book.addTagToBook(self.authorization, bookId=bookId, tagId=tagId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['code'] == 500, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"

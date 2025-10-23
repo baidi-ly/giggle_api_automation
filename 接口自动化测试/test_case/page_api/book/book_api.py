@@ -1180,6 +1180,7 @@ class BookApi(BaseAPI):
             "tagId": tagId
         }
         timestamp = str(int(time.time() * 1000))
+        payload = self.request_body(payload, **kwargs)
         headers = self.request_header(timestamp, authorization, DeviceType)
 
         response = requests.request("POST", url, headers=headers, params=payload)
