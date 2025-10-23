@@ -1162,3 +1162,183 @@ class BookApi(BaseAPI):
             return response
         except json.decoder.JSONDecodeError:
             return False
+
+    def addTagToBook(self, authorization, bookId=0, tagId=0, DeviceType="web", code=200, **kwargs):
+        """
+        为故事书添加标签
+        :param authorization: (string, header, required) AuthToken
+        :param bookId: (integer, query, required) bookId
+        :param tagId: (integer, query, required) tagId
+        :param DeviceType: (string, header, required) android/ios/web
+        :param code: (integer) 期望的HTTP状态码
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-23
+        url = f"https://{base_url}/api/book-tag-relation/add"
+        payload = {
+            "bookId": bookId,
+            "tagId": tagId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "为故事书添加标签"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def removeTagFromBook(self, authorization, bookId=0, tagId=0, DeviceType="web", code=200, **kwargs):
+        """
+        删除故事书与标签的关联关系
+        :param authorization: (string, header, required) AuthToken
+        :param bookId: (integer, query, required) bookId
+        :param tagId: (integer, query, required) tagId
+        :param DeviceType: (string, header, required) android/ios/web
+        :param code: (integer) 期望的HTTP状态码
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-23
+        url = f"https://{base_url}/api/book-tag-relation/remove"
+        payload = {
+            "bookId": bookId,
+            "tagId": tagId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("DELETE", url, headers=headers, params=payload)
+        error_msg = "删除故事书与标签的关联关系"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def bookTagRelationList(self, authorization, bookId=0, page=0, size=10, tagId=0, DeviceType="web", code=200):
+        """
+        查询故事书标签关联列表
+        :param authorization: (string, header, required) AuthToken
+        :param bookId: (integer, query, optional) bookId
+        :param page: (integer, query, optional) page
+        :param size: (integer, query, optional) size
+        :param tagId: (integer, query, optional) tagId
+        :param DeviceType: (string, header, required) android/ios/web
+        :param code: (integer) 期望的HTTP状态码
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-23
+        url = f"https://{base_url}/api/book-tag-relation/list"
+        payload = {
+            "bookId": bookId,
+            "tagId": tagId,
+            "page": page,
+            "size": size
+        }
+        
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "查询故事书标签关联列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def getBookTagsTree(self, authorization, bookId, DeviceType="web", code=200):
+        """
+        根据故事书ID查询标签树形结构
+        :param authorization: (string, header, required) AuthToken
+        :param bookId: (integer, path, required) 故事书ID
+        :param DeviceType: (string, header, required) android/ios/web
+        :param code: (integer) 期望的HTTP状态码
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.20.0  &  2025-10-23
+        url = f"https://{base_url}/api/book/{bookId}/tags-tree"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "根据故事书ID查询标签树形结构"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def batchUpdateBookTags(self, authorization, bookId, tagIds, DeviceType="web", code=200, **kwargs):
+        """
+        批量更新故事书的标签
+        :param authorization: (string, header, required) AuthToken
+        :param bookId: (integer, path, required) 故事书ID
+        :param tagIds: (array, body, required) 标签ID列表
+        :param DeviceType: (string, header, required) android/ios/web
+        :param code: (integer) 期望的HTTP状态码
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-01-15
+        url = f"https://{base_url}/api/book/{bookId}/tags/batch-update"
+        payload = tagIds
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def autoGenerateBookTags(self, authorization, bookId, DeviceType="web", code=200, **kwargs):
+        """
+        自动生成并保存故事书标签
+        :param authorization: (string, header, required) AuthToken
+        :param bookId: (integer, path, required) 故事书ID
+        :param DeviceType: (string, header, required) android/ios/web
+        :param code: (integer) 期望的HTTP状态码
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-01-15
+        url = f"https://{base_url}/api/book/{bookId}/tags/auto-generate"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers)
+        error_msg = "自动生成并保存故事书标签"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def triggerTagBasedRecommendation(self, authorization, DeviceType="web", code=200):
+        """
+        手动触发基于标签的故事书推荐计算
+        :param authorization: (string, header, required) AuthToken
+        :param DeviceType: (string, header, required) android/ios/web
+        :param code: (integer) 期望的HTTP状态码
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-01-15
+        url = f"https://{base_url}/api/book/recommendation/tag-based/trigger"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers)
+        error_msg = "手动触发基于标签的故事书推荐计算"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
