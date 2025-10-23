@@ -1045,3 +1045,120 @@ class BookApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def deleteBookTagType(self, authorization, id=0, DeviceType="web", code=200):
+        """
+        /api/book-tag-type/{id}
+
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-23
+        url = f"https://{base_url}/api/book-tag-type/{id}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("DELETE", url, headers=headers)
+        error_msg = "/api/book-tag-type/{id}"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def bookTagTypeList(self, authorization, page=0, size=10, DeviceType="web", code=200):
+        """
+        查询故事书标签类型列表
+        :param page: (integer, query, optional) page
+        :param size: (integer, query, optional) size
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-23
+        url = f"https://{base_url}/api/book-tag-type/list"
+        payload = {
+            "page": page,
+            "size": size
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "查询故事书标签类型列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def createBookTag(self, authorization, tagDescription='', tagName='', tagTypeId=0, DeviceType="web", code=200, **kwargs):
+        """
+        创建故事书标签
+        :param tagDescription: (string, query, optional) tagDescription
+        :param tagName: (string, query, required) tagName
+        :param tagTypeId: (integer, query, required) tagTypeId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-23
+        url = f"https://{base_url}/api/book-tag/create"
+        payload = {
+            "tagDescription": tagDescription,
+            "tagName": tagName,
+            "tagTypeId": tagTypeId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "创建故事书标签"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def deleteBookTag(self, authorization, id=0, DeviceType="web", code=200, **kwargs):
+        """
+        根据ID获取书籍标签详情
+
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-23
+        url = f"https://{base_url}/api/book-tag/{id}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("DELETE", url, headers=headers)
+        error_msg = "根据ID获取书籍标签详情"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def getBookTagsByType(self, authorization, tagTypeId, page=0, size=10, DeviceType="web", code=200, **kwargs):
+        """
+        查询指定类型下的故事书标签列表
+        :param tagTypeId: (integer, path, required) 标签类型ID
+        :param page: (integer, query, optional) 页码
+        :param size: (integer, query, optional) 每页大小
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-23
+        url = f"https://{base_url}/api/book-tag/by-type/{tagTypeId}"
+        payload = {
+            "page": page,
+            "size": size
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "查询指定类型下的故事书标签列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
