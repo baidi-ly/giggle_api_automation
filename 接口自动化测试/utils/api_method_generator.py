@@ -672,7 +672,7 @@ def _find_next_method_name(content: str, base_method_name: str) -> str:
 def generate_single_method_to_api(
     path: str,
     http_method: str,
-    module: str = "course",
+    module: Optional[str] = None,
     summary: Optional[str] = None,
     force: bool = False,
     parameters: Optional[List[Dict[str, Any]]] = None,
@@ -683,10 +683,18 @@ def generate_single_method_to_api(
     Args:
         path: 接口路径，如 "/api/course/content/detail"
         http_method: HTTP 方法，如 "GET", "POST" 等
-        module: 目标模块目录名，如 "course", "book" 等
+        module: 目标模块目录名，如 "course", "book" 等。如果不提供，则从路径自动提取
         summary: 接口摘要，如果不提供则从 swagger 中获取
         force: 是否强制覆盖已存在的方法
     """
+    # 如果没有指定模块名，从路径自动提取
+    if module is None:
+        path_parts = path.split('/')
+        if len(path_parts) > 2:
+            # 只保留-前面的部分，如 book-tag-type -> book
+            module = path_parts[2].split('-')[0]
+        else:
+            module = 'api'
     # 初始化参数列表
     body_params: List[Dict[str, Any]] = []
     path_params: List[Dict[str, Any]] = []
@@ -996,7 +1004,7 @@ if __name__ == "__main__":
         generate_single_method_to_api(
             path=args.path,
             http_method=args.http_method,
-            module=args.module,
+            module=args.module if args.module != "course" else None,  # 如果使用默认值，则自动提取
             summary=args.summary,
             force=args.force,
         )

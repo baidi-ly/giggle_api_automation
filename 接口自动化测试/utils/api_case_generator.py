@@ -70,11 +70,11 @@ def generate_tests_for_api(
             module_name = "admin"
         test_file_path = f"test_case/test_admin_case/test_{module_name}_api.py"
     else:
-        # 处理普通接口的模块名，将-转换为_
+        # 处理普通接口的模块名，只保留-前面的部分作为模块名
         path_parts = path.split('/')
         if len(path_parts) > 2:
-            # 将-符号转换为_，如 study-plan -> study_plan
-            module_name = path_parts[2].replace('-', '_')
+            # 只保留-前面的部分，如 book-tag-type -> book
+            module_name = path_parts[2].split('-')[0]
         else:
             module_name = 'api'
         test_file_path = f"test_case/test_{module_name}_case/test_{module_name}_api.py"
@@ -992,29 +992,57 @@ def _get_default_value(param: Dict[str, Any], param_type: str) -> str:
 
 
 if __name__ == "__main__":
-    # 测试用例生成示例
+    import argparse
+    import sys
+    
+    parser = argparse.ArgumentParser(description="API测试用例生成器")
+    parser.add_argument("--path", required=True, help="API路径，如 '/api/book-tag-type/create'")
+    parser.add_argument("--http-method", required=True, help="HTTP方法，如 'GET', 'POST' 等")
+    parser.add_argument("--method-name", required=True, help="方法名，如 'createBookTagType'")
+    parser.add_argument("--summary", help="接口摘要")
+    parser.add_argument("--marker", help="测试标记，如果不提供则从路径自动提取")
+    
+    args = parser.parse_args()
+    
+    # 如果没有指定marker，从路径自动提取模块名
+    if not args.marker:
+        path_parts = args.path.split('/')
+        if len(path_parts) > 2:
+            # 只保留-前面的部分，如 book-tag-type -> book
+            args.marker = path_parts[2].split('-')[0]
+        else:
+            args.marker = 'api'
+    
+    # 使用默认的测试参数（实际使用时应该从swagger中获取）
     test_params = [
         {
-            "name": "page",
-            "type": "integer",
+            "name": "name",
+            "type": "string",
             "in": "query",
             "required": True,
-            "default": 0
+            "default": "test_tag"
         },
         {
-            "name": "username",
+            "name": "description",
             "type": "string",
-            "in": "body",
-            "required": True,
-            "default": "test_user"
+            "in": "query",
+            "required": False,
+            "default": "test description"
+        },
+        {
+            "name": "allowMultipleTags",
+            "type": "boolean",
+            "in": "query",
+            "required": False,
+            "default": True
         }
     ]
     
     generate_tests_for_api(
-        path="/api/user/info",
-        http_method="GET",
-        method_name="getUserInfo",
-        summary="获取用户信息",
+        path=args.path,
+        http_method=args.http_method,
+        method_name=args.method_name,
+        summary=args.summary or f"{args.method_name}接口",
         parameters=test_params,
-        marker="user"
+        marker=args.marker
     )
