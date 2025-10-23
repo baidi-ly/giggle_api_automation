@@ -20,10 +20,42 @@ class TestBook:
         self.authorization, self.userId = self.book.get_authorization()
         self.now = strftime("%Y%m%d%H%M%S")
 
+    @pytest.fixture(scope="class")
+    def get_bookId(self):
+        '''方法前置 - 获取bookid'''
+        bookList = self.book.book_list(self.authorization)
+        yield bookList
+
+    @pytest.fixture(scope='function')
+    def create_BookTagType(self):
+        description = '创建书籍标签类型描述'
+        name = 'createBookTagType' + self.now
+        res = self.book.createBookTagType(self.authorization, description=description, name=name)
+        bookTagTypeId = res['data']['id']
+
+        yield bookTagTypeId
+
+        res = self.book.deleteBookTagType(self.authorization, bookTagTypeId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+
+    @pytest.fixture(scope='function')
+    def create_BookTag(self, create_BookTagType):
+        '''创建故事书标签'''
+        tagDescription = '创建书籍标签描述'
+        tagName = 'createBookTag' + self.now
+        tagTypeId = create_BookTagType
+        bookTagId = self.book.createBookTag(self.authorization, tagDescription, tagName, tagTypeId)['data']['id']
+        yield bookTagId
+        res = self.book.deleteBookTag(self.authorization, bookTagId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+
     @pytest.mark.release
-    def test_book_positive_removeTagFromBook_ok(self):
+    def test_book_positive_removeTagFromBook_ok(self, get_bookId, create_BookTag):
         """删除故事书与标签的关联关系-正向用例"""
-        res = self.book.removeTagFromBook(self.authorization)
+        bookId = get_bookId["data"]["content"][0]["id"]
+        tagId = create_BookTag
+        res = self.book.removeTagFromBook(self.authorization, bookId=bookId, tagId=tagId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
