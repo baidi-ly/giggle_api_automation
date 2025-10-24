@@ -4,7 +4,7 @@ import time
 from test_case.page_api.base_api import BaseAPI
 
 requests = BaseAPI().http_timeout()
-base_url = BaseAPI().baseurl()
+base_url = BaseAPI().admin_baseurl()
 
 
 class AdminStudyplanApi(BaseAPI):
@@ -65,6 +65,77 @@ class AdminStudyplanApi(BaseAPI):
 
         response = requests.request("PUT", url, headers=headers, json=payload)
         error_msg = "学习计划状态变更"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def studyPlan_details(self, authorization, studyPlanId=0, DeviceType="web", code=200, **kwargs):
+        """
+        获取学习计划详情
+        :param studyPlanId: (integer, path, required) studyPlanId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-24
+        url = f"https://{base_url}/admin/study-plan/{studyPlanId}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "获取学习计划详情"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def delete_studyPlan(self, authorization, studyPlanId=0, DeviceType="web", code=200, **kwargs):
+        """
+        删除学习计划包
+        :param studyPlanId: (integer, path, required) studyPlanId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-24
+        url = f"https://{base_url}/admin/study-plan/{studyPlanId}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("DELETE", url, headers=headers)
+        error_msg = "删除学习计划包"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def studyPlans(self, authorization, category='', keyword='', page=0, size=20, status=0, DeviceType="web", code=200):
+        """
+        学习计划列表
+        :param category: (string, query, optional) 分类筛选
+        :param keyword: (string, query, optional) 关键词搜索（名称）
+        :param page: (integer, query, optional) 页码
+        :param size: (integer, query, optional) 每页数量
+        :param status: (integer, query, optional) 状态筛选 (0-禁用, 1-启用)
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-24
+        url = f"https://{base_url}/admin/study-plan/list"
+        payload = {
+            "category": category,
+            "keyword": keyword,
+            "page": page,
+            "size": size,
+            "status": status
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "学习计划列表"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()

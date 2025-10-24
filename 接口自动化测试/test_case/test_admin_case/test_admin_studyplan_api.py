@@ -37,8 +37,8 @@ class TestAdminStudyPlan:
                 }
             }
         ]
-
         yield contents
+        self.admin_flashcard.delete_flashcards(self.authorization, quiz_res["id"])
 
     @pytest.mark.release
     def test_admin_studyplan_positive_create_ok(self, create_flashcards):
@@ -69,3 +69,61 @@ class TestAdminStudyPlan:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_studyplan_positive_delete_studyPlan_ok(self, create_flashcards):
+        """删除学习计划包-正向用例"""
+        contents = create_flashcards
+        studyPlanId = self.admin_study.study_plan_create(self.authorization, contents)["data"]["id"]
+        res = self.admin_study.delete_studyPlan(self.authorization, studyPlanId=studyPlanId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_admin_studyplan_permission_delete_studyPlan(self, desc, value):
+        """删除学习计划包-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.admin_study.delete_studyPlan(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value, code',
+        [
+            ('min', -2147483648, 200),
+            ('zero', 0, 200),
+            ('max', 2147483647, 200),
+        ]
+    )
+    def test_admin_studyplan_boundary_delete_studyPlan_studyPlanId(self, desc, value, code):
+        """删除学习计划包-边界值测试(studyPlanId)"""
+        res = self.admin_study.delete_studyPlan(self.authorization, studyPlanId=value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 100150, f"接口返回状态码异常: 预期【100150】，实际【{res['code']}】"
+        assert res['message'] == 'Study plan not found', f"接口返回message信息异常: 预期【'Study plan not found'】，实际【{res['message']}】"
+        assert res['data'] == 'Study plan not found', f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_studyplan_scenario_delete_studyPlan_invalid_studyPlanId(self):
+        """删除学习计划包-场景异常-无效的studyPlanId"""
+        studyPlanId = 999999999
+        res = self.admin_study.delete_studyPlan(self.authorization, studyPlanId=studyPlanId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 100150, f"接口返回状态码异常: 预期【100150】，实际【{res['code']}】"
+        assert res['message'] == 'Study plan not found', f"接口返回message信息异常: 预期【'Study plan not found'】，实际【{res['message']}】"
+        assert res['data'] == 'Study plan not found', f"接口返回data数据异常：{res['data']}"

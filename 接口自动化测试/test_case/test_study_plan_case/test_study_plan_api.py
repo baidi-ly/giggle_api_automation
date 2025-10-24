@@ -45,6 +45,17 @@ class TestStudyPlanApi:
         # 获取kidId
         self.kidId = self.kid.getKids(self.authorization)["data"][0]["id"]
 
+    def teardown_class(self):
+        studyPlans_res = self.admin_study.studyPlans(self.authorization, category='vocabulary', status=1)['data']['content']
+        for studyPlan in studyPlans_res:
+            if '基础词汇学习计划' in studyPlan["name"]:
+                try:
+                    res = self.admin_study.delete_studyPlan(self.authorization, studyPlanId=studyPlan["id"])
+                    assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+                    assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+                except Exception as e:
+                    print(e)
+
     @pytest.mark.release
     def test_study_plan_positive_getList_ok(self):
         """学习计划包列表-正向用例"""
@@ -395,3 +406,73 @@ class TestStudyPlanApi:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
+    @pytest.mark.release
+    def test_study_positive_claimReward_ok(self):
+        """领取学习计划奖励-正向用例"""
+        unitId = self.study_plan.study_plan_units(self.authorization, self.studyPlanId, self.kidId)['data'][0]['id']
+        studyPlanContentId = self.study_plan.study_plan_contents(self.authorization, unitId, self.kidId)['data'][0]['id']
+        pl = {
+            "completionTime": "2025-10-21T08:36:11.811Z",
+            "kidId": self.kidId,
+            "learningDuration": 0,
+            "studyPlanContentId": studyPlanContentId,
+            "studyPlanId": self.studyPlanId,
+            "studyPlanUnitId": unitId
+        }
+        self.study_plan.studyplan_content_complete(self.authorization, **pl)
+        res = self.study_plan.claimReward(self.authorization, int(self.studyPlanId), self.kidId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'] == {'giggles': 50, 'rewardClaimed': True}, f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_study_permission_claimReward(self, desc, value):
+        """领取学习计划奖励-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.study_plan.claimReward(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_study_scenario_claimReward_invalid_kidId(self):
+        """领取学习计划奖励-场景异常-无效的kidId"""
+        kidId = 99999
+        res = self.study_plan.claimReward(self.authorization, kidId=kidId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 100105, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'Kid id not exist', f"接口返回message信息异常: 预期【Kid id not exist】，实际【{res['message']}】"
+        assert res['data'] == 'Kid id not exist', f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value, code',
+        [
+            ('missing', 'missing', 200),
+            ('empty', "", 200),
+            ('null', None, 200),
+        ]
+    )
+    def test_study_required_claimReward_kidId(self, desc, value, code):
+        """查询指定类型下的故事书标签列表-必填字段测试(kidId)"""
+        if desc == 'missing':
+            pl = {'pop_items': 'kidId'}
+        else:
+            pl = {'kidId': value}
+        res = self.study_plan.claimReward(self.authorization, code=code, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 100105, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'Kid id not exist', f"接口返回message信息异常: 预期【Kid id not exist】，实际【{res['message']}】"
+        assert res['data'] == 'Kid id not exist', f"接口返回data数据异常：{res['data']}"

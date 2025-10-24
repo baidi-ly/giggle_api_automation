@@ -53,3 +53,22 @@ class AdminFlashcardsApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def delete_flashcards(self, authorization, id, DeviceType="web", code=200):
+        """
+        删除闪卡
+        :param request:
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-21
+        url = f"https://{base_url}/admin/flashcards/{id}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("DELETE", url, headers=headers)
+        error_msg = "删除闪卡"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
