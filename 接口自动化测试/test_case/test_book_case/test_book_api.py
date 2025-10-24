@@ -2225,7 +2225,6 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data']['tagTypeId'] == tagTypeId, f"接口返回data数据异常：{res['data']}"
-        assert res['data']['tagTypeId'] == tagTypeId, f"接口返回data数据异常：{res['data']}"
         assert res['data']['tagName'] == tagName, f"接口返回data数据异常：{res['data']}"
         assert res['data']['tagDescription'] == tagDescription, f"接口返回data数据异常：{res['data']}"
 

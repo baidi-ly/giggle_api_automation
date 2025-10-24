@@ -1208,6 +1208,7 @@ class BookApi(BaseAPI):
             "bookId": bookId,
             "tagId": tagId
         }
+        payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
@@ -1299,7 +1300,7 @@ class BookApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def autoGenerateBookTags(self, authorization, bookId, DeviceType="web", code=200, **kwargs):
+    def autoGenerateBookTags(self, authorization, bookId, DeviceType="web", code=200):
         """
         自动生成并保存故事书标签
         :param authorization: (string, header, required) AuthToken
