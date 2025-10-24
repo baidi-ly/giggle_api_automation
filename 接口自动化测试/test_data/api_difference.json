@@ -1,6 +1,6 @@
 {
   "apis": [
-    "/admin/study-plan/list"
+    "/api/course/recommendation"
   ],
   "update_apis": [],
   "scan_time": "2025-10-17 10:54:39.746089",
