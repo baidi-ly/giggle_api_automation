@@ -1344,3 +1344,34 @@ class BookApi(BaseAPI):
             return response
         except json.decoder.JSONDecodeError:
             return False
+
+    def storybookRecommend(self, authorization, DeviceType="web", code=200):
+        """
+        获取故事书推荐
+        :param authorization: (string, header, required) AuthToken
+        :param currentBookId: (integer, body, required) 当前阅读的书籍ID,用于作为推荐基准
+        :param readBookIds: (array, body, optional) 已阅读的书籍ID列表，可以为空或null
+        :param recommendCount: (integer, body, optional) 推荐数量，默认为1，最大为10
+        :param recommendationFocus: (string, body, optional) 推荐焦点，默认为"content"
+        :param DeviceType: (string, header, required) android/ios/web
+        :param code: (integer) 期望的HTTP状态码
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.20.0  &  2025-10-17
+        url = f"https://{base_url}/api/storybook/recommendation"
+        payload = {
+            "readBookIds": [1, 2, 3],
+            "recommendCount": 5,
+            "recommendationFocus": "similar"
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "获取故事书推荐"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
