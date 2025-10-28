@@ -1345,7 +1345,7 @@ class BookApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def storybookRecommend(self, authorization, DeviceType="web", code=200):
+    def storybookRecommend(self, authorization, DeviceType="web", code=200, **kwargs):
         """
         获取故事书推荐
         :param authorization: (string, header, required) AuthToken
@@ -1362,8 +1362,9 @@ class BookApi(BaseAPI):
         payload = {
             "readBookIds": [1, 2, 3],
             "recommendCount": 5,
-            "recommendationFocus": "similar"
+            "recommendationFocuås": "similar"
         }
+        payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 

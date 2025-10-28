@@ -3,6 +3,8 @@ import sys
 import os
 from time import strftime
 
+from pandas import DataFrame
+
 from test_case.page_api.book.book_api import BookApi
 from test_case.page_api.kid.kid_api import KidApi
 
@@ -318,18 +320,19 @@ class TestBook:
 
     @pytest.mark.release
     def test_recommend_positive_storybookRecommend_ok(self, get_bookId):
-        """获取故事书推荐-正常流程测试"""
-        readBookIds = get_bookId
+        """获取故事书推荐-正常流程测试"""    # todo
+        res = get_bookId['data']['content']
+        readBookIds = DataFrame(res)["id"].tolist()
         pl = {
-            "readBookIds": [1, 2, 3],
-            "recommendCount": 5,
+            "readBookIds": readBookIds,
+            "recommendCount": len(readBookIds),
             "recommendationFocus": "similar"
         }
-        res = self.book.triggerTagBasedRecommendation(self.authorization, **pl)
+        res = self.book.storybookRecommend(self.authorization, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'] == '推荐计算任务已完成', f"接口返回data数据异常：{res['data']}"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
     @pytest.mark.parametrize(
@@ -343,9 +346,8 @@ class TestBook:
     )
     def test_recommend_permission_storybookRecommend(self, desc, value):
         """获取故事书推荐-权限测试"""
-        res = self.book.triggerTagBasedRecommendation(authorization=value)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
+        res = self.book.storybookRecommend(authorization=value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"

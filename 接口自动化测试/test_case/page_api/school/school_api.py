@@ -698,4 +698,3 @@ class SchoolApi(BaseAPI):
             return response
         except json.decoder.JSONDecodeError:
             return False
-
