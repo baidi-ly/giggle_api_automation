@@ -4,6 +4,8 @@ import sys
 import os
 from time import strftime
 
+from pandas import DataFrame
+
 from test_case.page_api.activity.activity_api import ActivityApi
 from test_case.page_api.admin.admin_activity_api import AdminActivityApi
 from test_case.page_api.kid.kid_api import KidApi
@@ -878,4 +880,103 @@ class TestActivity:
             assert res['code'] == 404, f"接口返回状态码异常: 预期【{'pending'}】，实际【404】"
             assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
             assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
+
+
+    @pytest.mark.release
+    def test_activity_positive_getCoursecompleteactivityid_ok(self):
+        """获取完课活动ID-正向用例"""
+        res = self.activity.getCoursecompleteactivityid(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_activity_permission_getCoursecompleteactivityid(self, desc, value):
+        """获取完课活动ID-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.activity.getCoursecompleteactivityid(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+
+    @pytest.mark.release
+    def test_activity_positive_coursecompleteactivityid_ok(self):
+        """配置完课活动ID-正向用例"""
+        gacha_res = self.activity.getList(self.authorization)
+        activityIds = DataFrame(gacha_res['data'])['activityId'].tolist()
+        for activityId in activityIds:
+            res = self.activity.coursecompleteactivityid(self.authorization, activityId)
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+            assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_activity_permission_coursecompleteactivityid(self, desc, value):
+        """配置完课活动ID-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.activity.coursecompleteactivityid(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value, code',
+        [
+            ('missing',  'missing', 500),
+            ('empty', "", 400),
+            ('null', None, 500),
+        ]
+    )
+    def test_activity_required_coursecompleteactivityid_activityId(self, desc, value, code):
+        """配置完课活动ID-必填字段测试(activityId)"""
+        if desc == 'missing':
+            pl = {'pop_items': 'activityId'}
+        else:
+            pl = {'activityId': value}
+        res = self.activity.coursecompleteactivityid(authorization=self.authorization, **pl, code=code)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        if code == 500:
+            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
+            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常，实际【{res['data']}】"
+        else:
+            assert res['code'] == 100006, f"接口返回状态码异常: 预期【100006】，实际【{res['code']}】"
+            assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常，实际【{res['data']}】"
+
+    @pytest.mark.release
+    def test_activity_scenario_coursecompleteactivityid_invalid_activityId(self):
+        """配置完课活动ID-场景异常-无效的activityId"""
+        activityId = 999999999
+        res = self.activity.coursecompleteactivityid(self.authorization, activityId=activityId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 100114, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'Activity not found', f"接口返回message信息异常: 预期【Activity not found】，实际【{res['message']}】"
+        assert res['data'] == 'Activity not found', f"接口返回data数据异常：{res['data']}"
 
