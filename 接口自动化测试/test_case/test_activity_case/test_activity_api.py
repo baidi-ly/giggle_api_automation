@@ -8,6 +8,7 @@ from pandas import DataFrame
 
 from test_case.page_api.activity.activity_api import ActivityApi
 from test_case.page_api.admin.admin_activity_api import AdminActivityApi
+from test_case.page_api.admin.admin_banner_api import AdminBannerApi
 from test_case.page_api.kid.kid_api import KidApi
 
 sys.path.append(os.getcwd())
@@ -20,6 +21,7 @@ class TestActivity:
 
     def setup_class(self):
         self.activity = ActivityApi()
+        self.admin_banner = AdminBannerApi()
         self.authorization = self.activity.get_authorization()[0]
         self.kid = KidApi()
         self.adminActivity = AdminActivityApi()
@@ -916,6 +918,7 @@ class TestActivity:
     def test_activity_positive_coursecompleteactivityid_ok(self):
         """配置完课活动ID-正向用例"""
         gacha_res = self.activity.getList(self.authorization)
+        gacha_res = self.admin_banner.getBannerList(self.authorization)
         activityIds = DataFrame(gacha_res['data'])['activityId'].tolist()
         for activityId in activityIds:
             res = self.activity.coursecompleteactivityid(self.authorization, activityId)
