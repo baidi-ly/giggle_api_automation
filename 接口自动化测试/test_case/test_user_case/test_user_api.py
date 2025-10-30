@@ -1,4 +1,3 @@
-import datetime
 from time import strftime
 
 import pytest
@@ -6,6 +5,7 @@ import sys
 import os
 
 from test_case.page_api.course.course_api import CourseApi
+from test_case.page_api.kid.kid_api import KidApi
 from test_case.page_api.user.user_api import UserApi
 
 sys.path.append(os.getcwd())
@@ -17,6 +17,7 @@ class TestUser:
 
     def setup_class(self):
         self.user = UserApi()
+        self.kid = KidApi()
         self.authorization = self.user.get_authorization()[0]
         self.course = CourseApi()
 
@@ -28,6 +29,12 @@ class TestUser:
         # 创建小孩账户
         couerseList = self.course.listAllWithLevel(self.authorization)["data"]
         yield couerseList
+
+    @pytest.fixture(scope="class")
+    def getkidId(self):
+        '''类前置 - 获取kidId'''
+        kidId = self.kid.getKids(self.authorization)
+        yield kidId
 
     def test_user_videoWhitelist_update_normal(self, get_userIds):
         """有效的kidId，返回完整统计数据"""
@@ -554,3 +561,75 @@ class TestUser:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+
+    @pytest.mark.release
+    def test_user_positive_questionnaire_ok(self, getkidId):
+        """提交问卷设置学习水平-正向用例"""
+        kidId = getkidId['data'][0]['id']
+        res = self.user.questionnaire(self.authorization, kidId, learningLevel='L1')
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'] == {'kidId': kidId, 'learningLevel': 'L1'}, f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_user_permission_questionnaire(self, desc, value):
+        """提交问卷设置学习水平-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.user.questionnaire(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_user_scenario_questionnaire_invalid_request(self, getkidId):
+        """提交问卷设置学习水平-场景异常-无效的request"""
+        kidId = getkidId['data'][0]['id']
+        learningLevel = 'INVALID'
+        res = self.user.questionnaire(self.authorization, kidId, learningLevel=learningLevel)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 100006, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
+        assert res['data'] == 'invalid parameter', f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_user_positive_getLearningLevel_ok(self, getkidId):
+        """获取孩子的学习水平-正向用例"""
+        kidId = getkidId['data'][0]['id']
+        res = self.user.getLearningLevel(self.authorization, kidId=kidId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'] == {'learningLevel': 'L1'}, f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_user_permission_getLearningLevel(self, desc, value):
+        """获取孩子的学习水平-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.user.getLearningLevel(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"

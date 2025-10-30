@@ -5,6 +5,8 @@ from test_case.page_api.base_api import BaseAPI
 
 requests = BaseAPI().http_timeout()
 base_url = BaseAPI().baseurl()
+official_baseurl = BaseAPI().official_baseurl()
+admin_base_url = BaseAPI().admin_baseurl()
 
 
 class AdminCourseApi(BaseAPI):
@@ -18,7 +20,7 @@ class AdminCourseApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-08
         # Creator: Baidi
-        url = f"https://{base_url}/admin/course/export-by-theme"
+        url = f"https://{admin_base_url}/admin/course/export-by-theme"
         payload = {
             "theme": theme
         }
@@ -39,7 +41,7 @@ class AdminCourseApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-08
         # Creator: Baidi
-        url = f"https://{base_url}/admin/course/list-trial"
+        url = f"https://{admin_base_url}/admin/course/list-trial"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
@@ -58,7 +60,7 @@ class AdminCourseApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-08
         # Creator: Baidi
-        url = f"https://{base_url}/admin/course/update-trial"
+        url = f"https://{admin_base_url}/admin/course/update-trial"
         timestamp = str(int(time.time() * 1000))
         payload = {
             "courseId": courseId
@@ -78,7 +80,7 @@ class AdminCourseApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-08
         # Creator: Baidi
-        url = f"https://{base_url}/admin/course/remove-trial"
+        url = f"https://{admin_base_url}/admin/course/remove-trial"
         timestamp = str(int(time.time() * 1000))
         payload = {
             "courseId": courseId
@@ -99,7 +101,7 @@ class AdminCourseApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-08
         # Creator: Baidi
-        url = f"https://{base_url}/admin/course/blockedIds"
+        url = f"https://{admin_base_url}/admin/course/blockedIds"
         timestamp = str(int(time.time() * 1000))
 
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -117,7 +119,7 @@ class AdminCourseApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-08
         # Creator: Baidi
-        url = f"https://{base_url}/admin/course/blockedIds"
+        url = f"https://{admin_base_url}/admin/course/blockedIds"
         timestamp = str(int(time.time() * 1000))
         payload = {
           "courseIds": courseIds
@@ -138,7 +140,7 @@ class AdminCourseApi(BaseAPI):
         """
         # Create Data:  v.18.0  2025-09-08
         # Creator: Baidi
-        url = f"https://{base_url}/admin/course/listAll"
+        url = f"https://{admin_base_url}/admin/course/listAll"
         timestamp = str(int(time.time() * 1000))
         payload = {
             "categoryId": categoryId
@@ -157,7 +159,7 @@ class AdminCourseApi(BaseAPI):
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-10-20
-        url = f"https://{base_url}/admin/course/recommend/spelRules"
+        url = f"https://{admin_base_url}/admin/course/recommend/spelRules"
         payload = {
             "abTest": abTest
         }
@@ -181,7 +183,7 @@ class AdminCourseApi(BaseAPI):
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-10-20
-        url = f"https://{base_url}/admin/course/recommend/spelRules"
+        url = f"https://{admin_base_url}/admin/course/recommend/spelRules"
         payload1 = {
             "abTest": abTest
         }
@@ -200,6 +202,30 @@ class AdminCourseApi(BaseAPI):
 
         response = requests.request("POST", url, headers=headers, params=payload1, json=payload2)
         error_msg = "设置体验课程推荐SpEL表达式规则"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def generateTags(self, authorization, courseId=1, DeviceType="web", code=200, **kwargs):
+        """
+        AI生成课程标签
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-29
+        url = f"https://{admin_base_url}/admin/course/generate-tags"
+        payload = {
+          "courseId": courseId
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "AI生成课程标签"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()

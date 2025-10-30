@@ -918,7 +918,6 @@ class TestActivity:
     def test_activity_positive_coursecompleteactivityid_ok(self):
         """配置完课活动ID-正向用例"""
         gacha_res = self.activity.getList(self.authorization)
-        gacha_res = self.admin_banner.getBannerList(self.authorization)
         activityIds = DataFrame(gacha_res['data'])['activityId'].tolist()
         for activityId in activityIds:
             res = self.activity.coursecompleteactivityid(self.authorization, activityId)

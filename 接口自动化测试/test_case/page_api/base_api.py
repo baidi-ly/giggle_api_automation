@@ -21,6 +21,9 @@ class BaseAPI:
     def baseurl(self):
         return RunConfig.baseurl
 
+    def official_baseurl(self):
+        return RunConfig.official_baseurl
+
     def admin_baseurl(self):
         return RunConfig.admin_baseurl
 
