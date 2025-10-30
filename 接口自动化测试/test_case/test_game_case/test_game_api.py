@@ -74,7 +74,7 @@ class TestGame:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data']['visible'] in [True, False], f"接口返回data数据异常：{res['data']}"
+        assert res['data']['word'] == word, f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
     @pytest.mark.parametrize(
@@ -89,7 +89,7 @@ class TestGame:
     def test_game_permission_getVisible(self, desc, value):
         """查询故事书Tab是否显示-权限测试"""
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.game.drawing_word(value, code=200)
+        res = self.game.drawing_word(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -100,21 +100,39 @@ class TestGame:
     @pytest.mark.parametrize('word', ['', None, 123])
     def test_game_positive_drawing_word_invalid(self, word):
         """画词-不正确的word"""
-        res = self.game.drawing_word(self.authorization, word)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data']['visible'] in [True, False], f"接口返回data数据异常：{res['data']}"
+        if word == None:
+            res = self.game.drawing_word(self.authorization, word, code=500)
+        else:
+            res = self.game.drawing_word(self.authorization, word)
+        if word == None:
+            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
+            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【internal server error】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+        else:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 100149, f"接口返回状态码异常: 预期【100149】，实际【{res['code']}】"
+            assert res['message'] == 'Course word not found', f"接口返回message信息异常: 预期【Course word not found】，实际【{res['message']}】"
+            assert res['data'] == 'Course word not found', f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
     def test_game_positive_get_playzone_price(self):
         """playZone价格-正向流程"""
-        playZoneId = 1  # 根据实际可用ID调整
+        playZoneId = self.game.published_play_zones(self.authorization)['data']['content'][0]['id']
         res = self.game.get_playzone_price(self.authorization, playZoneId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【100054】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data']['visible'] in [True, False], f"接口返回data数据异常：{res['data']}"
+        assert res['data']['playZoneId'] == playZoneId, f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_game_positive_get_playzone_invalid(self):
+        """playZone价格-正向流程"""
+        playZoneId = 1
+        res = self.game.get_playzone_price(self.authorization, playZoneId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 100054, f"接口返回状态码异常: 预期【100054】，实际【{res['code']}】"
+        assert res['message'] == 'Resource not found', f"接口返回message信息异常: 预期【Resource not found】，实际【{res['message']}】"
+        assert res['data'] == 'Resource not found', f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
     @pytest.mark.parametrize(
@@ -128,7 +146,7 @@ class TestGame:
     )
     def test_game_invalid_get_playzone_price(self, desc, value):
         """playZone价格-path参数非法"""
-        res = self.game.get_playzone_price(value, code=200)
+        res = self.game.get_playzone_price(value, playZoneId=1, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"

@@ -108,3 +108,21 @@ class GameApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def published_play_zones(self, authorization, DeviceType="web", code=200):
+        """
+        获取所有已发布的游戏列表
+        """
+        url = f"https://{base_url}/api/play-zone/published"
+        payload = {
+            "page": 0,
+            "size": 100,
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "获取所有已发布的游戏列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，原因->{response.reason}{response.content}"
+        try:
+            return response.json()
+        except json.decoder.JSONDecodeError:
+            return False
