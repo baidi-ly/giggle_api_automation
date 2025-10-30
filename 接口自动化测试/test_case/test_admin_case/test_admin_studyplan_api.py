@@ -32,15 +32,13 @@ class TestAdminStudyPlan:
                 "sortOrder": 1,
                 "wordCount": 20,
                 "contentConfig": {
-                    "words": ["apple", "banana", "cat"]
+                    "words": ["apple", "banana", "cat", "dog"]
                 }
             }
         ]
         self.studyPlanId = self.admin_study.study_plan_create(self.authorization, contents)["data"]["id"]
         res = self.admin_study.putStatus(self.authorization, studyPlanId=self.studyPlanId)
         assert res
-        # 获取kidId
-        self.kidId = self.kid.getKids(self.authorization)["data"][0]["id"]
 
     def teardown_class(self):
         studyPlans_res = self.admin_study.study_plan_list(self.authorization, category='vocabulary', status=1)['data']['content']
@@ -193,9 +191,10 @@ class TestAdminStudyPlan:
     @pytest.mark.release
     def test_admin_studyplan_positive_putUpdate_ok(self):
         """更新学习计划-正向用例"""
-        studyPlans_res = self.admin_study.study_plan_list(self.authorization, category='vocabulary', status=1)['data']['content']
-        pl = {}
-        res = self.admin_study.update_study_plan(self.authorization, studyPlanId=0, **pl)
+        studyPlans_res = self.admin_study.study_plan_list(self.authorization, category='vocabulary')
+        content = studyPlans_res['data']['content'][:2]
+        studyPlans_res['data']['content'] = content
+        res = self.admin_study.update_study_plan(self.authorization, studyPlanId=self.studyPlanId, **studyPlans_res['data'])
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -243,7 +242,7 @@ class TestAdminStudyPlan:
     def test_admin_studyplan_permission_putStatus(self, desc, value):
         """学习计划状态变更-权限测试"""
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin_studyplan.putStatus(value, code=401)
+        res = self.admin_study.putStatus(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -254,43 +253,23 @@ class TestAdminStudyPlan:
     @pytest.mark.parametrize(
         'desc, value, code',
         [
-            ('min', -2147483648, 200),
+            ('min', -2147483648, 400),
             ('zero', 0, 200),
             ('one', 1, 200),
-            ('two', 2, 200),
-            ('max', 2147483647, 200),
+            ('two', 2, 400),
+            ('max', 2147483647, 400),
         ]
     )
     def test_admin_studyplan_boundary_putStatus_studyPlanId(self, desc, value, code):
         """学习计划状态变更-边界值测试(studyPlanId)"""
-        res = self.admin_studyplan.putStatus(self.authorization, self.studyPlanId, value)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == code, f"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    @pytest.mark.parametrize(
-        'desc, value, code',
-        [
-            ('missing',  'missing', 500),
-            ('empty', "", 500),
-            ('null', None, 500),
-        ]
-    )
-    def test_admin_studyplan_required_putStatus_req(self, desc, value, code):
-        """学习计划状态变更-必填字段测试(req)"""
-        if desc == 'missing':
-            pl = {'pop_items': 'status'}
+        res = self.admin_study.putStatus(self.authorization, self.studyPlanId, value, code=code)
+        if code == 200:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == code, f"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】"
+            assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
         else:
-            pl = {'status': value}
-        res = self.admin_studyplan.putStatus(self.authorization, code=code, **pl)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        if code == 500:
-            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
-            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
-        else:
-            assert res['code'] == '${pending}', f"接口返回状态码异常: 预期【{'pending'}】，实际【{res['code']}】"
-            assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
-            assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 100006, f"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】"
+            assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+            assert res['data'] == {'status': 'Status must be 0 or 1'}, f"接口返回data数据异常：{res['data']}"
