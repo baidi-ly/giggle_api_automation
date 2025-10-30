@@ -1,4 +1,4 @@
-
+import json
 import time
 
 from test_case.page_api.base_api import BaseAPI
@@ -10,7 +10,7 @@ base_url = BaseAPI().baseurl()
 class ViolationReportApi(BaseAPI):
     """违规举报相关接口"""
 
-    def report(self, authorization, content='', images=None, DeviceType="web", code=200, **kwargs):
+    def violation_report(self, authorization, DeviceType="web", code=200, **kwargs):
         """
         提交违规举报
         :param authorization: (string, header, required) AuthToken
@@ -22,8 +22,9 @@ class ViolationReportApi(BaseAPI):
         """
         url = f"https://{base_url}/api/violation-report"
         payload = {
-            "content": content,
-            "images": images if images is not None else []
+            "contactInfo": "user@example.com",
+            "description": "发现不当内容...",
+            "feedbackType": "不当内容"
         }
         payload.update(kwargs)
         timestamp = str(int(time.time() * 1000))
@@ -32,6 +33,7 @@ class ViolationReportApi(BaseAPI):
         error_msg = "提交违规举报"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，原因->{response.reason}{response.content}"
         try:
-            return response.json()
-        except Exception:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
             return False
