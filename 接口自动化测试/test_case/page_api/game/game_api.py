@@ -61,3 +61,50 @@ class GameApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def drawing_word(self, authorization, word='', DeviceType="web", code=200, **kwargs):
+        """
+        游乐场画词接口
+        :param authorization: (string, header, required) AuthToken
+        :param word: (dict, body, optional) 单词
+        :param DeviceType: (string, header, required) android/ios/web
+        :param code: (integer) 预期HTTP状态码
+        :return: API响应
+        """
+        url = f"https://{base_url}/api/play-zone/drawing-word"
+        payload = {
+            "word": word
+        }
+        payload.update(kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "游乐场画词接口"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，原因->{response.reason}{response.content}"
+        try:
+            return response.json()
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def get_playzone_price(self, authorization, playZoneId, DeviceType="web", code=200, **kwargs):
+        """
+        获取playZone价格
+        :param authorization: (string, header, required) AuthToken
+        :param playZoneId: (integer|string, path, required) 游乐场ID
+        :param DeviceType: (string, header, required) android/ios/web
+        :param code: (integer) 预期HTTP状态码
+        :return: API响应
+        """
+        url = f"https://{base_url}/api/play-zone/{playZoneId}/price"
+        payload = {
+            "playZoneId": playZoneId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "获取playZone价格"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，原因->{response.reason}{response.content}"
+        try:
+            return response.json()
+        except json.decoder.JSONDecodeError:
+            return False
+
