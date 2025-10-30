@@ -35,7 +35,7 @@ class TestStudyPlanApi:
                 "sortOrder": 1,
                 "wordCount": 20,
                 "contentConfig": {
-                    "words": ["apple", "banana", "cat"]
+                    "words": ["apple", "banana", "cat", "dog"]
                 }
             }
         ]
