@@ -567,11 +567,11 @@ class TestUser:
     def test_user_positive_questionnaire_ok(self, getkidId):
         """提交问卷设置学习水平-正向用例"""
         kidId = getkidId['data'][0]['id']
-        res = self.user.questionnaire(self.authorization, kidId, learningLevel='L1')
+        res = self.user.questionnaire(self.authorization, kidId, learningLevel='L4')
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'] == {'kidId': kidId, 'learningLevel': 'L1'}, f"接口返回data数据异常：{res['data']}"
+        assert res['data'] == {'kidId': kidId, 'learningLevel': 'L4'}, f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
     @pytest.mark.parametrize(
@@ -612,7 +612,7 @@ class TestUser:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'] == {'learningLevel': 'L1'}, f"接口返回data数据异常：{res['data']}"
+        assert res['data'] == {'learningLevel': 'L4'}, f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
     @pytest.mark.parametrize(

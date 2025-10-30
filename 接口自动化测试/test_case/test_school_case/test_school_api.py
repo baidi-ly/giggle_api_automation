@@ -98,8 +98,8 @@ class TestSchoolApi:
             ('string', '123', 500, 500),
             ('float', 12.3, 500, 500),
             ('boolean', True, 500, 500),
-            ('array', [1, 2, 3], 200, 200), # todo
-            ('empty_array', [], 200, 200),  # todo
+            ('array', [1, 2, 3], 200, 200),
+            ('empty_array', [], 200, 200),
             ('object', {'key': 'value'}, 500, 500),
             ('special_chars', '!@#$%^&*()', 500, 500),
             ('email_format', 'test@example.com', 500, 500),
