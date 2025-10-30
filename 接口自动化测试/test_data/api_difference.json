@@ -1,6 +1,6 @@
 {
   "apis": [
-    "/api/play-zone/drawing-word"
+    "/admin/course-interaction/import"
   ],
   "update_apis": [],
   "scan_time": "2025-10-17 10:54:39.746089",

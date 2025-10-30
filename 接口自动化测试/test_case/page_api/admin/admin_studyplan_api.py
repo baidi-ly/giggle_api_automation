@@ -47,31 +47,6 @@ class AdminStudyplanApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def putStatus(self, authorization, studyPlanId=0, status=1, DeviceType="web", code=200, **kwargs):
-        """
-        学习计划状态变更
-        :param studyPlanId: (integer, path, required) studyPlanId
-        :param req: (object, body, required) req
-        :return: 接口原始返回（已 json 解析）
-        """
-        # Create Data:  V1.19.0  &  2025-10-21
-        url = f"https://{base_url}/admin/study-plan/{studyPlanId}/status"
-        payload = {
-          "status": status
-        }
-        payload = self.request_body(payload, **kwargs)
-        timestamp = str(int(time.time() * 1000))
-        headers = self.request_header(timestamp, authorization, DeviceType)
-
-        response = requests.request("PUT", url, headers=headers, json=payload)
-        error_msg = "学习计划状态变更"
-        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        try:
-            response = response.json()
-            return response
-        except json.decoder.JSONDecodeError:
-            return False
-
     def studyPlan_details(self, authorization, studyPlanId=0, DeviceType="web", code=200, **kwargs):
         """
         获取学习计划详情
@@ -112,7 +87,54 @@ class AdminStudyplanApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def studyPlans(self, authorization, category='', keyword='', page=0, size=20, status=0, DeviceType="web", code=200):
+    def update_study_plan(self, authorization, studyPlanId=0, DeviceType="web", code=200, **kwargs):
+        """
+        更新学习计划
+        :param studyPlanId: (integer, path, required) studyPlanId
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-30
+        url = f"https://{base_url}/admin/study-plan/{studyPlanId}/update"
+        payload = {
+            "name": "string",
+            "imageKey": "string",
+            "category": "string",
+            "ageGroup": "string",
+            "goal": "string",
+            "gigglesReward": 0,
+            "units": [
+            {
+                "name": "string",
+                "sortOrder": 0,
+                "contents": [
+                    {
+                        "name": "string",
+                        "contentType": "string",
+                        "difficulty": "string",
+                        "wordCount": 0,
+                        "contentId": 0,
+                        "contentConfig": {},
+                        "sortOrder": 0
+                        }
+                    ]
+                }
+            ]
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("PUT", url, headers=headers, json=payload)
+        error_msg = "更新学习计划"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def study_plan_list(self, authorization, category='', keyword='', page=0, size=20, status=0, DeviceType="web", code=200, **kwargs):
         """
         学习计划列表
         :param category: (string, query, optional) 分类筛选
@@ -122,7 +144,7 @@ class AdminStudyplanApi(BaseAPI):
         :param status: (integer, query, optional) 状态筛选 (0-禁用, 1-启用)
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-10-24
+        # Create Data:  V1.19.0  &  2025-10-30
         url = f"https://{base_url}/admin/study-plan/list"
         payload = {
             "category": category,
@@ -136,6 +158,31 @@ class AdminStudyplanApi(BaseAPI):
 
         response = requests.request("GET", url, headers=headers, params=payload)
         error_msg = "学习计划列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def putStatus(self, authorization, studyPlanId=0, status=0, DeviceType="web", code=200, **kwargs):
+        """
+        学习计划状态变更
+        :param studyPlanId: (integer, path, required) studyPlanId
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-10-30
+        url = f"https://{base_url}/admin/study-plan/{studyPlanId}/status"
+        payload = {
+          "status": status
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("PUT", url, headers=headers, json=payload)
+        error_msg = "学习计划状态变更"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()

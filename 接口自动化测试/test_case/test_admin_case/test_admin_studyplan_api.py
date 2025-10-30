@@ -20,6 +20,39 @@ class TestAdminStudyPlan:
         self.authorization = self.admin_study.get_admin_authorization()
         self.now = strftime("%Y%m%d%H%M%S")
 
+        name = 'create_flashcards' + self.now
+        quiz_res = self.admin_flashcard.flashcards_create(self.authorization, name=name)["data"]
+        self.contentId = quiz_res["id"]
+        contents = [
+            {
+                "contentId": self.contentId,
+                "contentType": "flash_card",
+                "difficulty": "easy",
+                "name": "基础词汇测验",
+                "sortOrder": 1,
+                "wordCount": 20,
+                "contentConfig": {
+                    "words": ["apple", "banana", "cat"]
+                }
+            }
+        ]
+        self.studyPlanId = self.admin_study.study_plan_create(self.authorization, contents)["data"]["id"]
+        res = self.admin_study.putStatus(self.authorization, studyPlanId=self.studyPlanId)
+        assert res
+        # 获取kidId
+        self.kidId = self.kid.getKids(self.authorization)["data"][0]["id"]
+
+    def teardown_class(self):
+        studyPlans_res = self.admin_study.study_plan_list(self.authorization, category='vocabulary', status=1)['data']['content']
+        for studyPlan in studyPlans_res:
+            if '基础词汇学习计划' in studyPlan["name"]:
+                try:
+                    res = self.admin_study.delete_studyPlan(self.authorization, studyPlanId=studyPlan["id"])
+                    assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+                    assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+                except Exception as e:
+                    print(e)
+
     @pytest.fixture(scope="class")
     def create_flashcards(self):
         name = 'create_flashcards' + self.now
@@ -127,3 +160,137 @@ class TestAdminStudyPlan:
         assert res['code'] == 100150, f"接口返回状态码异常: 预期【100150】，实际【{res['code']}】"
         assert res['message'] == 'Study plan not found', f"接口返回message信息异常: 预期【'Study plan not found'】，实际【{res['message']}】"
         assert res['data'] == 'Study plan not found', f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_studyplan_positive_study_plan_list_ok(self):
+        """学习计划列表-正向用例"""
+        res = self.admin_study.study_plan_list(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_admin_studyplan_permission_study_plan_list(self, desc, value):
+        """学习计划列表-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.admin_study.study_plan_list(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_studyplan_positive_putUpdate_ok(self):
+        """更新学习计划-正向用例"""
+        studyPlans_res = self.admin_study.study_plan_list(self.authorization, category='vocabulary', status=1)['data']['content']
+        pl = {}
+        res = self.admin_study.update_study_plan(self.authorization, studyPlanId=0, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_admin_studyplan_permission_putUpdate(self, desc, value):
+        """更新学习计划-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.admin_study.update_study_plan(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_studyplan_positive_putStatus_ok(self):
+        """学习计划状态变更-正向用例"""
+        res = self.admin_study.putStatus(self.authorization, studyPlanId=self.studyPlanId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_admin_studyplan_permission_putStatus(self, desc, value):
+        """学习计划状态变更-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.admin_studyplan.putStatus(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value, code',
+        [
+            ('min', -2147483648, 200),
+            ('zero', 0, 200),
+            ('one', 1, 200),
+            ('two', 2, 200),
+            ('max', 2147483647, 200),
+        ]
+    )
+    def test_admin_studyplan_boundary_putStatus_studyPlanId(self, desc, value, code):
+        """学习计划状态变更-边界值测试(studyPlanId)"""
+        res = self.admin_studyplan.putStatus(self.authorization, self.studyPlanId, value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == code, f"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value, code',
+        [
+            ('missing',  'missing', 500),
+            ('empty', "", 500),
+            ('null', None, 500),
+        ]
+    )
+    def test_admin_studyplan_required_putStatus_req(self, desc, value, code):
+        """学习计划状态变更-必填字段测试(req)"""
+        if desc == 'missing':
+            pl = {'pop_items': 'status'}
+        else:
+            pl = {'status': value}
+        res = self.admin_studyplan.putStatus(self.authorization, code=code, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        if code == 500:
+            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
+            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+        else:
+            assert res['code'] == '${pending}', f"接口返回状态码异常: 预期【{'pending'}】，实际【{res['code']}】"
+            assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
+            assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"

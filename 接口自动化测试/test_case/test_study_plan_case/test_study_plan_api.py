@@ -46,7 +46,7 @@ class TestStudyPlanApi:
         self.kidId = self.kid.getKids(self.authorization)["data"][0]["id"]
 
     def teardown_class(self):
-        studyPlans_res = self.admin_study.studyPlans(self.authorization, category='vocabulary', status=1)['data']['content']
+        studyPlans_res = self.admin_study.study_plan_list(self.authorization, category='vocabulary', status=1)['data']['content']
         for studyPlan in studyPlans_res:
             if '基础词汇学习计划' in studyPlan["name"]:
                 try:
