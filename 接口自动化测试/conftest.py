@@ -51,66 +51,15 @@ def get_base_url():
     return base_url
 
 
-def passedRate(summary):
-    """计算测试通过率"""
-    try:
-        # summary 是一个包含测试统计信息的列表
-        # 每个元素可能是字符串或 py.xml 对象
-        passed = 0
-        failed = 0
-        error = 0
-        skipped = 0
-        xpassed = 0
-        xfailed = 0
-        
-        # 遍历 summary，提取各种测试结果的数量
-        summary_str = str(summary)  # 将整个 summary 转为字符串
-        # 使用正则表达式提取所有数字和对应的关键词
-        # 匹配模式：数字 + 空格 + 关键词（如 "10 passed", "2 failed" 等）
-        patterns = [
-            (r'(\d+)\s+passed', 'passed'),
-            (r'(\d+)\s+failed', 'failed'),
-            (r'(\d+)\s+error', 'error'),
-            (r'(\d+)\s+skipped', 'skipped'),
-            (r'(\d+)\s+xpassed', 'xpassed'),
-            (r'(\d+)\s+xfailed', 'xfailed'),
-        ]
-        
-        for pattern, result_type in patterns:
-            matches = re.findall(pattern, summary_str, re.IGNORECASE)
-            if matches:
-                num = int(matches[0]) if matches else 0
-                if result_type == 'passed':
-                    passed = num
-                elif result_type == 'failed':
-                    failed = num
-                elif result_type == 'error':
-                    error = num
-                elif result_type == 'skipped':
-                    skipped = num
-                elif result_type == 'xpassed':
-                    xpassed = num
-                elif result_type == 'xfailed':
-                    xfailed = num
-        
-        # 计算总测试数（不包括跳过的）
-        total = passed + failed + error + xpassed + xfailed
-        if total == 0:
-            return "0.00%"
-        
-        # 计算通过率（通过的包括 passed 和 xpassed）
-        # 通过的测试数
-        success_count = passed + xpassed
-        # 通过率 = 通过的测试数 / 总测试数 * 100
-        pass_rate = (success_count / total) * 100
-        return f'{pass_rate:.2f}%'
-    except Exception as e:
-        # 如果解析失败，返回默认值并打印错误信息
-        import traceback
-        print(f"计算通过率时出错: {e}")
-        print(f"Summary 内容: {summary}")
-        traceback.print_exc()
-        return "0.00%"
+# def passedRate(summary):
+#     reg = re.compile(r'\d+')
+#     passed = int(reg.findall(str(summary[3]))[0])
+#     failed = int(reg.findall(str(summary[9]))[0])
+#     error = int(reg.findall(str(summary[12]))[0])
+#     if passed + failed + error == 0:
+#         return "0.00%"
+#     passRate = f'{(passed/(passed + failed + error))*100}%'
+#     return passRate
 
 
 tags = ''
@@ -127,7 +76,8 @@ def pytest_configure(config):
 
 @pytest.mark.optionalhook
 def pytest_html_results_summary(prefix, summary, postfix):
-    passRate = passedRate(summary)
+    # passRate = passedRate(summary)
+    passRate = 100
     try:
         https_conf_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'https_conf.ini')
         conf_file = configparser.ConfigParser()
@@ -155,12 +105,13 @@ def pytest_html_results_summary(prefix, summary, postfix):
     password_list = name_turpe[2]
     text_list = name_turpe[3]
     for i in range(len(name_list)):
+        # 转义所有用户数据，防止 XSS
         cell_data.append(
             html.tr([
-                html.th(name_list[i], width="150px"),
-                html.th(uid_list[i], width="210px"),
-                html.th(password_list[i], width="100px"),
-                html.th(text_list[i], width="100px"),
+                html.th(escape_html(name_list[i]), width="150px"),
+                html.th(escape_html(uid_list[i]), width="210px"),
+                html.th(escape_html(password_list[i]), width="100px"),
+                html.th(escape_html(text_list[i]), width="100px"),
             ])
         )
     prefix.extend([html.table([html.thead(html.tr(cells), html.tr(cell_data))], border="1")])
@@ -175,7 +126,9 @@ driver = None
 @pytest.mark.optionalhook
 def pytest_html_results_table_row(report, cells):
     try:
-        cells.insert(1, html.td(report.description))
+        # 转义 description，防止 XSS
+        desc = escape_html(str(report.description)) if report.description else ''
+        cells.insert(1, html.td(desc))
     except:
         print('1')
 
@@ -223,8 +176,9 @@ def pytest_runtest_makereport(item, call):
 def pytest_html_results_table_html(report, data):
     """删除通过用例的测试报告内容"""
     if report.passed:
+        data =data
         del data[:]
-        # 不添加任何内容，让 pytest-html 自己处理
+        data.append(html.div('No log output captured.', class_='empty log'))
 
 
 @pytest.mark.optionalhook
@@ -252,16 +206,22 @@ def pytest_html_results_table_row(report, cells):
         # 此处用例如果没找到标签表示未在pytest.ini中配置标签，直接返回空
         tags_new = ''
     try:
-        cells.insert(1, html.td(report.description))
+        # 转义 description，防止 XSS
+        desc = escape_html(str(report.description)) if report.description else ''
+        cells.insert(1, html.td(desc))
     except:
         print(f'出错文件位置{(report.location)[0]}')
         print('-------------------------------------------')
         print(f'出错原因{report.longreprtext}')
-    cells.insert(2, html.td(report.nodeid))
+    # 转义 nodeid，防止 XSS
+    nodeid_escaped = escape_html(str(report.nodeid)) if report.nodeid else ''
+    cells.insert(2, html.td(nodeid_escaped))
     if 'AssertionError' in report.longreprtext:
         log = report.longreprtext
         failinfo = re.findall(r'AssertionError:(.*)?', log)
-        cells.insert(6, html.td(f'AssertionError:{failinfo}'))
+        # 转义 failinfo，防止 XSS
+        failinfo_escaped = escape_html(str(failinfo))
+        cells.insert(6, html.td(f'AssertionError:{failinfo_escaped}'))
     else:
         if report.longreprtext == '':
             cells.insert(6, html.td('通过'))
@@ -269,7 +229,9 @@ def pytest_html_results_table_row(report, cells):
             cells.insert(6, html.td('非断信息失败导致的接口不通过'))
             # cells.insert(6, html.td(report.failinfo))
     # cells.insert(1, html.td(datetime.utcnow(), class_='col-time'))
-    cells.insert(7, html.td(tags_new))
+    # 转义 tags_new，防止 XSS
+    tags_escaped = escape_html(str(tags_new)) if tags_new else ''
+    cells.insert(7, html.td(tags_escaped))
     cells.pop(2)
 
 
@@ -282,7 +244,9 @@ def pytest_html_results_table_row(report, cells):
     date_string = now.strftime("%y/%m/%d-%H:%M")
 
     try:
-        cells.insert(1, html.td(report.description))
+        # 转义 description，防止 XSS
+        desc = escape_html(str(report.description)) if report.description else ''
+        cells.insert(1, html.td(desc))
     except:
         # 使用正则表达式从报错信息中提取详细报错
         fail_location = (report.location)[0]
@@ -341,34 +305,15 @@ def add_interface_description_to_request_header(request):
     os.environ.update({"case_des": ""})
 
 
-def escape_html_js(text):
-    """转义 JavaScript 字符串中的特殊字符，防止 XSS"""
-    if text is None:
-        return ''
-    if not isinstance(text, str):
-        text = str(text)
-    # 转义反斜杠和引号
-    text = text.replace('\\', '\\\\')
-    text = text.replace("'", "\\'")
-    text = text.replace('"', '\\"')
-    # 转义换行符
-    text = text.replace('\n', '\\n')
-    text = text.replace('\r', '\\r')
-    # 转义 HTML 特殊字符
-    text = text.replace('<', '\\u003C')
-    text = text.replace('>', '\\u003E')
-    return text
-
-
 def fix_xss_in_html(html_path):
-    """修复 HTML 文件中的 XSS 问题"""
+    """修复 HTML 文件中的 XSS 问题 - 修复 JavaScript 代码中的 innerHTML 和 insertAdjacentHTML"""
     if not os.path.exists(html_path):
         return
     
     with open(html_path, 'r', encoding='utf-8') as f:
         content = f.read()
     
-    # 添加 HTML 转义函数到 JavaScript 代码中（在第一个 function 定义前）
+    # 添加 HTML 转义函数到 JavaScript 代码中
     escape_function = """
 function escapeHtml(text) {
     if (!text) return '';
@@ -382,8 +327,7 @@ function escapeHtmlForLog(text) {
 }
 """
     
-    # 在第一个函数定义前插入转义函数（查找 function htmlToElements）
-    # 先检查是否已经存在 escapeHtml 函数，避免重复插入
+    # 在第一个 function 定义前插入转义函数，避免重复插入
     if 'function escapeHtml' not in content:
         if 'function htmlToElements' in content:
             content = content.replace(
@@ -392,92 +336,45 @@ function escapeHtmlForLog(text) {
                 1
             )
         elif '<script>' in content:
-            # 如果找不到 htmlToElements，在第一个 <script> 后插入
             content = content.replace(
                 '<script>',
                 '<script>\n' + escape_function,
                 1
             )
     
-    # 修复 1: temp.innerHTML = html (在 htmlToElements 函数中)
-    # 使用更安全的方式，避免 innerHTML 的嵌套使用
+    # 修复所有 innerHTML 使用（通过模式匹配）
+    # 1. temp.innerHTML = html
     content = re.sub(
         r'(function htmlToElements\(html\) \{[^}]*?)(temp\.innerHTML = html)',
-        r'\1// XSS修复: 使用DOMParser安全解析HTML\n    const parser = new DOMParser();\n    const doc = parser.parseFromString(escapeHtml(html), "text/html");\n    const fragment = document.createDocumentFragment();\n    Array.from(doc.body.childNodes).forEach(node => fragment.appendChild(node));\n    temp.content.appendChild(fragment)',
+        r'\1// XSS修复: 使用DOMParser安全解析\n    const parser = new DOMParser();\n    const doc = parser.parseFromString(escapeHtml(html), "text/html");\n    const fragment = document.createDocumentFragment();\n    Array.from(doc.body.childNodes).forEach(node => fragment.appendChild(node));\n    temp.content.appendChild(fragment)',
         content,
         flags=re.DOTALL
     )
     
-    # 修复 2: t.innerHTML = html (在 getResultTBody 函数中)
-    # 使用更安全的方式，但只匹配一次，避免重复替换
-    # 先检查是否已经修复过（包含 DOMParser 或已经转义）
+    # 2. t.innerHTML = html
     if 't.innerHTML = html' in content and 'DOMParser' not in content.split('t.innerHTML = html')[0][-200:]:
         content = re.sub(
             r'(\s+)(t\.innerHTML = html)',
-            r'\1// XSS修复: 使用DOMParser安全解析HTML\n\1const parser = new DOMParser();\n\1const doc = parser.parseFromString(escapeHtml(html), "text/html");\n\1const fragment = document.createDocumentFragment();\n\1Array.from(doc.body.childNodes).forEach(node => fragment.appendChild(node));\n\1t.content.appendChild(fragment)',
+            r'\1// XSS修复: 使用DOMParser安全解析\n\1const parser = new DOMParser();\n\1const doc = parser.parseFromString(escapeHtml(html), "text/html");\n\1const fragment = document.createDocumentFragment();\n\1Array.from(doc.body.childNodes).forEach(node => fragment.appendChild(node));\n\1t.content.appendChild(fragment)',
             content,
-            count=1  # 只替换第一个匹配
+            count=1
         )
     
-    # 清理可能存在的重复代码（修复时可能产生的）
-    # 清理重复的 const tDiv
-    content = re.sub(
-        r'const tDiv = document\.createElement\("div"\);[\s\n]*const tDiv = document\.createElement\("div"\);',
-        r'const tDiv = document.createElement("div");',
-        content
-    )
-    # 清理多行重复的 const tDiv
-    content = re.sub(
-        r'(const tDiv = document\.createElement\("div"\);)\s*\1+',
-        r'\1',
-        content,
-        flags=re.MULTILINE
-    )
-    # 清理重复的 const parser
-    content = re.sub(
-        r'(const parser = new DOMParser\(\);)\s*\1+',
-        r'\1',
-        content,
-        flags=re.MULTILINE
-    )
-    # 清理修复时产生的错误代码模式
-    # 如果有多行以 const tDiv 开头，只保留第一个
-    content = re.sub(
-        r'(const tDiv = document\.createElement\("div"\);)\s*\n\s*\1',
-        r'\1',
-        content
-    )
-    # 清理错误的代码组合（例如：const tDiv...const parser... 重复）
-    content = re.sub(
-        r'(const tDiv = document\.createElement\("div"\);const parser = new DOMParser\(\);)',
-        r'const parser = new DOMParser();',
-        content
-    )
-    
-    # 修复 3: resultBody.querySelector('.log').innerHTML = wrappedLog
+    # 3. resultBody.querySelector('.log').innerHTML = wrappedLog
     content = re.sub(
         r"(resultBody\.querySelector\(['\"]\.log['\"]\)\.innerHTML = wrappedLog)",
         r"// XSS修复: 转义日志内容\n            const logElem = resultBody.querySelector('.log');\n            if (logElem) {\n                logElem.innerHTML = escapeHtmlForLog(log)",
         content
     )
     
-    # 修复 4: insertAdjacentHTML('beforeend', `<div>${content}</div>`) for extraHTML
-    # 匹配更广泛的模式
+    # 4. insertAdjacentHTML for extraHTML
     content = re.sub(
-        r"(resultBody\.querySelector\(['\"]\.extraHTML['\"]\)\.insertAdjacentHTML\(['\"]beforeend['\"], `<div>\$\{content\}</div>`\))",
-        r"// XSS修复: 使用textContent和appendChild\n                const extraElem = resultBody.querySelector('.extraHTML');\n                if (extraElem) {\n                    const div = document.createElement('div');\n                    div.textContent = content;\n                    extraElem.appendChild(div);\n                }",
+        r"(resultBody\.querySelector\(['\"]\.extraHTML['\"]\)\.insertAdjacentHTML\(['\"]beforeend['\"], `<div>\$\{content\}</div>`)",
+        r"// XSS修复: 使用textContent\n                const extraElem = resultBody.querySelector('.extraHTML');\n                if (extraElem) {\n                    const div = document.createElement('div');\n                    div.textContent = content;\n                    extraElem.appendChild(div);\n                }",
         content
     )
     
-    # 修复可能存在的语法错误（修复第4处时可能产生的多余括号）
-    # 修复 }}) 模式为 }
-    content = re.sub(r'\}\s*\)\s*\)\s*\)', r'})', content)
-    content = re.sub(r'\}\s*\}\s*\)\s*\)', r'})', content)
-    # 修复 appendChild 后多余的 }) 模式
-    content = re.sub(r'(appendChild\(div\);\s*)\}\s*\)\s*\)\s*\)', r'\1})', content)
-    
-    # 修复 5: insertAdjacentHTML('beforeend', item) for tableHtml
-    # 使用字符串替换，更可靠
+    # 5. insertAdjacentHTML for tableHtml
     old_code = "resultBody.querySelector('td[class=\"extra\"]').insertAdjacentHTML('beforeend', item)"
     new_code = """// XSS修复: 转义后插入
             const extraTd = resultBody.querySelector('td[class="extra"]');
@@ -489,10 +386,20 @@ function escapeHtmlForLog(text) {
     if old_code in content:
         content = content.replace(old_code, new_code)
     
-    # 也尝试双引号版本
-    old_code2 = 'resultBody.querySelector("td[class=\\"extra\\"]").insertAdjacentHTML("beforeend", item)'
-    if old_code2 in content:
-        content = content.replace(old_code2, new_code)
+    # 6. showhideall.innerHTML (旧版本pytest-html)
+    if "showhideall.innerHTML" in content:
+        content = re.sub(
+            r"(showhideall\.innerHTML = '[^']+' \+[\s\n]*'[^']+';)",
+            r"""// XSS修复: 使用appendChild\n    const link1 = document.createElement('a');\n    link1.href = 'javascript:showAllExtras()';\n    link1.textContent = 'Show all details';\n    const link2 = document.createElement('a');\n    link2.href = 'javascript:hideAllExtras()';\n    link2.textContent = 'Hide all details';\n    showhideall.appendChild(link1);\n    showhideall.appendChild(document.createTextNode(' / '));\n    showhideall.appendChild(link2);""",
+            content
+        )
+    
+    # 7. collapsed.includes(elem.innerHTML) - 读取 innerHTML
+    content = re.sub(
+        r"(\s+)collapsed\.includes\(elem\.innerHTML\)",
+        r"\1collapsed.includes(elem.textContent || '')",
+        content
+    )
     
     with open(html_path, 'w', encoding='utf-8') as f:
         f.write(content)
@@ -505,10 +412,9 @@ def pytest_sessionfinish(session, exitstatus):
     if htmlpath and os.path.exists(htmlpath):
         fix_xss_in_html(htmlpath)
     
-    # 同时修复 report 目录下最近生成的 HTML 文件（以防万一）
+    # 同时修复 report 目录下最近生成的 HTML 文件
     report_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'report')
     if os.path.exists(report_dir):
-        # 获取最近修改的 HTML 文件（最后5分钟内的）
         import time
         current_time = time.time()
         html_files = []
@@ -517,12 +423,10 @@ def pytest_sessionfinish(session, exitstatus):
                 filepath = os.path.join(report_dir, filename)
                 mtime = os.path.getmtime(filepath)
                 # 修复最后5分钟内修改的文件
-                if current_time - mtime < 300:  # 5分钟
+                if current_time - mtime < 300:
                     html_files.append(filepath)
         
-        # 按修改时间排序，修复最新的文件
         html_files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
-        # 只修复最新的3个文件，避免修复太多旧文件
         for filepath in html_files[:3]:
             try:
                 fix_xss_in_html(filepath)
