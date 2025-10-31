@@ -163,9 +163,8 @@ def pytest_runtest_makereport(item, call):
 def pytest_html_results_table_html(report, data):
     """删除通过用例的测试报告内容"""
     if report.passed:
-        data =data
         del data[:]
-        data.append(html.div('No log output captured.', class_='empty log'))
+        # 不添加任何内容，让 pytest-html 自己处理
 
 
 @pytest.mark.optionalhook
