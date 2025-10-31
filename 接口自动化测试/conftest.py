@@ -86,14 +86,79 @@ def get_base_url():
 
 
 def passedRate(summary):
-    reg = re.compile(r'\d+')
-    passed = int(reg.findall(str(summary[3]))[0])
-    failed = int(reg.findall(str(summary[9]))[0])
-    error = int(reg.findall(str(summary[12]))[0])
-    if passed + failed + error == 0:
+    """计算测试通过率，安全处理 summary 的不同格式"""
+    try:
+        # 将 summary 转换为字符串，以便统一处理
+        summary_str = str(summary)
+        
+        # 使用正则表达式提取所有测试结果数量
+        patterns = [
+            (r'(\d+)\s+passed', 'passed'),
+            (r'(\d+)\s+failed', 'failed'),
+            (r'(\d+)\s+error', 'error'),
+            (r'(\d+)\s+skipped', 'skipped'),
+            (r'(\d+)\s+xpassed', 'xpassed'),
+            (r'(\d+)\s+xfailed', 'xfailed'),
+        ]
+        
+        passed = 0
+        failed = 0
+        error = 0
+        skipped = 0
+        xpassed = 0
+        xfailed = 0
+        
+        for pattern, result_type in patterns:
+            matches = re.findall(pattern, summary_str, re.IGNORECASE)
+            if matches:
+                num = int(matches[0])
+                if result_type == 'passed':
+                    passed = num
+                elif result_type == 'failed':
+                    failed = num
+                elif result_type == 'error':
+                    error = num
+                elif result_type == 'skipped':
+                    skipped = num
+                elif result_type == 'xpassed':
+                    xpassed = num
+                elif result_type == 'xfailed':
+                    xfailed = num
+        
+        # 如果 summary 是列表格式，尝试从列表中提取
+        if isinstance(summary, (list, tuple)):
+            for item in summary:
+                item_str = str(item)
+                # 尝试匹配各种格式
+                if 'passed' in item_str.lower():
+                    matches = re.findall(r'(\d+)\s+passed', item_str, re.IGNORECASE)
+                    if matches:
+                        passed = int(matches[0])
+                elif 'failed' in item_str.lower():
+                    matches = re.findall(r'(\d+)\s+failed', item_str, re.IGNORECASE)
+                    if matches:
+                        failed = int(matches[0])
+                elif 'error' in item_str.lower():
+                    matches = re.findall(r'(\d+)\s+error', item_str, re.IGNORECASE)
+                    if matches:
+                        error = int(matches[0])
+        
+        # 计算总测试数（不包括跳过的）
+        total = passed + failed + error + xpassed + xfailed
+        if total == 0:
+            return "0.00%"
+        
+        # 计算通过率（通过的包括 passed 和 xpassed）
+        success_count = passed + xpassed
+        pass_rate = (success_count / total) * 100
+        return f'{pass_rate:.2f}%'
+    except Exception as e:
+        # 如果解析失败，返回默认值
+        import traceback
+        print(f"计算通过率时出错: {e}")
+        print(f"Summary 内容: {summary}")
+        traceback.print_exc()
         return "0.00%"
-    passRate = f'{(passed/(passed + failed + error))*100}%'
-    return passRate
 
 # conftest.py
 
@@ -111,7 +176,13 @@ def pytest_configure(config):
 
 @pytest.mark.optionalhook
 def pytest_html_results_summary(prefix, summary, postfix):
-    passRate = passedRate(summary)
+    # 安全计算通过率，如果失败则使用默认值
+    try:
+        passRate = passedRate(summary)
+    except Exception as e:
+        print(f"计算通过率时出错: {e}")
+        passRate = "0.00%"
+    
     try:
         https_conf_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'https_conf.ini')
         conf_file = configparser.ConfigParser()

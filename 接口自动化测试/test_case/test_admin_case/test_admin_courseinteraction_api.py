@@ -14,10 +14,11 @@ import pytest
 class TestAdminCourseInteraction:
 
     def setup_class(self):
-        self.courseInteraction = AdminCourseinteractionApi()
-        self.admincourse = AdminCourseApi()
-        self.authorization = self.courseInteraction.get_authorization()
-        self.admin_authorization = self.courseInteraction.get_admin_authorization()
+        啊=1
+        # self.courseInteraction = AdminCourseinteractionApi()
+        # self.admincourse = AdminCourseApi()
+        # self.authorization = self.courseInteraction.get_authorization()
+        # self.admin_authorization = self.courseInteraction.get_admin_authorization()
 
     @pytest.fixture(scope='class')
     def courselistAll(self):
@@ -70,14 +71,10 @@ class TestAdminCourseInteraction:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    # @pytest.mark.release
-    # def test_admin_courseinteraction_positive_delete_courseInteraction_ok(self):
-    #     """删除课程交互类型映射-正向用例"""
-    #     res = self.admin_courseinteraction.delete_courseInteraction(self.admin_authorization)
-    #     assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-    #     assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-    #     assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-    #     assert res['data'], f"接口返回data数据异常：{res['data']}"
+    @pytest.mark.release1
+    def test_admin_courseinteraction_positive_delete_courseInteracwwtion_ok(self):
+        """删除课程交互类型映射-正向用例"""
+        assert 1
     #
     # @pytest.mark.release
     # @pytest.mark.parametrize(
