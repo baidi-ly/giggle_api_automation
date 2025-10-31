@@ -6,6 +6,7 @@ import re
 import os
 import datetime
 import sys
+import html as html_escape_module
 
 from config import RunConfig
 
@@ -14,6 +15,15 @@ sys.path.append(os.getcwd())
 sys.path.append(os.getcwd().split("接口自动化测试")[0])
 
 account_filename = RunConfig.filename
+
+
+def escape_html(text):
+    """转义 HTML 特殊字符，防止 XSS 攻击"""
+    if text is None:
+        return ''
+    if not isinstance(text, str):
+        text = str(text)
+    return html_escape_module.escape(text)
 
 
 def get_user_account_all(file_name=account_filename):
@@ -247,7 +257,10 @@ def pytest_html_results_table_row(report, cells):
             if len(fail_locations) > 0:
                 error_list = []
                 for i in range(len(fail_locations)):
-                    error_str = "<b>出错位置（%d）：</b>%s<br><b>出错原因：</b>%s<hr>" % (i + 1, fail_locations[i], fail_reasons[i])
+                    # 转义 HTML 特殊字符，防止 XSS
+                    escaped_location = escape_html(fail_locations[i])
+                    escaped_reason = escape_html(fail_reasons[i])
+                    error_str = "<b>出错位置（%d）：</b>%s<br><b>出错原因：</b>%s<hr>" % (i + 1, escaped_location, escaped_reason)
                     error_list.append(error_str)
                 error_string = "".join(error_list)
                 f.write("checkResult=%s" % error_string + "\n")
@@ -276,3 +289,108 @@ def add_interface_description_to_request_header(request):
     yield
     os.environ.update({"nodeid_des": ""})
     os.environ.update({"case_des": ""})
+
+
+def escape_html_js(text):
+    """转义 JavaScript 字符串中的特殊字符，防止 XSS"""
+    if text is None:
+        return ''
+    if not isinstance(text, str):
+        text = str(text)
+    # 转义反斜杠和引号
+    text = text.replace('\\', '\\\\')
+    text = text.replace("'", "\\'")
+    text = text.replace('"', '\\"')
+    # 转义换行符
+    text = text.replace('\n', '\\n')
+    text = text.replace('\r', '\\r')
+    # 转义 HTML 特殊字符
+    text = text.replace('<', '\\u003C')
+    text = text.replace('>', '\\u003E')
+    return text
+
+
+def fix_xss_in_html(html_path):
+    """修复 HTML 文件中的 XSS 问题"""
+    if not os.path.exists(html_path):
+        return
+    
+    with open(html_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    # 添加 HTML 转义函数到 JavaScript 代码中
+    escape_function = """
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+"""
+    
+    # 在 JavaScript 代码开始处添加转义函数
+    # 查找 <script> 标签的位置
+    script_pattern = r'(<script[^>]*>)(\s*)(function|const|var|let)'
+    if re.search(script_pattern, content):
+        content = re.sub(
+            script_pattern,
+            r'\1\n' + escape_function + r'\2\3',
+            content,
+            count=1  # 只替换第一个匹配
+        )
+    else:
+        # 如果找不到，在第一个 </script> 前插入
+        content = content.replace('</script>', escape_function + '\n</script>', 1)
+    
+    # 修复 temp.innerHTML = html 模式，使用 textContent
+    content = re.sub(
+        r'(\s+)temp\.innerHTML\s*=\s*([^;]+);',
+        r'\1// XSS 修复：使用 textContent 而不是 innerHTML\n\1temp.textContent = \2;',
+        content
+    )
+    
+    # 修复 t.innerHTML = html 模式（用于模板）
+    # 对于模板元素，我们需要保留 HTML 结构但转义内容
+    content = re.sub(
+        r'(\s+)t\.innerHTML\s*=\s*([^;]+);',
+        r'\1// XSS 修复：转义后设置 innerHTML\n\1const escapedHtml = escapeHtml(\2);\n\1t.innerHTML = escapedHtml;',
+        content
+    )
+    
+    # 修复 resultBody.querySelector('.log').innerHTML 使用
+    # 对于日志内容，需要保留换行但转义 HTML 标签
+    content = re.sub(
+        r"(\s*)resultBody\.querySelector\(['\"]\.log['\"]\)\.innerHTML\s*=\s*([^;]+);",
+        r"\1// XSS 修复：转义日志内容\n\1const logElem = resultBody.querySelector('.log');\n\1if (logElem) {\n\1    const logContent = \2;\n\1    // 转义 HTML 标签但保留换行\n\1    logElem.innerHTML = escapeHtml(logContent).replace(/\\n/g, '<br>');\n\1}",
+        content
+    )
+    
+    # 修复 insertAdjacentHTML 使用（对于 extraHTML）
+    content = re.sub(
+        r"(\s*)resultBody\.querySelector\(['\"]\.extraHTML['\"]\)\.insertAdjacentHTML\(['\"]beforeend['\"],\s*`<div>(\$\{[^}]+\})</div>`\);",
+        r"\1// XSS 修复：使用 appendChild 和 textContent\n\1const extraElem = resultBody.querySelector('.extraHTML');\n\1if (extraElem) {\n\1    const div = document.createElement('div');\n\1    div.textContent = \2;\n\1    extraElem.appendChild(div);\n\1}",
+        content
+    )
+    
+    # 修复 tableHtml 中的 insertAdjacentHTML（这个可能包含已经转义的 HTML）
+    content = re.sub(
+        r"(\s*)resultBody\.querySelector\(['\"]td\[class=['\"]extra['\"]\]\)\.insertAdjacentHTML\(['\"]beforeend['\"],\s*([^)]+)\);",
+        r"\1// XSS 修复：转义后插入\n\1const extraTd = resultBody.querySelector('td[class=\"extra\"]');\n\1if (extraTd) {\n\1    const itemDiv = document.createElement('div');\n\1    itemDiv.innerHTML = escapeHtml(\2);\n\1    extraTd.appendChild(itemDiv);\n\1}",
+        content
+    )
+    
+    with open(html_path, 'w', encoding='utf-8') as f:
+        f.write(content)
+
+
+@pytest.hookimpl(trylast=True)
+def pytest_sessionfinish(session, exitstatus):
+    """在测试会话结束时修复生成的 HTML 文件中的 XSS 问题"""
+    htmlpath = session.config.getoption("htmlpath")
+    if htmlpath and os.path.exists(htmlpath):
+        fix_xss_in_html(htmlpath)
