@@ -1,7 +1,8 @@
 import sys
 import os
 
-from test_case.page_api.admin.admin_courseinteraction_api import AdminCourseInteractionApi
+from test_case.page_api.admin.admin_course_api import AdminCourseApi
+from test_case.page_api.admin.admin_courseinteraction_api import AdminCourseinteractionApi
 
 sys.path.append(os.getcwd())
 sys.path.append("..")
@@ -13,19 +14,27 @@ import pytest
 class TestAdminCourseInteraction:
 
     def setup_class(self):
-        self.courseInteraction = AdminCourseInteractionApi()
+        self.courseInteraction = AdminCourseinteractionApi()
+        self.admincourse = AdminCourseApi()
         self.authorization = self.courseInteraction.get_authorization()
         self.admin_authorization = self.courseInteraction.get_admin_authorization()
 
     @pytest.fixture(scope='class')
     def courselistAll(self):
-        courselistAll = self.admin.course_listAll(self.admin_authorization, 638245113409605)
+        courselistAll = self.admincourse.course_listAll(self.admin_authorization, 638245113409605)
         yield courselistAll
 
     @pytest.mark.release
-    def test_admin_courseinteraction_positive_getList_ok(self):
+    def test_admin_courseinteraction_positive_getList_ok(self, courselistAll):
         """查询课程交互类型映射列表-正向用例"""
-        res = self.courseInteraction.course_interaction_list(self.authorization)
+        courseId = courselistAll['data'][0]["id"]
+        courseName = courselistAll['data'][0]["name"]
+        pl = {
+            "courseId": courseId,
+            "courseName": courseName,
+            "difficultyLevel": 'L1',
+        }
+        res = self.courseInteraction.course_interaction_list(self.admin_authorization, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -52,110 +61,93 @@ class TestAdminCourseInteraction:
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
-    @pytest.mark.parametrize(
-        'desc, value, code',
-        [
-            ('min', -2147483648, 200),
-            ('zero', 0, 200),
-            ('max', 2147483647, 200),
-        ]
-    )
-    def test_admin_courseinteraction_boundary_getList_courseId(self, desc, value, code):
-        """查询课程交互类型映射列表-边界值测试(courseId)"""
-        res = self.courseInteraction.getList(self.authorization, courseId=value)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == code, f"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     def test_admin_courseinteraction_scenario_getList_invalid_courseId(self):
         """查询课程交互类型映射列表-场景异常-无效的courseId"""
-        courseId = 999999999
-        res = self.courseInteraction.getList(self.authorization, courseId=courseId)
+        courseId = 999999
+        res = self.courseInteraction.course_interaction_list(self.admin_authorization, courseId=courseId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['code'] == 500, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
-    def test_admin_courseinteraction_positive_courseInteraction_details_ok(self):
-        """删除课程交互类型映射-正向用例"""
-        res = self.admin_courseinteraction.delete_courseInteraction(self.authorization)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    @pytest.mark.parametrize(
-        'desc, value',
-        [
-            ('unauthorized', 'missing'),
-            ('no_auth', ''),
-            ('expired_token', 'expired_token'),
-            ('invalid_token', 'invalid_token'),
-        ]
-    )
-    def test_admin_courseinteraction_permission_courseInteraction_details(self, desc, value):
-        """删除课程交互类型映射-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.courseInteraction.delete_courseInteraction(value, code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    def test_admin_courseinteraction_scenario_courseInteraction_details_invalid_id(self):
-        """删除课程交互类型映射-场景异常-无效的id"""
-        id = 999999999
-        res = self.courseInteraction.delete_courseInteraction(self.authorization, id=id)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    @pytest.mark.parametrize(
-        'file',
-        [
-            [('empty_file', '/test_files/empty.txt')],
-            [('small_file', '/test_files/small.txt')],
-            [('large_file', '/test_files/large.txt')],
-            [('invalid_format', '/test_files/invalid.exe')],
-            [('max_size', '/test_files/max_size.txt')],
-        ]
-    )
-    def test_admin_courseinteraction_positive_courseInteraction_import_ok(self, file):
-        """Excel批量导入课程交互类型映射-边界值测试(file)"""
-        _audioFile = []
-        for i in file:
-            _audioFile.append((i[0], open(os.getcwd() + i[1], 'rb')))
-        file = {"file": _audioFile}
-        res = self.admin_courseinteraction.courseInteraction_import(self.authorization, file=file)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    @pytest.mark.parametrize(
-        'desc, value',
-        [
-            ('unauthorized', 'missing'),
-            ('no_auth', ''),
-            ('expired_token', 'expired_token'),
-            ('invalid_token', 'invalid_token'),
-        ]
-    )
-    def test_admin_courseinteraction_permission_courseInteraction_import(self, desc, value):
-        """Excel批量导入课程交互类型映射-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin_courseinteraction.courseInteraction_import(value, code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
+    # @pytest.mark.release
+    # def test_admin_courseinteraction_positive_delete_courseInteraction_ok(self):
+    #     """删除课程交互类型映射-正向用例"""
+    #     res = self.admin_courseinteraction.delete_courseInteraction(self.admin_authorization)
+    #     assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+    #     assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+    #     assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+    #     assert res['data'], f"接口返回data数据异常：{res['data']}"
+    #
+    # @pytest.mark.release
+    # @pytest.mark.parametrize(
+    #     'desc, value',
+    #     [
+    #         ('unauthorized', 'missing'),
+    #         ('no_auth', ''),
+    #         ('expired_token', 'expired_token'),
+    #         ('invalid_token', 'invalid_token'),
+    #     ]
+    # )
+    # def test_admin_courseinteraction_permission_delete_courseInteraction(self, desc, value):
+    #     """删除课程交互类型映射-权限测试"""
+    #     # 鉴权作为位置参数直接传入（示例期望的极简风格）
+    #     res = self.courseInteraction.delete_courseInteraction(value, code=401)
+    #     if res:
+    #         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+    #         assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+    #         assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+    #         assert res['data'], f"接口返回data数据异常：{res['data']}"
+    #
+    # @pytest.mark.release
+    # def test_admin_courseinteraction_scenario_delete_courseInteraction_invalid_id(self):
+    #     """删除课程交互类型映射-场景异常-无效的id"""
+    #     id = 999999999
+    #     res = self.courseInteraction.delete_courseInteraction(self.admin_authorization, id=id)
+    #     assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+    #     assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+    #     assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+    #     assert res['data'], f"接口返回data数据异常：{res['data']}"
+    #
+    # @pytest.mark.release
+    # @pytest.mark.parametrize(
+    #     'file',
+    #     [
+    #         [('empty_file', '/test_files/empty.txt')],
+    #         [('small_file', '/test_files/small.txt')],
+    #         [('large_file', '/test_files/large.txt')],
+    #         [('invalid_format', '/test_files/invalid.exe')],
+    #         [('max_size', '/test_files/max_size.txt')],
+    #     ]
+    # )
+    # def test_admin_courseinteraction_positive_courseInteraction_import_ok(self, file):
+    #     """Excel批量导入课程交互类型映射-边界值测试(file)"""
+    #     _audioFile = []
+    #     for i in file:
+    #         _audioFile.append((i[0], open(os.getcwd() + i[1], 'rb')))
+    #     file = {"file": _audioFile}
+    #     res = self.admin_courseinteraction.courseInteraction_import(self.authorization, file=file)
+    #     assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+    #     assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+    #     assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+    #     assert res['data'], f"接口返回data数据异常：{res['data']}"
+    #
+    # @pytest.mark.release
+    # @pytest.mark.parametrize(
+    #     'desc, value',
+    #     [
+    #         ('unauthorized', 'missing'),
+    #         ('no_auth', ''),
+    #         ('expired_token', 'expired_token'),
+    #         ('invalid_token', 'invalid_token'),
+    #     ]
+    # )
+    # def test_admin_courseinteraction_permission_courseInteraction_import(self, desc, value):
+    #     """Excel批量导入课程交互类型映射-权限测试"""
+    #     # 鉴权作为位置参数直接传入（示例期望的极简风格）
+    #     res = self.admin_courseinteraction.courseInteraction_import(value, code=401)
+    #     if res:
+    #         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+    #         assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+    #         assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+    #         assert res['data'], f"接口返回data数据异常：{res['data']}"

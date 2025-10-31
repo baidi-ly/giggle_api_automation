@@ -1,7 +1,7 @@
 import time
 
-from 接口自动化测试.config import RunConfig
-from 接口自动化测试.test_case.page_api.base_api import BaseAPI
+from config import RunConfig
+from test_case.page_api.base_api import BaseAPI
 
 requests = BaseAPI().http_timeout()
 base_url = BaseAPI().baseurl()

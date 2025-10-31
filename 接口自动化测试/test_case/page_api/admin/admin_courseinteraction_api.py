@@ -23,7 +23,7 @@ class AdminCourseinteractionApi(BaseAPI):
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-10-30
-        url = f"https://{base_url}/admin/course-interaction/list"
+        url = f"https://{admin_base_url}/admin/course-interaction/list"
         payload = {
             "courseId": courseId,
             "courseName": courseName,

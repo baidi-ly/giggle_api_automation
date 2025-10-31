@@ -1,5 +1,6 @@
 import sys
 import os
+from time import strftime
 
 from test_case.page_api.admin.admin_instructionaldomain_api import AdminInstructionaldomainApi
 
@@ -15,11 +16,13 @@ class TestAdminInstructionalDomain:
     def setup_class(self):
         self.admin_instructional = AdminInstructionaldomainApi()
         self.authorization = self.admin_instructional.get_admin_authorization()
+        self.now = strftime("%Y%m%d%H%M%S")
 
     @pytest.mark.release
     def test_admin_instructionaldomain_positive_create_ok(self):
         """创建教学维度标签-正向用例"""
-        res = self.admin_instructional.create(self.authorization)
+        name = 'teaching_test' + self.now
+        res = self.admin_instructional.create(self.authorization, name)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
