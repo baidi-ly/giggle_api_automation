@@ -189,7 +189,7 @@ class TestAdminStudyPlan:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release1
+    @pytest.mark.release
     def test_admin_studyplan_positive_putUpdate_ok(self):
         """更新学习计划-正向用例"""
         studyPlans_res = self.admin_study.study_plan_list(self.authorization, category='vocabulary')

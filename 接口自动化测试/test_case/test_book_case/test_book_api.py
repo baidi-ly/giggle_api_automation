@@ -1916,7 +1916,7 @@ class TestBook:
         bookId = get_bookId["data"]["content"][0]["id"]
         tagId = random.randint(1000, 9999)
         res = self.book.addTagToBook(self.authorization, bookId=bookId, tagId=tagId)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'  # todo
         assert res['code'] == 500, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"

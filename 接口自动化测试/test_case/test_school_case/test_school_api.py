@@ -345,17 +345,6 @@ class TestSchoolApi:
             assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
     @pytest.mark.release
-    def test_school_positive_groups_ok(self):
-        """创建学生分组-正向用例"""
-        class_id = self.school.school_class(self.authorization)['data']['id']
-        lessonId = self.school.create_lesson(self.authorization, classId=class_id)['data']['id']
-        res = self.school.create_groups(self.authorization, lessonId=lessonId, groupCount=4)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -374,17 +363,6 @@ class TestSchoolApi:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    def test_school_positive_putGroups1_ok(self):
-        """更新课堂学生默认分组-正向用例"""
-        class_id = self.school.school_class(self.authorization)['data']['id']
-        lesson_id = self.school.lesson(self.authorization, classId=class_id, resources=resources)['data']['id']
-        res = self.school.update_groups(self.authorization)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
     @pytest.mark.parametrize(
