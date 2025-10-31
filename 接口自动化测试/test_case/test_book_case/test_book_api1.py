@@ -192,7 +192,7 @@ class TestBook:
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.fixture(scope='function')
-    def create_BookTagType(self):
+    def create_BookTagTypes(self):
         '''创建多个故事书标签'''
         tagIds = []
         for i in range(3):
@@ -206,10 +206,10 @@ class TestBook:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
 
     @pytest.mark.release
-    def test_book_positive_batchUpdateBookTags_ok(self, get_bookId, create_BookTagType):
+    def test_book_positive_batchUpdateBookTags_ok(self, get_bookId, create_BookTagTypes):
         """批量更新故事书的标签-正向用例"""
         bookId = get_bookId["data"]["content"][0]["id"]
-        tagIds = create_BookTagType
+        tagIds = create_BookTagTypes
         res = self.book.batchUpdateBookTags(self.authorization, bookId, tagIds)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -345,7 +345,7 @@ class TestBook:
         ]
     )
     def test_recommend_permission_storybookRecommend(self, desc, value):
-        """获取故事书推荐-权限测试"""
+        """获取故事书推荐-权限测试"""  # todo
         res = self.book.storybookRecommend(authorization=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"

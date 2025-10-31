@@ -674,15 +674,6 @@ class SchoolApi(BaseAPI):
               "answerData": "{\"selected\":\"A\"}",
               "answerTime": "2024-01-15T10:30:00",
               "duration": 30
-            },
-            {
-              "instructionalDomain": "理解维度",
-              "questionSeqNo": 2,
-              "questionType": "填空题",
-              "score": 0,
-              "answerData": "{\"answer\":\"\"}",
-              "answerTime": "2024-01-15T10:31:00",
-              "duration": 45
             }
           ]
         }

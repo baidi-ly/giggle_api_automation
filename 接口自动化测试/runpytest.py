@@ -30,7 +30,7 @@ if __name__ =="__main__":
         pathcase,
         "-m release",  # 测试标记
         f"--html={pathreport}",  # 路径需用引号包裹（避免空格）
-        # "--self-contained-html",
+        "--self-contained-html",
         # "--full-trace"  # 可选，根据调试需求
     ])
 

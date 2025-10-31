@@ -373,28 +373,6 @@ class BookApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def indexaudio_details2(self, authorization, bookId=0, language='zh', file=None, DeviceType="web", code=200, **kwargs):
-        """
-        上传并保存故事书首页语音
-        :param bookId: (integer, path, required) 故事书ID
-        :param language: (string, path, required) 语言代码
-        :param file: (file, formData, optional) 上传文件
-        :return: 接口原始返回（已 json 解析）
-        """
-        # Create Data:  V1.19.0  &  2025-10-14
-        url = f"https://{base_url}/api/book/{bookId}/indexAudio/{language}"
-        timestamp = str(int(time.time() * 1000))
-        headers = self.request_header(timestamp, authorization, DeviceType, Content_Type='multipart/form-data')
-
-        response = requests.request("POST", url, headers=headers, files=file)
-        error_msg = "上传并保存故事书首页语音"
-        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        try:
-            response = response.json()
-            return response
-        except json.decoder.JSONDecodeError:
-            return False
-
     def getQuiz(self, authorization, bookId=0, DeviceType="web", code=200, **kwargs):
         """
         查询故事书的quiz
@@ -787,32 +765,32 @@ class BookApi(BaseAPI):
                 "brief": "uu",
                 "pages": [
                     {
-                        "page": 0,
+                        "page": 1,
                         "text": "",
                         "image": "https://static.qakjukl.net/book/quiz/images/723894162968645/08ff63f1d8be9ad9738f17453e82ee63.png"
                     },
                     {
-                        "page": 1,
+                        "page": 2,
                         "text": "",
                         "image": "https://static.qakjukl.net/book/quiz/images/723894162968645/17a21a4cfe1565f4919965925fea08c5.png"
                     },
                     {
-                        "page": 2,
+                        "page": 3,
                         "text": "",
                         "image": "https://static.qakjukl.net/book/quiz/images/723894162968645/5fac12438ef1850fea876c10471e5c2a.png"
                     },
                     {
-                        "page": 3,
+                        "page": 4,
                         "text": "",
                         "image": "https://static.qakjukl.net/book/quiz/images/723894162968645/be95d2e312128168a68e95a114d0d973.png"
                     },
                     {
-                        "page": 4,
+                        "page": 5,
                         "text": "",
                         "image": "https://static.qakjukl.net/book/quiz/images/723894162968645/56853ad0e3052ddf2dc8de66454555e2.png"
                     },
                     {
-                        "page": 5,
+                        "page": 6,
                         "text": "",
                         "image": "https://static.qakjukl.net/book/quiz/images/723894162968645/be95d2e312128168a68e95a114d0d973.png"
                     }
@@ -837,7 +815,7 @@ class BookApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def getStatus(self, authorization, bookId=0, taskId='', DeviceType="web", code=200, **kwargs):
+    def getStatus(self, authorization, bookId=0, taskId=0, DeviceType="web", code=200, **kwargs):
         """
         查询故事quiz生成任务状态
         :param bookId: (integer, path, required) 故事书ID

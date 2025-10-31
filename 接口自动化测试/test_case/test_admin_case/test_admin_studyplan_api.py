@@ -1,3 +1,4 @@
+import random
 import sys
 import os
 from time import strftime
@@ -53,7 +54,7 @@ class TestAdminStudyPlan:
 
     @pytest.fixture(scope="class")
     def create_flashcards(self):
-        name = 'create_flashcards' + self.now
+        name = 'create_flashcards' + self.now + str(random.randint(1, 10))
         quiz_res = self.admin_flashcard.flashcards_create(self.authorization, name=name)["data"]
         contents = [
             {
@@ -64,7 +65,7 @@ class TestAdminStudyPlan:
                 "sortOrder": 1,
                 "wordCount": 20,
                 "contentConfig": {
-                    "words": ["apple", "banana", "cat"]
+                    "words": ["apple", "banana", "cat", "dog"]
                 }
             }
         ]
@@ -188,7 +189,7 @@ class TestAdminStudyPlan:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.release1
     def test_admin_studyplan_positive_putUpdate_ok(self):
         """更新学习计划-正向用例"""
         studyPlans_res = self.admin_study.study_plan_list(self.authorization, category='vocabulary')

@@ -66,7 +66,7 @@ class TestAdminCourseInteraction:
         courseId = 999999
         res = self.courseInteraction.course_interaction_list(self.admin_authorization, courseId=courseId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 500, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
