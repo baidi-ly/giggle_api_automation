@@ -29,17 +29,28 @@ def get_user_account(file_name=account_filename):
         base_dir = os.path.dirname(__file__)
         base_dir = os.path.join(base_dir, 'test_data')
         file_path = os.path.abspath(os.path.join(base_dir, file_name))
-    user_file = open(file_path, 'r', encoding="UTF-8")
-    users = user_file.readlines()
+    with open(file_path, 'r', encoding="UTF-8") as user_file:
+        users = user_file.readlines()
     name = []
     username = []
     password = []
     for u in users:
-        name.append(u.split(',')[0].strip())
-        username.append(u.split(',')[1].strip())
-        password.append(u.split(',')[2].strip())
-    tenant = users[0].split(',')[4].strip()
-    tenantKey = users[1].split(',')[4].strip()
+        u = u.strip()
+        if not u:  # 跳过空行
+            continue
+        parts = u.split(',')
+        name.append(parts[0].strip() if len(parts) > 0 else '')
+        username.append(parts[1].strip() if len(parts) > 1 else '')
+        password.append(parts[2].strip() if len(parts) > 2 else '')
+    # 安全获取 tenant 和 tenantKey
+    tenant = ''
+    tenantKey = ''
+    if len(users) > 0:
+        parts = users[0].strip().split(',')
+        tenant = parts[4].strip() if len(parts) > 4 else ''
+    if len(users) > 1:
+        parts = users[1].strip().split(',')
+        tenantKey = parts[4].strip() if len(parts) > 4 else ''
     return name, username, password, tenant, tenantKey
 
 def get_user_account_all(file_name=account_filename):
@@ -47,19 +58,24 @@ def get_user_account_all(file_name=account_filename):
     base_dir = os.path.dirname(__file__)
     base_dir = os.path.join(base_dir, 'test_data')
     file_path = os.path.abspath(os.path.join(base_dir, file_name))
-    user_file = open(file_path, 'r', encoding="UTF-8")
-    users = user_file.readlines()
+    with open(file_path, 'r', encoding="UTF-8") as user_file:
+        users = user_file.readlines()
     name = []
     username = []
     password = []
     text = []
     depart = []
     for u in users:
-        name.append(u.split(',')[0].strip())
-        username.append(u.split(',')[1].strip())
-        password.append(u.split(',')[2].strip())
-        text.append(u.split(',')[3].strip())
-        depart.append(u.split(',')[4].strip())
+        u = u.strip()
+        if not u:  # 跳过空行
+            continue
+        parts = u.split(',')
+        # 安全获取每列数据，如果列不存在则使用空字符串
+        name.append(parts[0].strip() if len(parts) > 0 else '')
+        username.append(parts[1].strip() if len(parts) > 1 else '')
+        password.append(parts[2].strip() if len(parts) > 2 else '')
+        text.append(parts[3].strip() if len(parts) > 3 else '')
+        depart.append(parts[4].strip() if len(parts) > 4 else '')
     return name, username, password, text, depart
 
 
