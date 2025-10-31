@@ -8,17 +8,16 @@ import subprocess
 import time
 import datetime
 import sys
+
+from config import RunConfig
+
 sys.path.append(r'..\..\..\E10自动化')
 sys.path.append(os.getcwd())
 sys.path.append(os.getcwd().split("接口自动化测试")[0])
 
-from 接口自动化测试.config import RunConfig
-from UI自动化.config import filename as ui_filename
-source_dir = os.getcwd()
-if source_dir.find("UI自动化") > -1:
-    account_filename = ui_filename
-else:
-    account_filename = RunConfig.filename
+
+
+account_filename = RunConfig.filename
 
 def get_user_account(file_name=account_filename):
     '''获取人员帐号信息'''
