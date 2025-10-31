@@ -509,9 +509,27 @@ const mediaViewer = require('./mediaviewer.js')
 const templateEnvRow = document.getElementById('template_environment_row')
 const templateResult = document.getElementById('template_results-table__tbody')
 
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+function escapeHtmlForLog(text) {
+    if (!text) return '';
+    return escapeHtml(text).replace(/\n/g, '<br>').replace(/\r/g, '');
+}
+
 function htmlToElements(html) {
     const temp = document.createElement('template')
-    temp.innerHTML = html
+    // XSS修复: 转义HTML内容
+    const tempDiv = document.createElement("div");
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(escapeHtml(html), "text/html");
+    const fragment = document.createDocumentFragment();
+    Array.from(doc.body.childNodes).forEach(node => fragment.appendChild(node));
+    temp.content.appendChild(fragment)
     return temp.content.childNodes
 }
 
@@ -551,14 +569,22 @@ const dom = {
 
         resultsTableRow.forEach((html) => {
             const t = document.createElement('template')
-            t.innerHTML = html
+            // XSS修复: 使用DOMParser安全解析HTML
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(escapeHtml(html), "text/html");
+            const fragment = document.createDocumentFragment();
+            Array.from(doc.body.childNodes).forEach(node => fragment.appendChild(node));
+            t.content.appendChild(fragment)
             resultBody.querySelector('.collapsible').appendChild(t.content)
         })
 
         if (log) {
             // Wrap lines starting with "E" with span.error to color those lines red
             const wrappedLog = log.replace(/^E.*$/gm, (match) => `<span class="error">${match}</span>`)
-            resultBody.querySelector('.log').innerHTML = wrappedLog
+            // XSS修复: 转义日志内容
+            const logElem = resultBody.querySelector('.log');
+            if (logElem) {
+                logElem.innerHTML = escapeHtmlForLog(log)
         } else {
             resultBody.querySelector('.log').remove()
         }
@@ -577,14 +603,26 @@ const dom = {
             }
 
             if (format_type === 'html') {
-                resultBody.querySelector('.extraHTML').insertAdjacentHTML('beforeend', `<div>${content}</div>`)
+                // XSS修复: 使用textContent和appendChild
+                const extraElem = resultBody.querySelector('.extraHTML');
+                if (extraElem) {
+                    const div = document.createElement('div');
+                    div.textContent = content;
+                    extraElem.appendChild(div);
+                }
             }
         })
         mediaViewer.setup(resultBody, media)
 
         // Add custom html from the pytest_html_results_table_html hook
         tableHtml?.forEach((item) => {
-            resultBody.querySelector('td[class="extra"]').insertAdjacentHTML('beforeend', item)
+            // XSS修复: 转义后插入
+            const extraTd = resultBody.querySelector('td[class="extra"]');
+            if (extraTd && item) {
+                const itemDiv = document.createElement('div');
+                itemDiv.innerHTML = escapeHtml(String(item));
+                extraTd.appendChild(itemDiv);
+            }
         })
 
         return resultBody
