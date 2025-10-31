@@ -400,17 +400,57 @@ function escapeHtmlForLog(text) {
             )
     
     # 修复 1: temp.innerHTML = html (在 htmlToElements 函数中)
+    # 使用更安全的方式，避免 innerHTML 的嵌套使用
     content = re.sub(
         r'(function htmlToElements\(html\) \{[^}]*?)(temp\.innerHTML = html)',
-        r'\1// XSS修复: 转义HTML内容\n    const tempDiv = document.createElement("div");\n    tempDiv.textContent = html;\n    temp.innerHTML = tempDiv.innerHTML',
+        r'\1// XSS修复: 使用DOMParser安全解析HTML\n    const parser = new DOMParser();\n    const doc = parser.parseFromString(escapeHtml(html), "text/html");\n    const fragment = document.createDocumentFragment();\n    Array.from(doc.body.childNodes).forEach(node => fragment.appendChild(node));\n    temp.content.appendChild(fragment)',
         content,
         flags=re.DOTALL
     )
     
     # 修复 2: t.innerHTML = html (在 getResultTBody 函数中)
+    # 使用更安全的方式，但只匹配一次，避免重复替换
+    # 先检查是否已经修复过（包含 DOMParser 或已经转义）
+    if 't.innerHTML = html' in content and 'DOMParser' not in content.split('t.innerHTML = html')[0][-200:]:
+        content = re.sub(
+            r'(\s+)(t\.innerHTML = html)',
+            r'\1// XSS修复: 使用DOMParser安全解析HTML\n\1const parser = new DOMParser();\n\1const doc = parser.parseFromString(escapeHtml(html), "text/html");\n\1const fragment = document.createDocumentFragment();\n\1Array.from(doc.body.childNodes).forEach(node => fragment.appendChild(node));\n\1t.content.appendChild(fragment)',
+            content,
+            count=1  # 只替换第一个匹配
+        )
+    
+    # 清理可能存在的重复代码（修复时可能产生的）
+    # 清理重复的 const tDiv
     content = re.sub(
-        r'(\s+)(t\.innerHTML = html)',
-        r'\1// XSS修复: 转义HTML内容\n\1const tDiv = document.createElement("div");\n\1tDiv.textContent = html;\n\1t.innerHTML = tDiv.innerHTML',
+        r'const tDiv = document\.createElement\("div"\);[\s\n]*const tDiv = document\.createElement\("div"\);',
+        r'const tDiv = document.createElement("div");',
+        content
+    )
+    # 清理多行重复的 const tDiv
+    content = re.sub(
+        r'(const tDiv = document\.createElement\("div"\);)\s*\1+',
+        r'\1',
+        content,
+        flags=re.MULTILINE
+    )
+    # 清理重复的 const parser
+    content = re.sub(
+        r'(const parser = new DOMParser\(\);)\s*\1+',
+        r'\1',
+        content,
+        flags=re.MULTILINE
+    )
+    # 清理修复时产生的错误代码模式
+    # 如果有多行以 const tDiv 开头，只保留第一个
+    content = re.sub(
+        r'(const tDiv = document\.createElement\("div"\);)\s*\n\s*\1',
+        r'\1',
+        content
+    )
+    # 清理错误的代码组合（例如：const tDiv...const parser... 重复）
+    content = re.sub(
+        r'(const tDiv = document\.createElement\("div"\);const parser = new DOMParser\(\);)',
+        r'const parser = new DOMParser();',
         content
     )
     
@@ -464,3 +504,27 @@ def pytest_sessionfinish(session, exitstatus):
     htmlpath = session.config.getoption("htmlpath")
     if htmlpath and os.path.exists(htmlpath):
         fix_xss_in_html(htmlpath)
+    
+    # 同时修复 report 目录下最近生成的 HTML 文件（以防万一）
+    report_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'report')
+    if os.path.exists(report_dir):
+        # 获取最近修改的 HTML 文件（最后5分钟内的）
+        import time
+        current_time = time.time()
+        html_files = []
+        for filename in os.listdir(report_dir):
+            if filename.endswith('.html'):
+                filepath = os.path.join(report_dir, filename)
+                mtime = os.path.getmtime(filepath)
+                # 修复最后5分钟内修改的文件
+                if current_time - mtime < 300:  # 5分钟
+                    html_files.append(filepath)
+        
+        # 按修改时间排序，修复最新的文件
+        html_files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+        # 只修复最新的3个文件，避免修复太多旧文件
+        for filepath in html_files[:3]:
+            try:
+                fix_xss_in_html(filepath)
+            except Exception as e:
+                print(f"修复文件 {filepath} 时出错: {e}")
