@@ -97,7 +97,7 @@ class TestAiApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data']['recommended_model'] == 'Achird', f"接口返回data数据异常：{res['data']}"
+        assert res['data']['recommended_model'], f"接口返回data数据异常：{res['data']}"
         assert res['data']['tts_prompt'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.parametrize(

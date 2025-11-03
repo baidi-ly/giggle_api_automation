@@ -315,6 +315,7 @@ class TestBook:
         readBookIds = DataFrame(res)["id"].tolist()
         pl = {
             "readBookIds": readBookIds,
+            "currentBookId": readBookIds[0],
             "recommendCount": len(readBookIds),
             "recommendationFocus": "similar"
         }
