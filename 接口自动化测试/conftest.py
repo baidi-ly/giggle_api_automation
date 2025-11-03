@@ -85,92 +85,95 @@ def get_base_url():
     return base_url
 
 
-def passedRate(summary):
-    """计算测试通过率，安全处理 summary 的不同格式"""
+def passedRate(summary=None):
+    """计算测试通过率，使用全局统计变量"""
+    global _test_stats
     try:
-        # 将 summary 转换为字符串，以便统一处理
-        summary_str = str(summary)
+        # 直接使用全局统计变量
+        passed = _test_stats.get('passed', 0)
+        failed = _test_stats.get('failed', 0)
+        error = _test_stats.get('error', 0)
+        skipped = _test_stats.get('skipped', 0)
+        xpassed = _test_stats.get('xpassed', 0)
+        xfailed = _test_stats.get('xfailed', 0)
         
-        # 使用正则表达式提取所有测试结果数量
-        patterns = [
-            (r'(\d+)\s+passed', 'passed'),
-            (r'(\d+)\s+failed', 'failed'),
-            (r'(\d+)\s+error', 'error'),
-            (r'(\d+)\s+skipped', 'skipped'),
-            (r'(\d+)\s+xpassed', 'xpassed'),
-            (r'(\d+)\s+xfailed', 'xfailed'),
-        ]
-        
-        passed = 0
-        failed = 0
-        error = 0
-        skipped = 0
-        xpassed = 0
-        xfailed = 0
-        
-        for pattern, result_type in patterns:
-            matches = re.findall(pattern, summary_str, re.IGNORECASE)
-            if matches:
-                num = int(matches[0])
-                if result_type == 'passed':
-                    passed = num
-                elif result_type == 'failed':
-                    failed = num
-                elif result_type == 'error':
-                    error = num
-                elif result_type == 'skipped':
-                    skipped = num
-                elif result_type == 'xpassed':
-                    xpassed = num
-                elif result_type == 'xfailed':
-                    xfailed = num
-        
-        # 如果 summary 是列表格式，尝试从列表中提取
-        if isinstance(summary, (list, tuple)):
-            for item in summary:
-                item_str = str(item)
-                # 尝试匹配各种格式
-                if 'passed' in item_str.lower():
-                    matches = re.findall(r'(\d+)\s+passed', item_str, re.IGNORECASE)
-                    if matches:
-                        passed = int(matches[0])
-                elif 'failed' in item_str.lower():
-                    matches = re.findall(r'(\d+)\s+failed', item_str, re.IGNORECASE)
-                    if matches:
-                        failed = int(matches[0])
-                elif 'error' in item_str.lower():
-                    matches = re.findall(r'(\d+)\s+error', item_str, re.IGNORECASE)
-                    if matches:
-                        error = int(matches[0])
+        # 调试输出
+        print(f"[DEBUG] 测试统计: passed={passed}, failed={failed}, error={error}, skipped={skipped}, xpassed={xpassed}, xfailed={xfailed}")
         
         # 计算总测试数（不包括跳过的）
         total = passed + failed + error + xpassed + xfailed
         if total == 0:
+            print("[DEBUG] 总测试数为0，返回0.00%")
             return "0.00%"
         
         # 计算通过率（通过的包括 passed 和 xpassed）
         success_count = passed + xpassed
         pass_rate = (success_count / total) * 100
+        print(f"[DEBUG] 通过率计算: {success_count}/{total} = {pass_rate:.2f}%")
         return f'{pass_rate:.2f}%'
     except Exception as e:
-        # 如果解析失败，返回默认值
+        # 如果计算失败，返回默认值
         import traceback
         print(f"计算通过率时出错: {e}")
-        print(f"Summary 内容: {summary}")
         traceback.print_exc()
         return "0.00%"
 
 # conftest.py
 
 tags = ''
+# 存储测试统计数据
+_test_stats = {
+    'passed': 0,
+    'failed': 0,
+    'error': 0,
+    'skipped': 0,
+    'xpassed': 0,
+    'xfailed': 0
+}
+
 def pytest_configure(config):
     """
     获取 pytest.ini 文件中所有标签
     """
     markers = config.getini("markers")
     #将markers信息赋值给上方的tags
-    global tags
+    global tags, _test_stats
     tags = markers
+    # 重置测试统计
+    _test_stats = {
+        'passed': 0,
+        'failed': 0,
+        'error': 0,
+        'skipped': 0,
+        'xpassed': 0,
+        'xfailed': 0
+    }
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_logreport(report):
+    """在每个测试报告时收集统计数据"""
+    global _test_stats
+    # 只统计 call 阶段的测试结果（setup/teardown 不统计）
+    if report.when == 'call':
+        if report.outcome == 'passed':
+            if hasattr(report, 'wasxfail') and report.wasxfail:
+                _test_stats['xpassed'] += 1
+            else:
+                _test_stats['passed'] += 1
+        elif report.outcome == 'failed':
+            if hasattr(report, 'wasxfail') and report.wasxfail:
+                _test_stats['xfailed'] += 1
+            else:
+                _test_stats['failed'] += 1
+        elif report.outcome == 'skipped':
+            _test_stats['skipped'] += 1
+    elif report.when == 'setup' and report.outcome == 'failed':
+        # setup 阶段的失败也算作 error
+        _test_stats['error'] += 1
+
+def pytest_sessionfinish(session, exitstatus):
+    """测试会话结束时重置统计（可选，用于调试）"""
+    pass
 
 
 
@@ -178,7 +181,7 @@ def pytest_configure(config):
 def pytest_html_results_summary(prefix, summary, postfix):
     # 安全计算通过率，如果失败则使用默认值
     try:
-        passRate = passedRate(summary)
+        passRate = passedRate()
     except Exception as e:
         print(f"计算通过率时出错: {e}")
         passRate = "0.00%"
