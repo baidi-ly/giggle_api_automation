@@ -71,7 +71,7 @@ class TestAdminCourseInteraction:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release1
+    @pytest.mark.release
     def test_admin_courseinteraction_positive_delete_courseInteracwwtion_ok(self):
         """删除课程交互类型映射-正向用例"""
         assert 1

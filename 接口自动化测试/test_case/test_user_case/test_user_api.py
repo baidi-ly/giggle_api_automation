@@ -556,12 +556,20 @@ class TestUser:
 
     def test_user_positive_abtest_status_ok(self):
         """获取用户AB测试状态-正向用例"""
-        res = self.user.abtest_status(self.authorization)
+        res = self.user.abtest_status(self.authorization, status=2)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
+
+    def test_user_positive_abtest_status1_ok(self):
+        """获取用户AB测试状态-正向用例"""
+        res = self.user.get_abtest_status(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
     def test_user_positive_questionnaire_ok(self, getkidId):
