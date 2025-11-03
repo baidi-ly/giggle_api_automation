@@ -56,7 +56,7 @@ class TestStudyPlanApi:
                 except Exception as e:
                     print(e)
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_study_plan_positive_getList_ok(self):
         """学习计划包列表-正向用例"""
         res = self.study_plan.study_plan_list(self.authorization)
@@ -64,8 +64,6 @@ class TestStudyPlanApi:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -85,7 +83,7 @@ class TestStudyPlanApi:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_study_plan_positive_studyPlan_details_ok(self):
         """学习计划包详情-正向用例"""
         res = self.study_plan.studyPlan_details(self.authorization, self.studyPlanId)
@@ -93,8 +91,6 @@ class TestStudyPlanApi:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -113,8 +109,6 @@ class TestStudyPlanApi:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
@@ -155,8 +149,6 @@ class TestStudyPlanApi:
             assert res['code'] == 100150, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
             assert res['message'] == 'Study plan not found', f"接口返回message信息异常: 预期【'Study plan not found'】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -172,8 +164,6 @@ class TestStudyPlanApi:
         assert res['code'] == 100150, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'Study plan not found', f"接口返回message信息异常: 预期【'Study plan not found'】，实际【{res['message']}】"
         assert res['data'] == 'Study plan not found', f"接口返回data数据异常：预期【'Study plan not found'】,{res['data']}"
-
-    @pytest.mark.release
     def test_study_plan_scenario_studyPlan_details_invalid_studyPlanId(self):
         """学习计划包详情-场景异常-无效的studyPlanId"""
         studyPlanId = 999999999
@@ -183,7 +173,7 @@ class TestStudyPlanApi:
         assert res['message'] == 'Study plan not found', f"接口返回message信息异常: 预期【'Study plan not found'】，实际【{res['message']}】"
         assert res['data'] == 'Study plan not found', f"接口返回data数据异常：预期【'Study plan not found'】,{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_study_plan_positive_getUnits_ok(self):
         """学习计划单元列表-正向用例"""
         res = self.study_plan.study_plan_units(self.authorization, self.studyPlanId, self.kidId)
@@ -191,8 +181,6 @@ class TestStudyPlanApi:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -211,8 +199,6 @@ class TestStudyPlanApi:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
@@ -253,8 +239,6 @@ class TestStudyPlanApi:
             assert res['code'] == 100150, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
             assert res['message'] == 'Study plan not found', f"接口返回message信息异常: 预期【'Study plan not found'】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -275,8 +259,6 @@ class TestStudyPlanApi:
             assert res['code'] == 500, f"接口返回状态码异常: 预期【100105】，实际【{res['code']}】"
             assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     def test_study_plan_scenario_getUnits_invalid_kidId(self):
         """学习计划单元列表-场景异常-无效的kidId"""
         kidId = 999999999
@@ -286,7 +268,7 @@ class TestStudyPlanApi:
         assert res['message'] == 'Kid id not exist', f"接口返回message信息异常: 预期【'Kid id not exist'】，实际【{res['message']}】"
         assert res['data'] == 'Kid id not exist', f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_study_plan_positive_getContents_ok(self):
         """学习计划单元内容列表-正向用例"""
         unitId = self.study_plan.study_plan_units(self.authorization, self.studyPlanId, self.kidId)['data'][0]['id']
@@ -295,8 +277,6 @@ class TestStudyPlanApi:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -316,8 +296,6 @@ class TestStudyPlanApi:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     def test_study_plan_scenario_getContents_invalid_kidId(self):
         """学习计划单元内容列表-场景异常-无效的kidId"""
         kidId = 999999999
@@ -328,7 +306,7 @@ class TestStudyPlanApi:
         assert res['message'] == 'Kid id not exist', f"接口返回message信息异常: 预期【'Kid id not exist'】，实际【{res['message']}】"
         assert res['data'] == 'Kid id not exist', f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_study_plan_positive_getProgress_ok(self):
         """获取学习计划进度-正向用例"""
         res = self.study_plan.study_plan_progress(self.authorization, self.studyPlanId, self.kidId)
@@ -336,8 +314,6 @@ class TestStudyPlanApi:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -356,8 +332,6 @@ class TestStudyPlanApi:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     def test_study_plan_scenario_getProgress_invalid_kidId(self):
         """获取学习计划进度-场景异常-无效的kidId"""
         kidId = 999999999
@@ -367,7 +341,7 @@ class TestStudyPlanApi:
         assert res['message'] == 'Kid id not exist', f"接口返回message信息异常: 预期【'Kid id not exist'】，实际【{res['message']}】"
         assert res['data'] == 'Kid id not exist', f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_study_plan_positive_complete_ok(self):
         """完成学习计划内容-正向用例"""
         unitId = self.study_plan.study_plan_units(self.authorization, self.studyPlanId, self.kidId)['data'][0]['id']
@@ -385,8 +359,6 @@ class TestStudyPlanApi:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -406,7 +378,7 @@ class TestStudyPlanApi:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_study_positive_claimReward_ok(self):
         """领取学习计划奖励-正向用例"""
         unitId = self.study_plan.study_plan_units(self.authorization, self.studyPlanId, self.kidId)['data'][0]['id']
@@ -425,8 +397,6 @@ class TestStudyPlanApi:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == {'giggles': 50, 'rewardClaimed': True}, f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -445,8 +415,6 @@ class TestStudyPlanApi:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     def test_study_scenario_claimReward_invalid_kidId(self):
         """领取学习计划奖励-场景异常-无效的kidId"""
         kidId = 99999
@@ -455,8 +423,6 @@ class TestStudyPlanApi:
         assert res['code'] == 100105, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'Kid id not exist', f"接口返回message信息异常: 预期【Kid id not exist】，实际【{res['message']}】"
         assert res['data'] == 'Kid id not exist', f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [

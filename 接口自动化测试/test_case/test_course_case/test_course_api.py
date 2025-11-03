@@ -43,7 +43,7 @@ class TestCourse:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_course_positive_recommendation_ok(self):
         """获取课程推荐-正向用例"""
         course_id = self.school.getNormalcourse(self.authorization)["data"]['content'][0]['id']
@@ -59,8 +59,6 @@ class TestCourse:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [

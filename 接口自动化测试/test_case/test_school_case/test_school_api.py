@@ -20,7 +20,7 @@ class TestSchoolApi:
         self.authorization = self.school.get_authorization()[0]
         self.now = strftime("%Y%m%d%H%M%S")
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_putGroups_ok(self):
         """更新班级学生默认分组-正向用例"""
         className = '新增班级' + self.now
@@ -32,8 +32,6 @@ class TestSchoolApi:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -51,8 +49,6 @@ class TestSchoolApi:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
@@ -90,8 +86,6 @@ class TestSchoolApi:
             assert res['code'] == 404, f"接口返回状态码异常: 预期【{'pending'}】，实际【404】"
             assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
             assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
@@ -134,7 +128,7 @@ class TestSchoolApi:
             assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
             assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_getNormalcourse_ok(self):
         """Normal课程资源列表-正向用例"""
         res = self.school.getNormalcourse(self.authorization)
@@ -142,8 +136,6 @@ class TestSchoolApi:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -162,8 +154,6 @@ class TestSchoolApi:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
@@ -204,7 +194,7 @@ class TestSchoolApi:
             assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
             assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_getQuiz_ok(self):
         """测验列表-正向用例"""
         res = self.school.getQuiz(self.authorization)
@@ -212,8 +202,6 @@ class TestSchoolApi:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -232,8 +220,6 @@ class TestSchoolApi:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
@@ -275,7 +261,7 @@ class TestSchoolApi:
             assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
 
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_getList1_ok(self):
         """测验报告列表-正向用例"""
         class_id = self.school.school_class(self.authorization)['data']['id']
@@ -285,8 +271,6 @@ class TestSchoolApi:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert 'data' in res.keys(), f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -305,8 +289,6 @@ class TestSchoolApi:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
@@ -343,8 +325,6 @@ class TestSchoolApi:
             assert res['code'] == 100006, f"接口返回状态码异常: 预期【100006】，实际【{res['code']}】"
             assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -363,8 +343,6 @@ class TestSchoolApi:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -412,7 +390,7 @@ class TestSchoolApi:
         yield class_id, lesson_id, resource_id, students_id, quizId, quizData
 
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_report_ok(self, create_lesson):
         """测验结果上报-正向用例"""
         class_id, lesson_id, resource_id, students_id, quizId, quizData = create_lesson
@@ -425,8 +403,6 @@ class TestSchoolApi:
         assert res['code'] == 100144, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'Quiz question count mismatch', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == 'Quiz question count mismatch', f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [

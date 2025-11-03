@@ -72,7 +72,7 @@ class TestAdminStudyPlan:
         yield contents
         self.admin_flashcard.delete_flashcards(self.authorization, quiz_res["id"])
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_studyplan_positive_create_ok(self, create_flashcards):
         """创建学习计划（包含单元和内容）-正向用例"""
         contents = create_flashcards
@@ -81,8 +81,6 @@ class TestAdminStudyPlan:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -102,7 +100,7 @@ class TestAdminStudyPlan:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_studyplan_positive_delete_studyPlan_ok(self, create_flashcards):
         """删除学习计划包-正向用例"""
         contents = create_flashcards
@@ -112,8 +110,6 @@ class TestAdminStudyPlan:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -132,8 +128,6 @@ class TestAdminStudyPlan:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -149,8 +143,6 @@ class TestAdminStudyPlan:
         assert res['code'] == 100150, f"接口返回状态码异常: 预期【100150】，实际【{res['code']}】"
         assert res['message'] == 'Study plan not found', f"接口返回message信息异常: 预期【'Study plan not found'】，实际【{res['message']}】"
         assert res['data'] == 'Study plan not found', f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     def test_admin_studyplan_scenario_delete_studyPlan_invalid_studyPlanId(self):
         """删除学习计划包-场景异常-无效的studyPlanId"""
         studyPlanId = 999999999
@@ -160,7 +152,7 @@ class TestAdminStudyPlan:
         assert res['message'] == 'Study plan not found', f"接口返回message信息异常: 预期【'Study plan not found'】，实际【{res['message']}】"
         assert res['data'] == 'Study plan not found', f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_studyplan_positive_study_plan_list_ok(self):
         """学习计划列表-正向用例"""
         res = self.admin_study.study_plan_list(self.authorization)
@@ -168,8 +160,6 @@ class TestAdminStudyPlan:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -189,7 +179,7 @@ class TestAdminStudyPlan:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_studyplan_positive_putUpdate_ok(self):
         """更新学习计划-正向用例"""
         studyPlans_res = self.admin_study.study_plan_list(self.authorization, category='vocabulary')
@@ -200,8 +190,6 @@ class TestAdminStudyPlan:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -221,7 +209,7 @@ class TestAdminStudyPlan:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_studyplan_positive_putStatus_ok(self):
         """学习计划状态变更-正向用例"""
         res = self.admin_study.putStatus(self.authorization, studyPlanId=self.studyPlanId)
@@ -229,8 +217,6 @@ class TestAdminStudyPlan:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -249,8 +235,6 @@ class TestAdminStudyPlan:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [

@@ -112,7 +112,7 @@ class TestAdminCourse:
         export_res = self.admin.blockedIds(self.admin_authorization)
         assert export_res["data"]['blockedIds']
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_getSpelrules_ok(self):
         """获取体验课程推荐SpEL表达式规则-正向用例"""
         res = self.admin.getSpelrules(self.admin_authorization)
@@ -120,8 +120,6 @@ class TestAdminCourse:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -140,8 +138,6 @@ class TestAdminCourse:
             assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
             assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
@@ -170,8 +166,6 @@ class TestAdminCourse:
             assert res['code'] == 404, f"接口返回状态码异常: 预期【{'pending'}】，实际【404】"
             assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
             assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -187,7 +181,7 @@ class TestAdminCourse:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_spelrules_ok(self):
         """设置体验课程推荐SpEL表达式规则-正向用例"""
         res = self.admin.spelrules(self.admin_authorization)
@@ -195,8 +189,6 @@ class TestAdminCourse:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -216,7 +208,7 @@ class TestAdminCourse:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_generateTags_ok(self, courselistAll):
         """AI生成课程标签-正向用例"""
         courseId = courselistAll['data']
@@ -228,8 +220,6 @@ class TestAdminCourse:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -248,8 +238,6 @@ class TestAdminCourse:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [

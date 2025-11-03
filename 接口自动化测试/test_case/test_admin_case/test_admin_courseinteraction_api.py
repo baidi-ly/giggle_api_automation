@@ -25,7 +25,7 @@ class TestAdminCourseInteraction:
         courselistAll = self.admincourse.course_listAll(self.admin_authorization, 638245113409605)
         yield courselistAll
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_courseinteraction_positive_getList_ok(self, courselistAll):
         """查询课程交互类型映射列表-正向用例"""
         courseId = courselistAll['data'][0]["id"]
@@ -40,8 +40,6 @@ class TestAdminCourseInteraction:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -60,8 +58,6 @@ class TestAdminCourseInteraction:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     def test_admin_courseinteraction_scenario_getList_invalid_courseId(self):
         """查询课程交互类型映射列表-场景异常-无效的courseId"""
         courseId = 999999
@@ -71,11 +67,6 @@ class TestAdminCourseInteraction:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
-    def test_admin_courseinteraction_positive_delete_courseInteracwwtion_ok(self):
-        """删除课程交互类型映射-正向用例"""
-        assert 1
-    #
     # @pytest.mark.release
     # @pytest.mark.parametrize(
     #     'desc, value',

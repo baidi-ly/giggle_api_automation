@@ -17,7 +17,7 @@ class TestAdminDonate:
         self.admin_donate = AdminDonateApi()
         self.authorization = self.admin_donate.get_admin_authorization()
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_donate_positive_getList_ok(self):
         """分页查询支出记录列表-正向用例"""
         res = self.admin_donate.getList(self.authorization)
@@ -25,8 +25,6 @@ class TestAdminDonate:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -46,7 +44,7 @@ class TestAdminDonate:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_donate_positive_updateRemark_ok(self):
         """更新支出记录的备注、详情URL和分类-正向用例"""
         transactionId = self.admin_donate.getList(self.authorization)['data']['content'][0]['id']
@@ -55,8 +53,6 @@ class TestAdminDonate:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == "支出记录已更新", f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -75,8 +71,6 @@ class TestAdminDonate:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     def test_donate_boundary_updateRemark_category(self):
         """更新支出记录的备注、详情URL和分类-边界值测试(category)"""
         category = "test2"
@@ -86,8 +80,6 @@ class TestAdminDonate:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == "支出记录已更新", f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     def test_donate_boundary_updateRemark_detailUrl(self):
         """更新支出记录的备注、详情URL和分类-边界值测试(category)"""
         detailUrl = "https://chat18.aichatos.xyz/#/chat/1702608998643"
@@ -97,8 +89,6 @@ class TestAdminDonate:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == "支出记录已更新", f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     def test_donate_boundary_updateRemark_remark(self):
         """更新支出记录的备注、详情URL和分类-边界值测试(category)"""
         detailUrl = "remark1"

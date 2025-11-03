@@ -18,7 +18,7 @@ class TestAdminInstructionalDomain:
         self.authorization = self.admin_instructional.get_admin_authorization()
         self.now = strftime("%Y%m%d%H%M%S")
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_instructionaldomain_positive_create_ok(self):
         """创建教学维度标签-正向用例"""
         name = 'teaching_test' + self.now
@@ -27,8 +27,6 @@ class TestAdminInstructionalDomain:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     def test_admin_instructionaldomain_positive_create_twice(self):
         """创建教学维度标签-正向用例"""
         self.admin_instructional.create(self.authorization)
@@ -37,8 +35,6 @@ class TestAdminInstructionalDomain:
         assert res['code'] == 100055, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'Resource name already exists', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == 'Resource name already exists', f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -57,8 +53,6 @@ class TestAdminInstructionalDomain:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -83,8 +77,6 @@ class TestAdminInstructionalDomain:
             assert res['code'] == 100006, f"接口返回状态码异常: 预期【100006】，实际【{res['code']}】"
             assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -101,7 +93,7 @@ class TestAdminInstructionalDomain:
             assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_instructionaldomain_positive_getList_ok(self):
         """获取所有教学维度标签-正向用例"""
         res = self.admin_instructional.instructional_domain_getList(self.authorization)
@@ -109,8 +101,6 @@ class TestAdminInstructionalDomain:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [

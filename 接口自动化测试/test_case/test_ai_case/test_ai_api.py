@@ -18,7 +18,7 @@ class TestAiApi:
         self.authorization = self.ai.get_authorization()[0]
         self.now = strftime("%Y%m%d%H%M%S")
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_ai_positive_translate_ok(self):
         """翻译文本-正向用例"""
         res = self.ai.translate(self.authorization)
@@ -26,8 +26,6 @@ class TestAiApi:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data']['translatedText'] == '你好', f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -45,8 +43,6 @@ class TestAiApi:
             assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
             assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
             assert res['data']['translatedText'] == '你好', f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -66,9 +62,6 @@ class TestAiApi:
         if code == 500:
             assert res['code'] == 500, f"接口返回状态码异常: 预期【5"
             assert res['message'] == 'internal server error', f"接口返回data数据异常：预期【'internal server error'】，实际【{res['data']}】"
-
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -94,7 +87,7 @@ class TestAiApi:
             assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_ai_positive_generatespeechstyleprompt_ok(self):
         """根据内容生成语音风格的prompt-正向用例"""
         res = self.ai.generatespeechstyleprompt(self.authorization)
@@ -103,8 +96,6 @@ class TestAiApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data']['recommended_model'] == 'Achird', f"接口返回data数据异常：{res['data']}"
         assert res['data']['tts_prompt'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -123,8 +114,6 @@ class TestAiApi:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [

@@ -22,8 +22,6 @@ class TestDonateApi:
         res = self.donate.createdonateorder(self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [

@@ -56,7 +56,7 @@ class TestBook:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_book_positive_removeTagFromBook_ok(self, create_BookTag):
         """删除故事书与标签的关联关系-正向用例"""
         bookId, bookTagId = create_BookTag
@@ -65,8 +65,6 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == '删除成功', f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -85,8 +83,6 @@ class TestBook:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -112,8 +108,6 @@ class TestBook:
             assert res['code'] == 100006, f"接口返回状态码异常: 预期【100006】，实际【{res['code']}】"
             assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：预期【pending】，实际【{res['data']}]"
-
-    @pytest.mark.release
     def test_book_scenario_removeTagFromBook_invalid_bookId(self, create_BookTag):
         """删除故事书与标签的关联关系-场景异常-无效的bookId"""
         bookId, bookTagId = create_BookTag
@@ -123,8 +117,6 @@ class TestBook:
         assert res['code'] == 100054, f"接口返回状态码异常: 预期【100054】，实际【{res['code']}】"
         assert res['message'] == 'Resource not found', f"接口返回message信息异常: 预期【Resource not found】，实际【{res['message']}】"
         assert res['data'] == 'Resource not found', f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -150,8 +142,6 @@ class TestBook:
             assert res['code'] == 100006, f"接口返回状态码异常: 预期【100006】，实际【{res['code']}】"
             assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：预期【pending】，实际【{res['data']}]"
-
-    @pytest.mark.release
     def test_book_scenario_removeTagFromBook_invalid_tagId(self, create_BookTag):
         """删除故事书与标签的关联关系-场景异常-无效的tagId"""
         bookId, bookTagId = create_BookTag
@@ -162,7 +152,7 @@ class TestBook:
         assert res['message'] == 'Resource not found', f"接口返回message信息异常: 预期【Resource not found】，实际【{res['message']}】"
         assert res['data'] == 'Resource not found', f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_book_positive_bookTagRelationList_ok(self, create_BookTag):
         """查询故事书标签关联列表-正向用例"""
         bookId, bookTagId = create_BookTag
@@ -171,8 +161,6 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -205,7 +193,7 @@ class TestBook:
             res = self.book.deleteBookTag(self.authorization, bookTagId)
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_book_positive_batchUpdateBookTags_ok(self, get_bookId, create_BookTagTypes):
         """批量更新故事书的标签-正向用例"""
         bookId = get_bookId["data"]["content"][0]["id"]
@@ -215,8 +203,6 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -236,8 +222,6 @@ class TestBook:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -263,7 +247,7 @@ class TestBook:
             assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
             assert res['data'] == '批量更新成功', f"接口返回data数据异常：预期【批量更新成功】，实际【{res['data']}】"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_book_positive_autoGenerateBookTags_ok(self, get_bookId):
         """自动生成并保存故事书标签-正向用例"""
         bookId = get_bookId["data"]["content"][0]["id"]
@@ -272,8 +256,6 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == '标签生成任务已启动', f"接口返回data数据异常：预期【标签生成任务已启动】，实际【{res['data']}】"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -291,7 +273,7 @@ class TestBook:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == '标签生成任务已启动', f"接口返回data数据异常：预期【标签生成任务已启动】，实际【{res['data']}】"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_book_positive_triggerTagBasedRecommendation_ok(self):
         """手动触发基于标签的故事书推荐计算-正常流程测试"""
         res = self.book.triggerTagBasedRecommendation(authorization=self.authorization)
@@ -299,8 +281,6 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == '推荐计算任务已完成', f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -318,7 +298,7 @@ class TestBook:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == '推荐计算任务已完成', f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_recommend_positive_storybookRecommend_ok(self, get_bookId):
         """获取故事书推荐-正常流程测试"""    # todo
         res = get_bookId['data']['content']
@@ -333,8 +313,6 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [

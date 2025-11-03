@@ -37,7 +37,7 @@ class TestGame:
         for game in gameNames:
             assert key in game, f"根据关键词搜索游戏内容失败，预期内容包含：{key}，实际：{game}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_game_positive_getVisible_ok(self):
         """查询故事书Tab是否显示-正向用例"""
         res = self.game.getVisible(self.authorization)
@@ -45,8 +45,6 @@ class TestGame:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data']['visible'] in [True, False], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -65,8 +63,6 @@ class TestGame:
             assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
             assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
             assert res['data']['visible'] in [True, False], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     def test_game_positive_drawing_word(self):
         """画词-正向流程"""
         word = "cat"
@@ -75,8 +71,6 @@ class TestGame:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data']['word'] == word, f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -95,8 +89,6 @@ class TestGame:
             assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
             assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
             assert res['data']['visible'] in [True, False], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize('word', ['', None, 123])
     def test_game_positive_drawing_word_invalid(self, word):
         """画词-不正确的word"""
@@ -113,8 +105,6 @@ class TestGame:
             assert res['code'] == 100149, f"接口返回状态码异常: 预期【100149】，实际【{res['code']}】"
             assert res['message'] == 'Course word not found', f"接口返回message信息异常: 预期【Course word not found】，实际【{res['message']}】"
             assert res['data'] == 'Course word not found', f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     def test_game_positive_get_playzone_price(self):
         """playZone价格-正向流程"""
         playZoneId = self.game.published_play_zones(self.authorization)['data']['content'][0]['id']
@@ -123,8 +113,6 @@ class TestGame:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【100054】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data']['playZoneId'] == playZoneId, f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     def test_game_positive_get_playzone_invalid(self):
         """playZone价格-正向流程"""
         playZoneId = 1
@@ -133,8 +121,6 @@ class TestGame:
         assert res['code'] == 100054, f"接口返回状态码异常: 预期【100054】，实际【{res['code']}】"
         assert res['message'] == 'Resource not found', f"接口返回message信息异常: 预期【Resource not found】，实际【{res['message']}】"
         assert res['data'] == 'Resource not found', f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
