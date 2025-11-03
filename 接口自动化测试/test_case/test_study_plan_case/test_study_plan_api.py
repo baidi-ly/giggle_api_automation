@@ -46,8 +46,17 @@ class TestStudyPlanApi:
         self.kidId = self.kid.getKids(self.authorization)["data"][0]["id"]
 
     def teardown_class(self):
-        studyPlans_res = self.admin_study.study_plan_list(self.authorization, category='vocabulary', status=1)['data']['content']
-        for studyPlan in studyPlans_res:
+        studyPlans_res0 = self.admin_study.study_plan_list(self.authorization, category='vocabulary', status=0)['data']['content']
+        studyPlans_res1 = self.admin_study.study_plan_list(self.authorization, category='vocabulary', status=1)['data']['content']
+        for studyPlan in studyPlans_res0:
+            if '基础词汇学习计划' in studyPlan["name"]:
+                try:
+                    res = self.admin_study.delete_studyPlan(self.authorization, studyPlanId=studyPlan["id"])
+                    assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+                    assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+                except Exception as e:
+                    print(e)
+        for studyPlan in studyPlans_res1:
             if '基础词汇学习计划' in studyPlan["name"]:
                 try:
                     res = self.admin_study.delete_studyPlan(self.authorization, studyPlanId=studyPlan["id"])
@@ -109,6 +118,7 @@ class TestStudyPlanApi:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
@@ -149,6 +159,7 @@ class TestStudyPlanApi:
             assert res['code'] == 100150, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
             assert res['message'] == 'Study plan not found', f"接口返回message信息异常: 预期【'Study plan not found'】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value, code',
         [
