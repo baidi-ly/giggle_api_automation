@@ -835,6 +835,7 @@ class TestActivity:
         assert res['code'] == 404, f"接口返回状态码异常: 预期【{'pending'}】，实际【404】"
         assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
         assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
+
     def test_activity_scenario_getList_invalid_language(self):
         """获取当前正在进行的扭蛋活动-场景异常-无效的language"""
         language = 'INVALID_VALUE'
@@ -843,6 +844,7 @@ class TestActivity:
         assert res['code'] == 404, f"接口返回状态码异常: 预期【{'pending'}】，实际【404】"
         assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
         assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
+
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
@@ -873,7 +875,6 @@ class TestActivity:
             assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
             assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
 
-
     @pytest.mark.smoke
     def test_activity_positive_getCoursecompleteactivityid_ok(self):
         """获取完课活动ID-正向用例"""
@@ -882,6 +883,7 @@ class TestActivity:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -901,7 +903,6 @@ class TestActivity:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-
     @pytest.mark.smoke
     def test_activity_positive_coursecompleteactivityid_ok(self):
         """配置完课活动ID-正向用例"""
@@ -913,6 +914,7 @@ class TestActivity:
             assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
             assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -931,6 +933,7 @@ class TestActivity:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -955,6 +958,7 @@ class TestActivity:
             assert res['code'] == 100006, f"接口返回状态码异常: 预期【100006】，实际【{res['code']}】"
             assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常，实际【{res['data']}】"
+
     def test_activity_scenario_coursecompleteactivityid_invalid_activityId(self):
         """配置完课活动ID-场景异常-无效的activityId"""
         activityId = 999999999

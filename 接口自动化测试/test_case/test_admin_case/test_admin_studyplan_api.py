@@ -199,6 +199,7 @@ class TestAdminStudyPlan:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -226,6 +227,7 @@ class TestAdminStudyPlan:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -244,6 +246,7 @@ class TestAdminStudyPlan:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value, code',
         [

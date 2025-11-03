@@ -58,7 +58,6 @@ class TestBook:
         assert event_res["data"] == 'book not found'
         assert event_res["message"] == 'book not found'
 
-
     def test_book_translationSetting_update_bookId_not_current_owner(self, get_bookId):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -76,7 +75,6 @@ class TestBook:
         event_res = self.book.update_translationSetting(self.authorization, bookId, '9999', code=400)
         assert event_res["data"] == "Failed to convert value of type 'java.lang.String' to required type 'boolean'; nested exception is java.lang.IllegalArgumentException: Invalid boolean value [9999]"
         assert event_res["message"] == 'invalid parameter'
-
 
     def test_book_get_translationSetting_bookId_normal(self, get_bookId):
         """有效的kidId，返回完整统计数据"""
@@ -105,7 +103,6 @@ class TestBook:
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
         self.book.translationSetting(self.authorization, '', code=403)
-
 
     @pytest.mark.parametrize("word, interfaceLanguage, learningLanguage, header",
                              [("hello", "en", "en", 'hello · hello'),
@@ -649,6 +646,7 @@ class TestBook:
             assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
             assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
@@ -685,6 +683,7 @@ class TestBook:
             assert res['code'] == 100006, f"接口返回状态码异常: 预期【100006】，实际【{res['code']}】"
             assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -700,6 +699,7 @@ class TestBook:
         assert res['code'] == code, f"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     def test_book_scenario_indexaudio_details_invalid_bookId(self):
         """查询故事书首页语音-场景异常-无效的bookId"""
         bookId = 999999999
@@ -708,6 +708,7 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
@@ -746,6 +747,7 @@ class TestBook:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['status'] == 404, f"接口返回状态码异常: 预期【404】，实际【{res['status']}】"
             assert res['error'] == 'Not Found', f"接口返回message信息异常: 预期【{'pending'}】，实际【Not Found】"
+
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -779,6 +781,7 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -801,6 +804,7 @@ class TestBook:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
@@ -846,6 +850,7 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         # assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -865,6 +870,7 @@ class TestBook:
             assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
             assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
             # assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
@@ -913,6 +919,7 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -931,6 +938,7 @@ class TestBook:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'input_param, desc, value',
         [
@@ -958,6 +966,7 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -976,6 +985,7 @@ class TestBook:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -1001,6 +1011,7 @@ class TestBook:
             assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
             assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
             assert res['data'] == {'error': 'Story and targetAge are required'}, f"接口返回data数据异常：预期【{'error': 'Story and targetAge are required'}】，实际【{res['data']}】"
+
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -1037,6 +1048,7 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1066,6 +1078,7 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1084,6 +1097,7 @@ class TestBook:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
@@ -1118,6 +1132,7 @@ class TestBook:
             assert res['code'] == 100006
             assert res['message'] == 'invalid parameter'
             assert res['data']
+
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -1146,6 +1161,7 @@ class TestBook:
             assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
             assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常，实际【{res['data']}】"
+
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
@@ -1191,6 +1207,7 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1209,6 +1226,7 @@ class TestBook:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -1247,6 +1265,7 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1266,7 +1285,6 @@ class TestBook:
             assert res['message'] == 'success', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-
     @pytest.mark.smoke
     def test_book_positive_feedbackOptions_ok(self):
         """更新评价反馈选项配置-正向用例"""
@@ -1275,6 +1293,7 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == None, f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1293,6 +1312,7 @@ class TestBook:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -1327,6 +1347,7 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1346,6 +1367,7 @@ class TestBook:
             assert res['code'] == 200, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'success', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
@@ -1383,6 +1405,7 @@ class TestBook:
             assert res['code'] == 100006, f"接口返回状态码异常: 预期【100006】，实际【{res['code']}】"
             assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
@@ -1461,6 +1484,7 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert 'data' in res, f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1498,6 +1522,7 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1516,6 +1541,7 @@ class TestBook:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -1557,6 +1583,7 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == '删除成功', f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1584,6 +1611,7 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1616,6 +1644,7 @@ class TestBook:
         assert res['data']['tagTypeId'] == tagTypeId, f"接口返回data数据异常：{res['data']}"
         assert res['data']['tagName'] == tagName, f"接口返回data数据异常：{res['data']}"
         assert res['data']['tagDescription'] == tagDescription, f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1647,6 +1676,7 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == '删除成功', f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1665,6 +1695,7 @@ class TestBook:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     def test_book_scenario_getById_invalid_ID(self):
         """根据ID获取书籍标签详情-场景异常-无效的name"""
         ID = 0
@@ -1683,6 +1714,7 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1700,6 +1732,7 @@ class TestBook:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -1733,7 +1766,6 @@ class TestBook:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
 
-
     @pytest.mark.smoke
     def test_book_positive_addTagToBook_ok(self, get_bookId, create_BookTag):
         """为故事书添加标签-正向用例"""
@@ -1745,6 +1777,7 @@ class TestBook:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data']['bookId'] == bookId, f"接口返回data数据异常：{res['data']}"
         assert res['data']['tagId'] == tagId, f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1763,6 +1796,7 @@ class TestBook:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -1788,6 +1822,7 @@ class TestBook:
             assert res['code'] == 100006, f"接口返回状态码异常: 预期【100006】，实际【{res['code']}】"
             assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【'invalid parameter'】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常，实际【{res['data']}】"
+
     def test_book_scenario_addTagToBook_invalid_bookId(self):
         """为故事书添加标签-场景异常-无效的bookId"""   #  todo
         bookId = random.randint(1000, 9999)
@@ -1796,6 +1831,7 @@ class TestBook:
         assert res['code'] == 500, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -1821,6 +1857,7 @@ class TestBook:
             assert res['code'] == 100006, f"接口返回状态码异常: 预期【100006】，实际【{res['code']}】"
             assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【'invalid parameter'】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常，实际【{res['data']}】"
+
     def test_book_scenario_addTagToBook_invalid_tagId(self, get_bookId):
         """为故事书添加标签-场景异常-无效的tagId"""
         bookId = get_bookId["data"]["content"][0]["id"]

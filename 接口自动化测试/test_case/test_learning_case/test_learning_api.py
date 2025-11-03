@@ -106,15 +106,6 @@ class TestLearning:
         assert daily_res['error'] == 'Not Found', f"获取孩子今日学习详情接口没有data数据，response->{daily_res}"
         assert daily_res['status'] == 404, f"获取孩子今日学习详情接口没有data数据，response->{daily_res}"
 
-
-    def test_learning_daily_byKidId_normal(self, getkidId):
-        """获取今日学习详情，跨时区测试"""
-        pass
-
-    def test_learning_daily_byKidId_deletedAccount(self, create_deletedAccount):
-        """获取孩子今日学习详情，注销的kidId，返回错误信息"""
-        pass
-
     def test_learning_daily_byKidId_special_character(self):
         """获取孩子今日学习详情，无效的kidId - 返回错误信息"""
         # 创建无效的kidId

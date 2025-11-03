@@ -14,11 +14,10 @@ import pytest
 class TestAdminCourseInteraction:
 
     def setup_class(self):
-        啊=1
-        # self.courseInteraction = AdminCourseinteractionApi()
-        # self.admincourse = AdminCourseApi()
-        # self.authorization = self.courseInteraction.get_authorization()
-        # self.admin_authorization = self.courseInteraction.get_admin_authorization()
+        self.courseInteraction = AdminCourseinteractionApi()
+        self.admincourse = AdminCourseApi()
+        self.authorization = self.courseInteraction.get_authorization()
+        self.admin_authorization = self.courseInteraction.get_admin_authorization()
 
     @pytest.fixture(scope='class')
     def courselistAll(self):
@@ -40,6 +39,7 @@ class TestAdminCourseInteraction:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -58,6 +58,7 @@ class TestAdminCourseInteraction:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     def test_admin_courseinteraction_scenario_getList_invalid_courseId(self):
         """查询课程交互类型映射列表-场景异常-无效的courseId"""
         courseId = 999999
