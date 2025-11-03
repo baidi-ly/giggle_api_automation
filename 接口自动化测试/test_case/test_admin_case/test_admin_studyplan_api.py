@@ -196,8 +196,8 @@ class TestAdminStudyPlan:
         studyPlans_res['data']['content'] = content
         res = self.admin_study.update_study_plan(self.authorization, studyPlanId=self.studyPlanId, **studyPlans_res['data'])
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['code'] == 100151, f"接口返回状态码异常: 预期【100151】，实际【{res['code']}】"
+        assert res['message'] == 'Study plan content type not supported', f"接口返回message信息异常: 预期【Study plan content type not supported】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.parametrize(

@@ -1516,7 +1516,7 @@ class TestBook:
     def test_book_positive_createBookTagType_ok(self):
         """创建书籍标签类型-正向用例"""
         description = '创建书籍标签类型描述'
-        name = 'createBookTagType' + self.now
+        name = 'createBookTagType' + self.now + str(random.random())
         res = self.book.createBookTagType(self.authorization, description=description, name=name)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -1562,7 +1562,7 @@ class TestBook:
     @pytest.fixture(scope='function')
     def create_BookTagType(self):
         description = '创建书籍标签类型描述'
-        name = 'createBookTagType' + self.now
+        name = 'createBookTagType' + self.now + str(random.random())
         res = self.book.createBookTagType(self.authorization, description=description, name=name)
         bookTagTypeId = res['data']['id']
 
@@ -1575,7 +1575,7 @@ class TestBook:
     def test_book_positive_bookTagType_deleteBookTagType_ok(self):
         """获取书籍标签类型详情-正向用例"""
         description = '创建书籍标签类型描述'
-        name = 'createBookTagType' + self.now
+        name = 'createBookTagType' + self.now + str(random.random())
         res = self.book.createBookTagType(self.authorization, description=description, name=name)
         bookTagTypeId = res['data']['id']
         res = self.book.deleteBookTagType(self.authorization, bookTagTypeId)

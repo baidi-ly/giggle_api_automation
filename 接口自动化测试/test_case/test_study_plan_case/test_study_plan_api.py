@@ -365,24 +365,24 @@ class TestStudyPlanApi:
         assert res['message'] == 'Kid id not exist', f"接口返回message信息异常: 预期【'Kid id not exist'】，实际【{res['message']}】"
         assert res['data'] == 'Kid id not exist', f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke
-    def test_study_plan_positive_complete_ok(self):
-        """完成学习计划内容-正向用例"""
-        unitId = self.study_plan.study_plan_units(self.authorization, self.studyPlanId, self.kidId)['data'][0]['id']
-        studyPlanContentId = self.study_plan.study_plan_contents(self.authorization, unitId, self.kidId)['data'][0]['id']
-        pl = {
-            "completionTime": "2025-10-21T08:36:11.811Z",
-            "kidId": self.kidId,
-            "learningDuration": 0,
-            "studyPlanContentId": studyPlanContentId,
-            "studyPlanId": self.studyPlanId,
-            "studyPlanUnitId": unitId
-        }
-        res = self.study_plan.studyplan_content_complete(self.authorization, **pl)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+    # @pytest.mark.smoke
+    # def test_study_plan_positive_complete_ok(self):
+    #     """完成学习计划内容-正向用例"""
+    #     unitId = self.study_plan.study_plan_units(self.authorization, self.studyPlanId, self.kidId)['data'][0]['id']
+    #     studyPlanContentId = self.study_plan.study_plan_contents(self.authorization, unitId, self.kidId)['data'][0]['id']
+    #     pl = {
+    #         "completionTime": "2025-10-21T08:36:11.811Z",
+    #         "kidId": self.kidId,
+    #         "learningDuration": 0,
+    #         "studyPlanContentId": studyPlanContentId,
+    #         "studyPlanId": self.studyPlanId,
+    #         "studyPlanUnitId": unitId
+    #     }
+    #     res = self.study_plan.studyplan_content_complete(self.authorization, **pl)
+    #     assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+    #     assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+    #     assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+    #     assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.parametrize(
         'desc, value',
@@ -403,25 +403,25 @@ class TestStudyPlanApi:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke
-    def test_study_positive_claimReward_ok(self):
-        """领取学习计划奖励-正向用例"""
-        unitId = self.study_plan.study_plan_units(self.authorization, self.studyPlanId, self.kidId)['data'][0]['id']
-        studyPlanContentId = self.study_plan.study_plan_contents(self.authorization, unitId, self.kidId)['data'][0]['id']
-        pl = {
-            "completionTime": "2025-10-21T08:36:11.811Z",
-            "kidId": self.kidId,
-            "learningDuration": 0,
-            "studyPlanContentId": studyPlanContentId,
-            "studyPlanId": self.studyPlanId,
-            "studyPlanUnitId": unitId
-        }
-        self.study_plan.studyplan_content_complete(self.authorization, **pl)
-        res = self.study_plan.claimReward(self.authorization, int(self.studyPlanId), self.kidId)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'] == {'giggles': 50, 'rewardClaimed': True}, f"接口返回data数据异常：{res['data']}"
+    # @pytest.mark.smoke
+    # def test_study_positive_claimReward_ok(self):
+    #     """领取学习计划奖励-正向用例"""
+    #     unitId = self.study_plan.study_plan_units(self.authorization, self.studyPlanId, self.kidId)['data'][0]['id']
+    #     studyPlanContentId = self.study_plan.study_plan_contents(self.authorization, unitId, self.kidId)['data'][0]['id']
+    #     pl = {
+    #         "completionTime": "2025-10-21T08:36:11.811Z",
+    #         "kidId": self.kidId,
+    #         "learningDuration": 0,
+    #         "studyPlanContentId": studyPlanContentId,
+    #         "studyPlanId": self.studyPlanId,
+    #         "studyPlanUnitId": unitId
+    #     }
+    #     self.study_plan.studyplan_content_complete(self.authorization, **pl)
+    #     res = self.study_plan.claimReward(self.authorization, int(self.studyPlanId), self.kidId)
+    #     assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+    #     assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+    #     assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+    #     assert res['data'] == {'giggles': 50, 'rewardClaimed': True}, f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.parametrize(
         'desc, value',

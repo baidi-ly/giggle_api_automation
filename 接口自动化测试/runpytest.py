@@ -8,7 +8,7 @@ if __name__ =="__main__":
     path = os.getcwd()
     pathcase = path + "/test_case/"
 
-    pathreport = path + "/report/" + str(now) + ".html"
+    pathreport = path + "/report/" + 'giggle_' + str(now) + ".html"
     # 运行initUser用于初始化账号
     # pytest.main([pathcase + "/a_initUser",
     #              "-m initUser",
@@ -28,7 +28,7 @@ if __name__ =="__main__":
     # 2. 确保Pytest参数正确
     pytest.main([
         pathcase,
-        "-m smoke",  # 测试标记
+        "-m smoke1",  # 测试标记
         f"--html={pathreport}",  # 路径需用引号包裹（避免空格）
         "--self-contained-html",
         # "--full-trace"  # 可选，根据调试需求
