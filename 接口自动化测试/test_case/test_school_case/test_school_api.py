@@ -1,4 +1,5 @@
-﻿from time import strftime
+﻿import json
+from time import strftime
 
 import pytest
 from pandas import DataFrame
@@ -422,6 +423,90 @@ class TestSchoolApi:
         """测验结果上报-权限测试"""
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.school.report(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.smoke
+    def test_school_positive_quiz_report_ok(self, create_lesson):
+        """测验报告详情-正向用例"""
+        class_id, lesson_id, resource_id, students_id, quizId, quizData = create_lesson
+        res_quiz = self.admin.quiz_list(self.authorization)['data']['content'][0]
+        quizId, quizData = res_quiz['id'], json.loads(res_quiz['quizData'])
+        pl = {
+            "studentId": students_id,
+            "resourceId": resource_id,
+            "answers": [
+                {
+                    "instructionalDomain": "认知",
+                    "questionSeqNo": 1,
+                    "questionType": "single-choice",
+                    "score": 2,
+                    "answerData": "{\"selectedId\": \"umbrella\", \"selectedAnswer\": \"Umbrella\"}",
+                    "answerTime": "2025-02-01T10:00:00",
+                    "duration": 30
+                },
+                {
+                    "instructionalDomain": "认知",
+                    "questionSeqNo": 2,
+                    "questionType": "single-choice",
+                    "score": 2,
+                    "answerData": "{\"selectedId\": \"umbrella\", \"selectedAnswer\": \"Umbrella\"}",
+                    "answerTime": "2025-02-01T10:00:00",
+                    "duration": 30
+                },
+                {
+                    "instructionalDomain": "认知",
+                    "questionSeqNo": 3,
+                    "questionType": "single-choice",
+                    "score": 2,
+                    "answerData": "{\"selectedId\": \"umbrella\", \"selectedAnswer\": \"Umbrella\"}",
+                    "answerTime": "2025-02-01T10:00:00",
+                    "duration": 30
+                },
+                {
+                    "instructionalDomain": "认知",
+                    "questionSeqNo": 4,
+                    "questionType": "single-choice",
+                    "score": 2,
+                    "answerData": "{\"selectedId\": \"umbrella\", \"selectedAnswer\": \"Umbrella\"}",
+                    "answerTime": "2025-02-01T10:00:00",
+                    "duration": 30
+                },
+                {
+                    "instructionalDomain": "认知",
+                    "questionSeqNo": 5,
+                    "questionType": "single-choice",
+                    "score": 2,
+                    "answerData": "{\"selectedId\": \"umbrella\", \"selectedAnswer\": \"Umbrella\"}",
+                    "answerTime": "2025-02-01T10:00:00",
+                    "duration": 30
+                },
+            ]
+        }
+        self.school.report(self.authorization, lessonId=lesson_id, quizId=quizId, **pl)
+        lessonReportId = self.school.getList1(self.authorization, lesson_id)['data'][0]['id']
+        res = self.school.quiz_report(self.authorization, lesson_id, lessonReportId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_school_permission_quiz_report(self, desc, value):
+        """测验报告详情-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.school.quiz_report(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
