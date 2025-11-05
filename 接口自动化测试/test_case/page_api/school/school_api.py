@@ -350,7 +350,7 @@ class SchoolApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def qrcode_details(self, authorization, groupSeqNo=0, lessonId=0, DeviceType="web", code=200, **kwargs):
+    def lesson_group_qrcode(self, authorization, groupSeqNo=0, lessonId=0, DeviceType="web", code=200, **kwargs):
         """
         获取课堂小组二维码
         :param groupSeqNo: (integer, path, required) groupSeqNo
@@ -739,6 +739,27 @@ class SchoolApi(BaseAPI):
 
         response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "迁移学生"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def class_group_qrcode(self, authorization, classId=0, groupSeqNo=1, DeviceType="web", code=200, **kwargs):
+        """
+        获取班级小组二维码
+        :param classId: (integer, path, required) classId
+        :param groupSeqNo: (integer, path, required) groupSeqNo
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-05
+        url = f"https://{base_url}/api/school/class/{classId}/qrcode/{groupSeqNo}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "获取班级小组二维码"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()

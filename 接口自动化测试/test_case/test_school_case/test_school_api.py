@@ -21,6 +21,25 @@ class TestSchoolApi:
         self.authorization = self.school.get_authorization()[0]
         self.now = strftime("%Y%m%d%H%M%S")
 
+    @pytest.fixture(scope='class')
+    def create_class(self):
+        '''创建班级数据'''
+        pl = {
+            "className": "baidi_test" + self.now,
+            "description": "三年级历史学习班",
+            "grade": 5,
+            "subject": "History"
+        }
+        class_id = self.school.school_class(self.authorization, **pl)['data']['id']
+        student_names = ['student_1', 'student_2', 'student_3', 'student_4', 'student_5', 'student_6']
+        pl = {"studentNames": student_names}
+        students_res = self.school.batch(self.authorization, class_id, **pl)['data']
+        studentIds = DataFrame(students_res).loc[:, "id"].tolist()
+
+        yield class_id, studentIds
+
+        self.school.delete_class(self.authorization, class_id)
+
     @pytest.mark.smoke
     def test_school_positive_putGroups_ok(self):
         """更新班级学生默认分组-正向用例"""
@@ -276,6 +295,7 @@ class TestSchoolApi:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert 'data' in res.keys(), f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -331,6 +351,26 @@ class TestSchoolApi:
             assert res['code'] == 100006, f"接口返回状态码异常: 预期【100006】，实际【{res['code']}】"
             assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
+
+    @pytest.fixture(scope='function')
+    def create_lesson_function(self):
+        class_id = self.school.school_class(self.authorization)['data']['id']
+        student_names = ['student1', 'student2', 'student3', 'student4', 'student5', 'student6']
+        pl = {"studentNames": student_names}
+        self.school.batch(self.authorization, class_id, **pl)['data']
+        lessonId = self.school.create_lesson(self.authorization, classId=class_id)['data']['id']
+        yield lessonId
+        self.school.delete_class(self.authorization, class_id)
+
+    @pytest.mark.smoke
+    def test_school_positive_create_groups_ok(self, create_lesson_function):
+        """测验报告列表-正向用例"""
+        lessonId = create_lesson_function
+        res = self.school.create_groups(self.authorization, lessonId, groupCount=3)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert 'data' in res.keys(), f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.parametrize(
         'desc, value',
@@ -557,7 +597,6 @@ class TestSchoolApi:
         for class_id in [class_a_id, class_b_id, class_c_id]:
             self.school.delete_class(self.authorization, class_id)
 
-
     @pytest.mark.release
     def test_school_positive_migrate_ok(self, school_fixture):
         """迁移学生-正向用例"""
@@ -584,7 +623,6 @@ class TestSchoolApi:
         students_c = self.school.getStudents(self.authorization, class_c_id)
         assert not students_c['data']["content"]
 
-
     @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
@@ -604,3 +642,45 @@ class TestSchoolApi:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_school_positive_class_group_qrcode_ok(self, create_class):
+        """获取班级小组二维码-正向用例"""
+        class_id, studentIds = create_class
+        res = self.school.class_group_qrcode(self.authorization, class_id)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data']['qrCodeContent'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_school_permission_class_group_qrcode(self, desc, value):
+        """获取班级小组二维码-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.school.class_group_qrcode(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_school_scenario_class_group_qrcode_invalid_groupSeqNo(self, create_class):
+        """获取班级小组二维码-场景异常-无效的groupSeqNo"""
+        groupSeqNo = 999999999
+        class_id, studentIds = create_class
+        res = self.school.class_group_qrcode(self.authorization, class_id, groupSeqNo=groupSeqNo)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 100136, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'This group not found', f"接口返回message信息异常: 预期【This group not found】，实际【{res['message']}】"
+        assert res['data'] == 'This group not found', f"接口返回data数据异常：{res['data']}"
+
