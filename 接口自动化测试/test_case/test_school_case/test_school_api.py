@@ -535,6 +535,11 @@ class TestSchoolApi:
             "subject": "Math"
         }
         class_b_id = self.school.school_class(self.authorization, **pl)['data']['id']
+        student_names = ['class_b1'+self.now, 'class_b2'+self.now,]
+        pl1 = {"studentNames": student_names}
+        students_res = self.school.batch(self.authorization, class_a_id, **pl1)['data']
+        studentIds_b = DataFrame(students_res).loc[:, "id"].tolist()
+
         pl = {
             "className": "debbie_test_c" + self.now,
             "description": "三年级数学学习班",
@@ -542,7 +547,13 @@ class TestSchoolApi:
             "subject": "Math"
         }
         class_c_id = self.school.school_class(self.authorization, **pl)['data']['id']
-        yield class_a_id, class_b_id, class_c_id
+        student_names = ['class_c1'+self.now, 'class_c2'+self.now,]
+        pl1 = {"studentNames": student_names}
+        students_res = self.school.batch(self.authorization, class_a_id, **pl1)['data']
+        studentIds_c = DataFrame(students_res).loc[:, "id"].tolist()
+
+        yield [(class_a_id, studentIds_a), (class_b_id, studentIds_b), (class_c_id, studentIds_c)]
+
         for class_id in [class_a_id, class_b_id, class_c_id]:
             self.school.delete_class(self.authorization, class_id)
 
@@ -550,12 +561,24 @@ class TestSchoolApi:
     @pytest.mark.release
     def test_school_positive_migrate_ok(self, school_fixture):
         """迁移学生-正向用例"""
-        class_a_id, class_b_id, class_c_id = school_fixture
+        [(class_a_id, studentIds_a), (class_b_id, studentIds_b), (class_c_id, studentIds_c)] = school_fixture
+        for class_info in school_fixture:
+            class_students_res = self.school.getStudents(self.authorization, class_info[0])
+            assert class_students_res["data"]["id"] == class_info[1]
+
         res = self.school.migrate(self.authorization, [class_b_id, class_c_id], class_a_id)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+        students_a = self.school.getStudents(self.authorization, class_a_id)
+        assert students_a['data']
+        students_b = self.school.getStudents(self.authorization, class_b_id)
+        assert not students_b['data']
+        students_c = self.school.getStudents(self.authorization, class_c_id)
+        assert not students_c['data']
+
 
     @pytest.mark.release
     @pytest.mark.parametrize(
