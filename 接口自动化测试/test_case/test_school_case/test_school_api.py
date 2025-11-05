@@ -523,7 +523,7 @@ class TestSchoolApi:
             "subject": "Math"
         }
         class_a_id = self.school.school_class(self.authorization, **pl)['data']['id']
-        student_names = ['class_a1'+self.now, 'class_a2'+self.now,]
+        student_names = ['class_a1', 'class_a2']
         pl1 = {"studentNames": student_names}
         students_res = self.school.batch(self.authorization, class_a_id, **pl1)['data']
         studentIds_a = DataFrame(students_res).loc[:, "id"].tolist()
@@ -535,9 +535,9 @@ class TestSchoolApi:
             "subject": "Math"
         }
         class_b_id = self.school.school_class(self.authorization, **pl)['data']['id']
-        student_names = ['class_b1'+self.now, 'class_b2'+self.now,]
+        student_names = ['class_b1', 'class_b2']
         pl1 = {"studentNames": student_names}
-        students_res = self.school.batch(self.authorization, class_a_id, **pl1)['data']
+        students_res = self.school.batch(self.authorization, class_b_id, **pl1)['data']
         studentIds_b = DataFrame(students_res).loc[:, "id"].tolist()
 
         pl = {
@@ -547,9 +547,9 @@ class TestSchoolApi:
             "subject": "Math"
         }
         class_c_id = self.school.school_class(self.authorization, **pl)['data']['id']
-        student_names = ['class_c1'+self.now, 'class_c2'+self.now,]
+        student_names = ['class_c1', 'class_c2']
         pl1 = {"studentNames": student_names}
-        students_res = self.school.batch(self.authorization, class_a_id, **pl1)['data']
+        students_res = self.school.batch(self.authorization, class_c_id, **pl1)['data']
         studentIds_c = DataFrame(students_res).loc[:, "id"].tolist()
 
         yield [(class_a_id, studentIds_a), (class_b_id, studentIds_b), (class_c_id, studentIds_c)]
@@ -565,7 +565,8 @@ class TestSchoolApi:
         [(class_a_id, studentIds_a), (class_b_id, studentIds_b), (class_c_id, studentIds_c)] = school_fixture
         for class_info in school_fixture:
             class_students_res = self.school.getStudents(self.authorization, class_info[0])
-            assert class_students_res["data"]["id"] == class_info[1]
+            res_ids = DataFrame(class_students_res["data"]["content"]).loc[:, "id"].tolist()
+            assert res_ids == class_info[1]
 
         # 将classb与classc中的学生迁移到classa
         res = self.school.migrate(self.authorization, [class_b_id, class_c_id], class_a_id)
@@ -576,11 +577,12 @@ class TestSchoolApi:
 
         # 验证学生迁移成功
         students_a = self.school.getStudents(self.authorization, class_a_id)
-        assert students_a['data']
+        students_a_res = DataFrame(students_a["data"]["content"]).loc[:, "id"].tolist()
+        assert students_a_res == studentIds_a + studentIds_b + studentIds_c
         students_b = self.school.getStudents(self.authorization, class_b_id)
-        assert not students_b['data']
+        assert not students_b['data']["content"]
         students_c = self.school.getStudents(self.authorization, class_c_id)
-        assert not students_c['data']
+        assert not students_c['data']["content"]
 
 
     @pytest.mark.release
