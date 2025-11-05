@@ -1,6 +1,6 @@
 {
   "apis": [
-    "/api/quiz/{quizId}/detail"
+    "/api/school/student/migrate"
   ],
   "update_apis": [],
   "scan_time": "2025-10-17 10:54:39.746089",

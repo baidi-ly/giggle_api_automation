@@ -512,3 +512,67 @@ class TestSchoolApi:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.fixture(scope='function')
+    def school_fixture(self):
+        '''创建班级数据'''
+        pl = {
+            "className": "debbie_test_a" + self.now,
+            "description": "三年级数学学习班",
+            "grade": 3,
+            "subject": "Math"
+        }
+        class_a_id = self.school.school_class(self.authorization, **pl)['data']['id']
+        student_names = ['class_a1'+self.now, 'class_a2'+self.now,]
+        pl1 = {"studentNames": student_names}
+        students_res = self.school.batch(self.authorization, class_a_id, **pl1)['data']
+        studentIds_a = DataFrame(students_res).loc[:, "id"].tolist()
+
+        pl = {
+            "className": "debbie_test_b" + self.now,
+            "description": "三年级数学学习班",
+            "grade": 3,
+            "subject": "Math"
+        }
+        class_b_id = self.school.school_class(self.authorization, **pl)['data']['id']
+        pl = {
+            "className": "debbie_test_c" + self.now,
+            "description": "三年级数学学习班",
+            "grade": 3,
+            "subject": "Math"
+        }
+        class_c_id = self.school.school_class(self.authorization, **pl)['data']['id']
+        yield class_a_id, class_b_id, class_c_id
+        for class_id in [class_a_id, class_b_id, class_c_id]:
+            self.school.delete_class(self.authorization, class_id)
+
+
+    @pytest.mark.release
+    def test_school_positive_migrate_ok(self, school_fixture):
+        """迁移学生-正向用例"""
+        class_a_id, class_b_id, class_c_id = school_fixture
+        res = self.school.migrate(self.authorization, [class_b_id, class_c_id], class_a_id)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_school_permission_migrate(self, desc, value):
+        """迁移学生-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.school.migrate(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
