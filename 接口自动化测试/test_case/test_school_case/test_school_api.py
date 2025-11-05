@@ -684,3 +684,60 @@ class TestSchoolApi:
         assert res['message'] == 'This group not found', f"接口返回message信息异常: 预期【This group not found】，实际【{res['message']}】"
         assert res['data'] == 'This group not found', f"接口返回data数据异常：{res['data']}"
 
+    @pytest.mark.release
+    def test_school_positive_getLessons_page_ok(self, create_class):
+        """获取班级课堂列表-正向用例"""
+        # 获取全局class_id
+        class_id, studentIds = create_class
+        # 在班级中创建课程
+        pl = {'lessonName': 'debbie_lesson_test'}
+        lessonId = self.school.create_lesson(self.authorization, classId=class_id, **pl)['data']['id']
+        try:
+            res = self.school.getLessons(self.authorization, class_id)
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+            assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+            assert lessonId in DataFrame(res['data']['content'])['id'].tolist(), f"接口返回data数据异常：{res['data']}"
+        finally:
+            self.school.delete_lesson(self.authorization, lessonId)
+
+    @pytest.mark.release
+    def test_school_positive_getLessons_all_ok(self, create_class):
+        """获取班级课堂列表-正向用例"""
+        # 获取全局class_id
+        class_id, studentIds = create_class
+        # 在班级中创建101堂课程-验证如果all=true 返回全部数据，最多100条
+        lessonIds = []
+        for i in range(101):
+            lessonId = self.school.create_lesson(self.authorization, classId=class_id)['data']['id']
+            lessonIds.append(lessonId)
+        try:
+            res = self.school.getLessons(self.authorization, class_id, all=True)
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+            assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+            assert len(res['data']['content']) == 100, f"接口返回data数据异常：{res['data']}"
+            assert res['data']['pageable']['pageSize'] == 100, f"接口返回data数据异常：{res['data']}"
+        finally:
+            for lessonId in lessonIds:
+                self.school.delete_lesson(self.authorization, lessonId)
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_school_permission_getLessons(self, desc, value):
+        """获取班级课堂列表-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.school.getLessons(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"

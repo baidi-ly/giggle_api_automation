@@ -35,3 +35,31 @@ class AdminUserApi(BaseAPI):
         response = response.json()
         return response
 
+    def deleteProblemUser_details(self, authorization, userId=0, batchSize=1500, dryRun=True, maxKidsLimit=100000, DeviceType="web", code=200, **kwargs):
+        """
+        删除问题用户及其相关数据
+        :param userId: (integer, path, required) 问题用户ID
+        :param batchSize: (integer, query, optional) 批处理大小
+        :param dryRun: (boolean, query, optional) 是否只预览不执行删除
+        :param maxKidsLimit: (integer, query, optional) 最大kids数量限制
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-05
+        url = f"https://{base_url}/admin/user/delete-problem-user/{userId}"
+        payload = {
+            "batchSize": batchSize,
+            "dryRun": dryRun,
+            "maxKidsLimit": maxKidsLimit
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "删除问题用户及其相关数据"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+

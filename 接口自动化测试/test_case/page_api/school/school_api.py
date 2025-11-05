@@ -282,7 +282,7 @@ class SchoolApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def lesson_details2(self, authorization, lessonId=0, DeviceType="web", code=200, **kwargs):
+    def delete_lesson(self, authorization, lessonId=0, DeviceType="web", code=200, **kwargs):
         """
         删除课堂
         :param lessonId: (integer, path, required) lessonId
@@ -295,34 +295,6 @@ class SchoolApi(BaseAPI):
 
         response = requests.request("DELETE", url, headers=headers)
         error_msg = "删除课堂"
-        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        try:
-            response = response.json()
-            return response
-        except json.decoder.JSONDecodeError:
-            return False
-
-    def getLessons(self, authorization, classId=0, keyword='', page=0, size=10, DeviceType="web", code=200, **kwargs):
-        """
-        获取班级课堂列表
-        :param classId: (integer, path, required) classId
-        :param keyword: (string, query, optional) keyword
-        :param page: (integer, query, optional) page
-        :param size: (integer, query, optional) size
-        :return: 接口原始返回（已 json 解析）
-        """
-        # Create Data:  V1.19.0  &  2025-10-06
-        url = f"https://{base_url}/api/school/class/{classId}/lessons"
-        payload = {
-            "keyword": keyword,
-            "page": page,
-            "size": size
-        }
-        timestamp = str(int(time.time() * 1000))
-        headers = self.request_header(timestamp, authorization, DeviceType)
-
-        response = requests.request("GET", url, headers=headers, params=payload)
-        error_msg = "获取班级课堂列表"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()
@@ -760,6 +732,36 @@ class SchoolApi(BaseAPI):
 
         response = requests.request("GET", url, headers=headers)
         error_msg = "获取班级小组二维码"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def getLessons(self, authorization, classId=0, all=False, keyword='', page=0, size=10, DeviceType="web", code=200, **kwargs):
+        """
+        获取班级课堂列表
+        :param classId: (integer, path, required) classId
+        :param all: (boolean, query, optional) all
+        :param keyword: (string, query, optional) keyword
+        :param page: (integer, query, optional) page
+        :param size: (integer, query, optional) size
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-05
+        url = f"https://{base_url}/api/school/class/{classId}/lessons"
+        payload = {
+            "all": all,
+            "keyword": keyword,
+            "page": page,
+            "size": size
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "获取班级课堂列表"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()

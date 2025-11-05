@@ -19,7 +19,6 @@ class BookApi(BaseAPI):
         """
         # Create Data:  v.?  2025-09-09
         # Creator: Baidi
-
         url = f"https://{base_url}/api/book/createOrModifyBook"
         payload = {
             "bookName": bookName,
@@ -49,7 +48,6 @@ class BookApi(BaseAPI):
         """
         # Create Data:  v.?  2025-09-09
         # Creator: Baidi
-
         url = f"https://{base_url}/api/book/list"
         payload = {
             "page": 0,
