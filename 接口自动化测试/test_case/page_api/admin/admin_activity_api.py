@@ -1,4 +1,4 @@
-
+import json
 import time
 
 from test_case.page_api.base_api import BaseAPI
@@ -73,3 +73,110 @@ class AdminActivityApi(BaseAPI):
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
+
+    def activity_tags(self, authorization, DeviceType="web", code=200, **kwargs):
+        """
+        获取标签列表
+
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-06
+        url = f"https://{base_url}/admin/activity/tag/list"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "获取标签列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def activity_general_tasks(self, authorization, DeviceType="web", code=200):
+        """
+        获取通用活动任务定义列表
+
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-06
+        url = f"https://{base_url}/admin/activity/task/general/list"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "获取通用活动任务定义列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def create_activity_task(self, authorization, DeviceType="web", code=200, **kwargs):
+        """
+        创建活动任务定义
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-06
+        url = f"https://{base_url}/admin/activity/task"
+        payload = {
+            "activityId": 1,
+            "actionCode": "SHARE",
+            "name": "分享任务"
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "创建活动任务定义"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def delete_activity_task(self, authorization, id=0, DeviceType="web", code=200):
+        """
+        删除活动任务定义
+        :param id: (integer, path, required) id
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-06
+        url = f"https://{base_url}/admin/activity/task/{id}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("DELETE", url, headers=headers)
+        error_msg = "删除活动任务定义"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def delete_activity(self, authorization, activityId=0, DeviceType="web", code=200, **kwargs):
+        """
+        获取活动详情
+        :param activityId: (integer, path, required) activityId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-06
+        url = f"https://{base_url}/admin/activity/{activityId}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("DELETE", url, headers=headers)
+        error_msg = "获取活动详情"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
