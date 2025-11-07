@@ -1352,3 +1352,107 @@ class BookApi(BaseAPI):
             return response
         except json.decoder.JSONDecodeError:
             return False
+
+    def createormodifybook(self, authorization, language='zh', description='', bookName='', file=None, DeviceType="web", code=200, **kwargs):
+        """
+        创建(带bookId)/修改一本书籍
+        :param bookId: (integer, query, optional) bookId
+        :param category: (integer, query, required) category
+        :param maxAge: (integer, query, required) maxAge
+        :param minAge: (integer, query, required) minAge
+        :param seriesId: (integer, query, optional) seriesId
+        :param storyType: (string, query, optional) storyType
+        :param file: (file, formData, optional) 上传文件
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-06
+        url = f"https://{base_url}/api/book/createOrModifyBook"
+        payload = {
+            "category": '',
+            "maxAge": 0,
+            "minAge": 12,
+            "seriesId": 0,
+            "storyType": 'Fiction'
+        }
+        payload = self.request_body(payload, **kwargs)
+        payload_data = {
+            "bookName": bookName,
+            "description": description,
+            "language": language
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType, Content_Type='multipart/form-data')
+
+        response = requests.request("POST", url, headers=headers, params=payload, data=payload_data, files=file)
+        error_msg = "创建(带bookId)/修改一本书籍"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def getBookCategories(self, authorization, DeviceType="web", code=200, **kwargs):
+        """
+        查询书籍分类树结构
+
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-06
+        url = f"https://{base_url}/api/book/categories"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "查询书籍分类树结构"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def delete_book(self, authorization, bookId=0, DeviceType="web", code=200, **kwargs):
+        """
+        删除书籍
+        :param bookId: (integer, path, required) bookId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-06
+        url = f"https://{base_url}/api/book/{bookId}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("DELETE", url, headers=headers)
+        error_msg = "删除书籍"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def book_details(self, authorization, bookId=0, translateLanguage='', DeviceType="web", code=200, **kwargs):
+        """
+        通过bookId查询书籍详情
+        :param bookId: (integer, path, required) bookId
+        :param translateLanguage: (string, query, optional) 目标翻译语言，用于翻译书籍名称和描述
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-06
+        url = f"https://{base_url}/api/book/{bookId}"
+        payload = {
+            "translateLanguage": translateLanguage
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "通过bookId查询书籍详情"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
