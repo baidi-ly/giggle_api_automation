@@ -72,6 +72,23 @@ class TestActivity:
         assert res['message'] == 'success'
         assert res['data']
 
+    @pytest.mark.smoke
+    def test_activity_positive_activity_gacha_ok(self, getkidId):
+        """获取用户抽奖信息-正向用例"""
+        kidId = getkidId[0]["id"]
+        activity_res = self.activity.getInfo(authorization=self.authorization)['data']
+        for activity in activity_res:
+            if activity['activityName'] == '扭蛋活动-万圣节':
+                activityId = activity['activityId']
+                break
+        else:
+            assert False, "未获取到扭蛋活动-万圣节活动！"
+        res = self.activity.getInfo1(self.authorization, activityId, kidId=kidId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200
+        assert res['message'] == 'success'
+        assert res['data']['drawCount'] == 1, "日常抽奖次数不为1！"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
