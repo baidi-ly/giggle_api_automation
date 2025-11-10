@@ -162,8 +162,8 @@ class TestAiApi:
     @pytest.mark.release
     def test_ai_positive_audio_prompt(self):
         """给文字配音，获取音频-正向用例"""
-        pl = {"prompt": 'Cheerful and upbeat, like a kids show host.'}
-        timestamp2 = self.ai.audio(self.authorization, enableCache=False, vioce_type='kids1', **pl)
+        pl = {"prompt": "Child's cute voice."}
+        timestamp2 = self.ai.audio(self.authorization, enableCache=True, vioce_type='kids3', **pl)
 
     @pytest.mark.release
     def test_ai_positive_audio_prompt_zh(self):
