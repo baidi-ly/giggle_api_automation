@@ -10,6 +10,7 @@ from test_case.page_api.activity.activity_api import ActivityApi
 from test_case.page_api.admin.admin_activity_api import AdminActivityApi
 from test_case.page_api.admin.admin_banner_api import AdminBannerApi
 from test_case.page_api.kid.kid_api import KidApi
+from test_case.page_api.user.user_api import UserApi
 
 sys.path.append(os.getcwd())
 sys.path.append("..")
@@ -22,8 +23,9 @@ class TestActivity:
     def setup_class(self):
         self.activity = ActivityApi()
         self.admin_banner = AdminBannerApi()
-        self.authorization = self.activity.get_authorization()[0]
+        self.authorization, self.userId = self.activity.get_authorization()
         self.kid = KidApi()
+        self.user = UserApi()
         self.adminActivity = AdminActivityApi()
         self.now = strftime("%Y%m%d%H%M%S")
 
@@ -31,6 +33,12 @@ class TestActivity:
     def getkidId(self):
         '''类前置 - 获取kidId'''
         kidId = self.kid.getKids(self.authorization)
+        yield kidId
+
+    @pytest.fixture(scope="class")
+    def getUserKids(self):
+        '''类前置 - 获取kidId'''
+        kidId = self.user.getUserKids(self.authorization)
         yield kidId
 
     @pytest.fixture(scope="class")
@@ -73,16 +81,11 @@ class TestActivity:
         assert res['data']
 
     @pytest.mark.smoke
-    def test_activity_positive_activity_gacha_ok(self, getkidId):
+    def test_activity_positive_activity_gacha_ok(self, getUserKids):
         """获取用户抽奖信息-正向用例"""
-        kidId = getkidId[0]["id"]
+        kidId = getUserKids['data'][1]['id']
         activity_res = self.activity.getInfo(authorization=self.authorization)['data']
-        for activity in activity_res:
-            if activity['activityName'] == '扭蛋活动-万圣节':
-                activityId = activity['activityId']
-                break
-        else:
-            assert False, "未获取到扭蛋活动-万圣节活动！"
+        activityId = activity_res['activityId']
         res = self.activity.getInfo1(self.authorization, activityId, kidId=kidId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200
@@ -781,6 +784,7 @@ class TestActivity:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
