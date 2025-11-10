@@ -1,6 +1,6 @@
 {
   "apis": [
-    "/api/ai/speech/audio"
+    "/api/quiz/promotion/submit"
   ],
   "update_apis": [],
   "scan_time": "2025-10-17 10:54:39.746089",

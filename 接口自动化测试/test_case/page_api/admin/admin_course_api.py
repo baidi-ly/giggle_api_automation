@@ -290,7 +290,7 @@ class AdminCourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def course_skills(self, authorization, page=0, size=20, skill='', DeviceType="web", code=200, **kwargs):
+    def course_skills(self, authorization, page=0, size=100, skill='', DeviceType="web", code=200, **kwargs):
         """
         分页查询课程等级技能列表
         :param page: (integer, query, optional) 页码
@@ -388,7 +388,7 @@ class AdminCourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def levelSkills_details(self, authorization, id=0, DeviceType="web", code=200, **kwargs):
+    def update_levelSkills(self, authorization, id=0, DeviceType="web", code=200, **kwargs):
         """
         更新等级技能
         :param id: (integer, path, required) id

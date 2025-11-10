@@ -154,6 +154,15 @@ class TestAiApi:
         assert timestamp1 - timestamp2 > 0, "走缓存获取音频时长比不走缓存长!"
 
     @pytest.mark.release
+    def test_ai_positive_audio_enableCache(self):
+        """给文字配音，获取音频-正向用例"""
+        content = "Once upon a time, in a small village nestled between green hills, there lived a curious boy named Leo. One day, while exploring the woods, he stumbled upon an old, forgotten map hidden inside a hollow tree. The map led to a secret cave deep in the forest, said to be filled with treasures from ancient times. Leo, with his heart racing in excitement, decided to follow the map. Along the way, he faced many challenges: crossing a raging river, solving riddles from talking animals, and finding his way through thick fog. But Leo’s courage never wavered. Finally, after hours of adventure, he reached the cave. Instead of gold and jewels, he found something even more precious—a book that contained stories of the village’s past. From that day on, Leo became the village storyteller, sharing the rich history with everyone who would listen."
+        pl = {"content": content}
+        timestamp1 = self.ai.audio(self.authorization, True, **pl)
+        timestamp2 = self.ai.audio(self.authorization, True, **pl)
+        assert timestamp1 - timestamp2 > 0, "走缓存获取音频时长比不走缓存长!"
+
+    @pytest.mark.release
     def test_ai_positive_audio_prompt(self):
         """给文字配音，获取音频-正向用例"""
         pl = {"prompt": 'Cheerful and upbeat, like a kids show host.'}
