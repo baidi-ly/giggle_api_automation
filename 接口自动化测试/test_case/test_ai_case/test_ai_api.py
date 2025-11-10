@@ -145,6 +145,19 @@ class TestAiApi:
             assert res['data'], f"接口返回data数据异常，实际【{res['data']}】"
 
     @pytest.mark.release
-    def test_ai_positive_audio_ok(self):
+    @pytest.mark.parametrize('enableCache', [True, False])
+    def test_ai_positive_audio_ok(self, enableCache):
         """给文字配音，获取音频-正向用例"""
-        res = self.ai.audio(self.authorization)
+        res = self.ai.audio(self.authorization, enableCache)
+
+    @pytest.mark.release
+    @pytest.mark.parametrize('lang', ['zh'])
+    def test_ai_positive_audio_lang(self, lang):
+        """给文字配音，获取音频-正向用例"""
+        pl = {
+            "lang": lang,
+            "voiceName": "zh-CN-YunjianNeural",
+            "content": "你好，欢迎来到giggle",
+            "prompt": "可爱的孩子的声音"
+        }
+        res = self.ai.audio(self.authorization, **pl)
