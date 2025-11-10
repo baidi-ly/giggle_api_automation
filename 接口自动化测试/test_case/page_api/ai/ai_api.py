@@ -90,7 +90,7 @@ class AiApi(BaseAPI):
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             # 保存成 mp3
-            path = os.getcwd() + "/test_data/speech.mp3"
+            path = os.getcwd() + "/test_data/speech_3.mp3"
             with open(path, "wb") as f:
                 f.write(response.content)
             print("音频已保存到 speech.mp3")
