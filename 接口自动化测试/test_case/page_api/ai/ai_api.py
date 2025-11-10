@@ -1,4 +1,5 @@
 import json
+import os
 import time
 
 from config import RunConfig
@@ -61,4 +62,40 @@ class AiApi(BaseAPI):
             return response
         except json.decoder.JSONDecodeError:
             return False
+
+    def audio(self, authorization, enableCache=False, DeviceType="web", code=200, **kwargs):
+        """
+        给文字配音，获取音频
+        :param req: (object, body, required) req
+        :param enableCache: (boolean, query, optional) enableCache
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-10
+        url = f"https://{base_url}/api/ai/speech/audio"
+        payload1 = {
+            "enableCache": enableCache
+        }
+        payload2 = {
+            "lang": "en-US",
+            "voiceName": "en-US-AvaNeural",
+            "content": "Hello, welcome to Giggle Academy!",
+            "prompt": "cheerful, medium tempo"
+        }
+        payload2 = self.request_body(payload2, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload1, json=payload2)
+        error_msg = "给文字配音，获取音频"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            # 保存成 mp3
+            path = os.getcwd() + "/test_data/speech.mp3"
+            with open(path, "wb") as f:
+                f.write(response.content)
+            print("音频已保存到 speech.mp3")
+        except requests.HTTPError as err:
+            print("调用失败:", err.response.status_code, err.response.text)
+        except requests.RequestException as err:
+            print("网络/其他异常:", err)
 

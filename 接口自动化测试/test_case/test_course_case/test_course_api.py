@@ -78,3 +78,32 @@ class TestCourse:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_course_positive_getTags_ok(self):
+        """查询所有推荐和热门标签-正向用例"""
+        res = self.course.getTags(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_course_permission_getTags(self, desc, value):
+        """查询所有推荐和热门标签-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.course.getTags(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"

@@ -143,3 +143,8 @@ class TestAiApi:
             assert res['code'] == 100006, f"接口返回状态码异常: 预期【100006】，实际【{res['code']}】"
             assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常，实际【{res['data']}】"
+
+    @pytest.mark.release
+    def test_ai_positive_audio_ok(self):
+        """给文字配音，获取音频-正向用例"""
+        res = self.ai.audio(self.authorization)
