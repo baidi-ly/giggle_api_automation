@@ -21,7 +21,7 @@ class RunConfig:
     # 是否https
     is_https = True
     # 超时时间
-    timeout = 30
+    timeout = 120
 
 
     # 日志相关

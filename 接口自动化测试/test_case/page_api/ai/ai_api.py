@@ -63,7 +63,7 @@ class AiApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def audio(self, authorization, enableCache=False, DeviceType="web", code=200, **kwargs):
+    def audio(self, authorization, enableCache=True, vioce_type='', DeviceType="web", code=200, **kwargs):
         """
         给文字配音，获取音频
         :param req: (object, body, required) req
@@ -85,15 +85,18 @@ class AiApi(BaseAPI):
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
+        timestamp1 = int(time.time() * 1000)
         response = requests.request("POST", url, headers=headers, params=payload1, json=payload2)
+        timestamp2 = int(time.time() * 1000)
         error_msg = "给文字配音，获取音频"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             # 保存成 mp3
-            path = os.getcwd() + "/test_data/speech_1.mp3"
+            path = os.getcwd() + f"/test_data/speech_{vioce_type}.mp3"
             with open(path, "wb") as f:
                 f.write(response.content)
             print("音频已保存到 speech.mp3")
+            return timestamp2 - timestamp1
         except requests.HTTPError as err:
             print("调用失败:", err.response.status_code, err.response.text)
         except requests.RequestException as err:
