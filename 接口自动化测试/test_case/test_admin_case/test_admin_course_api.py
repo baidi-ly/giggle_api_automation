@@ -27,15 +27,32 @@ class TestAdminCourse:
 
     def teardown_class(self):
         '''后置清除等级技能'''
-        # 获取所有教育类型为debbie_test开头的等级技能
-        delete_skills = []
-        course_skills3 = self.admin.course_skills(self.authorization)['data']['content']
-        for course_skill in course_skills3:
-            if course_skill['educationType'].startswith('debbie_test'):
-                delete_skills.append(course_skill['id'])
-        # 删除等级技能
-        del_res = self.admin.deleteLevelskills(self.authorization, delete_skills)
-        assert del_res['code'] == 200
+        try:
+            # 获取所有教育类型为debbie_test开头的等级技能
+            delete_skills = []
+            course_skills3 = self.admin.course_skills(self.authorization)['data']['content']
+            for course_skill in course_skills3:
+                if course_skill['educationType'].startswith('debbie_test'):
+                    delete_skills.append(course_skill['id'])
+            # 删除等级技能
+            if delete_skills:
+                del_res = self.admin.deleteLevelskills(self.authorization, delete_skills)
+                assert del_res['code'] == 200
+        except Exception as e:
+            print(f'删除等级技能失败，原因是：{e}')
+
+        try:
+            for status in [0, 1]:
+                pl = {"status": status}
+                course_tags = self.admin.course_tag_list(self.authorization, **pl)['data']
+                for course_tag in course_tags:
+                    # 删除课程用户标签
+                    if course_tag['name'].startswith('course_tag_test'):
+                        course_tag_id = course_tag['id']
+                        delete_res = self.admin.delete_course_tag(self.authorization, course_tag_id)
+                        assert delete_res['data'] == '删除成功', f"接口返回data数据异常：{delete_res['data']}"
+        except Exception as e:
+            print(f'删除课程用户标签失败，原因是：{e}')
 
     @pytest.fixture(scope='class')
     def courselistAll(self):
@@ -411,7 +428,7 @@ class TestAdminCourse:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-            
+
     @pytest.mark.release
     def test_admin_course_positive_deleteLevelskills_ok(self):
         """批量删除等级技能-正向用例"""
@@ -597,8 +614,270 @@ class TestAdminCourse:
             assert False, "更新等级技能后，通过分页查询课程等级技能列表，列表中未查询到更新的等级技能"
         # 删除等级技能
         del_res = self.admin.deleteLevelskills(self.authorization, [skill_id])
-        assert del_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert del_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{del_res['code']}】"
         # 分页查询课程等级技能列表，验证删除后等级技能不存在，删除成功
         course_skills3 = self.admin.course_skills(self.authorization)['data']['content']
         skill_ids = DataFrame(course_skills3)['id'].tolist()
         assert str(skill_id) not in skill_ids, "删除等级技能后，通过分页查询课程等级技能列表，列表中查询到删除的等级技能"
+
+    @pytest.fixture(scope='function')
+    def createLevelSkill_method(self):
+        '''方法固件 - 创建多个等级技能'''
+        skillIds = []
+        for i in range(3):
+            educationType = "debbie_test" + self.now + str(i)
+            pl = {
+                "educationType": educationType,
+            }
+            skill_id = self.admin.createLevelSkill(self.authorization, **pl)['data']['id']
+            skillIds.append(skill_id)
+
+        yield skillIds
+
+        # 删除等级技能
+        del_res = self.admin.deleteLevelskills(self.authorization, skillIds)
+        assert del_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{del_res['code']}】"
+
+    @pytest.mark.release
+    def test_admin_course_positive_create_course_tag_ok(self, createLevelSkill_method):
+        """创建课程用户标签-正向用例"""
+        # 创建多个等级技能
+        skillIds = createLevelSkill_method
+        # 创建课程用户标签
+        tag_name = 'course_tag_test' + self.now
+        pl = {
+            "name": tag_name,
+            "multilingualKey": "tag.reading",
+            "tagType": 'normal', # 必填，可选值包括 normal、hot、recommended_search 等。
+            "status": 1,
+            "skillIds": skillIds, # 关联的课程等级技能 ID 列表，Long 数组，可选，默认空数组。
+        }
+
+        file = {
+            'coverImage': ('story_face.webp', open(os.getcwd() + f'/test_data/story_face.webp', 'rb'))
+        }
+        res = self.admin.create_course_tag(self.authorization, file=file, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data']['id'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', expired_token),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_admin_course_permission_create_course_tag(self, desc, value):
+        """创建课程用户标签-权限测试"""
+        file = {
+            'coverImage': ('story_face.webp', open(os.getcwd() + f'/test_data/story_face.webp', 'rb'))
+        }
+        res = self.admin.create_course_tag(value, file=file, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_course_positive_update_course_tag_ok(self, createLevelSkill_method):
+        """更新课程用户标签-正向用例"""
+        # 创建多个等级技能
+        skillIds = createLevelSkill_method
+        # 创建课程用户标签
+        tag_name = 'course_tag_test' + self.now
+        pl = {
+            "name": tag_name,
+            "multilingualKey": "tag.reading",
+            "tagType": 'normal', # 必填，可选值包括 normal、hot、recommended_search 等。
+            "status": 1,
+            "skillIds": skillIds, # 关联的课程等级技能 ID 列表，Long 数组，可选，默认空数组。
+        }
+
+        file = {
+            'coverImage': ('story_face.webp', open(os.getcwd() + f'/test_data/story_face.webp', 'rb'))
+        }
+        create_res = self.admin.create_course_tag(self.authorization, file=file, **pl)
+        course_tag_id = create_res['data']['id']    # 用户标签ID
+        # 更新课程用户标签
+        tag_name_new = 'course_tag_test_new' + self.now
+        pl1 = {
+            "name": tag_name_new,
+            "status": 0
+        }
+        update_res = self.admin.update_course_tag(self.authorization, course_tag_id, **pl1)
+        assert isinstance(update_res, dict), f'接口返回类型异常: {type(update_res)}'
+        assert update_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{update_res['code']}】"
+        assert update_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{update_res['message']}】"
+        assert update_res['data']['id'] == course_tag_id, f"接口返回data数据异常：{update_res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', expired_token),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_admin_course_permission_update_course_tag(self, desc, value):
+        """更新课程用户标签-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.admin.update_course_tag(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_course_positive_delete_course_tag_ok(self, createLevelSkill_method):
+        """删除课程用户标签-正向用例"""
+        # 创建多个等级技能
+        skillIds = createLevelSkill_method
+        # 创建课程用户标签
+        tag_name = 'course_tag_test' + self.now
+        pl = {
+            "name": tag_name,
+            "multilingualKey": "tag.reading",
+            "tagType": 'normal', # 必填，可选值包括 normal、hot、recommended_search 等。
+            "status": 1,
+            "skillIds": skillIds, # 关联的课程等级技能 ID 列表，Long 数组，可选，默认空数组。
+        }
+
+        file = {
+            'coverImage': ('story_face.webp', open(os.getcwd() + f'/test_data/story_face.webp', 'rb'))
+        }
+        create_res = self.admin.create_course_tag(self.authorization, file=file, **pl)
+        course_tag_id = create_res['data']['id']    # 用户标签ID
+        # 删除课程用户标签
+        res = self.admin.delete_course_tag(self.authorization, course_tag_id)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'] == '删除成功', f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', expired_token),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_admin_course_permission_delete_course_tag(self, desc, value):
+        """删除课程用户标签-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.admin.delete_course_tag(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_course_positive_course_tags_ok(self):
+        """分页查询课程用户标签列表-正向用例"""
+        res = self.admin.course_tag_list(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', expired_token),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_admin_course_permission_course_tags(self, desc, value):
+        """分页查询课程用户标签列表-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.admin.course_tag_list(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_course_createCourseTag_total_ok(self, createLevelSkill_method):
+        """创建课程用户标签-正向用例"""
+        # 创建多个等级技能
+        skillIds = createLevelSkill_method
+        # 创建课程用户标签
+        tag_name = 'course_tag_test' + self.now
+        pl = {
+            "name": tag_name,
+            "multilingualKey": "tag.reading",
+            "tagType": 'normal', # 必填，可选值包括 normal、hot、recommended_search 等。
+            "status": 1,
+            "skillIds": skillIds, # 关联的课程等级技能 ID 列表，Long 数组，可选，默认空数组。
+        }
+
+        file = {
+            'coverImage': ('story_face.webp', open(os.getcwd() + f'/test_data/story_face.webp', 'rb'))
+        }
+        create_res = self.admin.create_course_tag(self.authorization, file=file, **pl)
+        assert isinstance(create_res, dict), f'接口返回类型异常: {type(create_res)}'
+        assert create_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{create_res['code']}】"
+        course_tag_id = create_res['data']['id']
+        pl1 = {
+            "name": '',
+            "status": 1
+        }
+        course_tags1 = self.admin.course_tag_list(self.authorization, **pl1)['data']['content']
+        for course_tag in course_tags1:
+            if course_tag['id'] == course_tag_id:
+                assert course_tag['status'] == pl.get('status')
+                assert course_tag['name'] == pl.get('name')
+                assert course_tag['multilingualKey'] == pl.get('multilingualKey')
+                skills = [int(i) for i in DataFrame(course_tag['skills'])['id'].tolist()]
+                assert skills == pl.get('skillIds')
+                break
+        else:
+            assert False, "新增课程用户标签后，在查询的课程用户标签列表中未查询到结果！"
+
+        # 更新课程用户标签
+        tag_name_new = 'course_tag_test_new' + self.now
+        pl2 = {
+            "name": tag_name_new,
+            "status": 0
+        }
+        update_res = self.admin.update_course_tag(self.authorization, course_tag_id, **pl1)
+        assert update_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{update_res['code']}】"
+        pl3 = {
+            "name": '',
+            "status": 0
+        }
+        course_tags2 = self.admin.course_tag_list(self.authorization, **pl3)['data']['content']
+        for course_tag in course_tags2:
+            if course_tag['id'] == course_tag_id:
+                assert course_tag['status'] == pl2.get('status')
+                assert course_tag['name'] == pl2.get('name')
+                assert course_tag['multilingualKey'] == pl.get('multilingualKey')
+                skills = [int(i) for i in DataFrame(course_tag['skills'])['id'].tolist()]
+                assert skills == pl2.get('skillIds')
+                break
+        else:
+            assert False, "新增课程用户标签后，在查询的课程用户标签列表中未查询到结果！"
+
+        # 删除课程用户标签
+        delete_res = self.admin.delete_course_tag(self.authorization, course_tag_id)
+        assert delete_res['data'] == '删除成功', f"接口返回data数据异常：{delete_res['data']}"
+        course_tags3 = self.admin.course_tag_list(self.authorization, **pl3)['data']
+        course_tag_ids3 = DataFrame(course_tags3)['id'].tolist()
+        assert course_tag_id not in course_tag_ids3
+

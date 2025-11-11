@@ -263,33 +263,6 @@ class AdminCourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def create_course_tag(self, authorization, tag_name, file=None, DeviceType="web", code=200, **kwargs):
-        """
-        创建课程用户标签
-        :param file: (file, formData, optional) 上传文件
-        :return: 接口原始返回（已 json 解析）
-        """
-        # Create Data:  V1.19.0  &  2025-11-10
-        url = f"https://{admin_base_url}/admin/course/tag/create"
-        payload = {
-            "name": tag_name,
-            "multilingualKey": "tag.reading",   # tag.reading、tag.math、tag.hot.example album.math.basic、album.english.beginner
-            "tagType": "hot", # 可选值：normal、hot、recommended_search
-            "status": 1,    # 0-不生效，1-生效中（默认1）
-            "skillIds": [1, 2, 3]
-        }
-        timestamp = str(int(time.time() * 1000))
-        headers = self.request_header(timestamp, authorization, DeviceType, Content_Type='multipart/form-data')
-
-        response = requests.request("POST", url, headers=headers, data=payload, files=file)
-        error_msg = "创建课程用户标签"
-        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        try:
-            response = response.json()
-            return response
-        except json.decoder.JSONDecodeError:
-            return False
-
     def course_skills(self, authorization, page=0, size=100, skill='', DeviceType="web", code=200, **kwargs):
         """
         分页查询课程等级技能列表
@@ -361,26 +334,28 @@ class AdminCourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def level_skill_list(self, authorization, educationType='', isNecessary=0, learningLevel='', DeviceType="web", code=200, **kwargs):
+    def create_course_tag(self, authorization, file=None, DeviceType="web", code=200, **kwargs):
         """
-        查询等级技能列表
-        :param educationType: (string, query, optional)  教育类型
-        :param isNecessary: (integer, query, optional)  是否必修
-        :param learningLevel: (string, query, optional) 学习等级
+        创建课程用户标签
+        :param file: (file, formData, optional) 上传文件
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-10
-        url = f"https://{base_url}/admin/course/level-skills/list"
+        # Create Data:  V1.19.0  &  2025-11-11
+        url = f"https://{base_url}/admin/course/tag/create"
         payload = {
-            "educationType": educationType,
-            "isNecessary": isNecessary,
-            "learningLevel": learningLevel
+            "name": '',
+            "multilingualKey": "tag.reading",
+            "tagType": 'normal', # 必填，可选值包括 normal、hot、recommended_search 等。
+            "status": 1,
+            "skillIds": [], # 关联的课程等级技能 ID 列表，Long 数组，可选，默认空数组。
         }
+        payload = json.dumps(self.request_body(payload, **kwargs))
+        file.update({'data': (None, payload, "application/json")})
         timestamp = str(int(time.time() * 1000))
-        headers = self.request_header(timestamp, authorization, DeviceType)
+        headers = self.request_header(timestamp, authorization, DeviceType, Content_Type='multipart/form-data')
 
-        response = requests.request("GET", url, headers=headers, params=payload)
-        error_msg = "查询等级技能列表"
+        response = requests.request("POST", url, headers=headers, files=file)
+        error_msg = "创建课程用户标签"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()
@@ -388,25 +363,77 @@ class AdminCourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def update_levelSkills(self, authorization, id=0, DeviceType="web", code=200, **kwargs):
+    def update_course_tag(self, authorization, tagId=0, DeviceType="web", code=200, **kwargs):
         """
-        更新等级技能
-        :param id: (integer, path, required) id
+        更新课程用户标签
+        :param tagId: (integer, path, required) 标签ID
         :param request: (object, body, required) request
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-10
-        url = f"https://{base_url}/admin/course/level-skills/{id}"
+        # Create Data:  V1.19.0  &  2025-11-11
+        url = f"https://{base_url}/admin/course/tag/{tagId}"
         payload = {
-            "educationType": '',
-            "necessary": True
+          "name": "string",
+          "status": 0
         }
         payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
         response = requests.request("PUT", url, headers=headers, json=payload)
-        error_msg = "更新等级技能"
+        error_msg = "更新课程用户标签"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def delete_course_tag(self, authorization, tagId=0, DeviceType="web", code=200, **kwargs):
+        """
+        删除课程用户标签
+        :param tagId: (integer, path, required) 标签ID
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-11
+        url = f"https://{base_url}/admin/course/tag/{tagId}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("DELETE", url, headers=headers)
+        error_msg = "删除课程用户标签"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def course_tag_list(self, authorization, DeviceType="web", code=200, **kwargs):
+        """
+        分页查询课程用户标签列表
+        :param name: (string, query, optional) 名称搜索（支持标签名称和多语言key）
+        :param page: (integer, query, optional) 页码
+        :param size: (integer, query, optional) 每页数量
+        :param status: (integer, query, optional) 状态过滤：0-不生效，1-生效中
+        :param tagType: (string, query, optional) 标签类型过滤：normal-普通标签，hot-热门标签，recommended_search-推荐搜索标签
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-11
+        url = f"https://{base_url}/admin/course/tag/list"
+        payload = {
+            "name": '',
+            "page": 0,
+            "size": 20,
+            "status": 1,
+            "tagType": ''
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "分页查询课程用户标签列表"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()

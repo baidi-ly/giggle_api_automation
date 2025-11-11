@@ -107,3 +107,28 @@ class CourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def course_albums(self, authorization, page=0, size=20, DeviceType="web", code=200, **kwargs):
+        """
+        查询所有生效中的专辑及其标签
+        :param page: (integer, query, optional) 页码
+        :param size: (integer, query, optional) 每页数量
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-11
+        url = f"https://{base_url}/api/course/albums"
+        payload = {
+            "page": page,
+            "size": size
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "查询所有生效中的专辑及其标签"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+

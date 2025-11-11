@@ -5,10 +5,12 @@ import pytest
 from pandas import DataFrame
 
 from test_case.page_api.admin.admin_quiz_api import AdminQuizApi
+from test_case.page_api.book.book_api import BookApi
 from test_case.page_api.school.school_api import SchoolApi
 from config import RunConfig
 
 base_url = RunConfig.baseurl
+expired_token = RunConfig.expired_token
 
 class TestSchoolApi:
     """
@@ -17,8 +19,9 @@ class TestSchoolApi:
 
     def setup_class(self):
         self.school = SchoolApi()
+        self.book = BookApi()
         self.admin = AdminQuizApi()
-        self.authorization = self.school.get_authorization()[0]
+        self.authorization, self.userId = self.school.get_authorization()
         self.now = strftime("%Y%m%d%H%M%S")
 
     @pytest.fixture(scope='class')
@@ -159,6 +162,7 @@ class TestSchoolApi:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -226,6 +230,7 @@ class TestSchoolApi:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -429,45 +434,12 @@ class TestSchoolApi:
             # }
         ]
         lesson_id = self.school.lesson(self.authorization, classId=class_id, resources=resources)['data']['id']
-        resource_id = self.school.getResources(self.authorization, lessonId=lesson_id)['data'][0]['resourceId']
+        resource_id = self.school.lesson_resources(self.authorization, lessonId=lesson_id)['data'][0]['resourceId']
         students_id = self.school.batch(self.authorization, class_id)['data'][0]['id']
         res_quiz = self.admin.quiz_list(self.authorization)['data']['content'][0]
         quizId, quizData = res_quiz['id'], res_quiz['quizData']
 
         yield class_id, lesson_id, resource_id, students_id, quizId, quizData
-
-    @pytest.mark.smoke
-    def test_school_positive_report_ok(self, create_lesson):
-        """测验结果上报-正向用例"""
-        class_id, lesson_id, resource_id, students_id, quizId, quizData = create_lesson
-        pl = {
-            "studentId": students_id,
-            "resourceId": resource_id
-        }
-        res = self.school.report(self.authorization, lessonId=lesson_id, quizId=quizId, **pl)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 100144, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'Quiz question count mismatch', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'] == 'Quiz question count mismatch', f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.parametrize(
-        'desc, value',
-        [
-            ('unauthorized', 'missing'),
-            ('no_auth', ''),
-            ('expired_token', 'expired_token'),
-            ('invalid_token', 'invalid_token'),
-        ]
-    )
-    def test_school_permission_report(self, desc, value):
-        """测验结果上报-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.school.report(value, code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.smoke
     def test_school_positive_quiz_report_ok(self, create_lesson):
@@ -741,3 +713,281 @@ class TestSchoolApi:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_school_positive_favorite_course_ok(self):
+        """收藏资源 - 资源为课程 - 正向用例"""
+        resourceRefId = self.school.getNormalcourse(self.authorization)["data"]['content'][0]['id']
+        pl = {
+            "resourceRefId": resourceRefId,
+            "resourceType": "COURSE"
+        }
+        res = self.school.favorite(self.authorization, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data']['resourceId'] == resourceRefId
+        assert res['data']['resourceType'] == 'course'
+        assert res['data']['userId'] == self.userId
+
+    @pytest.mark.release
+    def test_school_positive_favorite_quiz_ok(self):
+        """收藏资源 - 资源为quiz - 正向用例"""
+        resourceRefId = self.school.getQuiz(self.authorization)["data"]['content'][0]['id']
+        pl = {
+            "resourceRefId": resourceRefId,
+            "resourceType": "QUIZ"
+        }
+        res = self.school.favorite(self.authorization, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_school_positive_favorite_repeat_check(self):
+        """收藏资源-验证同一资源不能重复收藏"""
+        resourceRefId = self.school.getNormalcourse(self.authorization)["data"]['content'][1]['id']
+        pl = {
+            "resourceRefId": resourceRefId,
+            "resourceType": "COURSE"
+        }
+        self.school.favorite(self.authorization, **pl)
+        res = self.school.favorite(self.authorization, code=500, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 500, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【internal server error】，实际【{res['message']}】"
+        assert res['data']
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_school_permission_favorite(self, desc, value):
+        """收藏资源-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.school.favorite(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_school_positive_deleteFavorite_course_ok(self):
+        """取消收藏资源-课程-正向用例"""
+        try:
+            resourceRefId = self.school.getNormalcourse(self.authorization)["data"]['content'][0]['id']
+            pl = {
+                "resourceRefId": resourceRefId,
+                "resourceType": "COURSE"
+            }
+            res = self.school.favorite(self.authorization, **pl)
+        except:
+            pass
+        res = self.school.deleteFavorite(self.authorization, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'] == True, f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_school_positive_deleteFavorite_quiz_ok(self):
+        """取消收藏资源-quiz-正向用例"""
+        try:
+            resourceRefId = self.school.getQuiz(self.authorization)["data"]['content'][0]['id']
+            pl = {
+                "resourceRefId": resourceRefId,
+                "resourceType": "QUIZ"
+            }
+            res = self.school.favorite(self.authorization, **pl)
+        except:
+            pass
+        res = self.school.deleteFavorite(self.authorization, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'] == True, f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_school_positive_deleteFavorite_false_check(self):
+        """取消收藏资源-检测资源未被收藏资源取消失败"""
+        resourceRefId = self.school.getNormalcourse(self.authorization)["data"]['content'][0]['id']
+        pl = {
+            "resourceRefId": resourceRefId,
+            "resourceType": "COURSE"
+        }
+        res = self.school.deleteFavorite(self.authorization, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'] == False, f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_school_permission_deleteFavorite(self, desc, value):
+        """取消收藏资源-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.school.deleteFavorite(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_school_positive_report_ok(self):
+        """测验结果上报-正向用例"""
+        class_res = self.school.class_list(self.authorization, size=100)['data']['content']
+        for class_info in class_res:
+            class_id = class_info['id']
+            lesson_res = self.school.getLessons(self.authorization, class_id)['data']['content']
+            if lesson_res:
+                lesson_id = lesson_res[0]['id']
+                lesson_name = lesson_res[0]['lessonName']
+                break
+        else:
+            assert False, "未找到有课程的班级!"
+
+        quiz_id = self.school.getQuiz(self.authorization)['data']['content'][0]['id']
+        resources = [
+            { "resourceType": "quiz", "id": quiz_id}
+        ]
+        update_res = self.school.update_lesson(self.authorization, lesson_id, lesson_name, class_id, resources)
+        assert update_res['code'] == 200, "更新课堂信息失败！"
+        students_res = self.school.getStudents(self.authorization, class_id)['data']['content']
+        if not students_res:
+            student_names = ['baidi', 'huangmin',]
+            pl = {"studentNames": student_names}
+            self.school.batch(self.authorization, class_id, **pl)
+            students_res = self.school.getStudents(self.authorization, class_id)['data']['content']
+        students_id = students_res[0]['id']
+        answers = []
+        for i in range(10):
+            answers.append({
+                  "instructionalDomain": "认知维度",
+                  "questionSeqNo": i+1,
+                  "questionType": "选择题",
+                  "score": 10,
+                  "answerData": "{\"selected\":\"A\"}",
+                  "answerTime": "2024-01-15T10:30:00",
+                  "duration": 30
+            })
+        pl = {
+            "studentId": students_id,
+            "answers": answers
+        }
+        res = self.school.report(self.authorization, lessonId=lesson_id, quizId=quiz_id, **pl)
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'] == True, f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_school_permission_report(self, desc, value):
+        """测验结果上报-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.school.report(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_school_positive_quiz_reports_ok(self):
+        """测验报告列表-正向用例"""
+        class_res = self.school.class_list(self.authorization, size=100)['data']['content']
+        for class_info in class_res:
+            class_id = class_info['id']
+            lesson_res = self.school.getLessons(self.authorization, class_id)['data']['content']
+            if lesson_res:
+                lesson_id = lesson_res[0]['id']
+                lesson_name = lesson_res[0]['lessonName']
+                break
+        else:
+            assert False, "未找到有课程的班级!"
+
+        quiz_id = self.school.getQuiz(self.authorization)['data']['content'][0]['id']
+        resources = [
+            { "resourceType": "quiz", "id": quiz_id}
+        ]
+        update_res = self.school.update_lesson(self.authorization, lesson_id, lesson_name, class_id, resources)
+        assert update_res['code'] == 200, "更新课堂信息失败！"
+        students_res = self.school.getStudents(self.authorization, class_id)['data']['content']
+        if not students_res:
+            student_names = ['baidi', 'huangmin',]
+            pl = {"studentNames": student_names}
+            self.school.batch(self.authorization, class_id, **pl)
+            students_res = self.school.getStudents(self.authorization, class_id)['data']['content']
+        students_id = students_res[0]['id']
+        answers = []
+        for i in range(10):
+            answers.append({
+                  "instructionalDomain": "认知维度",
+                  "questionSeqNo": i+1,
+                  "questionType": "选择题",
+                  "score": 10,
+                  "answerData": "{\"selected\":\"A\"}",
+                  "answerTime": "2024-01-15T10:30:00",
+                  "duration": 30
+            })
+        pl = {
+            "studentId": students_id,
+            "answers": answers
+        }
+        res = self.school.report(self.authorization, lessonId=lesson_id, quizId=quiz_id, **pl)
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'] == True, f"接口返回data数据异常：{res['data']}"
+
+        res_reports = self.school.quiz_reports(self.authorization, lesson_id)
+        assert isinstance(res_reports, dict), f'接口返回类型异常: {type(res_reports)}'
+        assert res_reports['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res_reports['code']}】"
+        assert res_reports['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res_reports['message']}】"
+        assert res_reports['data'][0]['lessonId'] == lesson_id
+        assert res_reports['data'][0]['lessonResourceId'] == quiz_id
+        assert res_reports['data'][0]['name'].startswith('quiz_report')
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', expired_token),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_school_permission_quiz_reports(self, desc, value):
+        """测验报告列表-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.school.quiz_reports(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
