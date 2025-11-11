@@ -3,18 +3,22 @@ import sys
 import os
 from pandas import DataFrame
 
+import config
 from test_case.page_api.game.game_api import GameApi
+from test_case.page_api.kid.kid_api import KidApi
 
 sys.path.append(os.getcwd())
 sys.path.append("..")
 
 import pytest
+expired_token = config.RunConfig.expired_token
 
 @pytest.mark.game
 class TestGame:
 
     def setup_class(self):
         self.game = GameApi()
+        self.kid = KidApi()
         self.authorization = self.game.get_authorization()[0]
 
     def teardown_class(self):
@@ -23,6 +27,12 @@ class TestGame:
         本次测试mock只创建了注册接口，未创建清除注册用户接口，暂无代码
         '''
         pass
+
+    @pytest.fixture(scope="class")
+    def getkidId(self):
+        '''类前置 - 获取kidId'''
+        kid_res = self.kid.getKids(self.authorization)
+        yield kid_res['data'][0]['id']
 
     def test_AA_game_search_key(self):
         """根据关键词搜索游戏内容"""
@@ -145,3 +155,54 @@ class TestGame:
             assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
             assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
             assert res['data']['visible'] in [True, False], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.smoke
+    def test_game_positive_getLearningstatus_ok(self, getkidId):
+        """获取孩子学习状态-正向用例"""
+        kid_id = getkidId
+        res = self.game.getLearningstatus(self.authorization, kid_id)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_game_positive_getUnreviewedWords_ok(self, getkidId):
+        """获取未复习的单词-正向用例"""
+        kid_id = getkidId
+        learningStatus_res = self.game.getLearningstatus(self.authorization, kid_id)
+        courseIds = DataFrame(learningStatus_res['data'])['lessonId'].tolist()
+        pl = {
+          "kidId": kid_id,
+          "courseIds": courseIds
+        }
+        res = self.game.getUnreviewedWords(self.authorization, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_game_positive_reportReviewedWords_ok(self, getkidId):
+        """上报学习过的单词-正向用例"""
+        kid_id = getkidId
+        learningStatus_res = self.game.getLearningstatus(self.authorization, kid_id)
+        courseIds_res = DataFrame(learningStatus_res['data'])['lessonId'].tolist()
+        courseIds = courseIds_res[:1]
+        lesson_id = courseIds_res[0]
+        pl = {
+          "kidId": kid_id,
+          "courseIds": courseIds
+        }
+        unreviewed_res = self.game.getUnreviewedWords(self.authorization, **pl)
+        word_ids = DataFrame(unreviewed_res['data'])['id'].tolist()
+        pl1 = {
+            "kidId": kid_id,
+            "lessonId": lesson_id,
+            "wordIds": word_ids
+        }
+        res = self.game.reportReviewedWords(self.authorization, **pl1)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert not res['data'], f"接口返回data数据异常：{res['data']}"

@@ -126,3 +126,80 @@ class GameApi(BaseAPI):
             return response.json()
         except json.decoder.JSONDecodeError:
             return False
+
+    def reportReviewedWords(self, authorization, DeviceType="web", code=200, **kwargs):
+        """
+        上报学习过的单词
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-10
+        url = f"https://{base_url}/api/game/report-reviewed-words"
+        payload = {
+            "kidId": 0,
+            "lessonId": 0,
+            "wordIds": [0]
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "上报学习过的单词"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def getUnreviewedWords(self, authorization, DeviceType="web", code=200, **kwargs):
+        """
+        获取未复习的单词
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-10
+        url = f"https://{base_url}/api/game/get-unreviewed-words"
+        payload = {
+          "kidId": 0,
+          "courseIds": [
+            0
+          ]
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "获取未复习的单词"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def getLearningstatus(self, authorization, kidId=0, DeviceType="web", code=200):
+        """
+        获取孩子学习状态
+        :param kidId: (string, query, required) kidId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-10
+        url = f"https://{base_url}/api/game/learningStatus"
+        payload = {
+            "kidId": kidId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "获取孩子学习状态"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+

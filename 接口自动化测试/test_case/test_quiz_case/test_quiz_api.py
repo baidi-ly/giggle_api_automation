@@ -1,10 +1,12 @@
 import pytest
 
 from test_case.page_api.admin.admin_quiz_api import AdminQuizApi
+from test_case.page_api.kid.kid_api import KidApi
 from test_case.page_api.quiz.quiz_api import QuizApi
 from config import RunConfig
 
 base_url = RunConfig.baseurl
+expired_token = RunConfig.expired_token
 
 class TestSchoolApi:
     """
@@ -13,8 +15,15 @@ class TestSchoolApi:
 
     def setup_class(self):
         self.quiz = QuizApi()
+        self.kid = KidApi()
         self.admin = AdminQuizApi()
         self.authorization = self.quiz.get_authorization()[0]
+
+    @pytest.fixture(scope="class")
+    def getkidId(self):
+        '''类前置 - 获取kidId'''
+        kid_res = self.kid.getKids(self.authorization)
+        yield kid_res['data'][0]['id']
 
     @pytest.mark.smoke
     def test_quiz_positive_quizId_detail_ok(self):

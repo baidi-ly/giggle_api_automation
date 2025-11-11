@@ -1,3 +1,4 @@
+import json
 import time
 
 from test_case.page_api.base_api import BaseAPI
@@ -28,4 +29,3 @@ class QuizApi(BaseAPI):
             return response
         except json.decoder.JSONDecodeError:
             return False
-

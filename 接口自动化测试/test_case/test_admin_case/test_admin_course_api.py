@@ -26,7 +26,16 @@ class TestAdminCourse:
         self.now = strftime("%Y%m%d%H%M%S")
 
     def teardown_class(self):
-        pass
+        '''后置清除等级技能'''
+        # 获取所有教育类型为debbie_test开头的等级技能
+        delete_skills = []
+        course_skills3 = self.admin.course_skills(self.authorization)['data']['content']
+        for course_skill in course_skills3:
+            if course_skill['educationType'].startswith('debbie_test'):
+                delete_skills.append(course_skill['id'])
+        # 删除等级技能
+        del_res = self.admin.deleteLevelskills(self.authorization, delete_skills)
+        assert del_res['code'] == 200
 
     @pytest.fixture(scope='class')
     def courselistAll(self):
@@ -128,6 +137,7 @@ class TestAdminCourse:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -146,6 +156,7 @@ class TestAdminCourse:
             assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
             assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
@@ -174,6 +185,7 @@ class TestAdminCourse:
             assert res['code'] == 404, f"接口返回状态码异常: 预期【{'pending'}】，实际【404】"
             assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
             assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
+
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -197,6 +209,7 @@ class TestAdminCourse:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
