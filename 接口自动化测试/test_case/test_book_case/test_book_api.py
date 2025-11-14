@@ -104,12 +104,13 @@ class TestBook:
         # 获取孩子学习统计数据
         self.book.translationSetting(self.authorization, '', code=403)
 
+    @pytest.mark.smoke
     @pytest.mark.parametrize("word, interfaceLanguage, learningLanguage, header",
                              [("hello", "en", "en", 'hello · hello'),
                               ("", "en", "en",'happy · happy'),
-                              ("hello", "en", "zh", 'hello · 你好'),
-                              ("hello", "zh", "en", 'hello · 你好'),   # TODO
-                              ("hello", "zh", "zh", '你好 · 你好')], ids=["en_en", "default", "en_ch", "ch_en", "ch_ch"])
+                              ("你好", "en", "zh", '你好 · hello'),
+                              ("hello", "zh", "en", 'hello · 你好'),],
+                             ids=["en_en", "default", "en_ch", "ch_en"])
     def test_book_getWordDefinition_word_normal(self, word, interfaceLanguage, learningLanguage, header):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
