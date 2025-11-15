@@ -5,6 +5,8 @@ from time import strftime
 
 from pandas import DataFrame
 
+import config
+from test_case.page_api.base_api import BaseAPI
 from test_case.page_api.book.book_api import BookApi
 from test_case.page_api.kid.kid_api import KidApi
 
@@ -12,6 +14,9 @@ sys.path.append(os.getcwd())
 sys.path.append("..")
 
 import pytest
+
+base_url = BaseAPI().baseurl()
+expired_token = config.RunConfig.expired_token
 
 @pytest.mark.book
 class TestBook:
@@ -341,3 +346,75 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_book_positive_bookDetailUrl_ok(self, get_bookId):
+        """通过bookId获取书籍内容的下载链接-正向用例"""
+        books_res = get_bookId['data']['content']
+        for book in books_res:
+            if book['bookName'] == 'Little Ray':
+                bookId = book['id']
+                bookKey = book['bookKey']
+                break
+        res = self.book.bookDetailUrl(self.authorization, bookId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        assert res['data']['url'] == 'https://static' + base_url.replace('creator', '') + '/'+bookKey
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_book_permission_bookDetailUrl(self, desc, value):
+        """通过bookId获取书籍内容的下载链接-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.book.bookDetailUrl(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_book_positive_coverDetailUrl_ok(self, get_bookId):
+        """通过bookId获取书籍封面的下载链接-正向用例"""
+        books_res = get_bookId['data']['content']
+        for book in books_res:
+            if book['bookName'] == 'Little Ray':
+                bookId = book['id']
+                coverKey = book['coverKey']
+                break
+        res = self.book.coverDetailUrl(self.authorization, bookId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        assert res['data']['url'] == 'https://static' + base_url.replace('creator', '') + '/'+coverKey
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', expired_token),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_book_permission_coverDetailUrl(self, desc, value):
+        """通过bookId获取书籍封面的下载链接-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.book.coverDetailUrl(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
