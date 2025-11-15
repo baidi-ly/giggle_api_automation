@@ -243,7 +243,7 @@ class AdminCourseApi(BaseAPI):
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-11-10
-        url = f"https://{base_url}/admin/course/level-skills"
+        url = f"https://{base_url}/admin/level-skills"
         payload = {
             "learningLevel": "L1",
             "educationType": "Early Years",
@@ -272,7 +272,7 @@ class AdminCourseApi(BaseAPI):
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-11-10
-        url = f"https://{admin_base_url}/admin/course/skill/list"
+        url = f"https://{admin_base_url}/admin/level-skills/list"
         payload = {
             "page": page,
             "size": size,
@@ -297,7 +297,7 @@ class AdminCourseApi(BaseAPI):
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-11-10
-        url = f"https://{base_url}/admin/course/level-skills/batch-delete"
+        url = f"https://{base_url}/admin/level-skills/batch-delete"
         payload = {
             "ids": ids
         }
@@ -321,7 +321,7 @@ class AdminCourseApi(BaseAPI):
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-11-10
-        url = f"https://{base_url}/admin/course/level-skills/import"
+        url = f"https://{base_url}/admin/level-skills/import"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType, Content_Type='multipart/form-data')
 
