@@ -12,7 +12,7 @@ DeviceId = RunConfig.DeviceId
 class CommonApi(BaseAPI):
     """公共接口"""
 
-    def getGetfileurl(self, authorization, key_url='', DeviceType="web", code=200):
+    def Getfileurl(self, authorization, key_url='', DeviceType="web", code=200):
         """
         根据url获取文件的下载链接
         :param url: (string, query, required) url
