@@ -639,7 +639,6 @@ class TestUser:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     def test_user_positive_deleteDeleteaccount_ok(self):
         """删除用户账户-正向用例"""
         res = self.user.deleteDeleteaccount(self.authorization)
@@ -648,7 +647,6 @@ class TestUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert 'data' in res, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -667,8 +665,6 @@ class TestUser:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-
 
     @pytest.mark.release
     def test_user_positive_getKids_ok(self):
