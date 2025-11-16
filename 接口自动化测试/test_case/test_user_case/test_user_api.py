@@ -4,6 +4,7 @@ import pytest
 import sys
 import os
 
+from config import RunConfig
 from test_case.page_api.course.course_api import CourseApi
 from test_case.page_api.kid.kid_api import KidApi
 from test_case.page_api.user.user_api import UserApi
@@ -11,6 +12,7 @@ from test_case.page_api.user.user_api import UserApi
 sys.path.append(os.getcwd())
 sys.path.append("..")
 
+expired_token = RunConfig.expired_token
 
 @pytest.mark.User
 class TestUser:
@@ -681,14 +683,14 @@ class TestUser:
         [
             ('unauthorized', 'missing'),
             ('no_auth', ''),
-            ('expired_token', 'expired_token'),
+            ('expired_token', expired_token),
             ('invalid_token', 'invalid_token'),
         ]
     )
-    def test_user_permission_getKids(self, desc, value):
+    def test_user_permission_getUserKids(self, desc, value):
         """获取当前用户的kids-权限测试"""
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.user.getKids(value, code=401)
+        res = self.user.getUserKids(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"

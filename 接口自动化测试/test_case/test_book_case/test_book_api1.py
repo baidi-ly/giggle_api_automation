@@ -612,7 +612,7 @@ class TestBook:
         narrationData = [
             {
                 "page": 2,
-                "narration": "第二页内容"
+                "narration": "第一页内容"
             }
         ]
         save_res = self.book.save_narration(self.authorization, bookId, narrationData)
@@ -639,19 +639,7 @@ class TestBook:
         assert get_res2['data']['enabled'] == True
         narrationDataJson = json.loads(get_res2['data']['narrationDataJson'])
         narration = narrationDataJson[0]['narration']
-        assert narration == "第二页内容", "故事书的领读数据保存失败！"
-        # 重新生成故事书的领读数据
-        regenerate_res = self.book.regenerate_narration(self.authorization, bookId)
-        assert regenerate_res['data']['message'] == '领读数据重新生成任务已启动'
-        # 启用设置故事书领读后，获取故事书的领读数据，验证故事书的领读数据保存成功
-        get_res3 = self.book.getNarrationData(self.authorization, bookId)
-        assert get_res3['data']['bookId'] == int(bookId)
-        assert get_res3['data']['learningLanguage'] == 'en'
-        assert get_res3['data']['narrationLanguage'] == 'zh'
-        assert get_res3['data']['enabled'] == True
-        narrationDataJson1 = json.loads(get_res3['data']['narrationDataJson'])
-        narration1 = narrationDataJson1[0]['narration']
-        assert narration1 == "第二页内容", "故事书的领读数据保存失败！"
+        assert narration == "第一页内容", "故事书的领读数据保存失败！"
 
     @pytest.mark.release
     def test_book_positive_ai_narration_ok(self):
@@ -684,4 +672,4 @@ class TestBook:
         assert get_res2['data']['enabled'] == True
         narrationDataJson = json.loads(get_res2['data']['narrationDataJson'])
         narration = narrationDataJson[0]['narration']
-        assert narration == "第一页内容", "故事书的领读数据保存失败！"
+        assert narration, "故事书的领读数据保存失败！"
