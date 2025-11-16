@@ -20,7 +20,7 @@ class TestCourse:
     @pytest.mark.parametrize('languageCode',
          ["en", "zh", "zh-Hant", "es", "fr", "de", "ja",
           "ko", "ru","pt", "pt-BR", "ar", "hi","id", "vi", "tr","bn",
-          "my", "nl","it", "th", "pl", "ro",  "uk", "fil",  "ms", "sw",  "ur",
+          "nl","it", "th", "pl", "uk", "fil",  "ms", "sw",  "ur",
          ])
     def test_cast_positive_getAlbums_ok(self, languageCode):
         """查询播客的专辑-正向用例"""

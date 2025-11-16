@@ -722,13 +722,17 @@ class TestSchoolApi:
             "resourceRefId": resourceRefId,
             "resourceType": "COURSE"
         }
-        res = self.school.favorite(self.authorization, **pl)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data']['resourceId'] == resourceRefId
-        assert res['data']['resourceType'] == 'course'
-        assert res['data']['userId'] == self.userId
+        try:
+            res = self.school.favorite(self.authorization, **pl)
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+            assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+            assert res['data']['resourceId'] == str(resourceRefId)
+            assert res['data']['resourceType'] == 'course'
+            assert res['data']['userId'] == self.userId
+        finally:
+            res = self.school.deleteFavorite(self.authorization, **pl)
+            assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
 
     @pytest.mark.release
     def test_school_positive_favorite_quiz_ok(self):
@@ -738,21 +742,33 @@ class TestSchoolApi:
             "resourceRefId": resourceRefId,
             "resourceType": "QUIZ"
         }
-        res = self.school.favorite(self.authorization, **pl)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        try:
+            res = self.school.favorite(self.authorization, **pl)
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+            assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+            assert res['data']['resourceId'] == str(resourceRefId)
+            assert res['data']['resourceType'] == 'quiz'
+            assert res['data']['userId'] == self.userId
+        finally:
+            res = self.school.deleteFavorite(self.authorization, **pl)
+            assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
 
     @pytest.mark.release
     def test_school_positive_favorite_repeat_check(self):
         """收藏资源-验证同一资源不能重复收藏"""
+        # Normal课程资源列表
         resourceRefId = self.school.getNormalcourse(self.authorization)["data"]['content'][1]['id']
         pl = {
             "resourceRefId": resourceRefId,
             "resourceType": "COURSE"
         }
-        self.school.favorite(self.authorization, **pl)
+        try:
+            # 如果已经收藏过了，则再次收藏会报错；如果没有收藏过，制造第一次收藏验证不能重复收藏
+            self.school.favorite(self.authorization, **pl)
+        except:
+            pass
+        # 重复收藏资源
         res = self.school.favorite(self.authorization, code=500, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 500, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -871,7 +887,7 @@ class TestSchoolApi:
         assert update_res['code'] == 200, "更新课堂信息失败！"
         students_res = self.school.getStudents(self.authorization, class_id)['data']['content']
         if not students_res:
-            student_names = ['baidi', 'huangmin',]
+            student_names = ['baidi', 'huangmin']
             pl = {"studentNames": student_names}
             self.school.batch(self.authorization, class_id, **pl)
             students_res = self.school.getStudents(self.authorization, class_id)['data']['content']

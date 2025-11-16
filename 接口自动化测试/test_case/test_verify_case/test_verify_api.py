@@ -85,16 +85,11 @@ class TestVerifyApiGenerated:
 
     @pytest.mark.release
     @pytest.mark.parametrize('joinCompetition', [10, 'string_test'])
-    def test_verify_positive_submittopublic_ok(self, create_book, joinCompetition):
-        """提交public审核-正向用例"""
+    def test_verify_positive_submittopublic_abnormal(self, create_book, joinCompetition):
+        """提交public审核-不正确的joinCompetition格式"""
         bookId = create_book
-        book_status_before = self.book.book_details(self.authorization, bookId)['data']['status']
-        assert book_status_before == 0, "新建故事书状态不为私有（仅自己可见）！"
-        res = self.vertify.submittopublic(self.authorization, bookId, joinCompetition)
+        res = self.vertify.submittopublic(self.authorization, bookId, joinCompetition, code=400)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
-        assert res['data']['status'] == 2, "自动审核失败！"
-        book_status_after = self.book.book_details(self.authorization, bookId)['data']['status']
-        assert book_status_after == 2, "自动审核后，故事书状态不为待审核！"
+        assert res['code'] == 100006, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
+        assert res['data'] == f"Failed to convert value of type 'java.lang.String' to required type 'java.lang.Boolean'; nested exception is java.lang.IllegalArgumentException: Invalid boolean value [{joinCompetition}]", f"接口返回data数据异常：{res['data']}"
