@@ -1457,7 +1457,7 @@ class BookApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def bookDetailUrl(self, authorization, bookId=0, DeviceType="web", code=200, **kwargs):
+    def bookDetailUrl(self, authorization, bookId=0, DeviceType="web", code=200):
         """
         通过bookId获取书籍内容的下载链接
         :param bookId: (integer, path, required) bookId

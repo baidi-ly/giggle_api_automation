@@ -357,12 +357,13 @@ class TestBook:
                 bookId = book['id']
                 bookKey = book['bookKey']
                 break
+        # 登陆状态，通过bookId获取书籍内容的下载链接
         res = self.book.bookDetailUrl(self.authorization, bookId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-        assert res['data']['url'] == 'https://static' + base_url.replace('creator', '') + '/'+bookKey
+        assert res['data']['url'] == 'https://static' + base_url.replace('creator', '') + '/'+ bookKey
 
     @pytest.mark.release
     @pytest.mark.parametrize(
@@ -374,15 +375,21 @@ class TestBook:
             ('invalid_token', 'invalid_token'),
         ]
     )
-    def test_book_permission_bookDetailUrl(self, desc, value):
+    def test_book_permission_bookDetailUrl(self, desc, value, get_bookId):
         """通过bookId获取书籍内容的下载链接-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.book.bookDetailUrl(value, code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
+        books_res = get_bookId['data']['content']
+        for book in books_res:
+            if book['bookName'] == 'Little Ray':
+                bookId = book['id']
+                bookKey = book['bookKey']
+                break
+        # 游客状态，通过bookId获取书籍内容的下载链接
+        res = self.book.bookDetailUrl(value, bookId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        assert res['data']['url'] == 'https://static' + base_url.replace('creator', '') + '/'+ bookKey
 
     @pytest.mark.release
     def test_book_positive_coverDetailUrl_ok(self, get_bookId):
@@ -398,7 +405,7 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-        assert res['data']['url'] == 'https://static' + base_url.replace('creator', '') + '/'+ coverKey
+        assert res['data']['url'] == 'https://static' + base_url.replace('creator', '') + '/' + coverKey
 
     @pytest.mark.release
     @pytest.mark.parametrize(
