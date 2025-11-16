@@ -15,7 +15,7 @@ class TestAdminUser:
 
     def setup_class(self):
         self.admin_cast = AdminCastApi()
-        self.authorization = self.admin_cast.get_admin_authorization()
+        self.authorization = self.admin_cast.get_admin_authorization()[0]
 
     @pytest.mark.release
     @pytest.mark.parametrize('languageCode',

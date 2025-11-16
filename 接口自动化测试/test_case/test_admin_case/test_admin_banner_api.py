@@ -17,7 +17,7 @@ class TestAdminBanner:
 
     def setup_class(self):
         self.admin_banner = AdminBannerApi()
-        self.authorization = self.admin_banner.get_admin_authorization()
+        self.authorization = self.admin_banner.get_admin_authorization()[0]
 
     @pytest.mark.smoke
     def test_admin_banner_positive_getList_ok(self):

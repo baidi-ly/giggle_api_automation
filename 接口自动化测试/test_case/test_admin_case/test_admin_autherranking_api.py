@@ -17,7 +17,7 @@ class TestAdminAutherRanking:
 
     def setup_class(self):
         self.admin_auther = AdminAutherRankingApi()
-        self.authorization = self.admin_auther.get_admin_authorization()
+        self.authorization = self.admin_auther.get_admin_authorization()[0]
 
     def test_admin_autherranking_positive_calculate_ok(self):
         """触发作者排名计算-正向用例"""

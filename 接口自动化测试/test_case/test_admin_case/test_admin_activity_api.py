@@ -17,7 +17,7 @@ class TestAdminActivity:
 
     def setup_class(self):
         self.activity = AdminActivityApi()
-        self.authorization = self.activity.get_admin_authorization()
+        self.authorization = self.activity.get_admin_authorization()[0]
         self.now = str(datetime.datetime.now())
 
     @pytest.fixture(scope="class")

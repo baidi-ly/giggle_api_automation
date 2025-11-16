@@ -22,7 +22,7 @@ class TestAdminCourse:
     def setup_class(self):
         self.admin = AdminCourseApi()
         self.authorization = self.admin.get_authorization()[0]
-        self.admin_authorization = self.admin.get_admin_authorization()
+        self.admin_authorization = self.admin.get_admin_authorization()[0]
         self.now = strftime("%Y%m%d%H%M%S")
 
     def teardown_class(self):
@@ -345,14 +345,14 @@ class TestAdminCourse:
         # 新增等级技能，遍历学习等级l1-l20
         pl = {
             "learningLevel": learningLevel,
-            "educationType": "debbie_test",
+            "educationType": "debbie_test" + self.now,
         }
         res = self.admin.createLevelSkill(self.authorization, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data']['learningLevel'] == learningLevel
-        assert res['data']['educationType'] == "debbie_test"
+        assert res['data']['educationType'].startswith("debbie_test")
         assert res['data']['skill'] == 'Reading-Level1'
         assert res['data']['necessary'] == True
 
@@ -498,7 +498,7 @@ class TestAdminCourse:
             "educationType": educationType_new,
             "necessary": True
         }
-        res = self.admin.update_levelSkills(self.authorization, id=skill_id, **pl1)
+        res = self.admin.updateLevelSkills(self.authorization, id=skill_id, **pl1)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -525,7 +525,7 @@ class TestAdminCourse:
     def test_admin_course_permission_update_levelSkills(self, desc, value):
         """更新等级技能-权限测试"""
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin.update_levelSkills(value, code=401)
+        res = self.admin.updateLevelSkills(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -598,7 +598,7 @@ class TestAdminCourse:
             "educationType": educationType_new,
             "necessary": True
         }
-        res = self.admin.update_levelSkills(self.authorization, id=skill_id, **pl1)
+        res = self.admin.updateLevelSkills(self.authorization, id=skill_id, **pl1)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"

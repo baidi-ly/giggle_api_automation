@@ -15,4 +15,4 @@ class TestAdminCourse:
 
     def setup_class(self):
         self.admin = AdminQuizApi()
-        self.authorization = self.admin.get_admin_authorization()
+        self.authorization = self.admin.get_admin_authorization()[0]
