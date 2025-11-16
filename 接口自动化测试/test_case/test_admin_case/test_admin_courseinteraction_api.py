@@ -17,7 +17,7 @@ class TestAdminCourseInteraction:
         self.courseInteraction = AdminCourseinteractionApi()
         self.admincourse = AdminCourseApi()
         self.authorization = self.courseInteraction.get_authorization()
-        self.admin_authorization = self.courseInteraction.get_admin_authorization()
+        self.admin_authorization = self.courseInteraction.get_admin_authorization()[0]
 
     @pytest.fixture(scope='class')
     def courselistAll(self):

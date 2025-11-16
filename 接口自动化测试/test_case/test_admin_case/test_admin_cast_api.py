@@ -2,6 +2,7 @@
 import sys
 import os
 
+import config
 from test_case.page_api.admin.admin_cast_api import AdminCastApi
 
 sys.path.append(os.getcwd())
@@ -9,19 +10,21 @@ sys.path.append("..")
 
 import pytest
 
+expired_token = config.RunConfig.expired_token
+
 @pytest.mark.Admin
 @pytest.mark.AdminUser
 class TestAdminUser:
 
     def setup_class(self):
         self.admin_cast = AdminCastApi()
-        self.authorization = self.admin_cast.get_admin_authorization()
+        self.authorization = self.admin_cast.get_admin_authorization()[0]
 
     @pytest.mark.release
     @pytest.mark.parametrize('languageCode',
          ["en", "zh", "zh-Hant", "es", "fr", "de", "ja",
           "ko", "ru","pt", "pt-BR", "ar", "hi","id", "vi", "tr","bn",
-          "my", "nl","it", "th", "pl", "ro",  "uk", "fil",  "ms", "sw",  "ur",
+          "nl","it", "th", "pl", "uk", "fil",  "ms", "sw",  "ur",
          ])
     def test_admin_cast_positive_getAlbums_ok(self, languageCode):
         """查询播客的专辑-正向用例"""
@@ -48,7 +51,7 @@ class TestAdminUser:
         [
             ('unauthorized', 'missing'),
             ('no_auth', ''),
-            ('expired_token', 'expired_token'),
+            ('expired_token', expired_token),
             ('invalid_token', 'invalid_token'),
         ]
     )

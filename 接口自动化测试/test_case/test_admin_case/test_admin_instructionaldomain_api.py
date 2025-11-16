@@ -15,7 +15,7 @@ class TestAdminInstructionalDomain:
 
     def setup_class(self):
         self.admin_instructional = AdminInstructionaldomainApi()
-        self.authorization = self.admin_instructional.get_admin_authorization()
+        self.authorization = self.admin_instructional.get_admin_authorization()[0]
         self.now = strftime("%Y%m%d%H%M%S")
 
     @pytest.mark.smoke

@@ -1456,3 +1456,143 @@ class BookApi(BaseAPI):
             return response
         except json.decoder.JSONDecodeError:
             return False
+
+    def bookDetailUrl(self, authorization, bookId=0, DeviceType="web", code=200):
+        """
+        通过bookId获取书籍内容的下载链接
+        :param bookId: (integer, path, required) bookId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-14
+        url = f"https://{base_url}/api/book/bookDetailUrl/{bookId}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "通过bookId获取书籍内容的下载链接"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def coverDetailUrl(self, authorization, bookId=0, DeviceType="web", code=200):
+        """
+        通过bookId获取书籍封面的下载链接
+        :param bookId: (integer, path, required) bookId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-14
+        url = f"https://{base_url}/api/book/coverDetailUrl/{bookId}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "通过bookId获取书籍封面的下载链接"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def save_narration(self, authorization, bookId=123, narrationData=[], DeviceType="web", code=200, **kwargs):
+        """
+        保存故事书的领读数据
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-15
+        url = f"https://{base_url}/api/book/narration/save"
+        payload = {
+            "bookId": bookId,
+            "narrationData": json.dumps(narrationData),
+            "narrationLanguage": "zh"
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "保存故事书的领读数据"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def getNarrationData(self, authorization, bookId=123, narrationLanguage='zh', DeviceType="web", code=200, **kwargs):
+        """
+        获取故事书的领读数据
+        :param bookId: (integer, query, required) 故事书ID
+        :param narrationLanguage: (string, query, required) 领读语言代码（如zh、en、bn）
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-15
+        url = f"https://{base_url}/api/book/narration/data"
+        payload = {
+            "bookId": bookId,
+            "narrationLanguage": narrationLanguage
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "获取故事书的领读数据"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def narration_setEnabled(self, authorization, bookId=123, enabled=True, DeviceType="web", code=200, **kwargs):
+        """
+        设置故事书领读的启用状态
+        :param bookId: (integer, query, required) 故事书ID
+        :param enabled: (boolean, query, required) 是否启用
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-15
+        url = f"https://{base_url}/api/book/narration/setEnabled"
+        payload = {
+            "bookId": bookId,
+            "enabled": enabled
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "设置故事书领读的启用状态"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def regenerate_narration(self, authorization, bookId=123, DeviceType="web", code=200, **kwargs):
+        """
+        重新生成故事书的领读数据
+        :param bookId: (integer, query, required) 故事书ID
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-15
+        url = f"https://{base_url}/api/book/narration/regenerate"
+        payload = {
+            "bookId": bookId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "重新生成故事书的领读数据"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+

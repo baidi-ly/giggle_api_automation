@@ -15,7 +15,7 @@ class TestAdminDonate:
 
     def setup_class(self):
         self.admin_donate = AdminDonateApi()
-        self.authorization = self.admin_donate.get_admin_authorization()
+        self.authorization = self.admin_donate.get_admin_authorization()[0]
 
     @pytest.mark.smoke
     def test_donate_positive_getList_ok(self):

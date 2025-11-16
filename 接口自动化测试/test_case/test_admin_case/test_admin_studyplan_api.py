@@ -18,7 +18,7 @@ class TestAdminStudyPlan:
     def setup_class(self):
         self.admin_study = AdminStudyplanApi()
         self.admin_flashcard = AdminFlashcardsApi()
-        self.authorization = self.admin_study.get_admin_authorization()
+        self.authorization = self.admin_study.get_admin_authorization()[0]
         self.now = strftime("%Y%m%d%H%M%S")
 
         name = 'create_flashcards' + self.now

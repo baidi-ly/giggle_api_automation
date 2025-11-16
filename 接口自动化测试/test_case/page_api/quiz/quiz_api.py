@@ -69,3 +69,44 @@ class QuizApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def submit_lesson_quiz(self, authorization, DeviceType="web", code=200, **kwargs):
+        """
+        提交课后quiz
+        :param request: (object, body, required) request
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-15
+        url = f"https://{base_url}/api/quiz/lesson/submit"
+        payload = {
+            "kidId": 0,
+            "courseId": 0,
+            "completeTimeStamp": 0,
+            "questions": [
+                {
+                    "quizId": "string",
+                    "questionId": 0,
+                    "questionSeqNo": 0,
+                    "question": "string",
+                    "userAnswer": "string",
+                    "correctAnswer": "string",
+                    "isCorrect": True,
+                    "skillTags": [
+                        "string"
+                    ],
+                "completeTimeStamp": 0
+                }
+            ]
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "提交课后quiz"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+

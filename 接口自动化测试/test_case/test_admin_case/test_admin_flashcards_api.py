@@ -15,4 +15,4 @@ class TestAdminFlashcard:
 
     def setup_class(self):
         self.admin_flashcard = AdminFlashcardsApi()
-        self.authorization = self.admin_flashcard.get_admin_authorization()
+        self.authorization = self.admin_flashcard.get_admin_authorization()[0]

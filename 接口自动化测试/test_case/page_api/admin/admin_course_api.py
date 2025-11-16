@@ -243,7 +243,7 @@ class AdminCourseApi(BaseAPI):
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-11-10
-        url = f"https://{base_url}/admin/course/level-skills"
+        url = f"https://{base_url}/admin/level-skills"
         payload = {
             "learningLevel": "L1",
             "educationType": "Early Years",
@@ -272,7 +272,7 @@ class AdminCourseApi(BaseAPI):
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-11-10
-        url = f"https://{admin_base_url}/admin/course/skill/list"
+        url = f"https://{admin_base_url}/admin/level-skills/list"
         payload = {
             "page": page,
             "size": size,
@@ -290,6 +290,33 @@ class AdminCourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def updateLevelSkills(self, authorization, skill_id, DeviceType="web", code=200, **kwargs):
+        """
+        更新等级技能
+        :param ids: (object, body, required) request
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-10
+        url = f"https://{base_url}/admin/level-skills/{skill_id}"
+        payload = {
+            "educationType": "string",
+            "necessary": True,
+            "prerequisiteSkill": "string",
+            "parentSkill": "string"
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("DELETE", url, headers=headers, json=payload)
+        error_msg = "更新等级技能"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
     def deleteLevelskills(self, authorization, ids:list, DeviceType="web", code=200, **kwargs):
         """
         批量删除等级技能
@@ -297,7 +324,7 @@ class AdminCourseApi(BaseAPI):
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-11-10
-        url = f"https://{base_url}/admin/course/level-skills/batch-delete"
+        url = f"https://{base_url}/admin/level-skills/batch-delete"
         payload = {
             "ids": ids
         }
@@ -321,7 +348,7 @@ class AdminCourseApi(BaseAPI):
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-11-10
-        url = f"https://{base_url}/admin/course/level-skills/import"
+        url = f"https://{base_url}/admin/level-skills/import"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType, Content_Type='multipart/form-data')
 

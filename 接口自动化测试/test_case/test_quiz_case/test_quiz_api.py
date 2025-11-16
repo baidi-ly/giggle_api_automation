@@ -64,3 +64,53 @@ class TestSchoolApi:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_quiz_positive_submit_lesson_quiz_ok(self, getkidId):
+        """提交课后quiz-正向用例"""
+        kidId = getkidId
+        courseId = 1
+        pl = {
+            "kidId": kidId,
+            "courseId": courseId,
+            "completeTimeStamp": 0,
+            "questions": [
+                {
+                    "quizId": "string",
+                    "questionId": 0,
+                    "questionSeqNo": 0,
+                    "question": "string",
+                    "userAnswer": "string",
+                    "correctAnswer": "string",
+                    "isCorrect": True,
+                    "skillTags": [
+                        "string"
+                    ],
+                "completeTimeStamp": 0
+                }
+            ]
+        }
+        res = self.quiz.submit_lesson_quiz(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', expired_token),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_quiz_permission_submit_lesson_quiz(self, desc, value):
+        """提交课后quiz-权限测试"""
+        res = self.quiz.submit_lesson_quiz(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
