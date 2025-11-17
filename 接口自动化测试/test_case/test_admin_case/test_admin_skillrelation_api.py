@@ -78,7 +78,7 @@ class TestAdminSkillRelation:
     def test_admin_skillrelation_permission_importByName(self, desc, value):
         """根据名称导入技能关系-权限测试"""
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin.importByName(value, code=401)
+        res = self.admin.importSkillRelation_ByName(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
