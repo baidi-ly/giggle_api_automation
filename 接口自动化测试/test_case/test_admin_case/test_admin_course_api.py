@@ -689,8 +689,9 @@ class TestAdminCourse:
 
         yield course_tag_id
 
-        # 删除课程用户标签
+        # 删除课程标签
         res = self.admin.delete_course_tag(self.authorization, course_tag_id)
+        assert res['code'] == 200, f"删除课程标签失败！"
 
     @pytest.mark.release
     def test_admin_course_positive_create_course_tag_ok(self, createLevelSkill_method):
@@ -1118,3 +1119,67 @@ class TestAdminCourse:
         album_res3_1 = self.admin.course_album_list(self.authorization, status=0)['data']['content']
         album_ids = DataFrame(album_res3_1, columns=['id', 'name', 'tagIds'])['id'].tolist()
         assert album_id not in album_ids, "删除课程专辑失败"
+
+    @pytest.mark.release
+    def test_admin_course_positive_getByCourseIds_ok(self):
+        """根据课程ID查询课程等级技能列表-正向用例"""
+        courseIds = self.admin.course_listAll(self.admin_authorization, 638245113409605)['data'][0]['id']
+        res = self.admin.getByCourseIds(self.authorization, courseIds)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'][0]['courseId'] == courseIds, f"接口返回data数据异常：{res['data']}"
+        skills_res = res['data'][0]['skills']
+        for skill in skills_res:
+            assert skill['educationType'] == 'Listening and Speaking Skills'
+            assert skill['learningLevel'] == 'L5'
+            assert skill['prerequisiteSkill'] == None
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', expired_token),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_admin_course_permission_getByCourseIds(self, desc, value):
+        """根据课程ID查询课程等级技能列表-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.admin.getByCourseIds(value, '', code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_course_positive_course_skills_ok(self):
+        """分页查询课程等级技能列表-正向用例"""
+        res = self.admin.course_skill_list(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', expired_token),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_admin_course_permission_course_skills(self, desc, value):
+        """分页查询课程等级技能列表-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.admin.course_skill_list(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"

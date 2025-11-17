@@ -569,3 +569,53 @@ class AdminCourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def getByCourseIds(self, authorization, courseIds, DeviceType="web", code=200):
+        """
+        根据课程ID查询课程等级技能列表
+        :param courseIds: (string, query, required) 课程ID列表（多个ID用逗号分隔）
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-17
+        url = f"https://{base_url}/admin/course/skill/by-course-ids"
+        payload = {
+            "courseIds": courseIds
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "根据课程ID查询课程等级技能列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def course_skill_list(self, authorization, page=0, size=20, skill='', DeviceType="web", code=200):
+        """
+        分页查询课程等级技能列表
+        :param page: (integer, query, optional) 页码
+        :param size: (integer, query, optional) 每页数量
+        :param skill: (string, query, optional) 技能名称搜索
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-17
+        url = f"https://{base_url}/admin/course/skill/list"
+        payload = {
+            "page": page,
+            "size": size,
+            "skill": skill
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "分页查询课程等级技能列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+

@@ -233,3 +233,29 @@ class CourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def coursesByTag(self, authorization, tagId, page=0, size=20, DeviceType="web", code=200):
+        """
+        根据标签ID查询对应的课程列表
+        :param tagId: (integer, path, required) 标签ID
+        :param page: (integer, query, optional) 页码
+        :param size: (integer, query, optional) 每页数量
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-17
+        url = f"https://{base_url}/api/course/tags/{tagId}/courses"
+        payload = {
+            "page": page,
+            "size": size
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "根据标签ID查询对应的课程列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
