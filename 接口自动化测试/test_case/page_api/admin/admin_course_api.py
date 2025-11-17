@@ -468,3 +468,104 @@ class AdminCourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def course_album_create(self, authorization, name='', tagIds=[], DeviceType="web", code=200, **kwargs):
+        """
+        创建课程专辑
+        :param request: (object, body, required) request
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-17
+        url = f"https://{base_url}/admin/course/album/create"
+        payload = {
+            "name": name,
+            "multilingualKey": "en",
+            "tagIds": tagIds,
+            "status": 1
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "创建课程专辑"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def course_album_list(self, authorization, name='', page=0, size=20, status=1, DeviceType="web", code=200, **kwargs):
+        """
+        分页查询课程专辑列表
+        :param name: (string, query, optional) 名称搜索（支持专辑名称和多语言key）
+        :param page: (integer, query, optional) 页码
+        :param size: (integer, query, optional) 每页数量
+        :param status: (integer, query, optional) 状态过滤：0-不生效，1-生效中
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-17
+        url = f"https://{base_url}/admin/course/album/list"
+        payload = {
+            "name": name,
+            "page": page,
+            "size": size,
+            "status": status
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "分页查询课程专辑列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def update_course_album(self, authorization, albumId, album_name, status=1, DeviceType="web", code=200):
+        """
+        更新课程专辑
+        :param albumId: (integer, path, required) 专辑ID
+        :param request: (object, body, required) request
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-17
+        url = f"https://{base_url}/admin/course/album/{albumId}"
+        payload = {
+            "name": album_name,
+            "status": status
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("PUT", url, headers=headers, json=payload)
+        error_msg = "更新课程专辑"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def delete_course_album(self, authorization, albumId, DeviceType="web", code=200):
+        """
+        删除课程专辑
+        :param albumId: (integer, path, required) 专辑ID
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-17
+        url = f"https://{base_url}/admin/course/album/{albumId}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("DELETE", url, headers=headers)
+        error_msg = "删除课程专辑"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+

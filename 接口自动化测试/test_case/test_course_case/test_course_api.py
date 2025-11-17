@@ -28,6 +28,21 @@ class TestCourse:
         self.authorization = self.course.get_authorization()[0]
         self.authorization_admin = self.admin.get_authorization()[0]
 
+    def teardown_class(self):
+        '''清除所有课程用户标签测试数据'''
+        try:
+            for status in [0, 1]:
+                pl = {"status": status}
+                course_tags = self.admin.course_tag_list(self.authorization, **pl)['data']
+                for course_tag in course_tags:
+                    # 删除课程用户标签
+                    if course_tag['name'].startswith('course_tag_test'):
+                        course_tag_id = course_tag['id']
+                        delete_res = self.admin.delete_course_tag(self.authorization, course_tag_id)
+                        assert delete_res['data'] == '删除成功', f"接口返回data数据异常：{delete_res['data']}"
+        except Exception as e:
+            print(f'删除课程用户标签失败，原因是：{e}')
+
     def test_course_blockedCourseIds_login(self):
         """有效的kidId，返回完整统计数据"""
         # 获取有效的kidId

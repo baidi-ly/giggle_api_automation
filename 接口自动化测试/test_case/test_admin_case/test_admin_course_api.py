@@ -28,11 +28,11 @@ class TestAdminCourse:
     def teardown_class(self):
         '''后置清除等级技能'''
         try:
-            # 获取所有教育类型为debbie_test开头的等级技能
+            # 获取所有教育类型为dibo_test开头的等级技能
             delete_skills = []
             course_skills3 = self.admin.course_skills(self.authorization)['data']['content']
             for course_skill in course_skills3:
-                if course_skill['educationType'].startswith('debbie_test'):
+                if course_skill['educationType'].startswith('dibo_test'):
                     delete_skills.append(course_skill['id'])
             # 删除等级技能
             if delete_skills:
@@ -251,7 +251,7 @@ class TestAdminCourse:
         """AI生成课程标签-正向用例"""
         courseId = courselistAll['data']
         for course in courselistAll['data']:
-            if course['name'] == 'debbie_test':
+            if course['name'] == 'dibo_test':
                 courseId = int(course['id'])
         res = self.admin.generateTags(self.admin_authorization, 648882721525835)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -306,7 +306,7 @@ class TestAdminCourse:
     @pytest.mark.release
     def test_admin_course_positive_createLevelSkill_ok(self):
         """新增等级技能-正向用例"""
-        educationType = "debbie_test" + self.now
+        educationType = "dibo_test" + self.now
         pl = {
             "educationType": educationType,
         }
@@ -323,7 +323,7 @@ class TestAdminCourse:
     def test_admin_course_positive_createLevelSkill_educationType_repeat_check(self):
         """新增等级技能-验证educationType、learningLevel、skill三个参数组成唯一键，不能重复使用educationType"""
         # 验证同一个educationType第一次正常创建课程技能
-        educationType = "debbie_test" + 'repeat_check' + self.now
+        educationType = "dibo_test" + 'repeat_check' + self.now
         pl = {
             "educationType": educationType,
         }
@@ -345,14 +345,14 @@ class TestAdminCourse:
         # 新增等级技能，遍历学习等级l1-l20
         pl = {
             "learningLevel": learningLevel,
-            "educationType": "debbie_test" + self.now,
+            "educationType": "dibo_test" + self.now,
         }
         res = self.admin.createLevelSkill(self.authorization, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data']['learningLevel'] == learningLevel
-        assert res['data']['educationType'].startswith("debbie_test")
+        assert res['data']['educationType'].startswith("dibo_test")
         assert res['data']['skill'] == 'Reading-Level1'
         assert res['data']['necessary'] == True
 
@@ -360,17 +360,17 @@ class TestAdminCourse:
     def test_admin_course_positive_createLevelSkill_skill(self):
         """新增等级技能-正向用例"""
         # 新增等级技能-创建skill
-        skill = "debbie_test_skill" + self.now
+        skill = "dibo_test_skill" + self.now
         pl = {
             "skill": skill,
-            "educationType": "debbie_test",
+            "educationType": "dibo_test",
         }
         res = self.admin.createLevelSkill(self.authorization, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data']['learningLevel'] == "L1"
-        assert res['data']['educationType'] == "debbie_test"
+        assert res['data']['educationType'] == "dibo_test"
         assert res['data']['skill'] == skill
         assert res['data']['necessary'] == True
 
@@ -378,10 +378,10 @@ class TestAdminCourse:
     def test_admin_course_positive_createLevelSkill_skill_repeat_check(self):
         """新增等级技能-正向用例"""
         # 验证同一个educationType第一次正常创建课程技能
-        skill = "debbie_test_skill" + self.now
+        skill = "dibo_test_skill" + self.now
         pl = {
             "skill": skill,
-            "educationType": "debbie_test",
+            "educationType": "dibo_test",
         }
         res1 = self.admin.createLevelSkill(self.authorization, **pl)
         assert isinstance(res1, dict), f'接口返回类型异常: {type(res1)}'
@@ -397,7 +397,7 @@ class TestAdminCourse:
     @pytest.mark.parametrize('necessary',[True, False])
     def test_admin_course_positive_createLevelSkill_necessary(self, necessary):
         """新增等级技能-正向用例"""
-        educationType = "debbie_test" + self.now + str(necessary)
+        educationType = "dibo_test" + self.now + str(necessary)
         pl = {
             "necessary": necessary,
             "educationType": educationType,
@@ -435,7 +435,7 @@ class TestAdminCourse:
         # 新增课程等级3个
         skill_ids = []
         for i in range(5):
-            educationType = "debbie_test" + self.now + str(i)
+            educationType = "dibo_test" + self.now + str(i)
             pl = {
                 "educationType": educationType,
             }
@@ -481,7 +481,7 @@ class TestAdminCourse:
     def test_admin_course_positive_update_levelSkills_ok(self):
         """更新等级技能-正向用例"""
         # 新增等级技能
-        educationType = "debbie_test" + self.now
+        educationType = "dibo_test" + self.now
         pl = {
             "educationType": educationType,
         }
@@ -493,7 +493,7 @@ class TestAdminCourse:
                 assert skill['educationType'] == educationType
                 break
         # 更新等级技能
-        educationType_new = "debbie_test" + self.now + '_new'
+        educationType_new = "dibo_test" + self.now + '_new'
         pl1 = {
             "educationType": educationType_new,
             "necessary": True
@@ -579,7 +579,7 @@ class TestAdminCourse:
     def test_admin_course_course_level_skills_total_ok(self):
         """等级技能相关接口增删改查验证-正向用例"""
         # 新增等级技能
-        educationType = "debbie_test" + self.now
+        educationType = "dibo_test" + self.now
         pl = {
             "educationType": educationType,
         }
@@ -593,7 +593,7 @@ class TestAdminCourse:
         else:
             assert False, "新增等级技能后，通过分页查询课程等级技能列表，列表中未查询到新增的等级技能"
         # 更新等级技能
-        educationType_new = "debbie_test" + self.now + '_new'
+        educationType_new = "dibo_test" + self.now + '_new'
         pl1 = {
             "educationType": educationType_new,
             "necessary": True
@@ -625,7 +625,7 @@ class TestAdminCourse:
         '''方法固件 - 创建多个等级技能'''
         skillIds = []
         for i in range(3):
-            educationType = "debbie_test" + self.now + str(i)
+            educationType = "dibo_test" + self.now + str(i)
             pl = {
                 "educationType": educationType,
             }
@@ -637,6 +637,40 @@ class TestAdminCourse:
         # 删除等级技能
         del_res = self.admin.deleteLevelskills(self.authorization, skillIds)
         assert del_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{del_res['code']}】"
+
+    @pytest.fixture(scope='function')
+    def createCourseTag_method(self):
+        '''方法固件 - 创建课程用户标签'''
+        skillIds = []
+        for i in range(3):
+            educationType = "dibo_test" + self.now + str(i)
+            pl = {
+                "educationType": educationType,
+            }
+            skill_id = self.admin.createLevelSkill(self.authorization, **pl)['data']['id']
+            skillIds.append(skill_id)
+
+        # 创建课程用户标签
+        tag_name = 'course_tag_test' + self.now
+        pl = {
+            "name": tag_name,
+            "multilingualKey": "tag.reading",
+            "tagType": 'normal', # 必填，可选值包括 normal、hot、recommended_search 等。
+            "status": 1,
+            "skillIds": skillIds, # 关联的课程等级技能 ID 列表，Long 数组，可选，默认空数组。
+        }
+
+        file = {
+            'coverImage': ('story_face.webp', open(os.getcwd() + f'/test_data/story_face.webp', 'rb'))
+        }
+        res = self.admin.create_course_tag(self.authorization, file=file, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        course_tag_id = res['data']['id']
+
+        yield course_tag_id
+
+        # 删除课程用户标签
+        res = self.admin.delete_course_tag(self.authorization, course_tag_id)
 
     @pytest.mark.release
     def test_admin_course_positive_create_course_tag_ok(self, createLevelSkill_method):
@@ -881,3 +915,186 @@ class TestAdminCourse:
         course_tag_ids3 = DataFrame(course_tags3)['id'].tolist()
         assert course_tag_id not in course_tag_ids3
 
+    @pytest.mark.release
+    def test_admin_course_positive_album_create_ok(self, createCourseTag_method):
+        """创建课程专辑-正向用例"""
+        tagIds = [createCourseTag_method]
+        album_name = 'dibo_test' + self.now
+        res = self.admin.course_album_create(self.authorization, album_name, tagIds)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', expired_token),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_admin_course_permission_album_create(self, desc, value):
+        """创建课程专辑-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.admin.course_album_create(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_course_positive_albums_ok(self):
+        """分页查询课程专辑列表-正向用例"""
+        res = self.admin.course_album_list(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', expired_token),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_admin_course_permission_albums(self, desc, value):
+        """分页查询课程专辑列表-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.admin.course_album_list(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_course_positive_update_album_ok(self, createCourseTag_method):
+        """更新课程专辑-正向用例"""
+        # 创建课程专辑
+        tagIds = [createCourseTag_method]
+        album_name = 'dibo_test' + self.now
+        res = self.admin.course_album_create(self.authorization, album_name, tagIds)
+        album_id = res['data']['id']
+
+        # 更新课程专辑
+        album_new_name = 'dibo_test_new' + self.now
+        res = self.admin.update_course_album(self.authorization, album_id, album_new_name, status=0)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data']['id'] == album_id, f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', expired_token),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_admin_course_permission_update_album(self, desc, value):
+        """更新课程专辑-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.admin.update_course_album(value, 0, '', code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_course_positive_delete_album_ok(self, createCourseTag_method):
+        """删除课程专辑-正向用例"""
+        # 创建课程专辑
+        tagIds = [createCourseTag_method]
+        album_name = 'dibo_test' + self.now
+        res = self.admin.course_album_create(self.authorization, album_name, tagIds)
+        album_id = res['data']['id']
+
+        # 删除课程专辑
+        res = self.admin.delete_course_album(self.authorization, album_id)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'] == "删除成功", f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', expired_token),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_admin_course_permission_delete_album(self, desc, value):
+        """删除课程专辑-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.admin.delete_course_album(value, 0, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_course_album_ok(self, createCourseTag_method):
+        """课程专辑-增删改查测试"""
+
+        # 创建课程专辑
+        tagIds = [createCourseTag_method]
+        album_name = 'dibo_test' + self.now
+        create_res = self.admin.course_album_create(self.authorization, album_name, tagIds)
+        album_id = create_res['data']['id']
+
+        # 分页查询课程专辑列表，验证创建课程专辑成功
+        album_res1 = self.admin.course_album_list(self.authorization)['data']['content']
+        for album in album_res1:
+            if album['id'] == album_id:
+                assert album['name'] == album_name
+                assert album['multilingualKey'] == 'en'
+                assert album['status'] == 1
+                break
+        else:
+            assert False, "创建课程专辑失败！"
+
+        # 更新课程专辑
+        album_new_name = 'dibo_test_new' + self.now
+        update_res = self.admin.update_course_album(self.authorization, album_id, album_new_name, status=0)
+        assert update_res['data']['id'] == album_id, f"接口返回data数据异常：{update_res['data']}"
+
+        # 更新课程专辑后分页查询课程专辑列表，验证更新课程专辑成功
+        album_res2 = self.admin.course_album_list(self.authorization, status=0)['data']['content']
+        for album in album_res2:
+            if album['id'] == album_id:
+                assert album['name'] == album_new_name
+                assert album['multilingualKey'] == 'en'
+                assert album['status'] == 0
+                break
+        else:
+            assert False, "更新课程专辑失败！"
+
+        # 删除课程专辑
+        delete_res = self.admin.delete_course_album(self.authorization, album_id)
+        assert delete_res['data'] == "删除成功", f"接口返回data数据异常：{delete_res['data']}"
+
+        # 删除课程专辑后分页查询状态为生效的课程专辑列表，验证删除课程专辑成功
+        album_res3_0 = self.admin.course_album_list(self.authorization)['data']['content']
+        album_ids = DataFrame(album_res3_0, columns=['id', 'name', 'tagIds'])['id'].tolist()
+        assert album_id not in album_ids, "删除课程专辑失败"
+
+        # 删除课程专辑后分页状态为废弃的查询课程专辑列表，验证删除课程专辑成功
+        album_res3_1 = self.admin.course_album_list(self.authorization, status=0)['data']['content']
+        album_ids = DataFrame(album_res3_1, columns=['id', 'name', 'tagIds'])['id'].tolist()
+        assert album_id not in album_ids, "删除课程专辑失败"
