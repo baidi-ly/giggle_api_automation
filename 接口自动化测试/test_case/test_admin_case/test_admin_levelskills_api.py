@@ -6,7 +6,6 @@ from time import strftime
 from pandas import DataFrame
 
 import config
-from test_case.page_api.admin.admin_kid_api import AdminKidApi
 from test_case.page_api.admin.admin_levelskills_api import AdminLevelskillsApi
 from test_case.page_api.kid.kid_api import KidApi
 
