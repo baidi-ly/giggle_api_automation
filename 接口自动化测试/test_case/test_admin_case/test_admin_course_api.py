@@ -54,6 +54,26 @@ class TestAdminCourse:
         except Exception as e:
             print(f'删除课程用户标签失败，原因是：{e}')
 
+        try:
+            # 删除状态为生效的课程专辑
+            album_res1 = self.admin.course_album_list(self.authorization)['data']['content']
+            for album in album_res1:
+                if album['name'].startswith('dibo_test'):
+                    album_id = album['id']
+                    # 删除课程专辑
+                    delete_res = self.admin.delete_course_album(self.authorization, album_id)
+                    assert delete_res['data'] == "删除成功", f"接口返回data数据异常：{delete_res['data']}"
+            # 删除状态为废弃的课程专辑
+            album_res2 = self.admin.course_album_list(self.authorization, status=0)['data']['content']
+            for album in album_res2:
+                if album['name'].startswith('dibo_test'):
+                    album_id = album['id']
+                    # 删除课程专辑
+                    delete_res = self.admin.delete_course_album(self.authorization, album_id)
+                    assert delete_res['data'] == "删除成功", f"接口返回data数据异常：{delete_res['data']}"
+        except Exception as e:
+            print(f'删除课程专辑失败，原因是：{e}')
+
     @pytest.fixture(scope='class')
     def courselistAll(self):
         courselistAll = self.admin.course_listAll(self.admin_authorization, 638245113409605)

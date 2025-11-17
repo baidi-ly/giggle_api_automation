@@ -28,6 +28,10 @@ class TestCourse:
         self.authorization = self.course.get_authorization()[0]
         self.authorization_admin = self.admin.get_authorization()[0]
 
+    def setup_method(self):
+        '''获取kid_id'''
+        self.kid_id = self.kid.getKids(self.authorization)["data"][0]['id']
+
     def teardown_class(self):
         '''清除所有课程用户标签测试数据'''
         try:
@@ -197,3 +201,142 @@ class TestCourse:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_course_positive_promotion_check_ok(self):
+        """查询晋级资格-正向用例"""
+        res = self.course.promotion_check(self.authorization, self.kid_id)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert ('eligible' and 'currentLevel' and 'targetLevel' and 'masteredSkillCount'
+                and 'totalNecessarySkillCount') in res['data']
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_course_permission_promotion_check(self, desc, value):
+        """查询晋级资格-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.course.promotion_check(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize('learningLevel', [
+        'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'L10',
+        'L11', 'L12', 'L13', 'L14', 'L15', 'L16','L17', 'L18', 'L19', 'L20'
+    ])
+    def test_course_positive_course_recommends_ok(self, learningLevel):
+        """获取课程推荐列表（需要认证）-正向用例"""
+        res = self.course.course_recommends(self.authorization, self.kid_id, learningLevel)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        course_recommends = res['data']
+        if course_recommends:
+            for course in course_recommends:
+                assert course['difficulty'] == learningLevel
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', expired_token),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_course_permission_course_recommends(self, desc, value):
+        """获取课程推荐列表（需要认证）-权限测试"""
+        res = self.course.course_recommends(value, 0, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize('learningLevel', [
+        'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'L10',
+        'L11', 'L12', 'L13', 'L14', 'L15', 'L16','L17', 'L18', 'L19', 'L20'
+    ])
+    def test_course_positive_course_public_recommends_ok(self, learningLevel):
+        """获取课程推荐列表（公开接口）-正向用例"""
+        res = self.course.course_public_recommends(self.authorization, learningLevel)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        course_public_recommends = res['data']
+        if course_public_recommends:
+            for course in course_public_recommends:
+                assert course['difficulty'] == learningLevel
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', expired_token),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_course_permission_course_public_recommends(self, desc, value):
+        """获取课程推荐列表（公开接口）-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.course.course_public_recommends(value)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        course_public_recommends = res['data']
+        for course in course_public_recommends:
+            assert course['difficulty'] == 'L1'
+
+    @pytest.mark.release
+    @pytest.mark.parametrize('learningLevel', [
+        'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'L10',
+        'L11', 'L12', 'L13', 'L14', 'L15', 'L16','L17', 'L18', 'L19', 'L20'
+    ])
+    def test_course_positive_getTagBaseRecommend_ok(self, learningLevel):
+        """获取推荐课程列表-正向用例"""
+        res = self.course.getTagBaseRecommend(self.authorization, self.kid_id, learningLevel)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        tagBaseRecommends = res['data']['content']
+        if tagBaseRecommends:
+            for course in tagBaseRecommends:
+                assert course['difficulty'] == learningLevel
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', expired_token),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_course_permission_getTagBaseRecommend(self, desc, value):
+        """获取推荐课程列表-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.course.getTagBaseRecommend(value, self.kid_id)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        tagBaseRecommends = res['data']['content']
+        for course in tagBaseRecommends:
+            assert course['difficulty'] == 'L1'

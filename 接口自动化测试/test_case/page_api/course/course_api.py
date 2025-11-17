@@ -132,3 +132,104 @@ class CourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def promotion_check(self, authorization, kidId=0, DeviceType="web", code=200):
+        """
+        查询晋级资格
+        :param kidId: (integer, query, required) kidId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-17
+        url = f"https://{base_url}/api/course/promotion/check"
+        payload = {
+            "kidId": kidId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "查询晋级资格"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def course_recommends(self, authorization, kidId, learningLevel='L1', DeviceType="web", code=200):
+        """
+        获取课程推荐列表（需要认证）
+        :param kidId: (integer, query, required) 孩子ID
+        :param learningLevel: (string, query, required) 学习等级（可选），如L1、L2等
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-17
+        url = f"https://{base_url}/api/course/recommend/list"
+        payload = {
+            "kidId": kidId,
+            "learningLevel": learningLevel
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "获取课程推荐列表（需要认证）"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def course_public_recommends(self, authorization, learningLevel='L1', DeviceType="web", code=200, **kwargs):
+        """
+        获取课程推荐列表（公开接口）
+        :param learningLevel: (string, query, required) 学习等级，如L1、L2等
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-17
+        url = f"https://{base_url}/api/course/recommend/public/list"
+        payload = {
+            "learningLevel": learningLevel
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "获取课程推荐列表（公开接口）"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def getTagBaseRecommend(self, authorization, kidId, learningLevel='l1', size=10, strategy='BasicFiltering',
+                            DeviceType="web", code=200):
+        """
+        获取推荐课程列表
+        :param kidId: (integer, query, optional) 孩子ID，注册用户必填
+        :param learningLevel: (string, query, optional) 学习等级，访客模式必填
+        :param size: (integer, query, optional) 返回数量，最大50
+        :param strategy: (string, query, optional) 推荐策略，当前仅支持BasicFiltering
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-17
+        url = f"https://{base_url}/api/course/tag-base-recommend"
+        payload = {
+            "kidId": kidId,
+            "learningLevel": learningLevel,
+            "size": size,
+            "strategy": strategy
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "获取推荐课程列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
