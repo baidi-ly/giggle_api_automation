@@ -828,3 +828,94 @@ class SchoolApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def lesson_skills(self, authorization, DeviceType="web", code=200):
+        """
+        课程技能标签列表
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-17
+        url = f"https://{base_url}/api/school/lesson/resource/skill/list"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "课程技能标签列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def skill_themes(self, authorization, DeviceType="web", code=200):
+        """
+        技能主题列表（按技能分组展示课程）
+
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-17
+        url = f"https://{base_url}/api/school/lesson/resource/skill/themes"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "技能主题列表（按技能分组展示课程）"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def getStorybook_byTag(self, authorization, tagId, DeviceType="web", code=200, **kwargs):
+        """
+        故事书资源列表
+        :param keyword: (string, query, optional) keyword
+        :param onlyFavorite: (boolean, query, optional) onlyFavorite
+        :param page: (integer, query, optional) page
+        :param size: (integer, query, optional) size
+        :param tagId: (integer, query, optional) tagId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-17
+        url = f"https://{base_url}/api/school/lesson/resource/storybook"
+        payload = {
+            "keyword": '',
+            "onlyFavorite": False,
+            "page": 0,
+            "size": 10,
+            "tagId": tagId
+        }
+        payload.update(kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "故事书资源列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def getStorybookThemes(self, authorization, DeviceType="web", code=200, **kwargs):
+        """
+        故事书主题列表（按标签分组展示故事书）
+
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-17
+        url = f"https://{base_url}/api/school/lesson/resource/storybook/themes"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "故事书主题列表（按标签分组展示故事书）"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+

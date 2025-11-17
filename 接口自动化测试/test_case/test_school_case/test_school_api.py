@@ -1007,3 +1007,118 @@ class TestSchoolApi:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
+    @pytest.mark.release
+    def test_school_positive_lesson_skills_ok(self):
+        """课程技能标签列表-正向用例"""
+        res = self.school.lesson_skills(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', expired_token),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_school_permission_lesson_skills(self, desc, value):
+        """课程技能标签列表-权限测试"""
+        res = self.school.lesson_skills(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_school_positive_skill_themes_ok(self):
+        """技能主题列表（按技能分组展示课程）-正向用例"""
+        res = self.school.skill_themes(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', expired_token),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_school_permission_skill_themes(self, desc, value):
+        """技能主题列表（按技能分组展示课程）-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.school.skill_themes(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_school_positive_getStorybook_byTag_ok(self):
+        """故事书资源列表-正向用例"""
+        tagId = self.school.skill_themes(self.authorization)['data'][0]['id']
+        res = self.school.getStorybook_byTag(self.authorization, tagId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', expired_token),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_school_permission_getStorybook_byTag(self, desc, value):
+        """故事书资源列表-权限测试"""
+        res = self.school.getStorybook_byTag(value, 0, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_school_positive_getStorybookThemes_ok(self):
+        """故事书主题列表（按标签分组展示故事书）-正向用例"""
+        res = self.school.getStorybookThemes(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', expired_token),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_school_permission_getStorybookThemes(self, desc, value):
+        """故事书主题列表（按标签分组展示故事书）-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.school.getStorybookThemes(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
