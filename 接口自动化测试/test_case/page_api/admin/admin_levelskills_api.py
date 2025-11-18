@@ -48,7 +48,7 @@ class AdminLevelskillsApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def course_skills(self, authorization, page=0, size=100, skill='', DeviceType="web", code=200, **kwargs):
+    def level_skills(self, authorization, page=0, size=1000, skill='', DeviceType="web", code=200, **kwargs):
         """
         分页查询课程等级技能列表
         :param page: (integer, query, optional) 页码

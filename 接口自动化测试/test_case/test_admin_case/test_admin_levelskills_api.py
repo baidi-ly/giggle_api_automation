@@ -27,6 +27,22 @@ class TestAdminkid:
         self.kid_id = self.kid.getKids(self.authorization)["data"][0]['id']
 
         self.now = strftime("%Y%m%d%H%M%S")
+
+    def teardown_class(self):
+        '''批量清除技能等级'''
+        try:
+            # 获取所有教育类型为dibo_test开头的等级技能
+            delete_skills = []
+            level_skills = self.admin_levelskills.level_skills(self.authorization)['data']
+            for course_skill in level_skills:
+                if course_skill['educationType'].startswith('dibo_test'):
+                    delete_skills.append(course_skill['id'])
+            # 删除等级技能
+            if delete_skills:
+                del_res = self.admin_levelskills.deleteLevelskills(self.authorization, delete_skills)
+                assert del_res['code'] == 200
+        except Exception as e:
+            print(f'删除等级技能失败，原因是：{e}')
         
     @pytest.mark.release
     def test_admin_course_positive_createLevelSkill_ok(self):
@@ -194,9 +210,9 @@ class TestAdminkid:
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
-    def test_admin_course_positive_course_skills_ok(self):
+    def test_admin_course_positive_level_skills_ok(self):
         """分页查询课程等级技能列表-正向用例"""
-        res = self.admin_levelskills.course_skills(self.authorization)
+        res = self.admin_levelskills.level_skills(self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -212,8 +228,8 @@ class TestAdminkid:
         }
         skill_id = self.admin_levelskills.createLevelSkill(self.authorization, **pl)['data']['id']
         # 分页查询课程等级技能列表，验证新增等级技能的educationType正确
-        course_skills1 = self.admin_levelskills.course_skills(self.authorization)['data']['content']
-        for skill in course_skills1:
+        level_skills1 = self.admin_levelskills.level_skills(self.authorization)['data']['content']
+        for skill in level_skills1:
             if skill['id'] == skill_id:
                 assert skill['educationType'] == educationType
                 break
@@ -230,8 +246,8 @@ class TestAdminkid:
         assert res['data'], f"接口返回data数据异常：{res['data']}"
         assert res['data']['educationType'] == educationType_new
         # 分页查询课程等级技能列表，验证更新后等级技能的educationType正确    # todo
-        course_skills2 = self.admin_levelskills.course_skills(self.authorization)['data']['content']
-        for skill in course_skills2:
+        level_skills2 = self.admin_levelskills.level_skills(self.authorization)['data']['content']
+        for skill in level_skills2:
             if skill['id'] == skill_id:
                 assert skill['educationType'] == educationType_new
         else:
@@ -310,8 +326,8 @@ class TestAdminkid:
         }
         skill_id = self.admin_levelskills.createLevelSkill(self.authorization, **pl)['data']['id']
         # 分页查询课程等级技能列表，验证新增等级技能的educationType正确
-        course_skills1 = self.admin_levelskills.course_skills(self.authorization)['data']['content']
-        for skill in course_skills1:
+        level_skills1 = self.admin_levelskills.level_skills(self.authorization)['data']['content']
+        for skill in level_skills1:
             if int(skill['id']) == skill_id:
                 assert skill['educationType'] == educationType
                 break
@@ -330,8 +346,8 @@ class TestAdminkid:
         assert res['data'], f"接口返回data数据异常：{res['data']}"
         assert res['data']['educationType'] == educationType_new
         # 分页查询课程等级技能列表，验证更新后等级技能的educationType正确    # todo
-        course_skills2 = self.admin_levelskills.course_skills(self.authorization)['data']['content']
-        for skill in course_skills2:
+        level_skills2 = self.admin_levelskills.level_skills(self.authorization)['data']['content']
+        for skill in level_skills2:
             if int(skill['id']) == skill_id:
                 assert skill['educationType'] == educationType_new
                 break
@@ -341,8 +357,8 @@ class TestAdminkid:
         del_res = self.admin_levelskills.deleteLevelskills(self.authorization, [skill_id])
         assert del_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{del_res['code']}】"
         # 分页查询课程等级技能列表，验证删除后等级技能不存在，删除成功
-        course_skills3 = self.admin_levelskills.course_skills(self.authorization)['data']['content']
-        skill_ids = DataFrame(course_skills3)['id'].tolist()
+        level_skills3 = self.admin_levelskills.level_skills(self.authorization)['data']['content']
+        skill_ids = DataFrame(level_skills3)['id'].tolist()
         assert str(skill_id) not in skill_ids, "删除等级技能后，通过分页查询课程等级技能列表，列表中查询到删除的等级技能"
 
     @pytest.mark.release

@@ -57,20 +57,6 @@ class TestCourse:
         except Exception as e:
             print(f'删除课程用户标签失败，原因是：{e}')
 
-        try:
-            # 获取所有教育类型为dibo_test开头的等级技能
-            delete_skills = []
-            course_skills = self.admin.course_skills(self.authorization)['data']['content']
-            for course_skill in course_skills:
-                if course_skill['educationType'].startswith('dibo_test'):
-                    delete_skills.append(course_skill['id'])
-            # 删除等级技能
-            if delete_skills:
-                del_res = self.admin.deleteLevelskills(self.authorization, delete_skills)
-                assert del_res['code'] == 200
-        except Exception as e:
-            print(f'删除等级技能失败，原因是：{e}')
-
     @pytest.fixture(scope='function')
     def createCourseTag_method(self):
         '''方法固件 - 创建课程用户标签'''
