@@ -36,6 +36,9 @@ class KidApi(BaseAPI):
     def check_placement(self, authorization, kidId=0, DeviceType="web", code=200, **kwargs):
         """
         查询是否需要定级
+        新用户未定级：返回需要定级
+        已定级用户：返回不需要定级
+        已定级但等级为L0：返回需要定级
         :param kidId: (integer, query, required) kidId
         :return: 接口原始返回（已 json 解析）
         """
@@ -116,7 +119,7 @@ class KidApi(BaseAPI):
                                 "userAnswer": "string",
                                 "correctAnswer": "string",
                                 "isCorrect": True,
-                                "skillTags": ["string"],
+                                "skillTags": ["skill_test"],
                                 "completeTimeStamp": 0
                             }
                         ]

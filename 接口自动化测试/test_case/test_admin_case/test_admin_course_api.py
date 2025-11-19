@@ -808,7 +808,7 @@ class TestAdminCourse:
     @pytest.mark.release
     def test_admin_course_positive_getByCourseIds_ok(self):
         """根据课程ID查询课程等级技能列表-正向用例"""
-        courseIds = self.admin.course_listAll(self.admin_authorization, 638245113409605)['data'][0]['id']
+        courseIds = self.admin.course_listAll(self.admin_authorization, 641364208128069)['data'][0]['id']
         res = self.admin.getByCourseIds(self.authorization, courseIds)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"

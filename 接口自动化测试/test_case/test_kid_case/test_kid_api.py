@@ -4,6 +4,7 @@ import os
 
 from config import RunConfig
 from test_case.page_api.book.book_api import BookApi
+from test_case.page_api.course.course_api import CourseApi
 from test_case.page_api.kid.kid_api import KidApi
 
 sys.path.append(os.getcwd())
@@ -18,6 +19,7 @@ class TestKid:
 
     def setup_class(self):
         self.kid = KidApi()
+        self.course = CourseApi()
         self.authorization = self.kid.get_authorization()[0]
 
     @pytest.mark.release

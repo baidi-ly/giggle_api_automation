@@ -47,9 +47,11 @@ class TestAdminkid:
     @pytest.mark.release
     def test_admin_course_positive_createLevelSkill_ok(self):
         """新增等级技能-正向用例"""
-        educationType = "dibo_test" + self.now
+        educationType = "dibo_test_educationType" + self.now
+        skill = "dibo_test_skill" + self.now
         pl = {
             "educationType": educationType,
+            'skill': skill
         }
         res = self.admin_levelskills.createLevelSkill(self.authorization, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
