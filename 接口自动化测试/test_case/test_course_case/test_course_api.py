@@ -1,4 +1,5 @@
 import datetime
+import json
 from time import strftime
 
 import pytest
@@ -7,9 +8,14 @@ import os
 
 import config
 from test_case.page_api.admin.admin_course_api import AdminCourseApi
+from test_case.page_api.admin.admin_kid_api import AdminKidApi
+from test_case.page_api.admin.admin_levelskills_api import AdminLevelskillsApi
+from test_case.page_api.admin.admin_quiz_api import AdminQuizApi
 from test_case.page_api.course.course_api import CourseApi
 from test_case.page_api.kid.kid_api import KidApi
+from test_case.page_api.quiz.quiz_api import QuizApi
 from test_case.page_api.school.school_api import SchoolApi
+from test_case.page_api.user.user_api import UserApi
 
 sys.path.append(os.getcwd())
 sys.path.append("..")
@@ -23,10 +29,21 @@ class TestCourse:
         self.course = CourseApi()
         self.school = SchoolApi()
         self.kid = KidApi()
+        self.user = UserApi()
+        self.quiz = QuizApi()
         self.admin = AdminCourseApi()
+        self.admin_level = AdminLevelskillsApi()
+        self.admin_kid = AdminKidApi()
+        self.admin_quiz = AdminQuizApi()
         self.now = strftime("%Y%m%d%H%M%S")
         self.authorization = self.course.get_authorization()[0]
         self.authorization_admin = self.admin.get_authorization()[0]
+
+        kids_res = self.kid.getKids(self.authorization)
+        for kid in kids_res['data']:
+            if kid['name'] == 'giggle-kid-UHS4NE':
+                self.kid_id = kid['id']
+                break
 
         # 批量新增等级技能
         self.skillIds = []
@@ -35,7 +52,7 @@ class TestCourse:
             pl = {
                 "educationType": educationType,
             }
-            skill_id = self.admin.createLevelSkill(self.authorization, **pl)['data']['id']
+            skill_id = self.admin_level.createLevelSkill(self.authorization, **pl)['data']['id']
             self.skillIds.append(skill_id)
 
     def setup_method(self):
@@ -405,3 +422,219 @@ class TestCourse:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.fixture(scope="class")
+    def getSecondekidId(self):
+        '''类前置 - 获取kidId'''
+        kid_res = self.kid.getKids(self.authorization)['data']
+        for kid in kid_res:
+            if kid['name'] == "dibo_test1":
+                kid_id = kid['id']
+                break
+        yield kid_id
+
+    def test_course_positive_questionnaire(self, getSecondekidId):
+        '''
+        未问卷-公共推荐
+        '''
+
+    def test_course_positive_quiz_placement(self, getSecondekidId):
+        '''问卷调查-定级-'''
+        '''
+        定级流程测试：
+        /kid/placement/check?kidId={kidId}
+        /quiz/fetch-questions
+            正常获取定级题目（默认12题）
+            验证题目不重复（已使用题目ID过滤）
+            验证题目覆盖不同技能和组件
+        /quiz/placement/submit
+        /kid/placement/check?kidId={kidId}
+        /user/kid/{kidId}/learning-level
+        /admin/kid/{kidId}/interaction-preference
+        /admin/kid/{kidId}/skill-mastery
+        /game/course/tag-base-recommend
+        '''
+        kid_id = getSecondekidId
+        check_res1 = self.kid.check_placement(self.authorization, kid_id)
+        assert check_res1['data']['currentLevel'] == 'L1'
+        assert check_res1['data']['needPlacement'] == True
+        assert check_res1['data']['initialLevel'] == 'L1'
+        assert check_res1['data']['levelRange'] == {'max': 'L5', 'min': 'L1'}
+        placementLevel = 'L1'
+        levelList = [placementLevel]
+        pl = {
+            "count": 12,
+            "kidId": kid_id,
+            "levelList": levelList
+        }
+        question_res = self.quiz.fetchQuestions(self.authorization, **pl)['data']['data'][0]
+        assert question_res['level'] == 'L1'
+        quizId = question_res['quizId']
+        questions = question_res['questions']
+        assert len(questions) == 12
+        answers = []
+        for question in questions:
+            assert question['difficulty'] == 'L1'
+            questionContent = json.loads(question['questionContent'])
+            if 'answers' in questionContent:
+                userAnswer = questionContent['answers']
+                correctAnswer = questionContent['answers']
+            elif 'answer' in questionContent:
+                userAnswer = questionContent['answer']
+                correctAnswer = questionContent['answer']
+            else:
+                userAnswer = ''
+                correctAnswer = ''
+            answers.append(
+                {
+                    "quizId": quizId,
+                    "questionId": question['id'],
+                    "questionSeqNo": questions.index(question),
+                    "question": questionContent['question'],
+                    "userAnswer": userAnswer,
+                    "correctAnswer": correctAnswer,
+                    "isCorrect": True,
+                    "skillTags": [
+                        question['skill']
+                    ],
+                    "completeTimeStamp": 0
+                }
+            )
+        placement_res = self.quiz.placementSubmit(self.authorization, kid_id, placementLevel, answers)
+        # assert placement_res['message'] == 'success'
+
+        check_res2 = self.kid.check_placement(self.authorization, kid_id)
+        assert check_res2['data']['currentLevel'] == 'L1'
+        assert check_res2['data']['needPlacement'] == True
+        assert check_res2['data']['initialLevel'] == 'L1'
+        assert check_res2['data']['levelRange'] == {'max': 'L5', 'min': 'L1'}
+
+        learninglevel_res = self.user.getLearningLevel(self.authorization, kid_id)
+        assert learninglevel_res['data']['learningLevel'] == 'L1'
+        tags_res = self.admin_kid.getKidTags(self.authorization, kid_id)
+        assert tags_res['data']['childAge'] == 6
+        assert tags_res['data']['kidId'] == str(kid_id)
+        assert tags_res['data']['learningLevel'] == 'L1'
+        lp_res = self.kid.getLearningProgress(self.authorization, kid_id)
+        # assert lp_res['data']['childAge'] == 6
+        assert lp_res['data']['kidId'] == kid_id
+        assert lp_res['data']['learningLevel'] == 'L1'
+        assert lp_res['data']['valueOld']
+        assert lp_res['data']['valueNew']
+        assert lp_res['data']['masteryPercent']
+        ip_res = self.admin_kid.getInteractionPreference(self.authorization, kid_id)
+        assert ip_res['data']['kidId'] == str(kid_id)
+        assert ip_res['data']['preferences'] == []
+        sm_res = self.admin_kid.getSkillMastery(self.authorization, kid_id)
+        assert sm_res['data']['kidId'] == str(kid_id)
+        assert sm_res['data']['skillMasteryMap']
+        recommends_res = self.course.course_recommends(self.authorization, kid_id, placementLevel)['data']
+        for course in recommends_res:
+            assert course['difficulty'] == 'L1'
+
+    def test_course_positive_quiz_lesson(self, getSecondekidId):
+        '''问卷调查-定级-'''
+        '''
+        课后quiz测试：
+        /kid/placement/check?kidId={kidId}
+        /quiz/fetch-questions
+            正常获取定级题目（默认12题）
+            验证题目不重复（已使用题目ID过滤）
+            验证题目覆盖不同技能和组件
+        /quiz/placement/submit
+        /kid/placement/check?kidId={kidId}
+        /user/kid/{kidId}/learning-level
+        /admin/kid/{kidId}/interaction-preference
+        /admin/kid/{kidId}/skill-mastery
+        /game/course/tag-base-recommend
+        '''
+        kid_id = getSecondekidId
+        res = self.user.getLearningLevel(self.authorization, kidId=kid_id)
+        kid_level = res['data']['learningLevel']
+        recommends_res = self.course.course_recommends(self.authorization, kid_id, kid_level)
+        courseId = recommends_res['data'][0]['id']
+        pl = {
+            "count": 3,
+            "kidId": kid_id,
+            "quizType": "LESSON",
+            "courseId": courseId
+        }
+        question_res = self.quiz.fetchQuestions(self.authorization, **pl)
+        quizId = question_res['quizId']
+        questions = question_res['questions']
+        if not questions:
+            self.admin_quiz.generate_question()
+        answers = []
+        for question in questions:
+            assert question['difficulty'] == 'L1'
+            questionContent = json.loads(question['questionContent'])
+            if 'answers' in questionContent:
+                userAnswer = questionContent['answers']
+                correctAnswer = questionContent['answers']
+            elif 'answer' in questionContent:
+                userAnswer = questionContent['answer']
+                correctAnswer = questionContent['answer']
+            else:
+                userAnswer = ''
+                correctAnswer = ''
+            answers.append(
+                {
+                    "quizId": quizId,
+                    "questionId": question['id'],
+                    "questionSeqNo": questions.index(question),
+                    "question": questionContent['question'],
+                    "userAnswer": userAnswer,
+                    "correctAnswer": correctAnswer,
+                    "isCorrect": True,
+                    "skillTags": [
+                        question['skill']
+                    ],
+                    "completeTimeStamp": 0
+                }
+            )
+
+
+        lesson_res = self.quiz.lessonSubmit(self.authorization, kid_id, courseId, answers)
+        assert lesson_res['message'] == 'success'
+
+        learninglevel_res = self.user.getLearningLevel(self.authorization, kid_id)
+        user_after_level = learninglevel_res['data']['learningLevel']
+        tags_res = self.admin_kid.getKidTags(self.authorization, self.kid_id)
+        lp_res = self.kid.getLearningProgress(self.authorization, kid_id)
+        ip_res = self.admin_kid.getInteractionPreference(self.authorization, self.kid_id)
+        sm_res = self.admin_kid.getSkillMastery(self.authorization, self.kid_id)
+        recommends_res = self.course.course_recommends(self.authorization, self.kid_id, user_after_level)
+        for course in recommends_res:
+            assert course['difficulty'] == user_after_level
+
+    def test_course_positive_quiz_promotion(self):
+        '''问卷调查-定级-'''
+        '''
+        晋级流程测试
+        /kid/placement/check?kidId={kidId}
+        /course/promotion/check?kidId={kidId}
+            已掌握80%以上必要技能：返回有晋级资格
+            未掌握80%必要技能：返回无晋级资格
+            验证返回当前等级和目标等级
+            验证返回已掌握技能数和总技能数
+        /quiz/fetch-questions(PLACEMENT（定级）PROMOTION（晋级）LESSON（课后）)
+        /quiz/promotion/submit
+        /user/kid/{kidId}/learning-level
+        /admin/kid/{kidId}/tags
+        /kid/{kidId}/learning-progress
+        /user/kid/{kidId}/learning-level
+        /game/course/tag-base-recommend
+        '''
+        self.kid.check_placement(self.authorization, self.kid_id)
+        self.quiz.fetchQuestions(self.authorization)
+        self.quiz.promotionPubmit(self.authorization)
+
+        res = self.user.getLearningLevel(self.authorization, kidId=kidId)
+        res = self.admin_kid.getKidTags(self.authorization, self.kid_id)
+        res = self.kid.getLearningProgress(self.authorization, kid_id)
+        res = self.admin_kid.getInteractionPreference(self.authorization, self.kid_id)
+        res = self.admin_kid.getSkillMastery(self.authorization, self.kid_id)
+        res = self.course.course_recommends(self.authorization, self.kid_id, learningLevel)
+
+    def test_course_positive_quiz_promotion4(self):
+        '''问卷调查-前置技能推荐检查'''

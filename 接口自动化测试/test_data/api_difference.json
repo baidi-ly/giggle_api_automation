@@ -1,6 +1,6 @@
 {
   "apis": [
-    "/admin/skill-relation/import-by-name"
+    "/admin/quiz/question/{questionId}/delete"
   ],
   "update_apis": [],
   "scan_time": "2025-10-17 10:54:39.746089",

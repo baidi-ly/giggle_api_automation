@@ -33,7 +33,7 @@ class KidApi(BaseAPI):
         assert "data" in response,  f"{error_msg}返回结果没有data数据，url->{url}，response->{response}"
         return response
 
-    def check_placement(self, authorization, kidId=0, DeviceType="web", code=200, **kwargs):
+    def check_placement(self, authorization, kidId, DeviceType="web", code=200):
         """
         查询是否需要定级
         新用户未定级：返回需要定级

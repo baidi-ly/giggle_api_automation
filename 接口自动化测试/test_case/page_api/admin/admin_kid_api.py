@@ -41,7 +41,7 @@ class AdminKidApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def getSkillMastery(self, authorization, kidId, DeviceType="web", code=200, **kwargs):
+    def getSkillMastery(self, authorization, kidId, DeviceType="web", code=200):
         """
         获取学生技能掌握程度
         :param kidId: (integer, path, required) kidId
