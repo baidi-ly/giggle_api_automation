@@ -491,3 +491,67 @@ class AdminCourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def update(self, authorization, categoryId=0, courseCover='', courseType=0, difficulty='', educationType='', extraInfo='', eyfs='', formality='', icon='', id=0, interactionTypes='', maxAge=0, minAge=0, name='', promotionCopy='', purpose='', skills='', tag='', target='', theme='', unit=0, file=None, DeviceType="web", code=200, **kwargs):
+        """
+        修改一个课程
+        :param categoryId: (integer, query, optional) categoryId
+        :param courseCover: (string, query, optional) courseCover
+        :param courseType: (integer, query, optional) courseType
+        :param difficulty: (string, query, optional) difficulty
+        :param educationType: (string, query, optional) educationType
+        :param extraInfo: (string, query, optional) extraInfo
+        :param eyfs: (string, query, optional) eyfs
+        :param formality: (string, query, optional) formality
+        :param icon: (string, query, optional) icon
+        :param id: (integer, query, optional) id
+        :param interactionTypes: (string, query, optional) interactionTypes
+        :param maxAge: (integer, query, optional) maxAge
+        :param minAge: (integer, query, optional) minAge
+        :param name: (string, query, optional) name
+        :param promotionCopy: (string, query, optional) promotionCopy
+        :param purpose: (string, query, optional) purpose
+        :param skills: (string, query, optional) skills
+        :param tag: (string, query, optional) tag
+        :param target: (string, query, optional) target
+        :param theme: (string, query, optional) theme
+        :param unit: (integer, query, optional) unit
+        :param file: (file, formData, optional) 上传文件
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-20
+        url = f"https://{base_url}/admin/course/update"
+        payload = {
+            "categoryId": categoryId,
+            "courseCover": courseCover,
+            "courseType": courseType,
+            "difficulty": difficulty,
+            "educationType": educationType,
+            "extraInfo": extraInfo,
+            "eyfs": eyfs,
+            "formality": formality,
+            "icon": icon,
+            "id": id,
+            "interactionTypes": interactionTypes,
+            "maxAge": maxAge,
+            "minAge": minAge,
+            "name": name,
+            "promotionCopy": promotionCopy,
+            "purpose": purpose,
+            "skills": skills,
+            "tag": tag,
+            "target": target,
+            "theme": theme,
+            "unit": unit
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType, Content_Type='multipart/form-data')
+
+        response = requests.request("POST", url, headers=headers, data=payload, files=file)
+        error_msg = "修改一个课程"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+

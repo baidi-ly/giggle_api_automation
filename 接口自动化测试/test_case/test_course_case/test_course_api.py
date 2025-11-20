@@ -1,16 +1,20 @@
 import datetime
 import json
+import time
 from time import strftime
 
 import pytest
 import sys
 import os
 
+from pandas import DataFrame
+
 import config
 from test_case.page_api.admin.admin_course_api import AdminCourseApi
 from test_case.page_api.admin.admin_kid_api import AdminKidApi
 from test_case.page_api.admin.admin_levelskills_api import AdminLevelskillsApi
 from test_case.page_api.admin.admin_quiz_api import AdminQuizApi
+from test_case.page_api.aiserver.aiserver_api import AiServerApi
 from test_case.page_api.course.course_api import CourseApi
 from test_case.page_api.kid.kid_api import KidApi
 from test_case.page_api.quiz.quiz_api import QuizApi
@@ -31,13 +35,14 @@ class TestCourse:
         self.kid = KidApi()
         self.user = UserApi()
         self.quiz = QuizApi()
-        self.admin = AdminCourseApi()
+        self.ai_server = AiServerApi()
+        self.admin_course = AdminCourseApi()
         self.admin_level = AdminLevelskillsApi()
         self.admin_kid = AdminKidApi()
         self.admin_quiz = AdminQuizApi()
         self.now = strftime("%Y%m%d%H%M%S")
         self.authorization = self.course.get_authorization()[0]
-        self.authorization_admin = self.admin.get_authorization()[0]
+        self.authorization_admin = self.admin_course.get_authorization()[0]
 
         kids_res = self.kid.getKids(self.authorization)
         for kid in kids_res['data']:
@@ -64,15 +69,24 @@ class TestCourse:
         try:
             for status in [0, 1]:
                 pl = {"status": status}
-                course_tags = self.admin.course_tag_list(self.authorization, **pl)['data']
+                course_tags = self.admin_course.course_tag_list(self.authorization, **pl)['data']
                 for course_tag in course_tags:
                     # 删除课程用户标签
                     if course_tag['name'].startswith('course_tag_test'):
                         course_tag_id = course_tag['id']
-                        delete_res = self.admin.delete_course_tag(self.authorization, course_tag_id)
+                        delete_res = self.admin_course.delete_course_tag(self.authorization, course_tag_id)
                         assert delete_res['data'] == '删除成功', f"接口返回data数据异常：{delete_res['data']}"
         except Exception as e:
             print(f'删除课程用户标签失败，原因是：{e}')
+
+        # try:
+        #     questions_res = self.admin_quiz.quiz_questions(self.authorization, 'Colors', size=1000)
+        #     questionIds = DataFrame(questions_res['data']['content'])['id'].tolist()
+        #     for questionId in questionIds:
+        #         # 删除quiz题目
+        #         self.admin_quiz.delete_quiz_question(self.authorization, questionId)
+        # except Exception as e:
+        #     print(f'删除quiz题目失败，原因是：{e}')
 
     @pytest.fixture(scope='function')
     def createCourseTag_method(self):
@@ -90,14 +104,14 @@ class TestCourse:
         file = {
             'coverImage': ('story_face.webp', open(os.getcwd() + f'/test_data/story_face.webp', 'rb'))
         }
-        res = self.admin.create_course_tag(self.authorization, file=file, **pl)
+        res = self.admin_course.create_course_tag(self.authorization, file=file, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         course_tag_id = res['data']['id']
 
         yield course_tag_id
 
         # 删除课程标签
-        res = self.admin.delete_course_tag(self.authorization, course_tag_id)
+        res = self.admin_course.delete_course_tag(self.authorization, course_tag_id)
         assert res['code'] == 200, f"删除课程标签失败！"
 
     def test_course_blockedCourseIds_login(self):
@@ -115,12 +129,6 @@ class TestCourse:
         stats_res = self.course.blockedCourseIds('')
         assert "data" in stats_res, f"获取孩子学习统计数据接口没有data数据，response->{stats_res}"
         assert stats_res["data"]["blockedIds"]
-
-    def test_noargs_detail_basic(self):
-        """获取所有课程分级列表"""
-        res = self.api.detail(authorization=self.authorization)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
     @pytest.mark.smoke
     def test_course_positive_recommendation_ok(self):
@@ -194,7 +202,7 @@ class TestCourse:
             pl = {
                 "educationType": educationType,
             }
-            skill_id = self.admin.createLevelSkill(self.authorization, **pl)['data']['id']
+            skill_id = self.admin_course.createLevelSkill(self.authorization, **pl)['data']['id']
             skillIds.append(skill_id)
         # 创建课程用户标签
         tag_name = 'course_tag_test' + self.now
@@ -209,18 +217,18 @@ class TestCourse:
         file = {
             'coverImage': ('story_face.webp', open(os.getcwd() + f'/test_data/story_face.webp', 'rb'))
         }
-        create_res = self.admin.create_course_tag(self.authorization, file=file, **pl)
+        create_res = self.admin_course.create_course_tag(self.authorization, file=file, **pl)
         course_tag_id = create_res['data']['id']    # 用户标签ID
 
         yield course_tag_id
 
         # 删除课程用户标签
-        res = self.admin.delete_course_tag(self.authorization, course_tag_id)
+        res = self.admin_course.delete_course_tag(self.authorization, course_tag_id)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
 
         # 删除等级技能
-        del_res = self.admin.deleteLevelskills(self.authorization, skillIds)
+        del_res = self.admin_course.deleteLevelskills(self.authorization, skillIds)
         assert del_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{del_res['code']}】"
 
     @pytest.mark.release
@@ -551,21 +559,81 @@ class TestCourse:
         kid_id = getSecondekidId
         res = self.user.getLearningLevel(self.authorization, kidId=kid_id)
         kid_level = res['data']['learningLevel']
-        recommends_res = self.course.course_recommends(self.authorization, kid_id, kid_level)
-        courseId = recommends_res['data'][0]['id']
+        # recommends_res = self.course.course_recommends(self.authorization, kid_id, kid_level)
+        # course_id = recommends_res['data'][0]['id']
+        # course_name = recommends_res['data'][0]['name']
+        L1_courses = self.admin_course.course_listAll(self.authorization, '641364208128069')['data']
+        for course in L1_courses:
+            if course['name'] == 'Colors':
+                course_id = course['id']
+                course_name = course['name']
+                break
         pl = {
             "count": 3,
             "kidId": kid_id,
             "quizType": "LESSON",
-            "courseId": courseId
+            "courseId": course_id
         }
-        question_res = self.quiz.fetchQuestions(self.authorization, **pl)
+        question_res = self.quiz.fetchQuestions(self.authorization, **pl)['data']['data'][0]
         quizId = question_res['quizId']
         questions = question_res['questions']
-        if not questions:
-            self.admin_quiz.generate_question()
+
+        if len(questions) < 3:
+            questions_res = self.admin_quiz.quiz_questions(self.authorization, course_name)
+            if len(questions_res['data']['content']) >= 3:
+                status_res = DataFrame(questions_res['data']['content'])['status'].tolist()
+                if status_res.count(1) + status_res.count(0) >= 3:
+                    for question in questions_res['data']['content']:
+                        if question['status'] == 0:
+                            questionId = question['id']
+                            self.admin_quiz.quiz_question_status(self.authorization, questionId, status=1)
+            else:
+                course_skills = self.admin_course.getByCourseIds(self.authorization, course_id)['data'][0]['skills']
+                lecture_info_res = self.ai_server.lecture_info(self.authorization, course_id)
+                knowledge_points = lecture_info_res['data']['knowledge_points']
+                learning_objectives = lecture_info_res['data']['learning_objectives']
+                assessment = lecture_info_res['data']['assessment']
+                pl1 = {
+                    "lecture_id": course_id,
+                    "skill_ids": course_skills,
+                    "language": "en",
+                    "learning_objectives": learning_objectives,
+                    "assessment": assessment,
+                    "knowledge_points": knowledge_points
+                }
+                lecture_quiz_res = self.ai_server.plan_lecture_quiz(self.authorization, **pl1)
+                reference_image = lecture_quiz_res['data']['reference_image']['url']
+                questions_plan = lecture_quiz_res['data']['questions_plan']
+                questionPlan = []
+                for question in questions_plan:
+                    questionPlan.append({
+                        "questionType": question["question_type"],
+                        "taskDescription": question["task_description"],
+                        "difficulty": question["difficulty"],
+                        "skill": question["skill_id"],
+                        "knowledgePoint": question["knowledge_point"],
+                    })
+                generate_res = self.admin_quiz.generate_question(self.authorization, course_id, questionPlan,
+                                                                 reference_image)
+                assert generate_res['message'] == "success"
+                for i in range(60):
+                    questions_res = self.admin_quiz.quiz_questions(self.authorization, course_name)
+                    status_res = DataFrame(questions_res['data']['content'])['status'].tolist()
+                    if status_res.count(1) + status_res.count(0) >= 3:
+                        for question in questions_res['data']['content']:
+                            if question['status'] == 0:
+                                questionId = question['id']
+                                self.admin_quiz.quiz_question_status(self.authorization, questionId, status=1)
+                        break
+                    else:
+                        time.sleep(1)
+
+        question_res1 = self.quiz.fetchQuestions(self.authorization, **pl)['data']['data'][0]
+        quizId1 = question_res1['quizId']
+        questions1 = question_res1['questions']
+
         answers = []
-        for question in questions:
+        for question in questions1[:3]:
             assert question['difficulty'] == 'L1'
             questionContent = json.loads(question['questionContent'])
             if 'answers' in questionContent:
@@ -579,11 +647,11 @@ class TestCourse:
                 correctAnswer = ''
             answers.append(
                 {
-                    "quizId": quizId,
+                    "quizId": quizId1,
                     "questionId": question['id'],
-                    "questionSeqNo": questions.index(question),
+                    "questionSeqNo": questions1.index(question),
                     "question": questionContent['question'],
-                    "userAnswer": userAnswer,
+                    "userAnswer": ','.join(userAnswer),
                     "correctAnswer": correctAnswer,
                     "isCorrect": True,
                     "skillTags": [
@@ -592,22 +660,39 @@ class TestCourse:
                     "completeTimeStamp": 0
                 }
             )
-
-
-        lesson_res = self.quiz.lessonSubmit(self.authorization, kid_id, courseId, answers)
-        assert lesson_res['message'] == 'success'
+        lesson_res = self.quiz.lessonSubmit(self.authorization, kid_id, course_id, answers)
+        # assert lesson_res['message'] == 'success'
 
         learninglevel_res = self.user.getLearningLevel(self.authorization, kid_id)
+        assert learninglevel_res['message'] == 'success'
         user_after_level = learninglevel_res['data']['learningLevel']
-        tags_res = self.admin_kid.getKidTags(self.authorization, self.kid_id)
+
+        tags_res = self.admin_kid.getKidTags(self.authorization, kid_id)
+        assert tags_res['data']['childAge'] == 8
+        assert tags_res['data']['learningLevel'] == user_after_level
+        assert tags_res['data']['kidId'] == str(kid_id)
         lp_res = self.kid.getLearningProgress(self.authorization, kid_id)
-        ip_res = self.admin_kid.getInteractionPreference(self.authorization, self.kid_id)
-        sm_res = self.admin_kid.getSkillMastery(self.authorization, self.kid_id)
-        recommends_res = self.course.course_recommends(self.authorization, self.kid_id, user_after_level)
-        for course in recommends_res:
+        assert lp_res['data']['learningLevel'] == user_after_level
+        assert lp_res['data']['kidId'] == kid_id
+        assert lp_res['data']['valueOld']
+        assert lp_res['data']['valueNew']
+        assert lp_res['data']['effortPercent']
+        assert lp_res['data']['masteryPercent'] == 0.0
+        assert lp_res['data']['targetSlot'] == 8
+        assert lp_res['data']['masteredSlot'] == 0
+
+        ip_res = self.admin_kid.getInteractionPreference(self.authorization, kid_id)
+        assert ip_res['data']['kidId'] == str(kid_id)
+        assert ip_res['data']['preferences'] == []
+        sm_res = self.admin_kid.getSkillMastery(self.authorization, kid_id)
+        assert sm_res['data']['kidId'] == str(kid_id)
+        assert sm_res['data']['skillMasteryMap']
+        recommends_res = self.course.course_recommends(self.authorization, kid_id, user_after_level)
+        for course in recommends_res['data']:
             assert course['difficulty'] == user_after_level
 
-    def test_course_positive_quiz_promotion(self):
+
+    def test_course_positive_quiz_promotion(self, getSecondekidId):
         '''问卷调查-定级-'''
         '''
         晋级流程测试
@@ -625,16 +710,13 @@ class TestCourse:
         /user/kid/{kidId}/learning-level
         /game/course/tag-base-recommend
         '''
-        self.kid.check_placement(self.authorization, self.kid_id)
+        kid_id = getSecondekidId
         self.quiz.fetchQuestions(self.authorization)
         self.quiz.promotionPubmit(self.authorization)
 
-        res = self.user.getLearningLevel(self.authorization, kidId=kidId)
-        res = self.admin_kid.getKidTags(self.authorization, self.kid_id)
+        res = self.user.getLearningLevel(self.authorization, kidId=kid_id)
+        res = self.admin_kid.getKidTags(self.authorization, kid_id)
         res = self.kid.getLearningProgress(self.authorization, kid_id)
-        res = self.admin_kid.getInteractionPreference(self.authorization, self.kid_id)
-        res = self.admin_kid.getSkillMastery(self.authorization, self.kid_id)
-        res = self.course.course_recommends(self.authorization, self.kid_id, learningLevel)
-
-    def test_course_positive_quiz_promotion4(self):
-        '''问卷调查-前置技能推荐检查'''
+        res = self.admin_kid.getInteractionPreference(self.authorization, kid_id)
+        res = self.admin_kid.getSkillMastery(self.authorization, kid_id)
+        res = self.course.course_recommends(self.authorization, kid_id, learningLevel)

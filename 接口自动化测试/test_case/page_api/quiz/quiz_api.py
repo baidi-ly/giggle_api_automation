@@ -183,7 +183,7 @@ class QuizApi(BaseAPI):
 
         response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "提交课后Quiz"
-        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        # assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()
             return response

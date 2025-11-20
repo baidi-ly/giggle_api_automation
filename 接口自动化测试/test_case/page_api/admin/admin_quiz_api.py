@@ -1,10 +1,12 @@
 import json
 import time
 
+from test_case.page_api.admin.admin_course_api import admin_base_url
 from test_case.page_api.base_api import BaseAPI
 
 requests = BaseAPI().http_timeout()
 base_url = BaseAPI().baseurl()
+admin_base_url = BaseAPI().admin_baseurl()
 
 
 class AdminQuizApi(BaseAPI):
@@ -70,14 +72,14 @@ class AdminQuizApi(BaseAPI):
             return False
 
     def generate_question(self, authorization, courseId, questionPlan=[], referenceImageKey='',
-                          preferenceKey='', DeviceType="web", code=200):
+                          preferenceKey='preferences/level_L1', DeviceType="web", code=200):
         """
         AI生成题目 - 提交生成任务
         :param request: (object, body, required) request
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-11-20
-        url = f"https://{base_url}/admin/quiz/question/generate"
+        url = f"https://{admin_base_url}/admin/quiz/question/generate"
         payload = {
             "coursePlans": [
                 {
@@ -100,7 +102,7 @@ class AdminQuizApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def quiz_questions(self, authorization, courseName='', description='', difficulty='', page=0, questionType='', size=20, status=0, DeviceType="web", code=200, **kwargs):
+    def quiz_questions(self, authorization, courseName='', page=0, size=20, DeviceType="web", code=200, **kwargs):
         """
         题库列表查询（分页）
         :param courseName: (string, query, optional) courseName
@@ -113,16 +115,13 @@ class AdminQuizApi(BaseAPI):
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-11-20
-        url = f"https://{base_url}/admin/quiz/question/list"
+        url = f"https://{admin_base_url}/admin/quiz/question/list"
         payload = {
             "courseName": courseName,
-            "description": description,
-            "difficulty": difficulty,
             "page": page,
-            "questionType": questionType,
             "size": size,
-            "status": status
         }
+        payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
@@ -135,18 +134,18 @@ class AdminQuizApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def status(self, authorization, request='', DeviceType="web", code=200, **kwargs):
+    def quiz_question_status(self, authorization, questionId, status=0, DeviceType="web", code=200):
         """
         启用/禁用题目
         :param request: (object, body, required) request
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-11-20
-        url = f"https://{base_url}/admin/quiz/question/status"
+        url = f"https://{admin_base_url}/admin/quiz/question/status"
         payload = {
-            "request": request
+            "id": questionId,
+            "status": status
         }
-        payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
@@ -159,14 +158,14 @@ class AdminQuizApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def deleteDelete(self, authorization, questionId=0, DeviceType="web", code=200, **kwargs):
+    def delete_quiz_question(self, authorization, questionId=0, DeviceType="web", code=200):
         """
         删除题目
         :param questionId: (integer, path, required) questionId
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-11-20
-        url = f"https://{base_url}/admin/quiz/question/{questionId}/delete"
+        url = f"https://{admin_base_url}/admin/quiz/question/{questionId}/delete"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
