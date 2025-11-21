@@ -86,14 +86,14 @@ class AdminLevelskillsApi(BaseAPI):
         payload = {
             "educationType": "string",
             "necessary": True,
-            "prerequisiteSkill": "string",
-            "parentSkill": "string"
+            "prerequisiteSkill": None,
+            "parentSkill": None
         }
         payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
-        response = requests.request("DELETE", url, headers=headers, json=payload)
+        response = requests.request("PUT", url, headers=headers, json=payload)
         error_msg = "更新等级技能"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:

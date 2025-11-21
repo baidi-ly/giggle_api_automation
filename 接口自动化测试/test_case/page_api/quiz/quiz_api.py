@@ -190,7 +190,7 @@ class QuizApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def promotionPubmit(self, authorization, request='', DeviceType="web", code=200, **kwargs):
+    def promotionPubmit(self, authorization, kidId, questions=[], DeviceType="web", code=200):
         """
         提交晋级Quiz
         :param request: (object, body, required) request
@@ -199,9 +199,9 @@ class QuizApi(BaseAPI):
         # Create Data:  V1.19.0  &  2025-11-19
         url = f"https://{base_url}/api/quiz/promotion/submit"
         payload = {
-            "request": request
+            "kidId": kidId,
+            "questions": questions
         }
-        payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 

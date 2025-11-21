@@ -27,7 +27,7 @@ class TestKid:
         """查询是否需要定级-正向用例"""
         kids_res = self.kid.getKids(self.authorization)
         for kid in kids_res['data']:
-            if kid['name'] == 'giggle-kid-UHS4NE':
+            if kid['name'] == 'New Kid':
                 kid_id = kid['id']
         res = self.kid.check_placement(self.authorization, kid_id)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'  # TODO
@@ -49,7 +49,7 @@ class TestKid:
         """查询是否需要定级-权限测试"""
         kids_res = self.kid.getKids(self.authorization)
         for kid in kids_res['data']:
-            if kid['name'] == 'giggle-kid-UHS4NE':
+            if kid['name'] == 'New Kid':
                 kid_id = kid['id']
         res = self.kid.check_placement(value, kid_id)  # TODO
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -62,7 +62,7 @@ class TestKid:
         """查询晋级进度条-正向用例"""
         kids_res = self.kid.getKids(self.authorization)
         for kid in kids_res['data']:
-            if kid['name'] == 'giggle-kid-UHS4NE':
+            if kid['name'] == 'New Kid':
                 kid_id = kid['id']
         res = self.kid.getLearningProgress(self.authorization, kid_id)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -95,7 +95,7 @@ class TestKid:
         """访客模式数据同步或注册用户定级数据保存-正向用例"""
         kids_res = self.kid.getKids(self.authorization)
         for kid in kids_res['data']:
-            if kid['name'] == 'giggle-kid-UHS4NE':
+            if kid['name'] == 'New Kid':
                 kid_id = kid['id']
         res = self.kid.learningLevel(self.authorization, kid_id)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'

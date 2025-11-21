@@ -11,7 +11,7 @@ import time
 from config import RunConfig
 from test_case.page_api.base_api import BaseAPI
 
-base_url = RunConfig.base_url
+base_url = RunConfig.baseurl
 
 
 class AdminSkillrelationApi(BaseAPI):

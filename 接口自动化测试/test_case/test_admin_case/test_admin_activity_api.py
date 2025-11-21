@@ -681,7 +681,7 @@ class TestAdminActivity:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'] == [{'code': 'COURSE_COMPLETE', 'name': '完课'}], f"接口返回data数据异常：{res['data']}"
+        assert res['data'] == [{'code': 'COURSE_COMPLETE', 'name': '完课'},{'code': 'PLACEMENT_COMPLETE', 'name': '完成入学QUIZ'}], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
     @pytest.mark.parametrize(
@@ -712,7 +712,7 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
         task_names = DataFrame(res['data'])['name'].tolist()
-        assert task_names == ['活动-扭蛋抽奖', '活动-扭蛋分享好友', '活动-扭蛋邀请好友', '活动-扭蛋完课'], "通用活动任务定义列表有误！"
+        assert task_names == ['活动-扭蛋抽奖', '活动-扭蛋分享好友', '活动-扭蛋邀请好友', '活动-扭蛋完课', '入学Quiz完成任务'], "通用活动任务定义列表有误！"
 
     @pytest.mark.release
     @pytest.mark.parametrize(

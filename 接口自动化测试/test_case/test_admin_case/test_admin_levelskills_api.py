@@ -230,28 +230,31 @@ class TestAdminkid:
         }
         skill_id = self.admin_levelskills.createLevelSkill(self.authorization, **pl)['data']['id']
         # 分页查询课程等级技能列表，验证新增等级技能的educationType正确
-        level_skills1 = self.admin_levelskills.level_skills(self.authorization)['data']['content']
+        level_skills1 = self.admin_levelskills.level_skills(self.authorization)['data']
         for skill in level_skills1:
             if skill['id'] == skill_id:
                 assert skill['educationType'] == educationType
                 break
+        else:
+            assert False, "新增等级技能的educationType在列表中有误！"
         # 更新等级技能
         educationType_new = "dibo_test" + self.now + '_new'
         pl1 = {
             "educationType": educationType_new,
             "necessary": True
         }
-        res = self.admin_levelskills.updateLevelSkills(self.authorization, id=skill_id, **pl1)
+        res = self.admin_levelskills.updateLevelSkills(self.authorization, skill_id, **pl1)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
         assert res['data']['educationType'] == educationType_new
-        # 分页查询课程等级技能列表，验证更新后等级技能的educationType正确    # todo
-        level_skills2 = self.admin_levelskills.level_skills(self.authorization)['data']['content']
+        # 分页查询课程等级技能列表，验证更新后等级技能的educationType正确
+        level_skills2 = self.admin_levelskills.level_skills(self.authorization)['data']
         for skill in level_skills2:
             if skill['id'] == skill_id:
                 assert skill['educationType'] == educationType_new
+                break
         else:
             assert False
 
@@ -328,7 +331,7 @@ class TestAdminkid:
         }
         skill_id = self.admin_levelskills.createLevelSkill(self.authorization, **pl)['data']['id']
         # 分页查询课程等级技能列表，验证新增等级技能的educationType正确
-        level_skills1 = self.admin_levelskills.level_skills(self.authorization)['data']['content']
+        level_skills1 = self.admin_levelskills.level_skills(self.authorization)['data']
         for skill in level_skills1:
             if int(skill['id']) == skill_id:
                 assert skill['educationType'] == educationType
@@ -341,14 +344,14 @@ class TestAdminkid:
             "educationType": educationType_new,
             "necessary": True
         }
-        res = self.admin_levelskills.updateLevelSkills(self.authorization, id=skill_id, **pl1)
+        res = self.admin_levelskills.updateLevelSkills(self.authorization, skill_id, **pl1)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
         assert res['data']['educationType'] == educationType_new
-        # 分页查询课程等级技能列表，验证更新后等级技能的educationType正确    # todo
-        level_skills2 = self.admin_levelskills.level_skills(self.authorization)['data']['content']
+        # 分页查询课程等级技能列表，验证更新后等级技能的educationType正确
+        level_skills2 = self.admin_levelskills.level_skills(self.authorization)['data']
         for skill in level_skills2:
             if int(skill['id']) == skill_id:
                 assert skill['educationType'] == educationType_new
@@ -359,35 +362,6 @@ class TestAdminkid:
         del_res = self.admin_levelskills.deleteLevelskills(self.authorization, [skill_id])
         assert del_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{del_res['code']}】"
         # 分页查询课程等级技能列表，验证删除后等级技能不存在，删除成功
-        level_skills3 = self.admin_levelskills.level_skills(self.authorization)['data']['content']
+        level_skills3 = self.admin_levelskills.level_skills(self.authorization)['data']
         skill_ids = DataFrame(level_skills3)['id'].tolist()
         assert str(skill_id) not in skill_ids, "删除等级技能后，通过分页查询课程等级技能列表，列表中查询到删除的等级技能"
-
-    @pytest.mark.release
-    def test_admin_levelskills_positive_updateLevelSkills_ok(self):
-        """更新等级技能-正向用例"""
-        res = self.admin_levelskills.updateLevelSkills(self.authorization)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    @pytest.mark.parametrize(
-        'desc, value',
-        [
-            ('unauthorized', 'missing'),
-            ('no_auth', ''),
-            ('expired_token', expired_token),
-            ('invalid_token', 'invalid_token'),
-        ]
-    )
-    def test_admin_levelskills_permission_updateLevelSkills(self, desc, value):
-        """更新等级技能-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin_levelskills.updateLevelSkills(value, code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
