@@ -1365,7 +1365,7 @@ class BookApi(BaseAPI):
         :param file: (file, formData, optional) 上传文件
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-06
+        # Create Data:  V1.21.0  &  2025-11-06
         url = f"https://{base_url}/api/book/createOrModifyBook"
         payload = {
             "category": '',
@@ -1399,7 +1399,7 @@ class BookApi(BaseAPI):
 
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-06
+        # Create Data:  V1.21.0  &  2025-11-06
         url = f"https://{base_url}/api/book/categories"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -1419,7 +1419,7 @@ class BookApi(BaseAPI):
         :param bookId: (integer, path, required) bookId
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-06
+        # Create Data:  V1.21.0  &  2025-11-06
         url = f"https://{base_url}/api/book/{bookId}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -1440,7 +1440,7 @@ class BookApi(BaseAPI):
         :param translateLanguage: (string, query, optional) 目标翻译语言，用于翻译书籍名称和描述
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-06
+        # Create Data:  V1.21.0  &  2025-11-06
         url = f"https://{base_url}/api/book/{bookId}"
         payload = {
             "translateLanguage": translateLanguage
@@ -1463,7 +1463,7 @@ class BookApi(BaseAPI):
         :param bookId: (integer, path, required) bookId
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-14
+        # Create Data:  V1.21.0  &  2025-11-14
         url = f"https://{base_url}/api/book/bookDetailUrl/{bookId}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -1483,7 +1483,7 @@ class BookApi(BaseAPI):
         :param bookId: (integer, path, required) bookId
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-14
+        # Create Data:  V1.21.0  &  2025-11-14
         url = f"https://{base_url}/api/book/coverDetailUrl/{bookId}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -1503,7 +1503,7 @@ class BookApi(BaseAPI):
         :param req: (object, body, required) req
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-15
+        # Create Data:  V1.21.0  &  2025-11-15
         url = f"https://{base_url}/api/book/narration/save"
         payload = {
             "bookId": bookId,
@@ -1530,7 +1530,7 @@ class BookApi(BaseAPI):
         :param narrationLanguage: (string, query, required) 领读语言代码（如zh、en、bn）
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-15
+        # Create Data:  V1.21.0  &  2025-11-15
         url = f"https://{base_url}/api/book/narration/data"
         payload = {
             "bookId": bookId,
@@ -1555,7 +1555,7 @@ class BookApi(BaseAPI):
         :param enabled: (boolean, query, required) 是否启用
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-15
+        # Create Data:  V1.21.0  &  2025-11-15
         url = f"https://{base_url}/api/book/narration/setEnabled"
         payload = {
             "bookId": bookId,
@@ -1579,7 +1579,7 @@ class BookApi(BaseAPI):
         :param bookId: (integer, query, required) 故事书ID
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-15
+        # Create Data:  V1.21.0  &  2025-11-15
         url = f"https://{base_url}/api/book/narration/regenerate"
         payload = {
             "bookId": bookId

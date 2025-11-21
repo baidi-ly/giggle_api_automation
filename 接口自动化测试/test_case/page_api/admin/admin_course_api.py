@@ -239,7 +239,7 @@ class AdminCourseApi(BaseAPI):
         :param file: (file, formData, optional) 上传文件
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-11
+        # Create Data:  V1.21.0  &  2025-11-11
         url = f"https://{base_url}/admin/course/tag/create"
         payload = {
             "name": '',
@@ -269,7 +269,7 @@ class AdminCourseApi(BaseAPI):
         :param request: (object, body, required) request
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-11
+        # Create Data:  V1.21.0  &  2025-11-11
         url = f"https://{base_url}/admin/course/tag/{tagId}"
         payload = {
           "name": "string",
@@ -294,7 +294,7 @@ class AdminCourseApi(BaseAPI):
         :param tagId: (integer, path, required) 标签ID
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-11
+        # Create Data:  V1.21.0  &  2025-11-11
         url = f"https://{base_url}/admin/course/tag/{tagId}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -318,7 +318,7 @@ class AdminCourseApi(BaseAPI):
         :param tagType: (string, query, optional) 标签类型过滤：normal-普通标签，hot-热门标签，recommended_search-推荐搜索标签
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-11
+        # Create Data:  V1.21.0  &  2025-11-11
         url = f"https://{base_url}/admin/course/tag/list"
         payload = {
             "name": '',
@@ -346,7 +346,7 @@ class AdminCourseApi(BaseAPI):
         :param request: (object, body, required) request
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-17
+        # Create Data:  V1.21.0  &  2025-11-17
         url = f"https://{base_url}/admin/course/album/create"
         payload = {
             "name": name,
@@ -376,7 +376,7 @@ class AdminCourseApi(BaseAPI):
         :param status: (integer, query, optional) 状态过滤：0-不生效，1-生效中
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-17
+        # Create Data:  V1.21.0  &  2025-11-17
         url = f"https://{base_url}/admin/course/album/list"
         payload = {
             "name": name,
@@ -403,7 +403,7 @@ class AdminCourseApi(BaseAPI):
         :param request: (object, body, required) request
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-17
+        # Create Data:  V1.21.0  &  2025-11-17
         url = f"https://{base_url}/admin/course/album/{albumId}"
         payload = {
             "name": album_name,
@@ -427,7 +427,7 @@ class AdminCourseApi(BaseAPI):
         :param albumId: (integer, path, required) 专辑ID
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-17
+        # Create Data:  V1.21.0  &  2025-11-17
         url = f"https://{base_url}/admin/course/album/{albumId}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -447,7 +447,7 @@ class AdminCourseApi(BaseAPI):
         :param courseIds: (string, query, required) 课程ID列表（多个ID用逗号分隔）
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-17
+        # Create Data:  V1.21.0  &  2025-11-17
         url = f"https://{base_url}/admin/course/skill/by-course-ids"
         payload = {
             "courseIds": courseIds
@@ -472,7 +472,7 @@ class AdminCourseApi(BaseAPI):
         :param skill: (string, query, optional) 技能名称搜索
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-17
+        # Create Data:  V1.21.0  &  2025-11-17
         url = f"https://{base_url}/admin/course/skill/list"
         payload = {
             "page": page,
@@ -518,7 +518,7 @@ class AdminCourseApi(BaseAPI):
         :param file: (file, formData, optional) 上传文件
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-20
+        # Create Data:  V1.21.0  &  2025-11-20
         url = f"https://{base_url}/admin/course/update"
         payload = {
             "categoryId": categoryId,

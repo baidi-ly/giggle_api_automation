@@ -24,7 +24,7 @@ class AdminKidApi(BaseAPI):
         :param topN: (integer, query, optional) topN
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-17
+        # Create Data:  V1.21.0  &  2025-11-17
         url = f"https://{base_url}/admin/kid/{kidId}/interaction-preference"
         payload = {
             "topN": topN
@@ -47,7 +47,7 @@ class AdminKidApi(BaseAPI):
         :param kidId: (integer, path, required) kidId
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-17
+        # Create Data:  V1.21.0  &  2025-11-17
         url = f"https://{base_url}/admin/kid/{kidId}/skill-mastery"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -67,7 +67,7 @@ class AdminKidApi(BaseAPI):
         :param kidId: (integer, path, required) kidId
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-17
+        # Create Data:  V1.21.0  &  2025-11-17
         url = f"https://{base_url}/admin/kid/{kidId}/tags"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -88,7 +88,7 @@ class AdminKidApi(BaseAPI):
         :param request: (object, body, required) request
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-17
+        # Create Data:  V1.21.0  &  2025-11-17
         url = f"https://{base_url}/admin/kid/{kidId}/tags/update"
         payload = {
             "childAge": childAge,

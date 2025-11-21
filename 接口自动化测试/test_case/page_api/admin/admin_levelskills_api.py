@@ -27,7 +27,7 @@ class AdminLevelskillsApi(BaseAPI):
         :param necessary: (object, string, required) 是否必修
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-10
+        # Create Data:  V1.21.0  &  2025-11-10
         url = f"https://{base_url}/admin/level-skills"
         payload = {
             "learningLevel": "L1",
@@ -56,7 +56,7 @@ class AdminLevelskillsApi(BaseAPI):
         :param skill: (string, query, optional) 技能名称搜索
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-10
+        # Create Data:  V1.21.0  &  2025-11-10
         url = f"https://{base_url}/admin/level-skills/list"
         payload = {
             "page": page,
@@ -81,7 +81,7 @@ class AdminLevelskillsApi(BaseAPI):
         :param ids: (object, body, required) request
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-10
+        # Create Data:  V1.21.0  &  2025-11-10
         url = f"https://{base_url}/admin/level-skills/{skill_id}"
         payload = {
             "educationType": "string",
@@ -108,7 +108,7 @@ class AdminLevelskillsApi(BaseAPI):
         :param ids: (object, body, required) request
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-10
+        # Create Data:  V1.21.0  &  2025-11-10
         url = f"https://{base_url}/admin/level-skills/batch-delete"
         payload = {
             "ids": ids
@@ -132,7 +132,7 @@ class AdminLevelskillsApi(BaseAPI):
         :param file: (file, formData, optional) 上传文件
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-10
+        # Create Data:  V1.21.0  &  2025-11-10
         url = f"https://{base_url}/admin/level-skills/import"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType, Content_Type='multipart/form-data')

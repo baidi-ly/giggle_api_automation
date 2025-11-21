@@ -18,7 +18,7 @@ class CommonApi(BaseAPI):
         :param url: (string, query, required) url
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-14
+        # Create Data:  V1.21.0  &  2025-11-14
         url = f"https://{base_url}/api/common/getFileUrl"
         payload = {
             "url": key_url

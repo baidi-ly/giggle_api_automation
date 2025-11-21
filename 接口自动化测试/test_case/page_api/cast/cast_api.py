@@ -16,7 +16,7 @@ class CastApi(BaseAPI):
         :param languageCode: (string, query, optional) 语言编码
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-05
+        # Create Data:  V1.21.0  &  2025-11-05
         url = f"https://{base_url}/api/cast/albums"
         payload = {
             "languageCode": languageCode

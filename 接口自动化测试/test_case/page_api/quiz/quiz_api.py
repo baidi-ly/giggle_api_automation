@@ -16,7 +16,7 @@ class QuizApi(BaseAPI):
         :param quizId: (integer, path, required) 测验ID
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-04
+        # Create Data:  V1.21.0  &  2025-11-04
         url = f"https://{base_url}/api/quiz/{quizId}/detail"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -36,7 +36,7 @@ class QuizApi(BaseAPI):
         :param request: (object, body, required) request
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-11
+        # Create Data:  V1.21.0  &  2025-11-11
         url = f"https://{base_url}/api/quiz/promotion/submit"
         payload = {
             "kidId": 123,
@@ -75,7 +75,7 @@ class QuizApi(BaseAPI):
         :param request: (object, body, required) request
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-15
+        # Create Data:  V1.21.0  &  2025-11-15
         url = f"https://{base_url}/api/quiz/lesson/submit"
         payload = {
             "kidId": 0,
@@ -116,7 +116,7 @@ class QuizApi(BaseAPI):
         :param request: (object, body, required) request
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-19
+        # Create Data:  V1.21.0  &  2025-11-19
         url = f"https://{base_url}/api/quiz/fetch-questions"
         payload = {
             "count": 0,
@@ -142,7 +142,7 @@ class QuizApi(BaseAPI):
         :param request: (object, body, required) request
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-19
+        # Create Data:  V1.21.0  &  2025-11-19
         url = f"https://{base_url}/api/quiz/placement/submit"
         payload = {
             "kidId": kidId,
@@ -169,7 +169,7 @@ class QuizApi(BaseAPI):
         :param request: (object, body, required) request
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-19
+        # Create Data:  V1.21.0  &  2025-11-19
         url = f"https://{base_url}/api/quiz/lesson/submit"
         payload = {
             "kidId": kidId,
@@ -196,7 +196,7 @@ class QuizApi(BaseAPI):
         :param request: (object, body, required) request
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-19
+        # Create Data:  V1.21.0  &  2025-11-19
         url = f"https://{base_url}/api/quiz/promotion/submit"
         payload = {
             "kidId": kidId,

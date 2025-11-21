@@ -56,7 +56,7 @@ class VerifyApi(BaseAPI):
         :param joinCompetition: (boolean, query, required) joinCompetition
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-06
+        # Create Data:  V1.21.0  &  2025-11-06
         url = f"https://{base_url}/api/verify/submitToPublic"
         payload = {
             "bookId": bookId,

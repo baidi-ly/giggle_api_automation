@@ -133,7 +133,7 @@ class GameApi(BaseAPI):
         :param req: (object, body, required) req
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-10
+        # Create Data:  V1.21.0  &  2025-11-10
         url = f"https://{base_url}/api/game/report-reviewed-words"
         payload = {
             "kidId": 0,
@@ -159,7 +159,7 @@ class GameApi(BaseAPI):
         :param req: (object, body, required) req
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-10
+        # Create Data:  V1.21.0  &  2025-11-10
         url = f"https://{base_url}/api/game/get-unreviewed-words"
         payload = {
           "kidId": 0,
@@ -186,7 +186,7 @@ class GameApi(BaseAPI):
         :param kidId: (string, query, required) kidId
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-10
+        # Create Data:  V1.21.0  &  2025-11-10
         url = f"https://{base_url}/api/game/learningStatus"
         payload = {
             "kidId": kidId
@@ -209,7 +209,7 @@ class GameApi(BaseAPI):
         :param kidId: (integer, path, required) kidId
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-15
+        # Create Data:  V1.21.0  &  2025-11-15
         url = f"https://{base_url}/api/game/kids/{kidId}/daily-learning"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -229,7 +229,7 @@ class GameApi(BaseAPI):
         :param kidId: (integer, path, required) kidId
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-15
+        # Create Data:  V1.21.0  &  2025-11-15
         url = f"https://{base_url}/api/game/kids/{kidId}/daily-learning"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)

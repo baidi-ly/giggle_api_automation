@@ -437,13 +437,26 @@ class TestBook:
                 break
         else:
             assert False, "未找到《Little Ray》这本书！"
+
         res = self.book.getNarrationData(self.authorization, bookId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data']['bookId'] == int(bookId)
-        assert res['data']['learningLanguage'] == 'en'
-        assert res['data']['narrationLanguage'] == 'zh'
+        assert res['data']['enabled']
+
+        for book in books_res:
+            if book['bookName'] == 'hq_test':
+                bookId = book['id']
+                break
+        else:
+            assert False, "未找到《hq_test》这本书！"
+        res1 = self.book.getNarrationData(self.authorization, bookId)
+        assert isinstance(res1, dict), f'接口返回类型异常: {type(res1)}'
+        assert res1['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res1['code']}】"
+        assert res1['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res1['message']}】"
+        assert res1['data']['bookId'] == int(bookId)
+        assert res1['data']['learningLanguage'] == 'en'
+        assert res1['data']['narrationLanguage'] == 'zh'
 
     @pytest.mark.release
     @pytest.mark.parametrize(

@@ -80,7 +80,7 @@ class AdminActivityApi(BaseAPI):
 
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-06
+        # Create Data:  V1.21.0  &  2025-11-06
         url = f"https://{base_url}/admin/activity/tag/list"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -100,7 +100,7 @@ class AdminActivityApi(BaseAPI):
 
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-06
+        # Create Data:  V1.21.0  &  2025-11-06
         url = f"https://{base_url}/admin/activity/task/general/list"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -120,7 +120,7 @@ class AdminActivityApi(BaseAPI):
         :param req: (object, body, required) req
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-06
+        # Create Data:  V1.21.0  &  2025-11-06
         url = f"https://{base_url}/admin/activity/task"
         payload = {
             "activityId": 1,
@@ -146,7 +146,7 @@ class AdminActivityApi(BaseAPI):
         :param id: (integer, path, required) id
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-06
+        # Create Data:  V1.21.0  &  2025-11-06
         url = f"https://{base_url}/admin/activity/task/{id}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -166,7 +166,7 @@ class AdminActivityApi(BaseAPI):
         :param activityId: (integer, path, required) activityId
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-06
+        # Create Data:  V1.21.0  &  2025-11-06
         url = f"https://{base_url}/admin/activity/{activityId}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)

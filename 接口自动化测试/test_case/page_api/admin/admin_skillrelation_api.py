@@ -23,7 +23,7 @@ class AdminSkillrelationApi(BaseAPI):
         :param file: (file, formData, optional) 上传文件
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-17
+        # Create Data:  V1.21.0  &  2025-11-17
         url = f"https://{base_url}/admin/skill-relation/import-by-id"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType, Content_Type='multipart/form-data')
@@ -43,7 +43,7 @@ class AdminSkillrelationApi(BaseAPI):
         :param file: (file, formData, optional) 上传文件
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-17
+        # Create Data:  V1.21.0  &  2025-11-17
         url = f"https://{base_url}/admin/skill-relation/import-by-name"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType, Content_Type='multipart/form-data')

@@ -1,5 +1,7 @@
 import datetime
 import json
+import random
+import string
 import time
 from time import strftime
 
@@ -79,20 +81,20 @@ class TestCourse:
         except Exception as e:
             print(f'删除课程用户标签失败，原因是：{e}')
 
-        # try:
-        #     questions_res = self.admin_quiz.quiz_questions(self.authorization, 'Colors', size=1000)
-        #     questionIds = DataFrame(questions_res['data']['content'])['id'].tolist()
-        #     for questionId in questionIds:
-        #         # 删除quiz题目
-        #         self.admin_quiz.delete_quiz_question(self.authorization, questionId)
-        # except Exception as e:
-        #     print(f'删除quiz题目失败，原因是：{e}')
+        try:
+            questions_res = self.admin_quiz.quiz_questions(self.authorization, 'Colors', size=1000)
+            questionIds = DataFrame(questions_res['data']['content'])['id'].tolist()
+            for questionId in questionIds:
+                # 删除quiz题目
+                self.admin_quiz.delete_quiz_question(self.authorization, questionId)
+        except Exception as e:
+            print(f'删除quiz题目失败，原因是：{e}')
 
     @pytest.fixture(scope='function')
     def createCourseTag_method(self):
         '''方法固件 - 创建课程用户标签'''
         # 创建课程用户标签
-        tag_name = 'course_tag_test' + self.now
+        tag_name = 'course_tag_test' + self.now + random.choice(string.ascii_letters)
         pl = {
             "name": tag_name,
             "multilingualKey": "tag.reading",

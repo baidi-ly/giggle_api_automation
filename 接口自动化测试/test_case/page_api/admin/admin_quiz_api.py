@@ -78,7 +78,7 @@ class AdminQuizApi(BaseAPI):
         :param request: (object, body, required) request
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-20
+        # Create Data:  V1.21.0  &  2025-11-20
         url = f"https://{admin_base_url}/admin/quiz/question/generate"
         payload = {
             "coursePlans": [
@@ -114,7 +114,7 @@ class AdminQuizApi(BaseAPI):
         :param status: (integer, query, optional) status
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-20
+        # Create Data:  V1.21.0  &  2025-11-20
         url = f"https://{admin_base_url}/admin/quiz/question/list"
         payload = {
             "courseName": courseName,
@@ -140,7 +140,7 @@ class AdminQuizApi(BaseAPI):
         :param request: (object, body, required) request
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-20
+        # Create Data:  V1.21.0  &  2025-11-20
         url = f"https://{admin_base_url}/admin/quiz/question/status"
         payload = {
             "id": questionId,
@@ -164,7 +164,7 @@ class AdminQuizApi(BaseAPI):
         :param questionId: (integer, path, required) questionId
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-20
+        # Create Data:  V1.21.0  &  2025-11-20
         url = f"https://{admin_base_url}/admin/quiz/question/{questionId}/delete"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)

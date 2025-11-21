@@ -44,7 +44,7 @@ class AdminUserApi(BaseAPI):
         :param maxKidsLimit: (integer, query, optional) 最大kids数量限制
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-05
+        # Create Data:  V1.21.0  &  2025-11-05
         url = f"https://{base_url}/admin/user/delete-problem-user/{userId}"
         payload = {
             "batchSize": batchSize,

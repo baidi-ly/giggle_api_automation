@@ -89,7 +89,7 @@ class CourseApi(BaseAPI):
         :param size: (integer, query, optional) 每页数量
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-10
+        # Create Data:  V1.21.0  &  2025-11-10
         url = f"https://{base_url}/api/course/tags"
         payload = {
             "page": page,
@@ -114,7 +114,7 @@ class CourseApi(BaseAPI):
         :param size: (integer, query, optional) 每页数量
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-11
+        # Create Data:  V1.21.0  &  2025-11-11
         url = f"https://{base_url}/api/course/albums"
         payload = {
             "page": page,
@@ -138,7 +138,7 @@ class CourseApi(BaseAPI):
         :param kidId: (integer, query, required) kidId
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-17
+        # Create Data:  V1.21.0  &  2025-11-17
         url = f"https://{base_url}/api/course/promotion/check"
         payload = {
             "kidId": kidId
@@ -162,7 +162,7 @@ class CourseApi(BaseAPI):
         :param learningLevel: (string, query, required) 学习等级（可选），如L1、L2等
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-17
+        # Create Data:  V1.21.0  &  2025-11-17
         url = f"https://{base_url}/api/course/recommend/list"
         payload = {
             "kidId": kidId,
@@ -186,7 +186,7 @@ class CourseApi(BaseAPI):
         :param learningLevel: (string, query, required) 学习等级，如L1、L2等
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-17
+        # Create Data:  V1.21.0  &  2025-11-17
         url = f"https://{base_url}/api/course/recommend/public/list"
         payload = {
             "learningLevel": learningLevel
@@ -213,7 +213,7 @@ class CourseApi(BaseAPI):
         :param strategy: (string, query, optional) 推荐策略，当前仅支持BasicFiltering
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-17
+        # Create Data:  V1.21.0  &  2025-11-17
         url = f"https://{base_url}/api/course/tag-base-recommend"
         payload = {
             "kidId": kidId,
@@ -241,7 +241,7 @@ class CourseApi(BaseAPI):
         :param size: (integer, query, optional) 每页数量
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-17
+        # Create Data:  V1.21.0  &  2025-11-17
         url = f"https://{base_url}/api/course/tags/{tagId}/courses"
         payload = {
             "page": page,

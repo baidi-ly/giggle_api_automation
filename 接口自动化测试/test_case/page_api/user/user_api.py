@@ -335,7 +335,7 @@ class UserApi(BaseAPI):
 
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-05
+        # Create Data:  V1.21.0  &  2025-11-05
         url = f"https://{base_url}/api/user/deleteAccount"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -355,7 +355,7 @@ class UserApi(BaseAPI):
 
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-07
+        # Create Data:  V1.21.0  &  2025-11-07
         url = f"https://{base_url}/api/user/kids"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)

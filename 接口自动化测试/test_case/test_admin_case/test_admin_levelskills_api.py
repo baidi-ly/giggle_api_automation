@@ -1,5 +1,6 @@
 import datetime
 import random
+import string
 import sys
 import os
 from time import strftime
@@ -48,7 +49,7 @@ class TestAdminkid:
     @pytest.mark.release
     def test_admin_course_positive_createLevelSkill_ok(self):
         """新增等级技能-正向用例"""
-        educationType = "dibo_test_educationType" + self.now
+        educationType = "dibo_test_educationType" + self.now + random.choice(string.ascii_letters)
         skill = "dibo_test_skill" + self.now
         pl = {
             "educationType": educationType,
@@ -60,7 +61,7 @@ class TestAdminkid:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data']['learningLevel'] == 'L1'
         assert res['data']['educationType'] == educationType
-        assert res['data']['skill'] == 'Reading-Level1'
+        assert res['data']['skill'] == skill
         assert res['data']['necessary'] == True
 
     @pytest.mark.release
@@ -122,7 +123,7 @@ class TestAdminkid:
     def test_admin_course_positive_createLevelSkill_skill_repeat_check(self):
         """新增等级技能-正向用例"""
         # 验证同一个educationType第一次正常创建课程技能
-        skill = "dibo_test_skill" + self.now
+        skill = "dibo_test_skill" + self.now + random.choice(string.ascii_letters)
         pl = {
             "skill": skill,
             "educationType": "dibo_test",
@@ -225,7 +226,7 @@ class TestAdminkid:
     def test_admin_course_positive_update_levelSkills_ok(self):
         """更新等级技能-正向用例"""
         # 新增等级技能
-        educationType = "dibo_test" + self.now + str(random.randint(1,10))
+        educationType = "dibo_test" + self.now + random.choice(string.ascii_letters)
         pl = {
             "educationType": educationType,
         }
@@ -272,7 +273,7 @@ class TestAdminkid:
     def test_admin_course_permission_update_levelSkills(self, desc, value):
         """更新等级技能-权限测试"""
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin_levelskills.updateLevelSkills(value, code=401)
+        res = self.admin_levelskills.updateLevelSkills(value, 0, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -301,7 +302,10 @@ class TestAdminkid:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'] == {'errors': ['第2行：学习等级缺失', '第3行：学习等级缺失', '第4行：学习等级缺失'], 'failed': 3, 'success': 0, 'total': 3}, f"接口返回data数据异常：{res['data']}"
+        assert res['data'] == {'errors': ['第2行：教育类型缺失', '第3行：教育类型缺失', '第4行：教育类型缺失'],
+                     'failed': 3,
+                     'success': 0,
+                     'total': 3}, f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
     @pytest.mark.parametrize(
@@ -315,7 +319,10 @@ class TestAdminkid:
     )
     def test_admin_course_permission_levelSkills_import(self, desc, value):
         """批量导入学习技能-权限测试"""
-        res = self.admin_levelskills.levelSkills_import(value, code=401)
+        file = {
+            'file': ('批量导入技能测试文档.xlsx', open(os.getcwd() + f'/test_data/批量导入技能测试文档.xlsx', 'rb'))
+        }
+        res = self.admin_levelskills.levelSkills_import(value, file, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -326,7 +333,7 @@ class TestAdminkid:
     def test_admin_course_course_level_skills_total_ok(self):
         """等级技能相关接口增删改查验证-正向用例"""
         # 新增等级技能
-        educationType = "dibo_test" + self.now + str(random.randint(1,10))
+        educationType = "dibo_test" + self.now + random.choice(string.ascii_letters)
         pl = {
             "educationType": educationType,
         }
@@ -340,7 +347,7 @@ class TestAdminkid:
         else:
             assert False, "新增等级技能后，通过分页查询课程等级技能列表，列表中未查询到新增的等级技能"
         # 更新等级技能
-        educationType_new = "dibo_test" + self.now + '_new'
+        educationType_new = "dibo_test" + self.now + random.choice(string.ascii_letters) + '_new'
         pl1 = {
             "educationType": educationType_new,
             "necessary": True

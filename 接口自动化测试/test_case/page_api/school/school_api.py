@@ -624,7 +624,7 @@ class SchoolApi(BaseAPI):
         :param students: (string, query, optional) students
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-04
+        # Create Data:  V1.21.0  &  2025-11-04
         url = f"https://{base_url}/api/school/lesson/{lessonId}/quiz/report/{lessonReportId}"
         payload = {
             "all": all,
@@ -650,7 +650,7 @@ class SchoolApi(BaseAPI):
         :param req: (object, body, required) req
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-05
+        # Create Data:  V1.21.0  &  2025-11-05
         url = f"https://{base_url}/api/school/student/migrate"
         payload = {
             "sourceClassIds": sourceClassIds,
@@ -676,7 +676,7 @@ class SchoolApi(BaseAPI):
         :param groupSeqNo: (integer, path, required) groupSeqNo
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-05
+        # Create Data:  V1.21.0  &  2025-11-05
         url = f"https://{base_url}/api/school/class/{classId}/qrcode/{groupSeqNo}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -700,7 +700,7 @@ class SchoolApi(BaseAPI):
         :param size: (integer, query, optional) size
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-05
+        # Create Data:  V1.21.0  &  2025-11-05
         url = f"https://{base_url}/api/school/class/{classId}/lessons"
         payload = {
             "all": all,
@@ -726,7 +726,7 @@ class SchoolApi(BaseAPI):
         :param req: (object, body, required) req
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-11
+        # Create Data:  V1.21.0  &  2025-11-11
         url = f"https://{base_url}/api/school/resource/favorite"
         payload = {
             "resourceRefId": 123,
@@ -751,7 +751,7 @@ class SchoolApi(BaseAPI):
         :param req: (object, body, required) req
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-11
+        # Create Data:  V1.21.0  &  2025-11-11
         url = f"https://{base_url}/api/school/resource/favorite"
         payload = {
             "resourceRefId": 123,
@@ -776,7 +776,7 @@ class SchoolApi(BaseAPI):
         :param lessonId: (integer, path, required) lessonId
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-11
+        # Create Data:  V1.21.0  &  2025-11-11
         url = f"https://{base_url}/api/school/lesson/{lessonId}/quiz/report/list"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -798,7 +798,7 @@ class SchoolApi(BaseAPI):
         :param req: (object, body, required) req
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-11
+        # Create Data:  V1.21.0  &  2025-11-11
         url = f"https://{base_url}/api/school/lesson/{lessonId}/quiz/{quizId}/report"
         payload = {
             "answers": [
@@ -833,7 +833,7 @@ class SchoolApi(BaseAPI):
         课程技能标签列表
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-17
+        # Create Data:  V1.21.0  &  2025-11-17
         url = f"https://{base_url}/api/school/lesson/resource/skill/list"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -853,7 +853,7 @@ class SchoolApi(BaseAPI):
 
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-17
+        # Create Data:  V1.21.0  &  2025-11-17
         url = f"https://{base_url}/api/school/lesson/resource/skill/themes"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -877,7 +877,7 @@ class SchoolApi(BaseAPI):
         :param tagId: (integer, query, optional) tagId
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-17
+        # Create Data:  V1.21.0  &  2025-11-17
         url = f"https://{base_url}/api/school/lesson/resource/storybook"
         payload = {
             "keyword": '',
@@ -905,7 +905,7 @@ class SchoolApi(BaseAPI):
 
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-17
+        # Create Data:  V1.21.0  &  2025-11-17
         url = f"https://{base_url}/api/school/lesson/resource/storybook/themes"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)

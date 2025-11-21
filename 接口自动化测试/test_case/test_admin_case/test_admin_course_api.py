@@ -1,4 +1,6 @@
 import datetime
+import random
+import string
 import sys
 import os
 from time import strftime
@@ -348,7 +350,7 @@ class TestAdminCourse:
         '''方法固件 - 创建课程用户标签'''
         skillIds = []
         for i in range(3):
-            educationType = "dibo_test" + self.now + str(i)
+            educationType = "dibo_test" + self.now + random.choice(string.ascii_letters)
             pl = {
                 "educationType": educationType,
             }
