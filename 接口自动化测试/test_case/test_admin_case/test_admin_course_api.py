@@ -48,11 +48,20 @@ class TestAdminCourse:
         try:
             for status in [0, 1]:
                 pl = {"status": status}
-                course_tags = self.admin.course_tag_list(self.authorization, **pl)['data']
+                course_tags = self.admin.course_tag_list(self.authorization, **pl)['data']['content']
                 for course_tag in course_tags:
                     # 删除课程用户标签
                     if course_tag['name'].startswith('course_tag_test'):
                         course_tag_id = course_tag['id']
+                        if status == 1:
+                            tag_id = course_tag['id']
+                            pl = {
+                                "name": course_tag['name'],
+                                "multilingualKey": course_tag['multilingualKey'],
+                                "skillIds": course_tag['skills'],
+                                "status": 0
+                            }
+                            self.admin.update_course_tag(self.authorization, tag_id, **pl)
                         delete_res = self.admin.delete_course_tag(self.authorization, course_tag_id)
                         assert delete_res['data'] == '删除成功', f"接口返回data数据异常：{delete_res['data']}"
         except Exception as e:
@@ -350,7 +359,7 @@ class TestAdminCourse:
         '''方法固件 - 创建课程用户标签'''
         skillIds = []
         for i in range(3):
-            educationType = "dibo_test" + self.now + random.choice(string.ascii_letters)
+            educationType = "dibo_test" + self.now + str(i)
             pl = {
                 "educationType": educationType,
             }
@@ -596,9 +605,12 @@ class TestAdminCourse:
         tag_name_new = 'course_tag_test_new' + self.now
         pl2 = {
             "name": tag_name_new,
-            "status": 0
+            "status": 0,
+            "multilingualKey": "tag.reading",
+            "tagType": 'normal',  # 必填，可选值包括 normal、hot、recommended_search 等。
+            "skillIds": skillIds,  # 关联的课程等级技能 ID 列表，Long 数组，可选，默认空数组。
         }
-        update_res = self.admin.update_course_tag(self.authorization, course_tag_id, **pl1)
+        update_res = self.admin.update_course_tag(self.authorization, course_tag_id, **pl2)
         assert update_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{update_res['code']}】"
         pl3 = {
             "name": '',
@@ -609,7 +621,7 @@ class TestAdminCourse:
             if course_tag['id'] == course_tag_id:
                 assert course_tag['status'] == pl2.get('status')
                 assert course_tag['name'] == pl2.get('name')
-                assert course_tag['multilingualKey'] == pl.get('multilingualKey')
+                assert course_tag['multilingualKey'] == pl2.get('multilingualKey')
                 skills = [int(i) for i in DataFrame(course_tag['skills'])['id'].tolist()]
                 assert skills == pl2.get('skillIds')
                 break
@@ -619,7 +631,7 @@ class TestAdminCourse:
         # 删除课程用户标签
         delete_res = self.admin.delete_course_tag(self.authorization, course_tag_id)
         assert delete_res['data'] == '删除成功', f"接口返回data数据异常：{delete_res['data']}"
-        course_tags3 = self.admin.course_tag_list(self.authorization, **pl3)['data']
+        course_tags3 = self.admin.course_tag_list(self.authorization, **pl3)['data']['content']
         course_tag_ids3 = DataFrame(course_tags3)['id'].tolist()
         assert course_tag_id not in course_tag_ids3
 
@@ -688,12 +700,12 @@ class TestAdminCourse:
         """更新课程专辑-正向用例"""
         # 创建课程专辑
         tagIds = [createCourseTag_method]
-        album_name = 'dibo_test' + self.now
+        album_name = 'dibo_test' + self.now + random.choice(string.ascii_letters)
         res = self.admin.course_album_create(self.authorization, album_name, tagIds)
         album_id = res['data']['id']
 
         # 更新课程专辑
-        album_new_name = 'dibo_test_new' + self.now
+        album_new_name = 'dibo_test_new' + self.now + random.choice(string.ascii_letters)
         res = self.admin.update_course_album(self.authorization, album_id, album_new_name, status=0)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -819,7 +831,7 @@ class TestAdminCourse:
         skills_res = res['data'][0]['skills']
         for skill in skills_res:
             assert skill['educationType'] == 'Listening and Speaking Skills'
-            assert skill['learningLevel'] == 'L5'
+            assert skill['learningLevel'] == 'L1'
             assert skill['prerequisiteSkill'] == None
 
     @pytest.mark.release

@@ -90,6 +90,28 @@ class TestCourse:
         except Exception as e:
             print(f'删除quiz题目失败，原因是：{e}')
 
+        try:
+            for status in [0, 1]:
+                pl = {"status": status}
+                course_tags = self.admin_course.course_tag_list(self.authorization, **pl)['data']['content']
+                for course_tag in course_tags:
+                    # 删除课程用户标签
+                    if course_tag['name'].startswith('course_tag_test'):
+                        course_tag_id = course_tag['id']
+                        if status == 1:
+                            tag_id = course_tag['id']
+                            pl = {
+                                "name": course_tag['name'],
+                                "multilingualKey": course_tag['multilingualKey'],
+                                "skillIds": course_tag['skills'],
+                                "status": 0
+                            }
+                            self.admin_course.update_course_tag(self.authorization, tag_id, **pl)
+                        delete_res = self.admin_course.delete_course_tag(self.authorization, course_tag_id)
+                        assert delete_res['data'] == '删除成功', f"接口返回data数据异常：{delete_res['data']}"
+        except Exception as e:
+            print(f'删除课程用户标签失败，原因是：{e}')
+
     @pytest.fixture(scope='function')
     def createCourseTag_method(self):
         '''方法固件 - 创建课程用户标签'''

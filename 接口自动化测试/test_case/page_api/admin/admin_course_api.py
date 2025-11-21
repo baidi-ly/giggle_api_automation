@@ -321,11 +321,9 @@ class AdminCourseApi(BaseAPI):
         # Create Data:  V1.21.0  &  2025-11-11
         url = f"https://{base_url}/admin/course/tag/list"
         payload = {
-            "name": '',
             "page": 0,
-            "size": 20,
+            "size": 100,
             "status": 1,
-            "tagType": ''
         }
         payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))

@@ -140,3 +140,33 @@ class TestAdminkid:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.fixture(scope="class")
+    def getSecondekidId(self):
+        '''类前置 - 获取kidId'''
+        kid_res = self.kid.getKids(self.authorization)['data']
+        for kid in kid_res:
+            if kid['name'] == "dibo_test4":
+                kid_id = kid['id']
+                break
+        yield kid_id
+
+    @pytest.mark.release
+    def test_admin_kid_positive_updateSkillMastery_ok(self, getSecondekidId):
+        """更新用户技能标签-正向用例"""
+        kid_id = getSecondekidId
+        skillMasteryMap = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']['skillMasteryMap']
+        for k, v in skillMasteryMap.items():
+            if k == 'Word-Picture Association-L1':
+                pl = {
+                    "kidId": kid_id,
+                    "skill": v['skill'],
+                    "masteryScore": 74.0,
+                    "masteryState": "Practicing",
+                    "componentExposureRate": 0.5
+                }
+        res = self.admin_kid.updateSkillMastery(self.authorization, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
