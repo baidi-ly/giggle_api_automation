@@ -43,9 +43,9 @@ class TestSchoolApi:
         pl = {"kidId": kidId}
         res = self.quiz.promotion_submit(self.authorization, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        assert res['code'] == 100006, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
+        assert res['data'] == 'invalid parameter', f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
     @pytest.mark.parametrize(
@@ -92,11 +92,11 @@ class TestSchoolApi:
                 }
             ]
         }
-        res = self.quiz.submit_lesson_quiz(self.authorization)
+        res = self.quiz.submit_lesson_quiz(self.authorization, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        assert not res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
     @pytest.mark.parametrize(

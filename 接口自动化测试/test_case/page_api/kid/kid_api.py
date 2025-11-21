@@ -42,7 +42,7 @@ class KidApi(BaseAPI):
         :param kidId: (integer, query, required) kidId
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-15
+        # Create Data:  V1.21.0  &  2025-11-15
         url = f"https://{base_url}/api/kid/placement/check"
         payload = {
             "kidId": kidId
@@ -65,7 +65,7 @@ class KidApi(BaseAPI):
         :param kidId: (integer, path, required) kidId
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-15
+        # Create Data:  V1.21.0  &  2025-11-15
         url = f"https://{base_url}/api/kid/{kidId}/learning-progress"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -85,7 +85,7 @@ class KidApi(BaseAPI):
         :param request: (object, body, required) request
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-15
+        # Create Data:  V1.21.0  &  2025-11-15
         url = f"https://{base_url}/api/kid/learning-level"
         payload = {
             "kidId": kidId,

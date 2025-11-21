@@ -1,4 +1,5 @@
 import datetime
+import random
 import sys
 import os
 from time import strftime
@@ -224,7 +225,7 @@ class TestAdminkid:
     def test_admin_course_positive_update_levelSkills_ok(self):
         """更新等级技能-正向用例"""
         # 新增等级技能
-        educationType = "dibo_test" + self.now
+        educationType = "dibo_test" + self.now + str(random.randint(1,10))
         pl = {
             "educationType": educationType,
         }
@@ -325,7 +326,7 @@ class TestAdminkid:
     def test_admin_course_course_level_skills_total_ok(self):
         """等级技能相关接口增删改查验证-正向用例"""
         # 新增等级技能
-        educationType = "dibo_test" + self.now
+        educationType = "dibo_test" + self.now + str(random.randint(1,10))
         pl = {
             "educationType": educationType,
         }
