@@ -9,8 +9,6 @@ base_url = BaseAPI().admin_baseurl()
 
 class AdminStudyplanApi(BaseAPI):
 
-    pass
-
     def study_plan_create(self, authorization, contents=[], DeviceType="web", code=200, **kwargs):
         """
         创建学习计划（包含单元和内容）

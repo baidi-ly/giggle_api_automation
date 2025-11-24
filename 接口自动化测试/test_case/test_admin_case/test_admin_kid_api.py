@@ -146,7 +146,7 @@ class TestAdminkid:
         '''类前置 - 获取kidId'''
         kid_res = self.kid.getKids(self.authorization)['data']
         for kid in kid_res:
-            if kid['name'] == "dibo_test4":
+            if kid['name'] == "dibo_test6":
                 kid_id = kid['id']
                 break
         yield kid_id
@@ -157,7 +157,7 @@ class TestAdminkid:
         kid_id = getSecondekidId
         skillMasteryMap = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']['skillMasteryMap']
         for k, v in skillMasteryMap.items():
-            if k == 'Word-Picture Association-L1':
+            if k == 'Letter Recognition-L1':
                 pl = {
                     "kidId": kid_id,
                     "skill": v['skill'],
