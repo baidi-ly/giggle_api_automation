@@ -882,3 +882,30 @@ class TestAdminCourse:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_course_positive_course_details_ok(self):
+        """获取课程详情包括版本信息-正向用例"""
+        topcategory_res = self.admin.getAlltopcategory(self.admin_authorization)
+        parentId = topcategory_res['data'][0]['id']
+        category_res = self.admin.getAllsubcategory(self.admin_authorization, parentId)
+        for subcategory in category_res['data']:
+            flag = False
+            if subcategory['level'] == "1":
+                categoryId = subcategory['id']
+                courselistAll = self.admin.course_listAll(self.admin_authorization, categoryId)
+                for course in courselistAll['data']:
+                    courseId = course['id']
+                    course_details_res = self.admin.course_details(self.admin_authorization, courseId)['data']['course']
+                    if "Blending CVC words-L6" in course_details_res['skillList']:
+                        print(course['name'])
+                        flag= True
+                        break
+            if flag:
+                break
+        else:
+            assert False
+
+        # else:
+        #     assert False
+

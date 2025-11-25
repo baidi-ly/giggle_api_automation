@@ -2,6 +2,7 @@ import json
 import time
 
 from test_case.page_api.base_api import BaseAPI
+from utils.rsa_manage import password_base64
 
 requests = BaseAPI().http_timeout()
 base_url = BaseAPI().baseurl()
@@ -268,10 +269,10 @@ class UserApi(BaseAPI):
         """
         # Create Data:  V1.19.0  &  2025-10-24
         url = f"https://{base_url}/api/user/abtest/status"
-        # payload = {
-        #     "status": status
-        # }
-        # payload = self.request_body(payload, **kwargs)
+        payload = {
+            "status": status
+        }
+        payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
@@ -362,6 +363,62 @@ class UserApi(BaseAPI):
 
         response = requests.request("GET", url, headers=headers)
         error_msg = "获取当前用户的kids"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def editkid(self, authorization, kid_id, kid_name, DeviceType="web", code=200, **kwargs):
+        """
+        editKid
+        :param kidData: (object, body, required) kidData
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-24
+        url = f"https://{base_url}/api/user/editKid"
+        payload = {
+            "id": kid_id,
+            "name": kid_name,
+            "yearOfBirth": 2018,
+            "gender": 1,
+            "avatarUrl": "https://cdn.example.com/avatar/emily.png"
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "editKid"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def registerInfo_sync(self, authorization, username, password, DeviceType="web", code=200, **kwargs):
+        """
+        用户第三方登录后信息注册同步
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-11-24
+        url = f"https://{base_url}/api/user/registerInfo/sync"
+        password = password_base64(password)
+        payload = {
+            "countryCode": "US",
+            "school": "Giggle Elementary",
+            "username": username,
+            "password": password
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "用户第三方登录后信息注册同步"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()

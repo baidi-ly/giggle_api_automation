@@ -146,7 +146,7 @@ class TestAdminkid:
         '''类前置 - 获取kidId'''
         kid_res = self.kid.getKids(self.authorization)['data']
         for kid in kid_res:
-            if kid['name'] == "dibo_test6":
+            if kid['name'] == "uuid":
                 kid_id = kid['id']
                 break
         yield kid_id
@@ -157,13 +157,12 @@ class TestAdminkid:
         kid_id = getSecondekidId
         skillMasteryMap = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']['skillMasteryMap']
         for k, v in skillMasteryMap.items():
-            if k == 'Letter Recognition-L1':
+            if k == 'Letter Recognition-L2':
                 pl = {
                     "kidId": kid_id,
                     "skill": v['skill'],
                     "masteryScore": 74.0,
-                    "masteryState": "Practicing",
-                    "componentExposureRate": 0.5
+                    "masteryState": "Practicing"
                 }
         res = self.admin_kid.updateSkillMastery(self.authorization, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'

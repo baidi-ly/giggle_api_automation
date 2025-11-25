@@ -89,7 +89,7 @@ class KidApi(BaseAPI):
         url = f"https://{base_url}/api/kid/learning-level"
         payload = {
             "kidId": kidId,
-            "placementLevel": "string",
+            "placementLevel": "L1",
             "placementQuestionRecords": {
                 "completeTimeStamp": 0,
                 "questions": [

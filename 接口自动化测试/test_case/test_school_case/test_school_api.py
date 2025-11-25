@@ -1121,3 +1121,30 @@ class TestSchoolApi:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.smoke
+    def test_school_positive_getNormalcourse_onlyFavorite_ok(self):
+        """Normal课程资源列表-正向用例"""
+        pl = {
+            "skillId": None,
+            "onlyFavorite": True
+        }
+        res = self.school.getNormalcourse(self.authorization, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data']['content'][0]['name'] == 'Sea Animals', f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.smoke
+    def test_school_positive_getNormalcourse_notOnlyFavorite_ok(self):
+        """Normal课程资源列表-正向用例"""
+        skillId = self.school.lesson_skills(self.authorization)['data'][0]['id']
+        pl = {
+            "skillId": skillId,
+            "onlyFavorite": False
+        }
+        res = self.school.getNormalcourse(self.authorization, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"

@@ -484,6 +484,7 @@ class SchoolApi(BaseAPI):
             "page": page,
             "size": size
         }
+        payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 

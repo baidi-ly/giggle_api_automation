@@ -11,6 +11,7 @@ from utils.rsa_manage import password_rsa, password_base64
 
 DEFAULT_TIMEOUT = int(RunConfig.timeout)  # 单位是秒
 base_url = RunConfig.baseurl
+admin_baseurl = RunConfig.admin_baseurl
 AUTH_KEY = RunConfig.AUTH_KEY
 DeviceId = RunConfig.DeviceId
 
@@ -68,7 +69,7 @@ class BaseAPI:
         # Create Data:  ?  2025-09-11
         # Update Date:  v.18.0  2025-09-11
         # Update Details:  1. 响应新增 `bindAccount` 字段
-        url = "https://{0}/admin/login".format(base_url)
+        url = "https://{0}/admin/login".format(admin_baseurl)
         password = password_base64(password)
         payload = {
             "email": email,
@@ -121,7 +122,8 @@ class BaseAPI:
             "Authtoken": Authtoken,    # Authtoken与Timestamp需要有对应关系
             "Deviceid": Deviceid,
             "DeviceType": DeviceType,    # android/ios/web
-            "Timestamp": timestamp
+            "Timestamp": timestamp,
+            # "k8scluster": 'true'
         }
         response = self.http_timeout().request("POST", url, headers=headers, json=payload)
         error_msg = "用户登录 - 邮箱密码"
@@ -408,7 +410,8 @@ class BaseAPI:
             "AuthToken": Authtoken,
             "DeviceId": DeviceId,
             "DeviceType": DeviceType,  # android/ios/web
-            "Timestamp": timestamp
+            "Timestamp": timestamp,
+            # "k8scluster": 'true'
         }
         headers.update(kwargs)
         if authorization == 'missing':

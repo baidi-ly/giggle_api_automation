@@ -40,7 +40,7 @@ class AdminTaskApi(BaseAPI):
         # Create Data:  V1.21.0  &  2025-11-22
         url = f"https://{base_url}/admin/task/aggregate-course-completion"
         payload = {
-            'date': '2025-11-23'
+            'date': '2025-11-25'
         }
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -63,7 +63,7 @@ class AdminTaskApi(BaseAPI):
         # Create Data:  V1.19.0  &  2025-11-22
         url = f"https://{base_url}/admin/task/aggregate-daily-behavior"
         payload = {
-            'date': '2025-11-23'
+            'date': '2025-11-25'
         }
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)

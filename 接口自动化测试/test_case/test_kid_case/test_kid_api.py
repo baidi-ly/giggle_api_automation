@@ -6,6 +6,7 @@ from config import RunConfig
 from test_case.page_api.book.book_api import BookApi
 from test_case.page_api.course.course_api import CourseApi
 from test_case.page_api.kid.kid_api import KidApi
+from test_case.page_api.user.user_api import UserApi
 
 sys.path.append(os.getcwd())
 sys.path.append("..")
@@ -20,6 +21,7 @@ class TestKid:
     def setup_class(self):
         self.kid = KidApi()
         self.course = CourseApi()
+        self.user = UserApi()
         self.authorization = self.kid.get_authorization()[0]
 
     @pytest.mark.release
@@ -123,3 +125,29 @@ class TestKid:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    def test_kid_positive_registerInfo_sync_ok(self):
+        """访客模式数据同步或注册用户定级数据保存-正向用例"""
+        '''
+        /user/registerInfo/sync
+        /kid/placement/check
+        /kid/learning-level
+        /kid/{kidId}/learning-progress
+        '''
+        kids_res = self.kid.getKids(self.authorization)
+        for kid in kids_res['data']:
+            if kid['name'] == 'New Kid':
+                kid_id = kid['id']
+
+        username = 'di.bbb@giggleacademy.me'
+        password = 'Bd2243422434~'
+        sync_res = self.user.registerInfo_sync(self.authorization, username, password)
+        check_res = self.kid.check_placement(self.authorization, kid_id)
+        ll_res = self.kid.learningLevel(self.authorization, kid_id)
+        lp_res = self.kid.getLearningProgress(self.authorization)
+        res = self.kid.learningLevel(self.authorization, kid_id)
+        self.user.editkid(self.authorization, kid_id, 'New Kid')
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data']['success'] == True, f"接口返回data数据异常：{res['data']}"
