@@ -359,7 +359,7 @@ class TestAdminUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_user_positive_deleteProblemUser_details_ok(self):
         """删除问题用户及其相关数据-正向用例"""
         res = self.admin_user.deleteProblemUser_details(self.authorization, userId=self.userId)
@@ -368,7 +368,7 @@ class TestAdminUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [

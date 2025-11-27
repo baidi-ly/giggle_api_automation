@@ -36,7 +36,7 @@ class TestSchoolApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_quiz_positive_promotion_submit_ok(self, getkidId):
         """提交晋级Quiz（批量提交并完成）-正向用例"""
         kidId = getkidId
@@ -47,7 +47,7 @@ class TestSchoolApi:
         assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
         assert res['data'] == 'invalid parameter', f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -67,7 +67,7 @@ class TestSchoolApi:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_quiz_positive_submit_lesson_quiz_ok(self, getkidId):
         """提交课后quiz-正向用例"""
         kidId = getkidId
@@ -98,7 +98,7 @@ class TestSchoolApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert not res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [

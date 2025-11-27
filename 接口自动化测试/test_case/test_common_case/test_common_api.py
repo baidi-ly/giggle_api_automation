@@ -23,7 +23,7 @@ class TestCommon:
         self.book = BookApi()
         self.authorization = self.common.get_authorization()[0]
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_common_positive_Getfileurl_coverKey_ok(self):
         """根据url获取文件的下载链接-coverKey-正向用例"""
         books_res = self.book.book_list(self.authorization)['data']['content']
@@ -38,7 +38,7 @@ class TestCommon:
         assert res['data'], f"接口返回data数据异常：{res['data']}"
         assert res['data']['url'] == 'https://static' + base_url.replace('creator', '') + '/'+ coverKey
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_common_positive_Getfileurl_bookKey_ok(self):
         """根据url获取文件的下载链接-bookKey-正向用例"""
         books_res = self.book.book_list(self.authorization)['data']['content']
@@ -53,7 +53,7 @@ class TestCommon:
         assert res['data'], f"接口返回data数据异常：{res['data']}"
         assert res['data']['url'] == 'https://static' + base_url.replace('creator', '') + '/'+ bookKey
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [

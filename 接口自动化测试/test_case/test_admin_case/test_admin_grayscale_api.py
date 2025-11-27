@@ -31,7 +31,7 @@ class TestAdminGrayscale:
     @pytest.mark.smoke
     def test_admin_courseinteraction_positive_getList_ok(self):
         """查询课程交互类型映射列表-正向用例"""
-        userKeys = ["cQ1YSvuHQkGi5Qj91cHEP9"]
+        userKeys = ["eTravnLvQBiEWQHBYXmL3m"]
         res = self.admin.grayscale_batch_set(self.admin_authorization, userKeys)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"

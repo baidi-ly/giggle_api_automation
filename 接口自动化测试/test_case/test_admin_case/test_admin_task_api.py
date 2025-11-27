@@ -36,7 +36,7 @@ class TestAdminUserPreference:
                 break
         yield kid_id
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_task_positive_aggregateCourseCompletion_ok(self):
         """统计的是指定日期当天的行为偏好数据-正向用例"""
         res = self.admin_task.aggregateCourseCompletion(self.authorization)
@@ -45,7 +45,7 @@ class TestAdminUserPreference:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_task_positive_aggregateDailyBehavior_ok(self):
         """手动触发指定日期的互动行为数据聚合任务-正向用例"""
         # res = self.admin_task.aggregateCourseCompletion(self.authorization)
@@ -55,7 +55,7 @@ class TestAdminUserPreference:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_task_positive_knowledgeDecay_ok(self):
         """手动触发知识遗忘衰减任务，对最近14天内有活跃学习行为的孩子进行技能掌握度衰减计算-正向用例"""
         res = self.admin_task.knowledgeDecay(self.authorization)

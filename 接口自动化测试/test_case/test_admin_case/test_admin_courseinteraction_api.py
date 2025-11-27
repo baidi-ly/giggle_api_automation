@@ -68,7 +68,7 @@ class TestAdminCourseInteraction:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    # @pytest.mark.release
+    # @pytest.mark.smoke
     # @pytest.mark.parametrize(
     #     'desc, value',
     #     [
@@ -88,7 +88,7 @@ class TestAdminCourseInteraction:
     #         assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
     #         assert res['data'], f"接口返回data数据异常：{res['data']}"
     #
-    # @pytest.mark.release
+    # @pytest.mark.smoke
     # def test_admin_courseinteraction_scenario_delete_courseInteraction_invalid_id(self):
     #     """删除课程交互类型映射-场景异常-无效的id"""
     #     id = 999999999
@@ -98,7 +98,7 @@ class TestAdminCourseInteraction:
     #     assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
     #     assert res['data'], f"接口返回data数据异常：{res['data']}"
     #
-    # @pytest.mark.release
+    # @pytest.mark.smoke
     # @pytest.mark.parametrize(
     #     'file',
     #     [
@@ -121,7 +121,7 @@ class TestAdminCourseInteraction:
     #     assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
     #     assert res['data'], f"接口返回data数据异常：{res['data']}"
     #
-    # @pytest.mark.release
+    # @pytest.mark.smoke
     # @pytest.mark.parametrize(
     #     'desc, value',
     #     [

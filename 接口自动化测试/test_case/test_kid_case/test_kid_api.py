@@ -24,7 +24,7 @@ class TestKid:
         self.user = UserApi()
         self.authorization = self.kid.get_authorization()[0]
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_kid_positive_check_placement_ok(self):
         """查询是否需要定级-正向用例"""
         kids_res = self.kid.getKids(self.authorization)
@@ -37,7 +37,7 @@ class TestKid:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -60,7 +60,7 @@ class TestKid:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_kid_positive_getLearningProgress_ok(self):
         """查询晋级进度条-正向用例"""
         kids_res = self.kid.getKids(self.authorization)
@@ -73,7 +73,7 @@ class TestKid:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data']['kidId'] == kid_id, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -93,7 +93,7 @@ class TestKid:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_kid_positive_learningLevel_ok(self):
         """访客模式数据同步或注册用户定级数据保存-正向用例"""
         kids_res = self.kid.getKids(self.authorization)
@@ -106,7 +106,7 @@ class TestKid:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data']['success'] == True, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [

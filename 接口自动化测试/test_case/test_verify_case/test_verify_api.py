@@ -47,7 +47,7 @@ class TestVerifyApiGenerated:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('joinCompetition', [True, False])
     def test_verify_positive_submittopublic_ok(self, create_book, joinCompetition):
         """提交public审核-正向用例"""
@@ -63,7 +63,7 @@ class TestVerifyApiGenerated:
         book_status_after = self.book.book_details(self.authorization, bookId)['data']['status']
         assert book_status_after == 2, "自动审核后，故事书状态不为待审核！"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -83,7 +83,7 @@ class TestVerifyApiGenerated:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('joinCompetition', [10, 'string_test'])
     def test_verify_positive_submittopublic_abnormal(self, create_book, joinCompetition):
         """提交public审核-不正确的joinCompetition格式"""

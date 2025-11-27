@@ -356,7 +356,7 @@ class BaseAPI:
     def get_authorization(self, position=0):
         '''根据position登录后获取对应的authorization'''
         names, emails, passwords, tokens = self.get_user_account()
-        for i in range(10):
+        for i in range(1):
             try:
                 login_res = self.login(emails[position], passwords[position], token=tokens[position])["data"]
                 authorization, userId = login_res["token"], login_res['userInfo']["userId"]
@@ -371,7 +371,7 @@ class BaseAPI:
     def get_admin_authorization(self, position=0):
         '''根据position登录后获取对应的authorization'''
         names, emails, passwords, tokens = self.get_user_account()
-        for i in range(10):
+        for i in range(1):
             try:
                 login_res = self.admin_login(emails[position], passwords[position], token=tokens[position])["data"]
                 authorization, userId = login_res["token"], login_res['userInfo']["userId"]

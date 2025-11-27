@@ -389,7 +389,7 @@ class TestAdminCourse:
         res = self.admin.delete_course_tag(self.authorization, course_tag_id)
         assert res['code'] == 200, f"删除课程标签失败！"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_create_course_tag_ok(self, createLevelSkill_method):
         """创建课程用户标签-正向用例"""
         # 创建多个等级技能
@@ -413,7 +413,7 @@ class TestAdminCourse:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data']['id'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -435,7 +435,7 @@ class TestAdminCourse:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_update_course_tag_ok(self, createLevelSkill_method):
         """更新课程用户标签-正向用例"""
         # 创建多个等级技能
@@ -467,7 +467,7 @@ class TestAdminCourse:
         assert update_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{update_res['message']}】"
         assert update_res['data']['id'] == course_tag_id, f"接口返回data数据异常：{update_res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -487,7 +487,7 @@ class TestAdminCourse:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_delete_course_tag_ok(self, createLevelSkill_method):
         """删除课程用户标签-正向用例"""
         # 创建多个等级技能
@@ -514,7 +514,7 @@ class TestAdminCourse:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == '删除成功', f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -534,7 +534,7 @@ class TestAdminCourse:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_course_tags_ok(self):
         """分页查询课程用户标签列表-正向用例"""
         res = self.admin.course_tag_list(self.authorization)
@@ -543,7 +543,7 @@ class TestAdminCourse:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -563,7 +563,7 @@ class TestAdminCourse:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_createCourseTag_total_ok(self, createLevelSkill_method):
         """创建课程用户标签-正向用例"""
         # 创建多个等级技能
@@ -635,7 +635,7 @@ class TestAdminCourse:
         course_tag_ids3 = DataFrame(course_tags3)['id'].tolist()
         assert course_tag_id not in course_tag_ids3
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_album_create_ok(self, createCourseTag_method):
         """创建课程专辑-正向用例"""
         tagIds = [createCourseTag_method]
@@ -646,7 +646,7 @@ class TestAdminCourse:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -666,7 +666,7 @@ class TestAdminCourse:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_albums_ok(self):
         """分页查询课程专辑列表-正向用例"""
         res = self.admin.course_album_list(self.authorization)
@@ -675,7 +675,7 @@ class TestAdminCourse:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -695,7 +695,7 @@ class TestAdminCourse:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_update_album_ok(self, createCourseTag_method):
         """更新课程专辑-正向用例"""
         # 创建课程专辑
@@ -712,7 +712,7 @@ class TestAdminCourse:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data']['id'] == album_id, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -732,7 +732,7 @@ class TestAdminCourse:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_delete_album_ok(self, createCourseTag_method):
         """删除课程专辑-正向用例"""
         # 创建课程专辑
@@ -748,7 +748,7 @@ class TestAdminCourse:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == "删除成功", f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -768,7 +768,7 @@ class TestAdminCourse:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_album_ok(self, createCourseTag_method):
         """课程专辑-增删改查测试"""
 
@@ -819,7 +819,7 @@ class TestAdminCourse:
         album_ids = DataFrame(album_res3_1, columns=['id', 'name', 'tagIds'])['id'].tolist()
         assert album_id not in album_ids, "删除课程专辑失败"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_getByCourseIds_ok(self):
         """根据课程ID查询课程等级技能列表-正向用例"""
         courseIds = self.admin.course_listAll(self.admin_authorization, 641364208128069)['data'][0]['id']
@@ -834,7 +834,7 @@ class TestAdminCourse:
             assert skill['learningLevel'] == 'L1'
             assert skill['prerequisiteSkill'] == None
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -854,7 +854,7 @@ class TestAdminCourse:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_course_skills_ok(self):
         """分页查询课程等级技能列表-正向用例"""
         res = self.admin.course_skill_list(self.authorization)
@@ -863,7 +863,7 @@ class TestAdminCourse:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -883,7 +883,7 @@ class TestAdminCourse:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_course_details_ok(self):
         """获取课程详情包括版本信息-正向用例"""
         topcategory_res = self.admin.getAlltopcategory(self.admin_authorization)

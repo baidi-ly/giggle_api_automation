@@ -46,7 +46,7 @@ class TestAdminkid:
         except Exception as e:
             print(f'删除等级技能失败，原因是：{e}')
         
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_createLevelSkill_ok(self):
         """新增等级技能-正向用例"""
         educationType = "dibo_test_educationType" + self.now + random.choice(string.ascii_letters)
@@ -64,7 +64,7 @@ class TestAdminkid:
         assert res['data']['skill'] == skill
         assert res['data']['necessary'] == True
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_createLevelSkill_educationType_repeat_check(self):
         """新增等级技能-验证educationType、learningLevel、skill三个参数组成唯一键，不能重复使用educationType"""
         # 验证同一个educationType第一次正常创建课程技能
@@ -81,7 +81,7 @@ class TestAdminkid:
         assert res2['message'] == 'Course skill already exists', f"接口返回message信息异常: 预期【Course skill already exists】，实际【{res2['message']}】"
         assert res2['data'] == 'Course skill already exists'
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('learningLevel', ["L1", "L2", "L3", "L4", "L5", "L6", "L7",
                                                "L8", "L9", "L10", "L11", "L12", "L13",
                                                "L14", "L15", "L16", "L17", "L18", "L19", "L20"])
@@ -101,7 +101,7 @@ class TestAdminkid:
         assert res['data']['skill'] == 'Reading-Level1'
         assert res['data']['necessary'] == True
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_createLevelSkill_skill(self):
         """新增等级技能-正向用例"""
         # 新增等级技能-创建skill
@@ -119,7 +119,7 @@ class TestAdminkid:
         assert res['data']['skill'] == skill
         assert res['data']['necessary'] == True
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_createLevelSkill_skill_repeat_check(self):
         """新增等级技能-正向用例"""
         # 验证同一个educationType第一次正常创建课程技能
@@ -138,7 +138,7 @@ class TestAdminkid:
         assert res2['message'] == 'Course skill already exists', f"接口返回message信息异常: 预期【Course skill already exists】，实际【{res2['message']}】"
         assert res2['data'] == 'Course skill already exists'
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('necessary',[True, False])
     def test_admin_course_positive_createLevelSkill_necessary(self, necessary):
         """新增等级技能-正向用例"""
@@ -154,7 +154,7 @@ class TestAdminkid:
         assert res['data']['skill'] == "Reading-Level1"
         assert res['data']['necessary'] == necessary
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -174,7 +174,7 @@ class TestAdminkid:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_deleteLevelskills_ok(self):
         """批量删除等级技能-正向用例"""
         # 新增课程等级3个
@@ -193,7 +193,7 @@ class TestAdminkid:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -213,7 +213,7 @@ class TestAdminkid:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_level_skills_ok(self):
         """分页查询课程等级技能列表-正向用例"""
         res = self.admin_levelskills.level_skills(self.authorization)
@@ -222,7 +222,7 @@ class TestAdminkid:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_update_levelSkills_ok(self):
         """更新等级技能-正向用例"""
         # 新增等级技能
@@ -260,7 +260,7 @@ class TestAdminkid:
         else:
             assert False
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -280,7 +280,7 @@ class TestAdminkid:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_levelSkills_import_ok(self):
         """批量导入学习技能-正向用例"""
         file = {
@@ -292,7 +292,7 @@ class TestAdminkid:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_levelSkills_import_abnormal(self):
         """批量导入学习技能-正向用例"""
         file = {
@@ -307,7 +307,7 @@ class TestAdminkid:
                      'success': 0,
                      'total': 3}, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -329,7 +329,7 @@ class TestAdminkid:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_course_level_skills_total_ok(self):
         """等级技能相关接口增删改查验证-正向用例"""
         # 新增等级技能

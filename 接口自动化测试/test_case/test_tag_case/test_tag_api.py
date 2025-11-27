@@ -17,7 +17,7 @@ class TestTag:
         self.authorization = self.tag.get_authorization()[0]
         self.now = strftime("%Y%m%d%H%M%S")
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_tag_positive_popular_tags_ok(self):
         """获取当前被引用的最多的12个标签-正向用例"""
         res = self.tag.popular_tags(self.authorization)
@@ -26,7 +26,7 @@ class TestTag:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert len(res['data']) == 12, f"接口返回data标签数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [

@@ -166,7 +166,7 @@ class TestGame:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_game_positive_getUnreviewedWords_ok(self, getkidId):
         """获取未复习的单词-正向用例"""
         kid_id = getkidId
@@ -182,7 +182,7 @@ class TestGame:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_game_positive_reportReviewedWords_ok(self, getkidId):
         """上报学习过的单词-正向用例"""
         kid_id = getkidId
@@ -207,7 +207,7 @@ class TestGame:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert not res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_game_positive_dailyLearning_ok(self):
         """记录用户今日学习完成状态-正向用例"""
         res = self.game.recorde_dailyLearning(self.authorization)
@@ -216,7 +216,7 @@ class TestGame:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == None, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -236,7 +236,7 @@ class TestGame:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_game_positive_getDailyLearning_ok(self):
         """检查用户今日是否完成学习-正向用例"""
         res = self.game.getDailyLearning(self.authorization)
@@ -245,7 +245,7 @@ class TestGame:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == True, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [

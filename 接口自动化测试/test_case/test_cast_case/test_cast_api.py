@@ -16,7 +16,7 @@ class TestCourse:
         self.cast = CastApi()
         self.authorization = self.cast.get_authorization()[0]
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('languageCode',
          ["en", "zh", "zh-Hant", "es", "fr", "de", "ja",
           "ko", "ru","pt", "pt-BR", "ar", "hi","id", "vi", "tr","bn",
@@ -31,7 +31,7 @@ class TestCourse:
         for content in res['data']:
             assert 'localName' in content, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_cast_positive_getAlbums_withoutLocalName_ok(self):
         """查询播客的专辑-正向用例"""
         res = self.cast.getAlbums(self.authorization)
@@ -41,7 +41,7 @@ class TestCourse:
         for content in res['data']:
             assert 'localName' not in content, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [

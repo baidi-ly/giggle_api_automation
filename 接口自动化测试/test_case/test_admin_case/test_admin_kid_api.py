@@ -26,7 +26,7 @@ class TestAdminkid:
 
         self.now = strftime("%Y%m%d%H%M%S")
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_kid_positive_getInteractionPreference_ok(self):
         """查询孩子互动偏好-正向用例"""
         res = self.admin_kid.getInteractionPreference(self.authorization, self.kid_id)
@@ -36,7 +36,7 @@ class TestAdminkid:
         assert res['data']['kidId'] == str(self.kid_id), f"接口返回data数据异常：{res['data']}"
         assert 'preferences' in res['data']
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -55,7 +55,7 @@ class TestAdminkid:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_kid_positive_getSkillMastery_ok(self):
         """获取学生技能掌握程度-正向用例"""
         res = self.admin_kid.getSkillMastery(self.authorization, self.kid_id)
@@ -65,7 +65,7 @@ class TestAdminkid:
         assert res['data']['kidId'] == str(self.kid_id), f"接口返回data数据异常：{res['data']}"
         assert 'skillMasteryMap' in res['data']
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -84,7 +84,7 @@ class TestAdminkid:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_kid_positive_getKidTags_ok(self):
         """获取用户标签-正向用例"""
         res = self.admin_kid.getKidTags(self.authorization, self.kid_id)
@@ -94,7 +94,7 @@ class TestAdminkid:
         assert res['data']['kidId'] == str(self.kid_id), f"接口返回data数据异常：{res['data']}"
         assert res['data']['childAge'] == 0
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -113,7 +113,7 @@ class TestAdminkid:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_kid_positive_update_ok(self):
         """更新用户标签-正向用例"""
         res = self.admin_kid.updateKidTags(self.authorization, self.kid_id, learningLevel='L2')
@@ -122,7 +122,7 @@ class TestAdminkid:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == True, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -151,7 +151,7 @@ class TestAdminkid:
                 break
         yield kid_id
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_kid_positive_updateSkillMastery_ok(self, getSecondekidId):
         """更新用户技能标签-正向用例"""
         kid_id = getSecondekidId

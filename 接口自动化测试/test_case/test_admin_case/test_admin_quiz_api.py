@@ -17,7 +17,7 @@ class TestAdminCourse:
         self.admin_quiz = AdminQuizApi()
         self.authorization = self.admin_quiz.get_admin_authorization()[0]
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_quiz_positive_getFix_ok(self):
         """题目difficulty修正-正向用例"""
         res = self.admin_quiz.questionDifficultyFix(self.authorization)

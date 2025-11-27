@@ -674,7 +674,7 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_activity_positive_activity_tags_ok(self):
         """获取标签列表-正向用例"""
         res = self.activity.activity_tags(self.authorization)
@@ -683,7 +683,7 @@ class TestAdminActivity:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == [{'code': 'COURSE_COMPLETE', 'name': '完课'},{'code': 'PLACEMENT_COMPLETE', 'name': '完成入学QUIZ'}], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -703,7 +703,7 @@ class TestAdminActivity:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_activity_positive_activity_general_tasks_ok(self):
         """获取通用活动任务定义列表-正向用例"""
         res = self.activity.activity_general_tasks(self.authorization)
@@ -714,7 +714,7 @@ class TestAdminActivity:
         task_names = DataFrame(res['data'])['name'].tolist()
         assert task_names == ['活动-扭蛋抽奖', '活动-扭蛋分享好友', '活动-扭蛋邀请好友', '活动-扭蛋完课', '入学Quiz完成任务'], "通用活动任务定义列表有误！"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [

@@ -20,7 +20,7 @@ class TestAdminUser:
         self.admin_cast = AdminCastApi()
         self.authorization = self.admin_cast.get_admin_authorization()[0]
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('languageCode',
          ["en", "zh", "zh-Hant", "es", "fr", "de", "ja",
           "ko", "ru","pt", "pt-BR", "ar", "hi","id", "vi", "tr","bn",
@@ -35,7 +35,7 @@ class TestAdminUser:
         for content in res['data']:
             assert 'localName' in content, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_cast_positive_getAlbums_withoutLocalName_ok(self):
         """查询播客的专辑-正向用例"""
         res = self.admin_cast.getAlbums(self.authorization)
@@ -45,7 +45,7 @@ class TestAdminUser:
         for content in res['data']:
             assert 'localName' not in content, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [

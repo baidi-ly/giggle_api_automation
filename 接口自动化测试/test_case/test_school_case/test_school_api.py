@@ -569,7 +569,7 @@ class TestSchoolApi:
         for class_id in [class_a_id, class_b_id, class_c_id]:
             self.school.delete_class(self.authorization, class_id)
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_migrate_ok(self, school_fixture):
         """迁移学生-正向用例"""
         # 迁移学生前获取classa classb classc班级中的学生
@@ -595,7 +595,7 @@ class TestSchoolApi:
         students_c = self.school.getStudents(self.authorization, class_c_id)
         assert not students_c['data']["content"]
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -615,7 +615,7 @@ class TestSchoolApi:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_class_group_qrcode_ok(self, create_class):
         """获取班级小组二维码-正向用例"""
         class_id, studentIds = create_class
@@ -625,7 +625,7 @@ class TestSchoolApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data']['qrCodeContent'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -645,7 +645,7 @@ class TestSchoolApi:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_scenario_class_group_qrcode_invalid_groupSeqNo(self, create_class):
         """获取班级小组二维码-场景异常-无效的groupSeqNo"""
         groupSeqNo = 999999999
@@ -656,7 +656,7 @@ class TestSchoolApi:
         assert res['message'] == 'This group not found', f"接口返回message信息异常: 预期【This group not found】，实际【{res['message']}】"
         assert res['data'] == 'This group not found', f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_getLessons_page_ok(self, create_class):
         """获取班级课堂列表-正向用例"""
         # 获取全局class_id
@@ -673,7 +673,7 @@ class TestSchoolApi:
         finally:
             self.school.delete_lesson(self.authorization, lessonId)
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_getLessons_all_ok(self, create_class):
         """获取班级课堂列表-正向用例"""
         # 获取全局class_id
@@ -694,7 +694,7 @@ class TestSchoolApi:
             for lessonId in lessonIds:
                 self.school.delete_lesson(self.authorization, lessonId)
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -714,7 +714,7 @@ class TestSchoolApi:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_favorite_course_ok(self):
         """收藏资源 - 资源为课程 - 正向用例"""
         resourceRefId = self.school.getNormalcourse(self.authorization)["data"]['content'][0]['id']
@@ -734,7 +734,7 @@ class TestSchoolApi:
             res = self.school.deleteFavorite(self.authorization, **pl)
             assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_favorite_quiz_ok(self):
         """收藏资源 - 资源为quiz - 正向用例"""
         resourceRefId = self.school.getQuiz(self.authorization)["data"]['content'][0]['id']
@@ -754,7 +754,7 @@ class TestSchoolApi:
             res = self.school.deleteFavorite(self.authorization, **pl)
             assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_favorite_repeat_check(self):
         """收藏资源-验证同一资源不能重复收藏"""
         # Normal课程资源列表
@@ -775,7 +775,7 @@ class TestSchoolApi:
         assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【internal server error】，实际【{res['message']}】"
         assert res['data']
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -795,7 +795,7 @@ class TestSchoolApi:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_deleteFavorite_course_ok(self):
         """取消收藏资源-课程-正向用例"""
         try:
@@ -813,7 +813,7 @@ class TestSchoolApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == True, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_deleteFavorite_quiz_ok(self):
         """取消收藏资源-quiz-正向用例"""
         try:
@@ -831,7 +831,7 @@ class TestSchoolApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == True, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_deleteFavorite_false_check(self):
         """取消收藏资源-检测资源未被收藏资源取消失败"""
         resourceRefId = self.school.getNormalcourse(self.authorization)["data"]['content'][0]['id']
@@ -845,7 +845,7 @@ class TestSchoolApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == False, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -865,7 +865,7 @@ class TestSchoolApi:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_report_ok(self):
         """测验结果上报-正向用例"""
         class_res = self.school.class_list(self.authorization, size=100)['data']['content']
@@ -912,7 +912,7 @@ class TestSchoolApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == True, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -932,7 +932,7 @@ class TestSchoolApi:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_quiz_reports_ok(self):
         """测验报告列表-正向用例"""
         class_res = self.school.class_list(self.authorization, size=100)['data']['content']
@@ -987,7 +987,7 @@ class TestSchoolApi:
         assert res_reports['data'][0]['lessonResourceId'] == quiz_id
         assert res_reports['data'][0]['name'].startswith('quiz_report')
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1007,7 +1007,7 @@ class TestSchoolApi:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_lesson_skills_ok(self):
         """课程技能标签列表-正向用例"""
         res = self.school.lesson_skills(self.authorization)
@@ -1016,7 +1016,7 @@ class TestSchoolApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1035,7 +1035,7 @@ class TestSchoolApi:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_skill_themes_ok(self):
         """技能主题列表（按技能分组展示课程）-正向用例"""
         res = self.school.skill_themes(self.authorization)
@@ -1044,7 +1044,7 @@ class TestSchoolApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1064,7 +1064,7 @@ class TestSchoolApi:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_getStorybookThemes_ok(self):
         """故事书主题列表（按标签分组展示故事书）-正向用例"""
         res = self.school.getStorybookThemes(self.authorization)
@@ -1073,7 +1073,7 @@ class TestSchoolApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1093,7 +1093,7 @@ class TestSchoolApi:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_getStorybook_byTag_ok(self):
         """故事书资源列表-正向用例"""
         tagId = self.school.getStorybookThemes(self.authorization)['data'][0]['id']
@@ -1103,7 +1103,7 @@ class TestSchoolApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
