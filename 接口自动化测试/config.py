@@ -9,10 +9,10 @@ class RunConfig:
     # 环境信息
     # baseurl = "creator.giggleacademy.com"   # 线上环境
     # baseurl = "127.0.0.1:5000"    # 本地测试
-    baseurl = "creator.giggleacademy.com"     # 线上-creator站点
-    # baseurl = "creator.qakjukl.net"     # QA-creator站点
-    # admin_baseurl = 'admin.qakjukl.net'     # QA-admin站点admin-ga.toolsapple.net/
-    admin_baseurl = 'admin-ga.toolsapple.net'
+    # baseurl = "creator.giggleacademy.com"     # 线上-creator站点
+    baseurl = "creator.qakjukl.net"     # QA-creator站点
+    admin_baseurl = 'admin.qakjukl.net'     # QA-admin站点admin-ga.toolsapple.net/
+    # admin_baseurl = 'admin-ga.toolsapple.net'
     official_baseurl = 'qakjukl.net'     # QA-官网
 
 

@@ -690,77 +690,22 @@ class TestBook:
     @pytest.mark.release
     def test_book_positive_lexiLelevelMapping_ok(self):
         """获取蓝思分数等级映射关系-前端下拉筛选用 – 等级枚举一致性"""
-        '''
-            场景 2：前端下拉筛选用 – 等级枚举一致性
-            目的：确认接口返回的“等级枚举”与前端筛选条件、其他接口使用的等级保持一致。
-            步骤要点：
-            调 /book/lexile/level/mapping 拿到所有等级（如 A、B、C 或 L1-L20）。
-            对比其它接口里用到的等级字段是否一致，例如：
-            课程 / 题目等级：/game/... 或 Quiz / Course 接口中的 level 字段。
-            涉及接口（示例，可以按你们前端实际用的来）：
-            GET /book/lexile/level/mapping
-            （可选）获取课程/题目/阅读等级的接口，如：
-            GET /game/kid/level（示例：获取 kid 学习等级）
-            Quiz / 分级读物列表接口中带 level 的那些（你本地可以再补充具体 URL）
-            场景 3：结合书籍 Lexile 分数验证映射正确性
-            目的：验证映射区间与实际书籍的 Lexile 分数是否匹配。
-            步骤要点：
-            调 /book/lexile/level/mapping，拿到某个等级的 Lexile 区间（如 500–700）。
-            找几本带 lexileScore 的书：
-            通过查询接口筛一批书（例如“年龄 + Lexile 推荐”接口）；或
-            直接查单本书的 Lexile 分数接口。
-            验证这些书的 lexileScore 是否都落在对应等级区间内。
-            涉及接口（示例）：
-            GET /book/lexile/level/mapping
-            GET /book/{bookId}/lexile（获取单本书 Lexile 分数）
-            （可选）推荐/查询书籍接口，例如：
-            某些带年龄或 Lexile 的推荐接口（BookController 里的推荐接口，具体 URL 你可以按实际补全）
-            场景 4：配合分级筛选接口 – 前后端联动
-            目的：校验“分级映射 + 过滤查询书籍”的组合使用是否正确。
-            步骤要点：
-            GET /book/lexile/level/mapping 取到某个/多个等级（如 A、B）。
-            前端把这几个等级作为筛选条件，调用：
-            GET /book/queryByFilter?levels=A,B&certifications=official
-            校验：
-            返回书籍的等级字段是否都在 A、B 中；
-            这些书（如果有 Lexile 信息）其 Lexile 是否也落在 A/B 匹配的 Lexile 区间中。
-            涉及接口：
-            GET /book/lexile/level/mapping
-            GET /book/queryByFilter
-            场景 5：不同用户年龄/水平下的分级体验一致性（偏集成场景）
-            目的：验证当推荐逻辑按年龄算 Lexile 时，分级映射与推荐结果是合理的。
-            步骤要点：
-            为不同年龄的 kid 准备账号（如年龄 5 岁、8 岁）。
-            触发“按年龄推荐故事书”的接口（BookController 里有基于年龄与 Lexile 的推荐接口）。
-            调 /book/lexile/level/mapping，检查推荐出来的书的 Lexile / 等级是否与该年龄对应等级合理（靠近中间值、在区间内）。
-            涉及接口（示例）：
-            GET /book/lexile/level/mapping
-            某个“按年龄推荐书籍”的接口（BookController 内的推荐类接口）
-            GET /book/{bookId}/lexile（校验 Lexile）
-            场景 6：异常 / 回退行为
-            目的：确认当配置异常或数据不全时，接口行为是否稳定。
-            可测点示例（需要配合后端或 DBA 临时改配置）：
-            映射表为空或缺少某些等级时：
-            /book/lexile/level/mapping 是否返回空数组 / 部分数据？
-            其它依赖接口（/book/queryByFilter、推荐接口）是否能正常工作或有合理降级。
-            涉及接口：
-            GET /book/lexile/level/mapping
-            GET /book/queryByFilter
-            相关推荐接口
-        '''
         res = self.book.lexiLelevelMapping(self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        for _data in res['data']:
+            if _data == "A":
+                assert _data['inclusiveMax'] == True
+                assert _data['inclusiveMin'] == False
+                assert _data['max'] == 200
+                assert _data['min'] == 0
 
     @pytest.mark.release
-    def test_book_permission_getMapping(self, desc, value):
-        """获取蓝思分数等级映射关系-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.book.getMapping('', code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
+    def test_book_positive_getQuerybyfilter_ok(self):
+        """根据等级和认证过滤查询书籍-正向用例"""
+        res = self.book.getQuerybyfilter(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
