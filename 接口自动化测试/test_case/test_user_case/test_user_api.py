@@ -26,6 +26,15 @@ class TestUser:
 
         self.now = strftime("%Y%m%d%H%M%S")
 
+        try:
+            kids_res = self.kid.getKids(self.authorization)
+            for kid in kids_res['data']:
+                if kid['name'] == 'giggle-kid-UHS4NE':
+                    self.kid_id = kid['id']
+                    break
+        except Exception as e:
+            print(f'获取孩子失败，原因是：{e}')
+
     @pytest.fixture(scope="class")
     def get_userIds(self):
         '''方法前置 - 创建kidId'''
@@ -886,3 +895,21 @@ class TestUser:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_user_positive_getDailyLessonLimit_ok(self):
+        """获取孩子的每日课程数量限制-正向用例"""
+        res = self.user.getDailyLessonLimit(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_user_positive_dailyLessonLimit_ok(self):
+        """设置孩子的每日课程数量限制-正向用例"""
+        res = self.user.dailyLessonLimit(self.authorization, self.kid_id, dailyLessonLimit)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"

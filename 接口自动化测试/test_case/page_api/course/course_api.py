@@ -259,3 +259,50 @@ class CourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def course_rating(self, authorization, courseId, kidId, rating, DeviceType="web", code=200):
+        """
+        保存课程评价
+        :param request: (object, body, required) 评价请求
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-01
+        url = f"https://{base_url}/api/course/rating"
+        payload = {
+            "courseId": courseId,
+            "kidId": kidId,
+            "rating": rating
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "保存课程评价"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def course_ratings(self, authorization, courseIds, kidId, DeviceType="web", code=200):
+        """
+        根据课程ID列表获取评价信息
+        :param courseIds: (array, body, required) 课程ID列表
+        :param kidId: (integer, query, required) 孩子ID
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-01
+        url = f"https://{base_url}/api/course/rating/batch?kidId={kidId}"
+        payload = courseIds
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "根据课程ID列表获取评价信息"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+

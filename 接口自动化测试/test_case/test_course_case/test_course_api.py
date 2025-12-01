@@ -43,7 +43,7 @@ class TestCourse:
         self.admin_kid = AdminKidApi()
         self.admin_quiz = AdminQuizApi()
         self.now = strftime("%Y%m%d%H%M%S")
-        self.authorization = self.course.get_authorization()[0]
+        self.authorization, self.userId = self.course.get_authorization()
         # self.authorization_admin = self.admin_course.get_admin_authorization()[0]
 
         kids_res = self.kid.getKids(self.authorization)
@@ -1059,4 +1059,71 @@ class TestCourse:
         for course in recommends_res['data']:
             assert course['difficulty'] == user_level
 
+    @pytest.mark.release
+    def test_course_positive_course_rating_ok(self):
+        """保存课程评价-正向用例"""
+        course_id = self.school.getNormalcourse(self.authorization)["data"]['content'][0]['id']
+        res = self.course.course_rating(self.authorization, course_id, self.kid_id, 3)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data']['userId'] == int(self.userId)
+        assert res['data']['kidId'] == self.kid_id
+        assert res['data']['courseId'] == course_id
+        assert res['data']['rating'] == 3
 
+    @pytest.mark.release
+    def test_course_permission_course_rating(self):
+        """保存课程评价-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.course.course_rating('', code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_course_positive_course_ratings_ok(self):
+        """根据课程ID列表获取评价信息-正向用例"""
+        course_id = self.school.getNormalcourse(self.authorization)["data"]['content'][0]['id']
+        res = self.course.course_ratings(self.authorization, [course_id], self.kid_id)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_course_permission_course_ratings(self):
+        """根据课程ID列表获取评价信息-权限测试"""
+        res = self.course.course_ratings('', code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize('rate', [1,2,3])
+    def test_course_course_rating_total_ok(self, rate):
+        """保存获取课程评价-正向用例"""
+        course_res = self.school.getNormalcourse(self.authorization)["data"]['content']
+        for course in course_res:
+            course_id = course['id']
+            rating_res = self.course.course_ratings(self.authorization, [course_id], self.kid_id)
+            if not rating_res['data'][str(course_id)]['hasRated']:
+                res = self.course.course_rating(self.authorization, course_id, self.kid_id, rate)
+                assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+                assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+                assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+                assert res['data']['userId'] == int(self.userId)
+                assert res['data']['kidId'] == self.kid_id
+                assert res['data']['courseId'] == course_id
+                assert res['data']['rating'] == rate
+                break
+        else:
+            assert False, "未找到未评价的课程！"
+
+        rating_res = self.course.course_ratings(self.authorization, [course_id], kid_id)
+        assert rating_res['data'][str(course_id)]['hasRated']
+        assert rating_res['data'][str(course_id)]['rating'] == rate
