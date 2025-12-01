@@ -28,8 +28,9 @@ class TestUser:
 
         try:
             kids_res = self.kid.getKids(self.authorization)
+            self.kid_name = 'New Kid'
             for kid in kids_res['data']:
-                if kid['name'] == 'giggle-kid-UHS4NE':
+                if kid['name'] == self.kid_name:
                     self.kid_id = kid['id']
                     break
         except Exception as e:
@@ -906,10 +907,26 @@ class TestUser:
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
-    def test_user_positive_dailyLessonLimit_ok(self):
+    @pytest.mark.parametrize('dailyLessonLimit', [2, 3])
+    def test_user_positive_dailyLessonLimit_ok(self, dailyLessonLimit):
+        """设置孩子的每日课程数量限制-正向用例"""
+        res = self.user.dailyLessonLimit(self.authorization, self.kid_id, dailyLessonLimit)
+        assert res['data']['dailyLessonLimit'] == dailyLessonLimit
+        assert res['data']['kidId'] == self.kid_id
+        assert res['data']['kidName'] == self.kid_name
+        dailyLessonLimit_res = self.user.getDailyLessonLimit(self.authorization, self.kid_id)
+        assert dailyLessonLimit_res['data']['dailyLessonLimit'] == dailyLessonLimit
+        assert dailyLessonLimit_res['data']['kidId'] == self.kid_id
+        assert dailyLessonLimit_res['data']['kidName'] == self.kid_name
+
+    @pytest.mark.release
+    @pytest.mark.parametrize('dailyLessonLimit', [1, 4])
+    def test_user_positive_dailyLessonLimit_ok(self, dailyLessonLimit):
         """设置孩子的每日课程数量限制-正向用例"""
         res = self.user.dailyLessonLimit(self.authorization, self.kid_id, dailyLessonLimit)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        assert res['code'] == 100006, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
+        assert res['data'] == 'invalid parameter', f"接口返回data数据异常：{res['data']}"
+
+
