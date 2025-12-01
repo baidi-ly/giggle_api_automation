@@ -832,7 +832,7 @@ class TestBook:
                     assert False
             elif certifications == 'community':   # 如果certifications是精选则校验是否精选
                 assert book['selected'] == 1
-            # else:   综合2种情况
+            else:   #     综合2种情况
                 if book['selected'] != 1:
                     key = book['authorName']
                     # 根据用户名 / email搜索用户
