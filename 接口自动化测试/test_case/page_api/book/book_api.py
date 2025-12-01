@@ -1621,6 +1621,12 @@ class BookApi(BaseAPI):
         根据等级和认证过滤查询书籍
         :param certifications: (string, query, optional) 认证列表，逗号分隔，如 official,community。值：official（官方认证）、community（社区精选）
         :param levels: (string, query, optional) 等级列表，逗号分隔，如 A,B 或 A,B,C
+        ‘’‘A: 蓝思分数 0-200
+            B: 蓝思分数 200-400
+            C: 蓝思分数 400-450
+            D: 蓝思分数 450-500
+            E: 蓝思分数 500+
+        ’‘’
         :param page: (integer, query, optional) 页码
         :param size: (integer, query, optional) 每页数量
         :return: 接口原始返回（已 json 解析）
@@ -1639,6 +1645,50 @@ class BookApi(BaseAPI):
 
         response = requests.request("GET", url, headers=headers, params=payload)
         error_msg = "根据等级和认证过滤查询书籍"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def bookLexile(self, authorization, bookId, DeviceType="web", code=200):
+        """
+        获取故事书的 lexile 分数
+        :param bookId: (integer, path, required) 故事书ID
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-01
+        url = f"https://{base_url}/api/book/{bookId}/lexile"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "获取故事书的 lexile 分数"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def lexile(self, authorization, bookId=0, lexileScore=750, DeviceType="web", code=200, **kwargs):
+        """
+        更新书籍Lexile分数
+        :param bookId: (integer, path, required) 书籍ID
+        :param lexileScore: (integer, query, required) Lexile分数 (0-2000)
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-01
+        url = f"https://{base_url}/api/book/{bookId}/lexile"
+        payload = {
+            "lexileScore": lexileScore
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "更新书籍Lexile分数"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()

@@ -1,3 +1,4 @@
+import time
 from time import strftime
 
 import pytest
@@ -851,3 +852,37 @@ class TestUser:
             assert res['message'] == 'not found', f"接口返回message信息异常: 预期【'not found'】，实际【{res['message']}】"
             assert res['data'] == 'not found', f"接口返回data数据异常：预期【'not found'】，实际【{res['data']}】"
 
+    @pytest.mark.release
+    @pytest.mark.parametrize('countryCode, phoneNumber, exist',
+                             [
+                                 (86, 18380143661, False), # 中国
+                                 (86, 13541240009, False),  # 中国
+                                 (1, 2025551234, False),   # 美国
+                                 (44, 7700123456, False),  # 英国
+                                 (81, 9012345678, False),  # 日本
+                                 (82, 1012345678, False),  # 韩国
+                                 (65, 91234567, False),    # 新加坡
+                                 (91, 9876543210, False),  # 印度
+                                 (62, 8123456789, False),  # 印度尼西亚
+                                 (84, 912345678, False),  # 越南
+                              ]
+                             )
+    def test_user_positive_checkPhone_ok(self, countryCode, phoneNumber, exist):
+        """检测手机号是否已注册-正向用例"""
+        time.sleep(3)   # 防止请求频率过高
+        res = self.user.checkPhone(self.authorization, countryCode, phoneNumber)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data']['exist'] == exist, f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_user_permission_checkPhone(self):
+        """检测手机号是否已注册-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.user.checkPhone('', code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"

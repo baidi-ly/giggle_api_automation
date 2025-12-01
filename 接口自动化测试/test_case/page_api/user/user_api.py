@@ -426,3 +426,51 @@ class UserApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def checkPhone(self, authorization, countryCode, phoneNumber, DeviceType="web", code=200):
+        """
+        检测手机号是否已注册
+        :param countryCode: (string, query, required) 国家代码
+        :param phoneNumber: (string, query, required) 电话号码
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-01
+        url = f"https://{base_url}/api/user/checkPhone"
+        payload = {
+            "countryCode": countryCode,
+            "phoneNumber": phoneNumber
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "检测手机号是否已注册"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def getSearch(self, authorization, key, DeviceType="web", code=200):
+        """
+        根据用户名/email搜索用户
+        :param key: (string, query, required) key
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-01
+        url = f"https://{base_url}/api/user/search"
+        payload = {
+            "key": key
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "根据用户名/email搜索用户"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+

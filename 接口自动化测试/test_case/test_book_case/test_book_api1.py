@@ -10,6 +10,7 @@ import config
 from test_case.page_api.base_api import BaseAPI
 from test_case.page_api.book.book_api import BookApi
 from test_case.page_api.kid.kid_api import KidApi
+from test_case.page_api.user.user_api import UserApi
 
 sys.path.append(os.getcwd())
 sys.path.append("..")
@@ -25,6 +26,7 @@ class TestBook:
     def setup_class(self):
         self.book = BookApi()
         self.kid = KidApi()
+        self.user = UserApi()
         self.authorization, self.userId = self.book.get_authorization()
         self.now = strftime("%Y%m%d%H%M%S")
         # 查询故事书标签类型列表
@@ -702,10 +704,133 @@ class TestBook:
                 assert _data['min'] == 0
 
     @pytest.mark.release
-    def test_book_positive_getQuerybyfilter_ok(self):
+    @pytest.mark.parametrize("certifications", ['official', 'community', 'official,community'])
+    @pytest.mark.parametrize("levels", ['A', 'B', 'C', 'D', 'E', 'A,B', 'A,C', 'A,D', 'A,E', 'B,C', 'B,D', 'B,E', 'C,D', 'C,E', 'D,E',
+                  'A,B,C', 'A,B,D', 'A,B,E', 'A,C,D', 'A,C,E', 'A,D,E', 'B,C,D', 'B,C,E', 'B,D,E', 'C,D,E',
+                  'A,B,C,D', 'A,B,C,E', 'A,B,D,E', 'A,C,D,E', 'B,C,D,E', 'A,B,C,D,E'])
+    def test_book_positive_getQuerybyfilter_ok(self, certifications, levels):
         """根据等级和认证过滤查询书籍-正向用例"""
-        res = self.book.getQuerybyfilter(self.authorization)
+        level_map_res = self.book.lexiLelevelMapping(self.authorization)['data']
+        level_map = {}
+        for level in level_map_res:
+            max_plus = 0 if level['inclusiveMax'] else -1
+            min_plus = 0 if level['inclusiveMin'] else 1
+            if isinstance(level['max'], int):
+                level_map[level['level']] = [level['min']+min_plus, level['max']+max_plus]
+            else:
+                level_map[level['level']] = [level['min']+min_plus, 99999999]
+        level_list = levels.split(',')
+        lexile_range = []
+        for level_letter in level_list:
+            lexile_range.append(level_map[level_letter])
+        pl = {
+            "certifications": certifications,
+            "levels": levels
+        }
+        res = self.book.getQuerybyfilter(self.authorization, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        content = res['data']['content']
+        for book in content:
+            bookId = book['id']
+            book_lexile = self.book.bookLexile(self.authorization, bookId)['data']
+            for lexile in lexile_range:
+                if lexile[0] <= book_lexile <= lexile[1]:
+                    break
+            else:
+                assert False, f"根据等级过滤查询书籍失败，返回的数据蓝思值不符合等级{levels}要求"
+            if certifications == 'official':
+                key = book['authorName']
+                user_email_res = self.user.getSearch(self.authorization, key)['data']['content']
+                for user_email in user_email_res:
+                    email = user_email['email']
+                    if email.endswith('@giggleacademy.com') or email.endswith('@giggleacademy.me'):
+                        break
+                else:
+                    assert False
+            elif certifications == 'community':
+                assert book['selected'] == 1
+            else:
+                if book['selected'] != 1:
+                    key = book['authorName']
+                    user_email_res = self.user.getSearch(self.authorization, key)['data']['content']
+                    for user_email in user_email_res:
+                        email = user_email['email']
+                        if email.endswith('@giggleacademy.com') or email.endswith('@giggleacademy.me'):
+                            break
+                    else:
+                        assert False
+
+    @pytest.mark.release
+    @pytest.mark.parametrize("levels", ['A', 'B', 'C', 'D', 'E', 'A,B', 'A,C', 'A,D', 'A,E', 'B,C', 'B,D', 'B,E', 'C,D', 'C,E', 'D,E',
+                  'A,B,C', 'A,B,D', 'A,B,E', 'A,C,D', 'A,C,E', 'A,D,E', 'B,C,D', 'B,C,E', 'B,D,E', 'C,D,E',
+                  'A,B,C,D', 'A,B,C,E', 'A,B,D,E', 'A,C,D,E', 'B,C,D,E', 'A,B,C,D,E'])
+    def test_book_getQuerybyfilter_without_certifications(self, levels):
+        """根据等级和认证过滤查询书籍-正向用例"""
+        level_map_res = self.book.lexiLelevelMapping(self.authorization)['data']
+        level_map = {}
+        for level in level_map_res:
+            max_plus = 0 if level['inclusiveMax'] else -1
+            min_plus = 0 if level['inclusiveMin'] else 1
+            if isinstance(level['max'], int):
+                level_map[level['level']] = [level['min']+min_plus, level['max']+max_plus]
+            else:
+                level_map[level['level']] = [level['min']+min_plus, 99999999]
+        level_list = levels.split(',')
+        lexile_range = []
+        for level_letter in level_list:
+            lexile_range.append(level_map[level_letter])
+        pl = {
+            "certifications": '',
+            "levels": levels
+        }
+        res = self.book.getQuerybyfilter(self.authorization, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        content = res['data']['content']
+        for book in content:
+            bookId = book['id']
+            book_lexile = self.book.bookLexile(self.authorization, bookId)['data']
+            for lexile in lexile_range:
+                if lexile[0] <= book_lexile <= lexile[1]:
+                    break
+            else:
+                assert False, f"根据等级过滤查询书籍失败，返回的数据蓝思值不符合等级{levels}要求"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize("certifications", ['official', 'community', 'official,community'])
+    def test_book_getQuerybyfilter_without_levels(self, certifications):
+        """根据等级和认证过滤查询书籍-正向用例"""
+        pl = {
+            "certifications": certifications,
+            "levels": ''
+        }
+        res = self.book.getQuerybyfilter(self.authorization, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        content = res['data']['content']
+        for book in content:
+            if certifications == 'official':
+                key = book['authorName']
+                user_email_res = self.user.getSearch(self.authorization, key)['data']['content']
+                for user_email in user_email_res:
+                    email = user_email['email']
+                    if email.endswith('@giggleacademy.com') or email.endswith('@giggleacademy.me'):
+                        break
+                else:
+                    assert False
+            elif certifications == 'community':
+                assert book['selected'] == 1
+            else:
+                if book['selected'] != 1:
+                    key = book['authorName']
+                    user_email_res = self.user.getSearch(self.authorization, key)['data']['content']
+                    for user_email in user_email_res:
+                        email = user_email['email']
+                        if email.endswith('@giggleacademy.com') or email.endswith('@giggleacademy.me'):
+                            break
+                    else:
+                        assert False
