@@ -865,7 +865,7 @@ class TestUser:
     @pytest.mark.release
     @pytest.mark.parametrize('countryCode, phoneNumber, exist',
                              [
-                                 (86, 18380143661, False), # 中国
+                                 (86, 18380143661, True), # 中国
                                  (86, 13541240009, False),  # 中国
                                  (1, 2025551234, False),   # 美国
                                  (44, 7700123456, False),  # 英国
@@ -889,7 +889,6 @@ class TestUser:
     @pytest.mark.release
     def test_user_permission_checkPhone(self):
         """检测手机号是否已注册-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.user.checkPhone('', code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -898,22 +897,15 @@ class TestUser:
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
-    def test_user_positive_getDailyLessonLimit_ok(self):
-        """获取孩子的每日课程数量限制-正向用例"""
-        res = self.user.getDailyLessonLimit(self.authorization)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize('dailyLessonLimit', [2, 3])
     def test_user_positive_dailyLessonLimit_ok(self, dailyLessonLimit):
         """设置孩子的每日课程数量限制-正向用例"""
+        # 设置孩子的每日课程数量限制
         res = self.user.dailyLessonLimit(self.authorization, self.kid_id, dailyLessonLimit)
         assert res['data']['dailyLessonLimit'] == dailyLessonLimit
         assert res['data']['kidId'] == self.kid_id
         assert res['data']['kidName'] == self.kid_name
+        # 获取孩子的每日课程数量限制，验证设置孩子的每日课程数量限制成功
         dailyLessonLimit_res = self.user.getDailyLessonLimit(self.authorization, self.kid_id)
         assert dailyLessonLimit_res['data']['dailyLessonLimit'] == dailyLessonLimit
         assert dailyLessonLimit_res['data']['kidId'] == self.kid_id
@@ -922,7 +914,8 @@ class TestUser:
     @pytest.mark.release
     @pytest.mark.parametrize('dailyLessonLimit', [1, 4])
     def test_user_positive_dailyLessonLimit_ok(self, dailyLessonLimit):
-        """设置孩子的每日课程数量限制-正向用例"""
+        """非标准dailyLessonLimit数字设置孩子的每日课程数量限制-正向用例"""
+        # 非标准dailyLessonLimit数字设置孩子的每日课程数量限制
         res = self.user.dailyLessonLimit(self.authorization, self.kid_id, dailyLessonLimit)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 100006, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"

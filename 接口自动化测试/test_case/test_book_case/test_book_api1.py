@@ -710,6 +710,7 @@ class TestBook:
                   'A,B,C,D', 'A,B,C,E', 'A,B,D,E', 'A,C,D,E', 'B,C,D,E', 'A,B,C,D,E'])
     def test_book_positive_getQuerybyfilter_ok(self, certifications, levels):
         """根据等级和认证过滤查询书籍-正向用例"""
+        # 获取蓝思分数等级映射关系
         level_map_res = self.book.lexiLelevelMapping(self.authorization)['data']
         level_map = {}
         for level in level_map_res:
@@ -723,6 +724,7 @@ class TestBook:
         lexile_range = []
         for level_letter in level_list:
             lexile_range.append(level_map[level_letter])
+        # 根据等级和认证过滤查询书籍
         pl = {
             "certifications": certifications,
             "levels": levels
@@ -734,13 +736,14 @@ class TestBook:
         content = res['data']['content']
         for book in content:
             bookId = book['id']
+            # 获取故事书的lexile分数
             book_lexile = self.book.bookLexile(self.authorization, bookId)['data']
             for lexile in lexile_range:
                 if lexile[0] <= book_lexile <= lexile[1]:
                     break
             else:
                 assert False, f"根据等级过滤查询书籍失败，返回的数据蓝思值不符合等级{levels}要求"
-            if certifications == 'official':
+            if certifications == 'official':    # 如果certifications是社区则校验邮箱类型
                 key = book['authorName']
                 user_email_res = self.user.getSearch(self.authorization, key)['data']['content']
                 for user_email in user_email_res:
@@ -749,9 +752,9 @@ class TestBook:
                         break
                 else:
                     assert False
-            elif certifications == 'community':
+            elif certifications == 'community':    # 如果certifications是精选则校验是否精选
                 assert book['selected'] == 1
-            else:
+            else:    # 2种情况综合
                 if book['selected'] != 1:
                     key = book['authorName']
                     user_email_res = self.user.getSearch(self.authorization, key)['data']['content']
@@ -767,7 +770,8 @@ class TestBook:
                   'A,B,C', 'A,B,D', 'A,B,E', 'A,C,D', 'A,C,E', 'A,D,E', 'B,C,D', 'B,C,E', 'B,D,E', 'C,D,E',
                   'A,B,C,D', 'A,B,C,E', 'A,B,D,E', 'A,C,D,E', 'B,C,D,E', 'A,B,C,D,E'])
     def test_book_getQuerybyfilter_without_certifications(self, levels):
-        """根据等级和认证过滤查询书籍-正向用例"""
+        """根据等级和认证过滤查询书籍-certifications为空"""
+        # 获取蓝思分数等级映射关系
         level_map_res = self.book.lexiLelevelMapping(self.authorization)['data']
         level_map = {}
         for level in level_map_res:
@@ -781,6 +785,7 @@ class TestBook:
         lexile_range = []
         for level_letter in level_list:
             lexile_range.append(level_map[level_letter])
+        # 根据等级和认证过滤查询书籍
         pl = {
             "certifications": '',
             "levels": levels
@@ -792,6 +797,7 @@ class TestBook:
         content = res['data']['content']
         for book in content:
             bookId = book['id']
+            # 获取故事书的 lexile 分数
             book_lexile = self.book.bookLexile(self.authorization, bookId)['data']
             for lexile in lexile_range:
                 if lexile[0] <= book_lexile <= lexile[1]:
@@ -802,7 +808,8 @@ class TestBook:
     @pytest.mark.release
     @pytest.mark.parametrize("certifications", ['official', 'community', 'official,community'])
     def test_book_getQuerybyfilter_without_levels(self, certifications):
-        """根据等级和认证过滤查询书籍-正向用例"""
+        """根据等级和认证过滤查询书籍-levels为空"""
+        # 根据等级和认证过滤查询书籍
         pl = {
             "certifications": certifications,
             "levels": ''
@@ -813,8 +820,9 @@ class TestBook:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         content = res['data']['content']
         for book in content:
-            if certifications == 'official':
+            if certifications == 'official':    # 如果certifications是社区则校验邮箱类型
                 key = book['authorName']
+                # 根据用户名 / email搜索用户
                 user_email_res = self.user.getSearch(self.authorization, key)['data']['content']
                 for user_email in user_email_res:
                     email = user_email['email']
@@ -822,11 +830,12 @@ class TestBook:
                         break
                 else:
                     assert False
-            elif certifications == 'community':
+            elif certifications == 'community':   # 如果certifications是精选则校验是否精选
                 assert book['selected'] == 1
-            else:
+            # else:   综合2种情况
                 if book['selected'] != 1:
                     key = book['authorName']
+                    # 根据用户名 / email搜索用户
                     user_email_res = self.user.getSearch(self.authorization, key)['data']['content']
                     for user_email in user_email_res:
                         email = user_email['email']

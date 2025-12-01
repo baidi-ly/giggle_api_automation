@@ -1062,7 +1062,9 @@ class TestCourse:
     @pytest.mark.release
     def test_course_positive_course_rating_ok(self):
         """保存课程评价-正向用例"""
+        # Normal课程资源列表
         course_id = self.school.getNormalcourse(self.authorization)["data"]['content'][0]['id']
+        # 保存课程评价
         res = self.course.course_rating(self.authorization, course_id, self.kid_id, 3)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -1075,7 +1077,6 @@ class TestCourse:
     @pytest.mark.release
     def test_course_permission_course_rating(self):
         """保存课程评价-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.course.course_rating('', code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -1086,7 +1087,9 @@ class TestCourse:
     @pytest.mark.release
     def test_course_positive_course_ratings_ok(self):
         """根据课程ID列表获取评价信息-正向用例"""
+        # Normal课程资源列表
         course_id = self.school.getNormalcourse(self.authorization)["data"]['content'][0]['id']
+        # 根据课程ID列表获取评价信息
         res = self.course.course_ratings(self.authorization, [course_id], self.kid_id)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -1107,12 +1110,16 @@ class TestCourse:
     @pytest.mark.parametrize('rate', [1,2,3])
     def test_course_course_rating_total_ok(self, rate):
         """保存获取课程评价-正向用例"""
+        # Normal课程资源列表
         course_res = self.school.getNormalcourse(self.authorization)["data"]['content']
         for course in course_res:
             course_id = course['id']
+            # 根据课程ID列表获取评价信息
             rating_res = self.course.course_ratings(self.authorization, [course_id], self.kid_id)
+            # 如果课程未被评价过则进行评价
             if not rating_res['data'][str(course_id)]['hasRated']:
-                res = self.course.course_rating(self.authorization, course_id, self.kid_id, rate)
+                # 保存课程评价
+                res = self.course.save_course_rating(self.authorization, course_id, self.kid_id, rate)
                 assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
                 assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
                 assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -1123,7 +1130,7 @@ class TestCourse:
                 break
         else:
             assert False, "未找到未评价的课程！"
-
-        rating_res = self.course.course_ratings(self.authorization, [course_id], kid_id)
+        # 保存课程评价后，获取评价信息，验证保存课程评价成功
+        rating_res = self.course.course_ratings(self.authorization, [course_id], self.kid_id)
         assert rating_res['data'][str(course_id)]['hasRated']
         assert rating_res['data'][str(course_id)]['rating'] == rate

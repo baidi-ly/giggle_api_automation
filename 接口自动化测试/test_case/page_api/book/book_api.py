@@ -1596,7 +1596,7 @@ class BookApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def lexiLelevelMapping(self, authorization, DeviceType="web", code=200, **kwargs):
+    def lexiLelevelMapping(self, authorization, DeviceType="web", code=200):
         """
         获取蓝思分数等级映射关系
 

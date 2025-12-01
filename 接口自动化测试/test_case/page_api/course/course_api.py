@@ -259,7 +259,7 @@ class CourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def course_rating(self, authorization, courseId, kidId, rating, DeviceType="web", code=200):
+    def save_course_rating(self, authorization, courseId, kidId, rating, DeviceType="web", code=200):
         """
         保存课程评价
         :param request: (object, body, required) 评价请求
