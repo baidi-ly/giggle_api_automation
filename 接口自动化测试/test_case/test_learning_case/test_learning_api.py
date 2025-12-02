@@ -4,8 +4,12 @@ import pytest
 import sys
 import os
 
+from test_case.page_api.course.course_api import CourseApi
+from test_case.page_api.game.game_api import GameApi
 from test_case.page_api.kid.kid_api import KidApi
 from test_case.page_api.learning.learning_api import LearningApi
+from test_case.page_api.reward.reward_api import RewardApi
+from test_case.page_api.user.user_api import UserApi
 
 sys.path.append(os.getcwd())
 sys.path.append("..")
@@ -16,8 +20,12 @@ class TestLearning:
 
     def setup_class(self):
         self.learning = LearningApi()
+        self.course = CourseApi()
         self.authorization = self.learning.get_authorization()[0]
         self.kid = KidApi()
+        self.user = UserApi()
+        self.game = GameApi()
+        self.reward = RewardApi()
 
         self.today = datetime.date.today().strftime("%Y-%m-%d")
         self.yesterday = (datetime.date.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
@@ -26,6 +34,16 @@ class TestLearning:
         _today = datetime.date.today()  # 当前日期
         self.start_of_week = _today - datetime.timedelta(days=_today.weekday())  # 本周周一
         self.end_of_week = self.start_of_week + datetime.timedelta(days=6)  # 本周周日
+
+        try:
+            kids_res = self.kid.getKids(self.authorization)
+            self.kid_name = 'New Kid'
+            for kid in kids_res['data']:
+                if kid['name'] == self.kid_name:
+                    self.kid_id = kid['id']
+                    break
+        except Exception as e:
+            print(f'获取孩子失败，原因是：{e}')
 
     @pytest.fixture(scope="class")
     def getkidId(self):
@@ -41,14 +59,37 @@ class TestLearning:
         # 注销小孩账户
         yield kidId
 
+    @pytest.mark.release
     def test_learning_stats_byKidId_normal(self, getkidId):
-        """有效的kidId，返回完整统计数据"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
+        """获取孩子学习统计数据 - 校验数据正确性"""
         # 获取孩子学习统计数据
-        stats_res = self.learning.learning_stats(kidId, self.authorization)
+        stats_res = self.learning.learning_stats(self.kid_id, self.authorization)
         assert "data" in stats_res, f"获取孩子学习统计数据接口没有data数据，response->{stats_res}"
-        assert stats_res["data"]["learningStats"]
+        assert stats_res["data"]['childInfo']['childId'] == str(self.kid_id)
+        assert stats_res["data"]['childInfo']['name'] == 'New Kid'
+        assert stats_res["data"]['childInfo']['avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
+        # 查询晋级进度条，获取当前孩子的等级
+        lp_res = self.kid.getLearningProgress(self.authorization, self.kid_id)
+        learningLevel =  lp_res['data']['learningLevel'].split('L')[-1]
+        actual_progress = stats_res["data"]['learningStats']['level']['progress']
+        # 检查今天是否已经通过每日课程完成增加过抽奖次数
+        status_res = self.game.learningStatusV2(self.authorization, self.kid_id)['data']
+        learning_histories = status_res['learningHistories']
+        if learning_histories:
+            learned_course_ids = [history['lessonId'] for history in learning_histories]
+            expected_lessons = len(set(learned_course_ids))
+        else:
+            expected_lessons = 0
+        # 获取连续学习进度
+        expected_streak = self.reward.continuousProgress(self.authorization, self.kid_id)['data']['days']
+        # 校验孩子学习统计数据准确性
+        assert stats_res["data"]['learningStats']['lessonsCompleted'] == expected_lessons
+        assert 'booksRead' in stats_res["data"]['learningStats']
+        assert stats_res["data"]['learningStats']['currentStreak'] == expected_streak
+        assert stats_res["data"]['learningStats']['level']['currentLevel'] == int(learningLevel)
+        assert stats_res["data"]['learningStats']['level']['levelName'] == f'level-{learningLevel}'
+        assert actual_progress
+
 
     def test_learning_stats_byKidId_deletedAccount(self, create_deletedAccount):
         """注销的kidId，返回错误信息"""

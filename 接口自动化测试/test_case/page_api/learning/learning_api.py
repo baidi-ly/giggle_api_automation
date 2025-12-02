@@ -18,10 +18,6 @@ class LearningApi(BaseAPI):
         :return:
         """
         # Create Data:  v.18.0  2025-09-05
-        # Creator: Baidi
-        # Update Date:
-        # updater:
-        # Update Details:
         url = f"https://{base_url}/api/learning/stats/{kidId}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -39,10 +35,6 @@ class LearningApi(BaseAPI):
         :return:
         """
         # Create Data:  v.18.0  2025-09-05
-        # Creator: Baidi
-        # Update Date:
-        # updater:
-        # Update Details:
         url = f"https://{base_url}/api/learning/daily/{kidId}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -60,10 +52,6 @@ class LearningApi(BaseAPI):
         :return:
         """
         # Create Data:  v.18.0  2025-09-05
-        # Creator: Baidi
-        # Update Date:
-        # updater:
-        # Update Details:
         url = f"https://{base_url}/api/learning/daily-report/{kidId}"
         payload = {
             "date": date
@@ -83,10 +71,6 @@ class LearningApi(BaseAPI):
         :return:
         """
         # Create Data:  v.18.0  2025-09-05
-        # Creator: Baidi
-        # Update Date:
-        # updater:
-        # Update Details:
         url = f"https://{base_url}/api/learning/weekly/{kidId}"
         payload = {
             "startDate": startDate,
@@ -108,10 +92,6 @@ class LearningApi(BaseAPI):
         :return:
         """
         # Create Data:  v.18.0  2025-09-05
-        # Creator: Baidi
-        # Update Date:
-        # updater:
-        # Update Details:
         url = f"https://{base_url}/api/learning/weekly-report/{kidId}"
         payload = {
             "startDate": startDate,
@@ -133,10 +113,6 @@ class LearningApi(BaseAPI):
         :return:
         """
         # Create Data:  v.18.0  2025-09-05
-        # Creator: Baidi
-        # Update Date:
-        # updater:
-        # Update Details:
         url = f"https://{base_url}/api/learning/daily-report/storybook/{kidId}"
         payload = {
             "date": date
@@ -157,10 +133,6 @@ class LearningApi(BaseAPI):
         :return:
         """
         # Create Data:  v.18.0  2025-09-05
-        # Creator: Baidi
-        # Update Date:
-        # updater:
-        # Update Details:
         url = f"https://{base_url}/api/learning/daily-report/challenge/{kidId}"
         payload = {
             "date": date
@@ -181,10 +153,6 @@ class LearningApi(BaseAPI):
         :return:
         """
         # Create Data:  v.18.0  2025-09-05
-        # Creator: Baidi
-        # Update Date:
-        # updater:
-        # Update Details:
         url = f"https://{base_url}/api/learning/daily-report/flashcard/{kidId}"
         payload = {
             "date": date

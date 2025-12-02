@@ -243,3 +243,92 @@ class GameApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def getAlltopcategory(self, authorization, DeviceType="web", code=200):
+        """
+        获取顶层课程目录列表
+
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-02
+        url = f"https://{base_url}/api/game/series/allTopCategory"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "获取顶层课程目录列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def getAllsubcategory(self, authorization, parentId, DeviceType="web", code=200):
+        """
+        获取课程子目录列表
+        :param parentId: (integer, query, required) parentId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-02
+        url = f"https://{base_url}/api/game/series/allSubCategory"
+        payload = {
+            "parentId": parentId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "获取课程子目录列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def gameListall(self, authorization, categoryId, DeviceType="web", code=200):
+        """
+        获取分类下所有课程
+        :param categoryId: (integer, query, required) categoryId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-02
+        url = f"https://{base_url}/api/game/content/listAll"
+        payload = {
+            "categoryId": categoryId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "获取分类下所有课程"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def learningStatusV2(self, authorization, kidId, DeviceType="web", code=200):
+        """
+        检查今天是否已经通过每日课程完成增加过抽奖次数
+        :param categoryId: (integer, query, optional) categoryId
+        :param kidId: (string, query, required) kidId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-02
+        url = f"https://{base_url}/api/game/learningStatus/v2"
+        payload = {
+            "kidId": kidId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "检查今天是否已经通过每日课程完成增加过抽奖次数"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
