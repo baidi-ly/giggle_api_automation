@@ -4,7 +4,7 @@ import time
 from test_case.page_api.base_api import BaseAPI
 
 requests = BaseAPI().http_timeout()
-base_url = BaseAPI().baseurl()
+base_url = BaseAPI().admin_baseurl()
 
 
 class AdminActivityApi(BaseAPI):
@@ -38,7 +38,7 @@ class AdminActivityApi(BaseAPI):
         response = response.json()
         return response
 
-    def create(self, authorization, DeviceType="web", code=200, **kwargs):
+    def activity_create(self, authorization, DeviceType="web", code=200, **kwargs):
         """
         创建活动
         :param name: (string, body, required) name 参数
@@ -56,12 +56,6 @@ class AdminActivityApi(BaseAPI):
             "activityCode": "GACHA_2024",
             "startTime": "",
             "endTime": "",
-            "config": {
-                "defaultDraws": 1,
-                "shareMax": 2,
-                "normalStickerProbability": 0.7,
-                "pointsProbability": 0.3
-            },
             "status": "ACTIVE"
         }
         payload = self.request_body(payload, **kwargs)
@@ -173,6 +167,30 @@ class AdminActivityApi(BaseAPI):
 
         response = requests.request("DELETE", url, headers=headers)
         error_msg = "获取活动详情"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def updateActivityStatus(self, authorization, activity_id, status='ACTIVE', DeviceType="web", code=200):
+        """
+        更新活动状态
+        :param request: (object, body, required) request
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-02
+        url = f"https://{base_url}/admin/activity/status"
+        payload = {
+            "id": activity_id,
+            "status": status
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("PUT", url, headers=headers, json=payload)
+        error_msg = "更新活动状态"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()

@@ -697,11 +697,31 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         for _data in res['data']:
-            if _data == "A":
+            if _data == "A":  # 等级为A
                 assert _data['inclusiveMax'] == True
-                assert _data['inclusiveMin'] == False
+                assert _data['inclusiveMin'] == True
                 assert _data['max'] == 200
                 assert _data['min'] == 0
+            elif _data == "B":  # 等级为B
+                assert _data['inclusiveMax'] == True
+                assert _data['inclusiveMin'] == False
+                assert _data['max'] == 400
+                assert _data['min'] == 200
+            elif _data == "C":  # 等级为C
+                assert _data['inclusiveMax'] == True
+                assert _data['inclusiveMin'] == False
+                assert _data['max'] == 450
+                assert _data['min'] == 400
+            elif _data == "D":  # 等级为D
+                assert _data['inclusiveMax'] == True
+                assert _data['inclusiveMin'] == False
+                assert _data['max'] == 500
+                assert _data['min'] == 450
+            elif _data == "E":  # 等级为E
+                assert _data['inclusiveMax'] == False
+                assert _data['inclusiveMin'] == False
+                assert _data['max'] == None
+                assert _data['min'] == 500
 
     @pytest.mark.release
     @pytest.mark.parametrize("certifications", ['official', 'community', 'official,community'])

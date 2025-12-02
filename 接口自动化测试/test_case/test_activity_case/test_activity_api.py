@@ -9,6 +9,7 @@ from pandas import DataFrame
 from test_case.page_api.activity.activity_api import ActivityApi
 from test_case.page_api.admin.admin_activity_api import AdminActivityApi
 from test_case.page_api.admin.admin_banner_api import AdminBannerApi
+from test_case.page_api.course.course_api import CourseApi
 from test_case.page_api.kid.kid_api import KidApi
 from test_case.page_api.user.user_api import UserApi
 
@@ -26,8 +27,20 @@ class TestActivity:
         self.authorization, self.userId = self.activity.get_authorization()
         self.kid = KidApi()
         self.user = UserApi()
+        self.course = CourseApi()
         self.adminActivity = AdminActivityApi()
+        self.admin_auth, self.user_adminId = self.adminActivity.get_admin_authorization()
         self.now = strftime("%Y%m%d%H%M%S")
+
+        try:
+            kids_res = self.kid.getKids(self.authorization)
+            self.kid_name = 'New Kid'
+            for kid in kids_res['data']:
+                if kid['name'] == self.kid_name:
+                    self.kid_id = kid['id']
+                    break
+        except Exception as e:
+            print(f'获取孩子失败，原因是：{e}')
 
     @pytest.fixture(scope="class")
     def getkidId(self):
@@ -989,3 +1002,98 @@ class TestActivity:
         assert res['message'] == 'Activity not found', f"接口返回message信息异常: 预期【Activity not found】，实际【{res['message']}】"
         assert res['data'] == 'Activity not found', f"接口返回data数据异常：{res['data']}"
 
+    @pytest.fixture(scope="class")
+    def create_task(self, create_activity):
+        '''创建完课扭蛋活动'''
+        # 创建活动
+        activity_name = "Daily Course Complete Gacha" + self.now
+        startTime = (datetime.date.today() + datetime.timedelta(days=-1)).strftime("%Y-%m-%d %H:%M:%S")  # 昨天
+        endTime = (datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S")  # 明天
+        pl = {
+            "name": activity_name,
+            "activityCode": "GACHA",
+            "startTime": startTime,
+            "endTime": endTime,
+            "status": "ACTIVE",
+            "tags": ["COURSE_COMPLETE"]
+        }
+        activity_id = self.adminActivity.activity_create(self.admin_auth, **pl)['data']['id']
+        # 创建活动任务定义
+        task_name = "每日完课增加抽奖次数" + self.now
+        pl1 = {
+            "activityId": activity_id,         # 你刚创建的活动ID
+            "actionCode": "COURSE_COMPLETE",   # 必须精准写这个
+            "name": task_name,
+            "general": False,
+            "rewardType": "DRAWS",             # 或者 "POINTS"，看你想给什么奖励
+            "rewardValue": 1,                  # 比如 +1 次抽奖
+            "maxTimes": 1,
+            "config": None
+        }
+        activity_task_id = self.adminActivity.create_activity_task(self.admin_auth, **pl1)['data']['id']
+        yield
+        # 删除活动任务定义
+        self.adminActivity.delete_activity_task(self.admin_auth, activity_task_id)
+        # 更新活动状态为无效
+        self.adminActivity.updateActivityStatus(self.admin_auth, activity_id, status='INACTIVE')
+
+    @pytest.mark.release
+    def test_activity_positive_dailyLessonComplete_ok(self, create_task):
+        """根据每日学习计划课程完成增加抽奖次数-正向用例"""
+        # 根据每日学习计划课程完成增加抽奖次数前，确认今天没有通过每日课程完成增加过抽奖次数
+        check_before = self.activity.dailyLessonCompleteCheck(self.authorization, self.kid_id)
+        assert check_before['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{check_before['code']}】"
+        assert check_before['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{check_before['message']}】"
+        assert check_before['data']['granted'] == False, f"接口返回data数据异常：{check_before['data']}"
+        # 通过查询晋级资格获取学生level
+        learningLevel = self.course.promotion_check(self.authorization, self.kid_id)['data']['currentLevel']
+        # 根据level获取课程推荐列表
+        recommends_res = self.course.course_recommends(self.authorization, self.kid_id, learningLevel)['data'][:2]
+        courseIds = ','.join(DataFrame(recommends_res)['id'].tolist())
+        # 根据每日学习计划课程完成增加抽奖次数
+        res = self.activity.dailyLessonComplete(self.authorization, courseIds, self.kid_id)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        # 根据每日学习计划课程完成增加抽奖次数后，确认今天已经通过每日课程完成增加过抽奖次数
+        check_after = self.activity.dailyLessonCompleteCheck(self.authorization, self.kid_id)
+        assert check_after['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert check_after['message'] == 'success', f"接口返回message信息异常: 预期【Activity not found】，实际【{res['message']}】"
+        assert check_after['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_activity_ailyLessonComplete_without_activity(self):
+        """根据每日学习计划课程完成增加抽奖次数-验证没有完课活动时提示活动不存在"""
+        # 通过查询晋级资格获取学生level
+        learningLevel = self.course.promotion_check(self.authorization, self.kid_id)['data']['currentLevel']
+        # 根据level获取课程推荐列表
+        recommends_res = self.course.course_recommends(self.authorization, self.kid_id, learningLevel)['data'][:2]
+        courseIds = ','.join(DataFrame(recommends_res)['id'].tolist())
+        # 根据每日学习计划课程完成增加抽奖次数，验证没有没有活动时无法增加抽奖次数
+        res = self.activity.dailyLessonComplete(self.authorization, courseIds, self.kid_id)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 100114, f"接口返回状态码异常: 预期【100114】，实际【{res['code']}】"
+        assert res['message'] == 'Activity not found', f"接口返回message信息异常: 预期【Activity not found】，实际【{res['message']}】"
+        assert res['data'] == 'Activity not found', f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_activity_permission_dailyLessonComplete(self):
+        """根据每日学习计划课程完成增加抽奖次数-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.activity.dailyLessonComplete('', 0, 0, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_activity_permission_dailyLessonCompleteCheck(self):
+        """检查今天是否已经通过每日课程完成增加过抽奖次数-权限测试"""
+        res = self.activity.dailyLessonCompleteCheck('', 0, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
