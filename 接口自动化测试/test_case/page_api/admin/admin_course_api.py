@@ -922,3 +922,89 @@ class AdminCourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def strategy_preview(self, authorization, DeviceType="web", code=200):
+        """
+        预览当前草稿配置
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/admin/course/strategy/preview"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "预览当前草稿配置"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def publish_strategy(self, authorization, DeviceType="web", code=200):
+        """
+        发布配置
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/admin/course/strategy/publish"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers)
+        error_msg = "发布配置"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def strategy_history_detail(self, authorization, id=0, DeviceType="web", code=200):
+        """
+        查询发布历史详情
+        :param id: (integer, query, required) 历史记录ID
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/admin/course/strategy/history/detail"
+        payload = {
+            "id": id
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "查询发布历史详情"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def strategy_historys(self, authorization, page=0, size=10, DeviceType="web", code=200, **kwargs):
+        """
+        查询发布历史列表
+        :param page: (integer, query, optional) 页码，从0开始
+        :param size: (integer, query, optional) 每页数量
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/admin/course/strategy/history/list"
+        payload = {
+            "page": page,
+            "size": size
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "查询发布历史列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
