@@ -619,3 +619,306 @@ class AdminCourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def addCourseStrategy(self, authorization, DeviceType="web", code=200, **kwargs):
+        """
+        新增策略定义
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-02
+        url = f"https://{base_url}/admin/course/strategy/add"
+        payload = {
+            "strategyId": "default_path_v1",
+            "enabled": True,
+            "resetOnSegmentChange": False,
+            "pattern": "A-B-C",
+            "patternBehavior": "LOOP_PATTERN",
+            "description": "默认课程分发策略"
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "新增策略定义"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def deleteCourseStrategy(self, authorization, strategy_id, DeviceType="web", code=200):
+        """
+        删除策略定义
+        :param strategy_id: (integer, query, required) 策略ID
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/admin/course/strategy/delete"
+        payload = {
+            "id": strategy_id
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "删除策略定义"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def updateCourseStrategy(self, authorization, strategy_id, DeviceType="web", code=200, **kwargs):
+        """
+        更新策略定义
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/admin/course/strategy/update"
+        payload = {
+            "id": strategy_id,
+            "strategyId": "default_path_v1",
+            "enabled": True,
+            "resetOnSegmentChange": False,
+            "pattern": "A-B-C",
+            "patternBehavior": "LOOP_PATTERN",
+            "description": "默认课程分发策略"
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "更新策略定义"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def courseStrategies(self, authorization, page=0, size=100, DeviceType="web", code=200):
+        """
+        查询策略定义列表
+        :param page: (integer, query, optional) 页码，从0开始
+        :param size: (integer, query, optional) 每页数量
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/admin/course/strategy/list"
+        payload = {
+            "page": page,
+            "size": size
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "查询策略定义列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def addStrategyRule(self, authorization, strategyId, courseIds, enabled=True, DeviceType="web", code=200):
+        """
+        新增课程规则
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/admin/course/strategy/rule/add"
+        payload = {
+            "strategyId": strategyId,
+            "enabled": enabled,
+            "courseIds": courseIds
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "新增课程规则"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def deleteStrategyRule(self, authorization, rule_id, DeviceType="web", code=200):
+        """
+        删除课程规则
+        :param id: (integer, query, required) 规则ID
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/admin/course/strategy/rule/delete"
+        payload = {
+            "id": rule_id
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "删除课程规则"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def strategyRules(self, authorization, page=0, size=100, DeviceType="web", code=200):
+        """
+        查询课程规则列表
+        :param page: (integer, query, optional) 页码，从0开始
+        :param size: (integer, query, optional) 每页数量
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/admin/course/strategy/rule/list"
+        payload = {
+            "page": page,
+            "size": size
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "查询课程规则列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def updateStrategyRule(self, authorization, id, strategyId, courseIds, enabled=True, DeviceType="web", code=200):
+        """
+        更新课程规则
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/admin/course/strategy/rule/update"
+        payload = {
+            "id": id,
+            "strategyId": strategyId,
+            "enabled": enabled,
+            "courseIds": courseIds
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "更新课程规则"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def addStrategylevelRule(self, authorization, strategyId, level, DeviceType="web", code=200):
+        """
+        新增等级策略
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/admin/course/strategy/level-rule/add"
+        payload = {
+            "strategyId": strategyId,
+            "level": level
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "新增等级策略"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def deleteStrategylevelRule(self, authorization, id=0, DeviceType="web", code=200, **kwargs):
+        """
+        删除等级策略
+        :param id: (integer, query, required) 策略ID
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/admin/course/strategy/level-rule/delete"
+        payload = {
+            "id": id
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "删除等级策略"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def strategylevelRules(self, authorization, page=0, size=100, DeviceType="web", code=200, **kwargs):
+        """
+        查询等级策略列表
+        :param page: (integer, query, optional) 页码，从0开始
+        :param size: (integer, query, optional) 每页数量
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/admin/course/strategy/level-rule/list"
+        payload = {
+            "page": page,
+            "size": size
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "查询等级策略列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def updateStrategylevelRule(self, authorization, level_rule_id, strategyId, level, DeviceType="web", code=200):
+        """
+        更新等级策略
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/admin/course/strategy/level-rule/update"
+        payload = {
+            "id": level_rule_id,
+            "strategyId": strategyId,
+            "level": level
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "更新等级策略"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+

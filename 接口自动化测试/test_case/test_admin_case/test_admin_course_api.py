@@ -1,5 +1,6 @@
 import datetime
 import random
+import re
 import string
 import sys
 import os
@@ -23,10 +24,10 @@ expired_token = config.RunConfig.expired_token
 class TestAdminCourse:
 
     def setup_class(self):
-        self.admin = AdminCourseApi()
+        self.admin_course = AdminCourseApi()
         self.admin_levelskills = AdminLevelskillsApi()
-        self.authorization = self.admin.get_authorization()[0]
-        self.admin_authorization = self.admin.get_admin_authorization()[0]
+        self.authorization = self.admin_course.get_authorization()[0]
+        self.admin_auth = self.admin_course.get_admin_authorization()[0]
         self.now = strftime("%Y%m%d%H%M%S")
 
     def teardown_class(self):
@@ -48,7 +49,7 @@ class TestAdminCourse:
         try:
             for status in [0, 1]:
                 pl = {"status": status}
-                course_tags = self.admin.course_tag_list(self.authorization, **pl)['data']['content']
+                course_tags = self.admin_course.course_tag_list(self.authorization, **pl)['data']['content']
                 for course_tag in course_tags:
                     # 删除课程用户标签
                     if course_tag['name'].startswith('course_tag_test'):
@@ -61,35 +62,35 @@ class TestAdminCourse:
                                 "skillIds": course_tag['skills'],
                                 "status": 0
                             }
-                            self.admin.update_course_tag(self.authorization, tag_id, **pl)
-                        delete_res = self.admin.delete_course_tag(self.authorization, course_tag_id)
+                            self.admin_course.update_course_tag(self.authorization, tag_id, **pl)
+                        delete_res = self.admin_course.delete_course_tag(self.authorization, course_tag_id)
                         assert delete_res['data'] == '删除成功', f"接口返回data数据异常：{delete_res['data']}"
         except Exception as e:
             print(f'删除课程用户标签失败，原因是：{e}')
 
         try:
             # 删除状态为生效的课程专辑
-            album_res1 = self.admin.course_album_list(self.authorization)['data']['content']
+            album_res1 = self.admin_course.course_album_list(self.authorization)['data']['content']
             for album in album_res1:
                 if album['name'].startswith('dibo_test'):
                     album_id = album['id']
                     # 删除课程专辑
-                    delete_res = self.admin.delete_course_album(self.authorization, album_id)
+                    delete_res = self.admin_course.delete_course_album(self.authorization, album_id)
                     assert delete_res['data'] == "删除成功", f"接口返回data数据异常：{delete_res['data']}"
             # 删除状态为废弃的课程专辑
-            album_res2 = self.admin.course_album_list(self.authorization, status=0)['data']['content']
+            album_res2 = self.admin_course.course_album_list(self.authorization, status=0)['data']['content']
             for album in album_res2:
                 if album['name'].startswith('dibo_test'):
                     album_id = album['id']
                     # 删除课程专辑
-                    delete_res = self.admin.delete_course_album(self.authorization, album_id)
+                    delete_res = self.admin_course.delete_course_album(self.authorization, album_id)
                     assert delete_res['data'] == "删除成功", f"接口返回data数据异常：{delete_res['data']}"
         except Exception as e:
             print(f'删除课程专辑失败，原因是：{e}')
 
     @pytest.fixture(scope='class')
     def courselistAll(self):
-        courselistAll = self.admin.course_listAll(self.admin_authorization, 638245113409605)
+        courselistAll = self.admin_course.course_listAll(self.admin_auth, 638245113409605)
         yield courselistAll
 
     def test_admin_course_export_by_theme(self):
@@ -98,7 +99,7 @@ class TestAdminCourse:
         可参数化，参考注册正常场景
         """
         theme = "Colors"
-        export_res = self.admin.export_byTheme(self.admin_authorization, theme)
+        export_res = self.admin_course.export_byTheme(self.admin_auth, theme)
         assert export_res["data"]
 
     def test_admin_course_export_byTheme_notExsit(self):
@@ -107,7 +108,7 @@ class TestAdminCourse:
         可参数化，参考注册正常场景
         """
         theme = "Indoor+Actions"
-        export_res = self.admin.export_byTheme(self.admin_authorization, theme)
+        export_res = self.admin_course.export_byTheme(self.admin_auth, theme)
         assert not export_res["data"]
 
     @pytest.mark.parametrize("theme", [123, 123.4, True, "!@#~", ''],
@@ -117,7 +118,7 @@ class TestAdminCourse:
         分页查询用户创建的书籍列表-验证page，
         可参数化，参考注册正常场景
         """
-        export_res = self.admin.export_byTheme(self.admin_authorization, theme)
+        export_res = self.admin_course.export_byTheme(self.admin_auth, theme)
         assert export_res["data"]
 
     def test_admin_course_export_byTheme_abnormal_character(self):
@@ -126,14 +127,14 @@ class TestAdminCourse:
         可参数化，参考注册正常场景
         """
         theme = 'Colors'
-        self.admin.export_byTheme('', theme)
+        self.admin_course.export_byTheme('', theme)
 
     def test_admin_course_trial_list(self):
         """
         分页查询用户创建的书籍列表-验证page，
         可参数化，参考注册正常场景
         """
-        export_res = self.admin.trial_list(self.admin_authorization)
+        export_res = self.admin_course.trial_list(self.admin_auth)
         assert export_res["data"]
 
     def test_admin_course_trial_list_unauthorized(self):
@@ -141,7 +142,7 @@ class TestAdminCourse:
         分页查询用户创建的书籍列表-验证page，
         可参数化，参考注册正常场景
         """
-        self.admin.trial_list('', code=401)
+        self.admin_course.trial_list('', code=401)
 
     def test_admin_course_update_to_trial(self, courselistAll):
         """
@@ -149,7 +150,7 @@ class TestAdminCourse:
         可参数化，参考注册正常场景
         """
         courseId = courselistAll['data'][0]["id"]
-        export_res = self.admin.update_to_trial(self.admin_authorization, courseId)
+        export_res = self.admin_course.update_to_trial(self.admin_auth, courseId)
         assert export_res["message"] == 'success'
 
     def test_admin_course_remove_trial(self, courselistAll):
@@ -158,7 +159,7 @@ class TestAdminCourse:
         可参数化，参考注册正常场景
         """
         courseId = courselistAll['data'][0]["id"]
-        export_res = self.admin.remove_trial(self.admin_authorization, courseId)
+        export_res = self.admin_course.remove_trial(self.admin_auth, courseId)
         assert export_res["message"] == 'success'
 
     def test_admin_course_update_blockedIds(self, courselistAll):
@@ -168,7 +169,7 @@ class TestAdminCourse:
         """
         courselistAll = courselistAll
         courseIds = pd.DataFrame(courselistAll['data']).loc[:, 'id'].tolist()
-        export_res = self.admin.update_blockedIds(self.admin_authorization, courseIds)
+        export_res = self.admin_course.update_blockedIds(self.admin_auth, courseIds)
         assert export_res["data"] == '更新成功'
 
     def test_admin_course_get_blockedIds(self, courselistAll):
@@ -176,13 +177,13 @@ class TestAdminCourse:
         分页查询用户创建的书籍列表-验证page，
         可参数化，参考注册正常场景
         """
-        export_res = self.admin.blockedIds(self.admin_authorization)
+        export_res = self.admin_course.blockedIds(self.admin_auth)
         assert export_res["data"]['blockedIds']
 
     @pytest.mark.smoke
     def test_admin_course_positive_getSpelrules_ok(self):
         """获取体验课程推荐SpEL表达式规则-正向用例"""
-        res = self.admin.getSpelrules(self.admin_authorization)
+        res = self.admin_course.getSpelrules(self.admin_auth)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -199,8 +200,8 @@ class TestAdminCourse:
     )
     def test_admin_course_permission_getSpelrules(self, desc, value):
         """获取体验课程推荐SpEL表达式规则-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin.getSpelrules(value, code=401)
+
+        res = self.admin_course.getSpelrules(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -220,7 +221,7 @@ class TestAdminCourse:
     def test_admin_course_format_getSpelrules_abTest(self, desc, value, code, code_res):
         """获取体验课程推荐SpEL表达式规则-数据格式测试(abTest)"""
         try:
-            res = self.admin.getSpelrules(self.admin_authorization, abTest=value, code=code)
+            res = self.admin_course.getSpelrules(self.admin_auth, abTest=value, code=code)
         except Exception as res:
             assert not code
         if code and not code_res:
@@ -245,7 +246,7 @@ class TestAdminCourse:
     )
     def test_admin_course_boundary_getSpelrules_abTest(self, desc, value, code):
         """获取体验课程推荐SpEL表达式规则-边界值测试(abTest)"""
-        res = self.admin.getSpelrules(self.admin_authorization, abTest=value)
+        res = self.admin_course.getSpelrules(self.admin_auth, abTest=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == code, f"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -254,7 +255,7 @@ class TestAdminCourse:
     @pytest.mark.smoke
     def test_admin_course_positive_spelrules_ok(self):
         """设置体验课程推荐SpEL表达式规则-正向用例"""
-        res = self.admin.spelrules(self.admin_authorization)
+        res = self.admin_course.spelrules(self.admin_auth)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -271,8 +272,8 @@ class TestAdminCourse:
     )
     def test_admin_course_permission_spelrules(self, desc, value):
         """设置体验课程推荐SpEL表达式规则-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin.spelrules(value, code=401)
+
+        res = self.admin_course.spelrules(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -286,7 +287,7 @@ class TestAdminCourse:
         for course in courselistAll['data']:
             if course['name'] == 'dibo_test':
                 courseId = int(course['id'])
-        res = self.admin.generateTags(self.admin_authorization, 648882721525835)
+        res = self.admin_course.generateTags(self.admin_auth, 648882721525835)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -303,8 +304,8 @@ class TestAdminCourse:
     )
     def test_admin_course_permission_generateTags(self, desc, value):
         """AI生成课程标签-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin.generateTags(value, code=401)
+
+        res = self.admin_course.generateTags(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -325,7 +326,7 @@ class TestAdminCourse:
             pl = {'pop_items': 'courseId'}
         else:
             pl = {'courseId': value}
-        res = self.admin.generateTags(self.admin_authorization, code=code, **pl)
+        res = self.admin_course.generateTags(self.admin_auth, code=code, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         if code == 500:
             assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
@@ -379,14 +380,14 @@ class TestAdminCourse:
         file = {
             'coverImage': ('story_face.webp', open(os.getcwd() + f'/test_data/story_face.webp', 'rb'))
         }
-        res = self.admin.create_course_tag(self.authorization, file=file, **pl)
+        res = self.admin_course.create_course_tag(self.authorization, file=file, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         course_tag_id = res['data']['id']
 
         yield course_tag_id
 
         # 删除课程标签
-        res = self.admin.delete_course_tag(self.authorization, course_tag_id)
+        res = self.admin_course.delete_course_tag(self.authorization, course_tag_id)
         assert res['code'] == 200, f"删除课程标签失败！"
 
     @pytest.mark.smoke
@@ -407,7 +408,7 @@ class TestAdminCourse:
         file = {
             'coverImage': ('story_face.webp', open(os.getcwd() + f'/test_data/story_face.webp', 'rb'))
         }
-        res = self.admin.create_course_tag(self.authorization, file=file, **pl)
+        res = self.admin_course.create_course_tag(self.authorization, file=file, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -428,7 +429,7 @@ class TestAdminCourse:
         file = {
             'coverImage': ('story_face.webp', open(os.getcwd() + f'/test_data/story_face.webp', 'rb'))
         }
-        res = self.admin.create_course_tag(value, file=file, code=401)
+        res = self.admin_course.create_course_tag(value, file=file, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -453,7 +454,7 @@ class TestAdminCourse:
         file = {
             'coverImage': ('story_face.webp', open(os.getcwd() + f'/test_data/story_face.webp', 'rb'))
         }
-        create_res = self.admin.create_course_tag(self.authorization, file=file, **pl)
+        create_res = self.admin_course.create_course_tag(self.authorization, file=file, **pl)
         course_tag_id = create_res['data']['id']    # 用户标签ID
         # 更新课程用户标签
         tag_name_new = 'course_tag_test_new' + self.now
@@ -461,7 +462,7 @@ class TestAdminCourse:
             "name": tag_name_new,
             "status": 0
         }
-        update_res = self.admin.update_course_tag(self.authorization, course_tag_id, **pl1)
+        update_res = self.admin_course.update_course_tag(self.authorization, course_tag_id, **pl1)
         assert isinstance(update_res, dict), f'接口返回类型异常: {type(update_res)}'
         assert update_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{update_res['code']}】"
         assert update_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{update_res['message']}】"
@@ -479,8 +480,8 @@ class TestAdminCourse:
     )
     def test_admin_course_permission_update_course_tag(self, desc, value):
         """更新课程用户标签-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin.update_course_tag(value, code=401)
+
+        res = self.admin_course.update_course_tag(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -505,10 +506,10 @@ class TestAdminCourse:
         file = {
             'coverImage': ('story_face.webp', open(os.getcwd() + f'/test_data/story_face.webp', 'rb'))
         }
-        create_res = self.admin.create_course_tag(self.authorization, file=file, **pl)
+        create_res = self.admin_course.create_course_tag(self.authorization, file=file, **pl)
         course_tag_id = create_res['data']['id']    # 用户标签ID
         # 删除课程用户标签
-        res = self.admin.delete_course_tag(self.authorization, course_tag_id)
+        res = self.admin_course.delete_course_tag(self.authorization, course_tag_id)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -526,8 +527,8 @@ class TestAdminCourse:
     )
     def test_admin_course_permission_delete_course_tag(self, desc, value):
         """删除课程用户标签-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin.delete_course_tag(value, code=401)
+
+        res = self.admin_course.delete_course_tag(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -537,7 +538,7 @@ class TestAdminCourse:
     @pytest.mark.smoke
     def test_admin_course_positive_course_tags_ok(self):
         """分页查询课程用户标签列表-正向用例"""
-        res = self.admin.course_tag_list(self.authorization)
+        res = self.admin_course.course_tag_list(self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -555,8 +556,8 @@ class TestAdminCourse:
     )
     def test_admin_course_permission_course_tags(self, desc, value):
         """分页查询课程用户标签列表-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin.course_tag_list(value, code=401)
+
+        res = self.admin_course.course_tag_list(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -581,7 +582,7 @@ class TestAdminCourse:
         file = {
             'coverImage': ('story_face.webp', open(os.getcwd() + f'/test_data/story_face.webp', 'rb'))
         }
-        create_res = self.admin.create_course_tag(self.authorization, file=file, **pl)
+        create_res = self.admin_course.create_course_tag(self.authorization, file=file, **pl)
         assert isinstance(create_res, dict), f'接口返回类型异常: {type(create_res)}'
         assert create_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{create_res['code']}】"
         course_tag_id = create_res['data']['id']
@@ -589,7 +590,7 @@ class TestAdminCourse:
             "name": '',
             "status": 1
         }
-        course_tags1 = self.admin.course_tag_list(self.authorization, **pl1)['data']['content']
+        course_tags1 = self.admin_course.course_tag_list(self.authorization, **pl1)['data']['content']
         for course_tag in course_tags1:
             if course_tag['id'] == course_tag_id:
                 assert course_tag['status'] == pl.get('status')
@@ -610,13 +611,13 @@ class TestAdminCourse:
             "tagType": 'normal',  # 必填，可选值包括 normal、hot、recommended_search 等。
             "skillIds": skillIds,  # 关联的课程等级技能 ID 列表，Long 数组，可选，默认空数组。
         }
-        update_res = self.admin.update_course_tag(self.authorization, course_tag_id, **pl2)
+        update_res = self.admin_course.update_course_tag(self.authorization, course_tag_id, **pl2)
         assert update_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{update_res['code']}】"
         pl3 = {
             "name": '',
             "status": 0
         }
-        course_tags2 = self.admin.course_tag_list(self.authorization, **pl3)['data']['content']
+        course_tags2 = self.admin_course.course_tag_list(self.authorization, **pl3)['data']['content']
         for course_tag in course_tags2:
             if course_tag['id'] == course_tag_id:
                 assert course_tag['status'] == pl2.get('status')
@@ -629,9 +630,9 @@ class TestAdminCourse:
             assert False, "新增课程用户标签后，在查询的课程用户标签列表中未查询到结果！"
 
         # 删除课程用户标签
-        delete_res = self.admin.delete_course_tag(self.authorization, course_tag_id)
+        delete_res = self.admin_course.delete_course_tag(self.authorization, course_tag_id)
         assert delete_res['data'] == '删除成功', f"接口返回data数据异常：{delete_res['data']}"
-        course_tags3 = self.admin.course_tag_list(self.authorization, **pl3)['data']['content']
+        course_tags3 = self.admin_course.course_tag_list(self.authorization, **pl3)['data']['content']
         course_tag_ids3 = DataFrame(course_tags3)['id'].tolist()
         assert course_tag_id not in course_tag_ids3
 
@@ -640,7 +641,7 @@ class TestAdminCourse:
         """创建课程专辑-正向用例"""
         tagIds = [createCourseTag_method]
         album_name = 'dibo_test' + self.now
-        res = self.admin.course_album_create(self.authorization, album_name, tagIds)
+        res = self.admin_course.course_album_create(self.authorization, album_name, tagIds)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -658,8 +659,8 @@ class TestAdminCourse:
     )
     def test_admin_course_permission_album_create(self, desc, value):
         """创建课程专辑-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin.course_album_create(value, code=401)
+
+        res = self.admin_course.course_album_create(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -669,7 +670,7 @@ class TestAdminCourse:
     @pytest.mark.smoke
     def test_admin_course_positive_albums_ok(self):
         """分页查询课程专辑列表-正向用例"""
-        res = self.admin.course_album_list(self.authorization)
+        res = self.admin_course.course_album_list(self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -687,8 +688,8 @@ class TestAdminCourse:
     )
     def test_admin_course_permission_albums(self, desc, value):
         """分页查询课程专辑列表-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin.course_album_list(value, code=401)
+
+        res = self.admin_course.course_album_list(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -701,12 +702,12 @@ class TestAdminCourse:
         # 创建课程专辑
         tagIds = [createCourseTag_method]
         album_name = 'dibo_test' + self.now + random.choice(string.ascii_letters)
-        res = self.admin.course_album_create(self.authorization, album_name, tagIds)
+        res = self.admin_course.course_album_create(self.authorization, album_name, tagIds)
         album_id = res['data']['id']
 
         # 更新课程专辑
         album_new_name = 'dibo_test_new' + self.now + random.choice(string.ascii_letters)
-        res = self.admin.update_course_album(self.authorization, album_id, album_new_name, status=0)
+        res = self.admin_course.update_course_album(self.authorization, album_id, album_new_name, status=0)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -724,8 +725,8 @@ class TestAdminCourse:
     )
     def test_admin_course_permission_update_album(self, desc, value):
         """更新课程专辑-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin.update_course_album(value, 0, '', code=401)
+
+        res = self.admin_course.update_course_album(value, 0, '', code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -738,11 +739,11 @@ class TestAdminCourse:
         # 创建课程专辑
         tagIds = [createCourseTag_method]
         album_name = 'dibo_test' + self.now
-        res = self.admin.course_album_create(self.authorization, album_name, tagIds)
+        res = self.admin_course.course_album_create(self.authorization, album_name, tagIds)
         album_id = res['data']['id']
 
         # 删除课程专辑
-        res = self.admin.delete_course_album(self.authorization, album_id)
+        res = self.admin_course.delete_course_album(self.authorization, album_id)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -760,8 +761,8 @@ class TestAdminCourse:
     )
     def test_admin_course_permission_delete_album(self, desc, value):
         """删除课程专辑-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin.delete_course_album(value, 0, code=401)
+
+        res = self.admin_course.delete_course_album(value, 0, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -775,11 +776,11 @@ class TestAdminCourse:
         # 创建课程专辑
         tagIds = [createCourseTag_method]
         album_name = 'dibo_test' + self.now
-        create_res = self.admin.course_album_create(self.authorization, album_name, tagIds)
+        create_res = self.admin_course.course_album_create(self.authorization, album_name, tagIds)
         album_id = create_res['data']['id']
 
         # 分页查询课程专辑列表，验证创建课程专辑成功
-        album_res1 = self.admin.course_album_list(self.authorization)['data']['content']
+        album_res1 = self.admin_course.course_album_list(self.authorization)['data']['content']
         for album in album_res1:
             if album['id'] == album_id:
                 assert album['name'] == album_name
@@ -791,11 +792,11 @@ class TestAdminCourse:
 
         # 更新课程专辑
         album_new_name = 'dibo_test_new' + self.now
-        update_res = self.admin.update_course_album(self.authorization, album_id, album_new_name, status=0)
+        update_res = self.admin_course.update_course_album(self.authorization, album_id, album_new_name, status=0)
         assert update_res['data']['id'] == album_id, f"接口返回data数据异常：{update_res['data']}"
 
         # 更新课程专辑后分页查询课程专辑列表，验证更新课程专辑成功
-        album_res2 = self.admin.course_album_list(self.authorization, status=0)['data']['content']
+        album_res2 = self.admin_course.course_album_list(self.authorization, status=0)['data']['content']
         for album in album_res2:
             if album['id'] == album_id:
                 assert album['name'] == album_new_name
@@ -806,24 +807,24 @@ class TestAdminCourse:
             assert False, "更新课程专辑失败！"
 
         # 删除课程专辑
-        delete_res = self.admin.delete_course_album(self.authorization, album_id)
+        delete_res = self.admin_course.delete_course_album(self.authorization, album_id)
         assert delete_res['data'] == "删除成功", f"接口返回data数据异常：{delete_res['data']}"
 
         # 删除课程专辑后分页查询状态为生效的课程专辑列表，验证删除课程专辑成功
-        album_res3_0 = self.admin.course_album_list(self.authorization)['data']['content']
+        album_res3_0 = self.admin_course.course_album_list(self.authorization)['data']['content']
         album_ids = DataFrame(album_res3_0, columns=['id', 'name', 'tagIds'])['id'].tolist()
         assert album_id not in album_ids, "删除课程专辑失败"
 
         # 删除课程专辑后分页状态为废弃的查询课程专辑列表，验证删除课程专辑成功
-        album_res3_1 = self.admin.course_album_list(self.authorization, status=0)['data']['content']
+        album_res3_1 = self.admin_course.course_album_list(self.authorization, status=0)['data']['content']
         album_ids = DataFrame(album_res3_1, columns=['id', 'name', 'tagIds'])['id'].tolist()
         assert album_id not in album_ids, "删除课程专辑失败"
 
     @pytest.mark.smoke
     def test_admin_course_positive_getByCourseIds_ok(self):
         """根据课程ID查询课程等级技能列表-正向用例"""
-        courseIds = self.admin.course_listAll(self.admin_authorization, 641364208128069)['data'][0]['id']
-        res = self.admin.getByCourseIds(self.authorization, courseIds)
+        courseIds = self.admin_course.course_listAll(self.admin_auth, 641364208128069)['data'][0]['id']
+        res = self.admin_course.getByCourseIds(self.authorization, courseIds)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -846,8 +847,8 @@ class TestAdminCourse:
     )
     def test_admin_course_permission_getByCourseIds(self, desc, value):
         """根据课程ID查询课程等级技能列表-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin.getByCourseIds(value, '', code=401)
+
+        res = self.admin_course.getByCourseIds(value, '', code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -857,7 +858,7 @@ class TestAdminCourse:
     @pytest.mark.smoke
     def test_admin_course_positive_course_skills_ok(self):
         """分页查询课程等级技能列表-正向用例"""
-        res = self.admin.course_skill_list(self.authorization)
+        res = self.admin_course.course_skill_list(self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -875,8 +876,8 @@ class TestAdminCourse:
     )
     def test_admin_course_permission_course_skills(self, desc, value):
         """分页查询课程等级技能列表-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin.course_skill_list(value, code=401)
+
+        res = self.admin_course.course_skill_list(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -886,17 +887,17 @@ class TestAdminCourse:
     @pytest.mark.smoke
     def test_admin_course_positive_course_details_ok(self):
         """获取课程详情包括版本信息-正向用例"""
-        topcategory_res = self.admin.getAlltopcategory(self.admin_authorization)
+        topcategory_res = self.admin_course.getAlltopcategory(self.admin_auth)
         parentId = topcategory_res['data'][0]['id']
-        category_res = self.admin.getAllsubcategory(self.admin_authorization, parentId)
+        category_res = self.admin_course.getAllsubcategory(self.admin_auth, parentId)
         for subcategory in category_res['data']:
             flag = False
             if subcategory['level'] == "1":
                 categoryId = subcategory['id']
-                courselistAll = self.admin.course_listAll(self.admin_authorization, categoryId)
+                courselistAll = self.admin_course.course_listAll(self.admin_auth, categoryId)
                 for course in courselistAll['data']:
                     courseId = course['id']
-                    course_details_res = self.admin.course_details(self.admin_authorization, courseId)['data']['course']
+                    course_details_res = self.admin_course.course_details(self.admin_auth, courseId)['data']['course']
                     if "Blending CVC words-L6" in course_details_res['skillList']:
                         print(course['name'])
                         flag= True
@@ -906,6 +907,392 @@ class TestAdminCourse:
         else:
             assert False
 
-        # else:
-        #     assert False
+    @pytest.mark.release
+    def test_admin_course_positive_addCourseStrategy_ok(self):
+        """策略定义 - 增删改查检查 - 正向用例"""
+        # 新增策略定义
+        strategyId = "dibo_test_v1" + self.now
+        pl = {
+            "strategyId": strategyId
+        }
+        add_res = self.admin_course.addCourseStrategy(self.admin_auth, **pl)
+        assert add_res['message'] == 'success', "新增策略定义失败！"
+        # 查询策略定义列表，验证新增策略定义成功
+        strategy_res1 = self.admin_course.courseStrategies(self.admin_auth)
+        for strategy in strategy_res1['data']['content']:
+            if strategy['strategyId'] == strategyId:
+                strategy_id = strategy['id']
+                assert strategy['enabled'] == True
+                assert strategy['resetOnSegmentChange'] == False
+                assert strategy['pattern'] == "A-B-C"
+                assert strategy['patternBehavior'] == "LOOP_PATTERN"
+                assert strategy['description'] == "默认课程分发策略"
+                break
+        else:
+            assert False, '新增课程策略后，未在策略定义列表中查询到！'
+        # 更新策略定义
+        pl1 = {
+            "strategyId": strategyId,
+            "enabled": False,
+            "resetOnSegmentChange": True,
+            "pattern": "A-B-C-D",
+            "patternBehavior": "LOOP_PATTERN",
+            "description": "默认课程分发策略-"
+        }
+        update_res = self.admin_course.updateCourseStrategy(self.admin_auth, strategy_id, **pl1)
+        assert update_res['message'] == 'success', "更新策略定义失败！"
+        # 查询策略定义列表，验证更新策略定义成功
+        strategy_res2 = self.admin_course.courseStrategies(self.admin_auth)
+        for strategy in strategy_res2['data']['content']:
+            if strategy['id'] == strategy_id:
+                assert strategy['strategyId'] == strategyId
+                assert strategy['enabled'] == pl1.get('enabled', False)
+                assert strategy['resetOnSegmentChange'] == pl1.get('resetOnSegmentChange', False)
+                assert strategy['pattern'] == pl1.get('pattern', False)
+                assert strategy['patternBehavior'] == pl1.get('patternBehavior', False)
+                assert strategy['description'] == pl1.get('description', False)
+                break
+        else:
+            assert False, '更新课程策略后，未在策略定义列表中查询到！'
+
+        delete_res = self.admin_course.deleteCourseStrategy(self.admin_auth, strategy_id)
+        assert delete_res['message'] == 'success', "删除策略定义失败！"
+        # 查询策略定义列表，验证删除策略定义成功
+        strategy_res3 = self.admin_course.courseStrategies(self.admin_auth)
+        strategy_ids = DataFrame(strategy_res3['data']['content'])['id'].tolist()
+        assert strategy_id not in strategy_ids, '删除课程策略后，仍在策略定义列表中查询到！'
+
+    @pytest.mark.release
+    def test_admin_course_permission_addCourseStrategy(self):
+        """新增策略定义-权限测试"""
+        res = self.admin_course.addCourseStrategy('', code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_course_permission_deleteCourseStrategy(self):
+        """删除策略定义-权限测试"""
+        res = self.admin_course.deleteCourseStrategy('', 0, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_course_permission_updateCourseStrategy(self):
+        """更新策略定义-权限测试"""
+        res = self.admin_course.updateCourseStrategy('', 0, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_course_permission_courseStrategies(self):
+        """查询策略定义列表-权限测试"""
+        res = self.admin_course.courseStrategies('', 0, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+            
+    @pytest.fixture(scope='function')
+    def createCourseStrategy(self):
+        '''新增策略定义'''
+        # 新增策略定义
+        strategyId = "dibo_test_v1" + self.now
+        pl = {
+            "strategyId": strategyId
+        }
+        add_res = self.admin_course.addCourseStrategy(self.admin_auth, **pl)
+        assert add_res['message'] == 'success', "新增策略定义失败！"
+        assert add_res['message'] == 'success', "新增策略定义失败！"
+        # 查询策略定义列表，验证新增策略定义成功
+        strategy_res1 = self.admin_course.courseStrategies(self.admin_auth)
+        for strategy in strategy_res1['data']['content']:
+            if strategy['strategyId'] == strategyId:
+                strategy_id = strategy['id']
+                break
+        else:
+            assert False, '新增课程策略后，未在策略定义列表中查询到！'
+        
+        yield strategyId
+
+        delete_res = self.admin_course.deleteCourseStrategy(self.admin_auth, strategy_id)
+        assert delete_res['message'] == 'success', "删除策略定义失败！"
+
+    @pytest.fixture(scope='function')
+    def get_courseIds(self):
+        """获取课程详情包括版本信息"""
+        # 获取顶层课程目录列表
+        topcategory_res = self.admin_course.getAlltopcategory(self.admin_auth)
+        for category in topcategory_res['data']:
+            parentId = category['id']
+            # 获取课程子目录列表
+            category_res1 = self.admin_course.getAllsubcategory(self.admin_auth, parentId)
+            for subcategory in category_res1['data']:
+                parentId1 = subcategory['id']
+                category_res2 = self.admin_course.getAllsubcategory(self.admin_auth, parentId1)
+                for subcategory2 in category_res2['data']:
+                    categoryId = subcategory2['id']
+                    # 获取分类下所有课程
+                    courselistAll = self.admin_course.course_listAll(self.admin_auth, categoryId)['data']
+                    if not courselistAll:
+                        continue
+                    courseIds = ','.join(DataFrame(courselistAll)[:3]['id'].tolist())
+                    return courseIds
+
+    @pytest.mark.release
+    def test_admin_course_positive_addStrategyRule_ok(self, createCourseStrategy, get_courseIds):
+        """新增课程规则 - 增删改查验证 - 正向用例"""
+        # 新增策略定义
+        strategyId = createCourseStrategy
+        # 获取课程详情包括版本信息
+        courseIds = get_courseIds
+        # 新增课程规则
+        add_res = self.admin_course.addStrategyRule(self.admin_auth, strategyId, courseIds)
+        # 如果选中的课程已经添加课程规则则先移除
+        if add_res['code'] == 100006:
+            set_course = add_res['data']
+            set_course = re.search(r"(\d+)", set_course).group(1).split(',')
+            for course_id in set_course:
+                # 查询课程规则列表，移除目标课程已参与的课程规则
+                strategyRules0 = self.admin_course.strategyRules(self.admin_auth)
+                for strategyRule in strategyRules0['data']['content']:
+                    courseIds1 = strategyRule['courseIds'].split(',')
+                    if course_id in courseIds1:
+                        rule_id = strategyRule['id']
+                        strategyId1 = strategyRule['strategyId']
+                        new_courseIds = str(random.randint(1000, 9999))
+                        update_res = self.admin_course.updateStrategyRule(self.admin_auth, rule_id, strategyId1, new_courseIds)
+                        assert update_res['message'] == 'success'
+                        break
+            # 再次新增课程规则
+            add_res1 = self.admin_course.addStrategyRule(self.admin_auth, strategyId, courseIds)
+            assert add_res1['message'] == 'success'
+        else:
+            assert add_res['message'] == 'success', "新增课程规则失败！"
+        # 查询课程规则列表，验证新增课程规则成功
+        strategyRules1 = self.admin_course.strategyRules(self.admin_auth)
+        for strategyRule in strategyRules1['data']['content']:
+            if strategyRule['strategyId'] == strategyId:
+                rule_id1 = strategyRule['id']
+                assert strategyRule['courseCount'] == 3
+                assert strategyRule['enabled'] == True
+                assert strategyRule['courseIds'] == courseIds
+                break
+        else:
+            assert False, '查询课程规则列表，新增课程规则不在列表中！'
+        # 更新课程规则
+        new_courseIds1 = ','.join(courseIds.split(',')[:2])
+        update_res = self.admin_course.updateStrategyRule(self.admin_auth, rule_id1, strategyId, new_courseIds1,
+                                                          enabled=False)
+        assert update_res['message'] == 'success', "更新课程规则失败"
+        # 查询课程规则列表，验证更新课程规则成功
+        strategyRules2 = self.admin_course.strategyRules(self.admin_auth)
+        for strategyRule in strategyRules2['data']['content']:
+            if strategyRule['strategyId'] == strategyId:
+                assert strategyRule['id'] == rule_id1
+                assert strategyRule['courseCount'] == 2
+                assert strategyRule['enabled'] == False
+                assert strategyRule['courseIds'] == new_courseIds1
+                break
+        else:
+            assert False, '查询课程规则列表，更新课程规则校验失败'
+        # 删除课程规则
+        delete_res = self.admin_course.deleteStrategyRule(self.admin_auth, rule_id1)
+        assert delete_res['message'] == 'success', "删除课程规则失败！"
+        # 查询课程规则列表，验证删除课程规则成功
+        strategyRules3 = self.admin_course.strategyRules(self.admin_auth)
+        rule_ids = DataFrame(strategyRules3['data']['content'])['id'].tolist()
+        assert rule_id1 not in rule_ids, "删除课程规则失败！"
+
+    @pytest.mark.release
+    def test_admin_course_permission_addStrategyRule(self):
+        """新增课程规则-权限测试"""
+        res = self.admin_course.addStrategyRule('', 0,0, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_course_permission_deleteStrategyRule(self):
+        """删除课程规则-权限测试"""
+        res = self.admin_course.deleteStrategyRule('', 0, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_course_permission_strategyRules(self):
+        """查询课程规则列表-权限测试"""
+        res = self.admin_course.strategyRules('', code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_course_permission_updateStrategyRule(self):
+        """更新课程规则-权限测试"""
+        res = self.admin_course.updateStrategyRule('', 0, 0, '', code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_course_positive_add_ok(self):
+        """新增等级策略-正向用例"""
+        res = self.admin_course.add(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_course_positive_strategylevelRule_ok(self, createCourseStrategy, get_courseIds):
+        """新增等级策略 - 增删改查验证 - 正向用例"""
+        # 新增策略定义
+        strategyId = createCourseStrategy
+        # 新增等级策略
+        levels = 'L11,L12'
+        add_res = self.admin_course.addStrategylevelRule(self.admin_auth, strategyId, levels)
+        # 如果等级已经被配置，则先删除配置该等级的等级策略
+        if add_res['code'] == 100006:
+            text = add_res['data']
+            strategyId1 = re.search(r"([a-zA-Z0-9_]+(?:\d{14}))", text).group(0)
+            # 查询等级策略列表，验证新增等级策略成功
+            strategylevelRules1 = self.admin_course.strategylevelRules(self.admin_auth)
+            for strategyRule in strategylevelRules1['data']['content']:
+                if strategyRule['strategyId'] == strategyId1:
+                    level_rule_id1 = strategyRule['id']
+            # 删除等级策略
+            delete_res = self.admin_course.deleteStrategylevelRule(self.admin_auth, level_rule_id1)
+            assert delete_res['message'] == 'success', "删除等级策略失败！"
+        else:
+            assert add_res['message'] == 'success', "新增等级策略失败！"
+        # 查询等级策略列表，验证新增等级策略成功
+        strategylevelRules1 = self.admin_course.strategylevelRules(self.admin_auth)
+        for strategyRule in strategylevelRules1['data']['content']:
+            if strategyRule['strategyId'] == strategyId:
+                level_rule_id = strategyRule['id']
+                assert strategyRule['level'] == levels
+                break
+        else:
+            assert False, '查询等级策略列表，新增等级策略不在列表中！'
+        # 更新等级策略
+        new_levels = 'L14,L15'
+        update_res = self.admin_course.updateStrategylevelRule(self.admin_auth, level_rule_id, strategyId, new_levels)
+        assert update_res['message'] == 'success', "更新等级策略失败"
+        # 查询等级策略列表，验证更新等级策略成功
+        strategylevelRules2 = self.admin_course.strategylevelRules(self.admin_auth)
+        for strategyRule in strategylevelRules2['data']['content']:
+            if strategyRule['strategyId'] == strategyId:
+                assert strategyRule['id'] == level_rule_id
+                assert strategyRule['level'] == new_levels
+                break
+        else:
+            assert False, '查询等级策略列表，更新等级策略校验失败'
+        # 删除等级策略
+        delete_res = self.admin_course.deleteStrategylevelRule(self.admin_auth, level_rule_id)
+        assert delete_res['message'] == 'success', "删除等级策略失败！"
+        # 查询等级策略列表，验证删除等级策略成功
+        strategylevelRules3 = self.admin_course.strategylevelRules(self.admin_auth)
+        level_rule_ids = DataFrame(strategylevelRules3['data']['content'])['id'].tolist()
+        assert level_rule_id not in level_rule_ids, "删除等级策略失败！"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_admin_course_permission_add(self, desc, value):
+        """新增等级策略-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.admin_course.add(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_admin_course_permission_delete(self, desc, value):
+        """删除等级策略-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.admin_course.delete(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_admin_course_permission_getList(self, desc, value):
+        """查询等级策略列表-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.admin_course.getList(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize(
+        'desc, value',
+        [
+            ('unauthorized', 'missing'),
+            ('no_auth', ''),
+            ('expired_token', 'expired_token'),
+            ('invalid_token', 'invalid_token'),
+        ]
+    )
+    def test_admin_course_permission_update1(self, desc, value):
+        """更新等级策略-权限测试"""
+        # 鉴权作为位置参数直接传入（示例期望的极简风格）
+        res = self.admin_course.update1(value, code=401)
+        if res:
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
+            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+            assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+
 

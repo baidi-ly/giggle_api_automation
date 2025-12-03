@@ -1,6 +1,6 @@
 {
   "apis": [
-    "/admin/activity/status"
+    "/admin/course/strategy/level-rule/update"
   ],
   "update_apis": [],
   "scan_time": "2025-10-17 10:54:39.746089",
