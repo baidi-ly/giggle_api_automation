@@ -1008,3 +1008,149 @@ class AdminCourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def addVoiceMultilingual(self, authorization, req='', DeviceType="web", code=200, **kwargs):
+        """
+        新增语音文案
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/admin/course/voice/multilingual/add"
+        payload = {
+            "req": req
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "新增语音文案"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def deleteVoiceMultilingual(self, authorization, id=0, DeviceType="web", code=200):
+        """
+        删除语音文案
+        :param id: (integer, path, required) 记录ID
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/admin/course/voice/multilingual/delete/{id}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("DELETE", url, headers=headers)
+        error_msg = "删除语音文案"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def updateVoiceMultilingual(self, authorization, id, translatedText, DeviceType="web", code=200):
+        """
+        更新语音文案
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/admin/course/voice/multilingual/update"
+        payload = {
+            "id": id,
+            "translatedText": translatedText
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "更新语音文案"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def voiceMultilinguals(self, authorization, audioStatus, courseId, key='', page=0, size=100, targetLanguage='',
+                DeviceType="web", code=200):
+        """
+        分页查询语音文案列表
+        :param audioStatus: (integer, query, optional) 音频状态
+        :param courseId: (integer, query, optional) 课程ID
+        :param key: (string, query, optional) 环节标识
+        :param page: (integer, query, optional) 页码，从0开始
+        :param size: (integer, query, optional) 每页数量
+        :param targetLanguage: (string, query, optional) 目标语言
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/admin/course/voice/multilingual/list"
+        payload = {
+            "audioStatus": audioStatus,
+            "courseId": courseId,
+            "key": key,
+            "page": page,
+            "size": size,
+            "targetLanguage": targetLanguage
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "分页查询语音文案列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def batchImportMultilingual(self, authorization, items, DeviceType="web", code=200):
+        """
+        批量导入语音文案
+        :param items: (array, body, required) items
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/admin/course/voice/multilingual/batchImport"
+        payload = {"items": items}
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "批量导入语音文案"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def regenerateMultilingual(self, authorization, id, DeviceType="web", code=200):
+        """
+        重新生成语音
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/admin/course/voice/multilingual/regenerate"
+        payload = {
+            "id": id
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "重新生成语音"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+

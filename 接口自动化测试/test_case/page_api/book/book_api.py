@@ -1217,7 +1217,7 @@ class BookApi(BaseAPI):
             "page": page,
             "size": size
         }
-        
+
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
@@ -1689,6 +1689,88 @@ class BookApi(BaseAPI):
 
         response = requests.request("POST", url, headers=headers, params=payload)
         error_msg = "更新书籍Lexile分数"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def batchUpdateOfficial(self, authorization, bookIds, DeviceType="web", code=200):
+        """
+        批量更新故事书的官方认证状态
+        :param bookIds: (array, body, required) bookIds
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-03
+        url = f"https://{base_url}/api/book/batch-update-official"
+        payload = bookIds
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "批量更新故事书的官方认证状态"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def bookDetails(self, authorization, bookId, DeviceType="web", code=200):
+        """
+        通过bookId查询书籍详情
+        :param bookId: (integer, path, required) bookId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-03
+        url = f"https://{base_url}/api/book/{bookId}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "通过bookId查询书籍详情"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def book_public_list(self, authorization, DeviceType="web", code=200, **kwargs):
+        """
+        查询公开书籍列表
+        :param categoryId: (integer, query, optional) 书籍分类ID（主题）
+        :param key: (string, query, optional) 搜索关键词
+        :param language: (string, query, optional) 书籍语言
+        :param maxAge: (integer, query, optional) 最大年龄
+        :param minAge: (integer, query, optional) 最小年龄
+        :param page: (integer, query, optional) 页码
+        :param recommendation: (string, query, optional) 推荐类型: RECENT, MOST_PLAYED, MOST_LIKED, MY_FAVORITES, MY_FOLLOWS, MY_STORYBOOKS
+        :param size: (integer, query, optional) 每页数量
+        :param translateLanguage: (string, query, optional) 目标翻译语言，用于翻译书籍名称和描述
+        :param userAge: (integer, query, optional) 用户的年龄
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-03
+        url = f"https://{base_url}/api/book/public/list"
+        payload = {
+            # "key": '',
+            # "language": '',
+            # "maxAge": 10,
+            # "minAge": 0,
+            # "page": 0,
+            # "recommendation": '',
+            # "size": 10000,
+            # "translateLanguage": '',
+            # "userAge": 0
+        }
+        payload.update(kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "查询公开书籍列表"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()
