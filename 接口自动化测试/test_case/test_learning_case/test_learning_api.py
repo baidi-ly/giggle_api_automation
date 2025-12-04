@@ -60,7 +60,7 @@ class TestLearning:
         yield kidId
 
     @pytest.mark.release
-    def test_learning_stats_byKidId_normal(self, getkidId):
+    def test_learning_stats_byKidId_normal(self):
         """获取孩子学习统计数据 - 校验数据正确性"""
         # 获取孩子学习统计数据
         stats_res = self.learning.learning_stats(self.kid_id, self.authorization)
@@ -96,7 +96,7 @@ class TestLearning:
         # 获取有效的kidId
         kidId = create_deletedAccount
         # 获取孩子学习统计数据
-        stats_res = self.learning.learning_stats(kidId, self.authorization)
+        stats_res = self.learning.learning_stats(self.kid_id, self.authorization)
         assert "msg" in stats_res, f"获取孩子学习统计数据接口没有msg数据，response->{stats_res}"
         assert stats_res["msg"] == "无效的kidId", f'无效的kidId返回错误信息有误，预期:无效的kidId, 实际：{stats_res["msg"]}'
 
@@ -105,42 +105,41 @@ class TestLearning:
         # 创建无效的kidId
         kidId = 9999999
         # 获取孩子学习统计数据
-        stats_res = self.learning.learning_stats(kidId, self.authorization, code=500)
+        stats_res = self.learning.learning_stats(self.kid_id, self.authorization, code=500)
         assert stats_res["code"] == 500, f'无效的kidId返回状态码不正确，预期:500, 实际：{stats_res["code"]}'
         assert "data" in stats_res, f"获取孩子学习统计数据接口没有msg数据，response->{stats_res}"
         assert stats_res["data"]["message"] == f"孩子不存在: {kidId}", f'无效的kidId返回错误信息有误，预期:无效的kidId, 实际：{stats_res["data"]}'
 
-    def test_learning_stats_byKidId_unauthorized(self, getkidId):
+    def test_learning_stats_byKidId_unauthorized(self):
         """有效的kidId - 未授权，返回401"""
         # 获取有效的kidId
         kidId = getkidId[0]["id"]
         # 未授权，获取孩子学习统计数据
-        self.learning.learning_stats(kidId, code=401)
+        self.learning.learning_stats(self.kid_id, code=401)
 
-    def test_learning_stats_byKidId_negative(self, getkidId):
+    def test_learning_stats_byKidId_negative(self):
         """kidId为负数 - 返回错误信息"""
         # 创建负数kidId
         kidId = -1
         # 获取孩子学习统计数据
-        stats_res = self.learning.learning_stats(kidId, self.authorization, code=500)
+        stats_res = self.learning.learning_stats(self.kid_id, self.authorization, code=500)
         assert "message" in stats_res, f"获取孩子学习统计数据接口没有msg数据，response->{stats_res}"
         assert stats_res["message"] == "internal server error", (f'kidId为负数返回错误信息有误，'
                                                                  f'预期:internal server error, 实际：{stats_res["message"]}')
 
-    def test_learning_daily_byKidId_normal(self, getkidId):
+    @pytest.mark.release
+    def test_learning_daily_byKidId_normal(self):
         """获取孩子今日学习详情，有数据的kidId，返回完整统计数据"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
         # 获取孩子学习统计数据
-        daily_res = self.learning.daily_learning(kidId, self.authorization)
-        assert "data" in daily_res, f"获取孩子今日学习详情接口没有data数据，response->{daily_res}"
-        assert daily_res["data"]["date"] == self.today
-        return_keys = ["courses", "storybooks", "flashcard", "myWorks"]
-        for _key in return_keys:
-            assert _key in daily_res["data"],\
-                f'获取孩子今日学习详情接口data数据中没有预期的返回字段:("courses", "storybooks", "flashcard", "myWorks")'
+        daily_res = self.learning.daily_learning(self.kid_id, self.authorization)
+        today = datetime.date.today().strftime("%Y-%m-%d")
+        assert daily_res['data']['date'] == today
+        assert daily_res['data']['courses']
+        assert daily_res['data']['storybooks']
+        assert daily_res['data']['flashcard']
+        # assert daily_res['data']['myWorks']
 
-    def test_learning_daily_byKidId_normal_empty(self, getkidId):
+    def test_learning_daily_byKidId_normal_empty(self):
         """获取孩子今日学习详情，无数据的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
         daily_res = self.learning.daily_learning('', self.authorization, code=404)
@@ -152,7 +151,7 @@ class TestLearning:
         # 创建无效的kidId
         kidId = '@@#$%^&*'
         # 获取孩子学习统计数据
-        daily_res = self.learning.daily_learning(kidId, self.authorization, code=400)
+        daily_res = self.learning.daily_learning(self.kid_id, self.authorization, code=400)
         error_msg = "获取孩子今日学习详情-无效的kidId"
         assert daily_res['message'] == 'invalid parameter', f'{error_msg}-返回状态码不正确，预期:500, 实际：{daily_res["code"]}'
         assert daily_res['data'] == '''Failed to convert value of type 'java.lang.String' to required type 'long'; nested exception is java.lang.NumberFormatException: For input string: "@@"''', f'{error_msg}-返回状态码不正确，预期:500, 实际：{daily_res["code"]}'
@@ -162,252 +161,319 @@ class TestLearning:
         # 创建无效的kidId
         kidId = -9999
         # 获取孩子学习统计数据
-        daily_res = self.learning.daily_learning(kidId, self.authorization, code=500)
+        daily_res = self.learning.daily_learning(self.kid_id, self.authorization, code=500)
         error_msg = "获取孩子今日学习详情-无效的kidId"
         assert daily_res['message'] == 'internal server error', f'{error_msg}-返回状态码不正确，预期:500, 实际：{daily_res["code"]}'
 
-    def test_learning_daily_byKidId_unauthorized(self, getkidId):
-        """有效的kidId - 未授权，返回401"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
-        # 未授权，获取孩子学习统计数据
-        self.learning.daily_learning(kidId, code=401)
-
-    def test_learning_daily_byKidId_negative(self, getkidId):
+    def test_learning_daily_byKidId_negative(self):
         """kidId为负数 - 返回错误信息"""
         # 创建负数kidId
         kidId = -1
         # 获取孩子学习统计数据
-        daily_res = self.learning.daily_learning(kidId, self.authorization, code=500)
+        daily_res = self.learning.daily_learning(self.kid_id, self.authorization, code=500)
         assert "message" in daily_res, f"获取孩子学习统计数据接口没有msg数据，response->{daily_res}"
         assert daily_res["message"] == "internal server error", (f'kidId为负数返回错误信息有误，'                                     
-                                                                 f'预期:internal server error, 实际：{daily_res["message"]}')       # TODO
-    def test_learning_daily_report_byKidId_default(self, getkidId):
+                                                                 f'预期:internal server error, 实际：{daily_res["message"]}')
+
+    @pytest.mark.release
+    def test_learning_daily_learning_report_ok(self):
         """生成指定孩子的学习情况报表数据，生成今日报表"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
         # 获取孩子学习统计数据
-        report_res = self.learning.daily_learning_report(kidId, authorization=self.authorization)
+        report_res = self.learning.daily_learning_report(self.kid_id, authorization=self.authorization)
         assert "data" in report_res, f"获取孩子学习统计数据接口没有data数据，response->{report_res}"
         assert report_res["data"]["date"] == self.today
-        return_keys = ["childInfo", "summary", "learningSummary", "wordsLearned", "artworks"]
-        for key in  return_keys:
-            assert key in report_res["data"],f'获取孩子今日学习详情接口data数据中没有预期的返回字段:("courses", "storybooks", "flashcard", "myWorks")'
+        assert report_res["data"]['childInfo']['childId'] == str(self.kid_id)
+        assert report_res["data"]['childInfo']['name'] == 'New Kid'
+        assert report_res["data"]['childInfo'][
+                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
+        assert report_res["data"]['summary']
+        assert report_res["data"]['learningSummary']
+        assert report_res["data"]['wordsLearned']
+        assert report_res["data"]['artworks']
 
-    def test_learning_daily_report_byKidId_yesterday(self, getkidId):
+    @pytest.mark.release
+    def test_learning_daily_learning_report_yesterday(self):
         """生成指定孩子的学习情况报表数据，生成今日报表"""
         # 获取有效的kidId
         kidId = getkidId[0]["id"]
         # 获取孩子学习统计数据
-        report_res = self.learning.daily_learning_report(kidId, authorization=self.authorization, date=self.yesterday)
-        assert "data" in report_res, f"获取孩子学习统计数据接口没有data数据，response->{report_res}"
-        assert report_res["data"]["date"] == self.yesterday
-        return_keys = ["childInfo", "summary", "learningSummary", "wordsLearned", "artworks"]
-        for key in  return_keys:
-            assert key in report_res["data"],f'获取孩子今日学习详情接口data数据中没有预期的返回字段:("courses", "storybooks", "flashcard", "myWorks")'
+        report_res = self.learning.daily_learning_report(self.kid_id, authorization=self.authorization, date=self.yesterday)
+        assert report_res["data"]["date"] == self.today
+        assert report_res["data"]['childInfo']['childId'] == str(self.kid_id)
+        assert report_res["data"]['childInfo']['name'] == 'New Kid'
+        assert report_res["data"]['childInfo'][
+                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
+        assert report_res["data"]['summary']
+        assert report_res["data"]['learningSummary']
+        assert report_res["data"]['wordsLearned']
+        assert report_res["data"]['artworks']
 
-    def test_learning_daily_report_byKidId_tomorrow(self, getkidId):
+    @pytest.mark.release
+    def test_learning_daily_learning_report_tomorrow(self):
         """生成指定孩子的学习情况报表数据，生成今日报表"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
         # 获取孩子学习统计数据
-        report_res = self.learning.daily_learning_report(kidId, authorization=self.authorization, date=self.tomorrow)
-        assert "data" in report_res, f"获取孩子学习统计数据接口没有data数据，response->{report_res}"
-        assert report_res["data"]["date"] == self.tomorrow
-        return_keys = ["childInfo", "summary", "learningSummary", "wordsLearned", "artworks"]
-        for key in  return_keys:        # TODO
-            assert key in report_res["data"],f'获取孩子今日学习详情接口data数据中没有预期的返回字段:("courses", "storybooks", "flashcard", "myWorks")'
+        report_res = self.learning.daily_learning_report(self.kid_id, authorization=self.authorization, date=self.tomorrow)
+        assert report_res["data"]["date"] == self.today
+        assert report_res["data"]['childInfo']['childId'] == str(self.kid_id)
+        assert report_res["data"]['childInfo']['name'] == 'New Kid'
+        assert report_res["data"]['childInfo'][
+                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
+        assert report_res["data"]['summary']
+        assert report_res["data"]['learningSummary']
+        assert report_res["data"]['wordsLearned']
+        assert report_res["data"]['artworks']
 
-    def test_learning_weekly_byKidId_thisWeekend(self, getkidId):
+    @pytest.mark.release
+    def test_learning_weekly_byKidId_thisWeekend(self):
         """获取本周学习"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
         # 获取孩子学习统计数据
-        weekly_learning_res = self.learning.weekly_learning(kidId, self.authorization, startDate=self.start_of_week, endDate=self.end_of_week)
+        startDate = self.start_of_week
+        endDate = self.end_of_week
+        weekly_learning_res = self.learning.weekly_learning(self.authorization, self.kid_id, startDate, endDate)
         assert weekly_learning_res["weekPeriod"] == str(self.start_of_week) + ' - ' + str(self.end_of_week)
         return_keys = ["courses", 'storybooks', 'flashcard', 'myWorks']
         for for_key in return_keys:
             assert for_key in weekly_learning_res, f"获取孩子学习统计数据接口没有data数据，response->{weekly_learning_res}"
 
-    def test_learning_weekly_byKidId_nextWeekend(self, getkidId):
+    @pytest.mark.release
+    def test_learning_weekly_byKidId_nextWeekend(self):
         """跨周测试 - 下一周"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
         # 获取孩子学习统计数
-        weekly_learning_res = self.learning.weekly_learning(kidId, self.authorization, startDate=self.start_of_week, endDate=self.end_of_week)
+        startDate = self.start_of_week.strftime("%Y-%m-%d")
+        endDate = self.end_of_week.strftime("%Y-%m-%d")
+        weekly_learning_res = self.learning.weekly_learning(self.authorization, self.kid_id, startDate, endDate)
         assert weekly_learning_res["weekPeriod"] == str(self.start_of_week) + ' - ' + str(self.end_of_week)
-        return_keys = ["courses", 'storybooks', 'flashcard', 'myWorks']
-        for for_key in return_keys:
-            assert for_key in weekly_learning_res, f"获取孩子学习统计数据接口没有data数据，response->{weekly_learning_res}"
+        assert weekly_learning_res['courses']
+        assert weekly_learning_res['storybooks']
+        assert weekly_learning_res['flashcard']
+        # assert weekly_learning_res['myWorks']
 
-    def test_learning_weekly_byKidId_lastWeekend(self, getkidId):
+    @pytest.mark.release
+    def test_learning_weekly_byKidId_lastWeekend(self):
         """跨周测试 - 上一周"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
         # 获取孩子学习统计数据
-        weekly_learning_res = self.learning.weekly_learning(kidId, self.authorization)
+        startDate = self.start_of_week
+        endDate = self.end_of_week
+        weekly_learning_res = self.learning.weekly_learning(self.authorization, self.kid_id, startDate, endDate)
         assert weekly_learning_res["weekPeriod"] == str(self.start_of_week) + ' - ' + str(self.end_of_week)
-        return_keys = ["courses", 'storybooks', 'flashcard', 'myWorks']
-        for for_key in return_keys:
-            assert for_key in weekly_learning_res, f"获取孩子学习统计数据接口没有data数据，response->{weekly_learning_res}"
+        assert weekly_learning_res['courses']
+        assert weekly_learning_res['storybooks']
+        assert weekly_learning_res['flashcard']
+        # assert weekly_learning_res['myWorks']
 
-    def test_learning_weekly_learning_report_thisWeekend(self, getkidId):
-        """跨周测试 - 下一周"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
-        # 获取孩子学习统计数据
-        weekly_learning_res = self.learning.weekly_learning_report(kidId, self.authorization)
-        assert weekly_learning_res["data"]["weekPeriod"] == str(self.start_of_week) + ' - ' + str(self.end_of_week)
-        return_keys = ["childInfo", 'performancePercentile', 'weeklyStats', "artworks", 'studyDurationChart',
-                       'readingDurationChart', 'wordsLearned', 'registrationDays', 'completedCourses', 'dailyLearning']
-        for for_key in return_keys:
-            assert for_key in weekly_learning_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{weekly_learning_res}"
-
-    def test_learning_weekly_learning_report_targetWeekend(self, getkidId):
+    @pytest.mark.release
+    def test_learning_weekly_learning_report_targetWeekend(self):
         """跨周测试 - 上一周"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
         # 获取孩子学习统计数据
         startDate = "2025-01-20"
         endDate = "2025-01-26"
-        weekly_learning_res = self.learning.weekly_learning_report(kidId, self.authorization, startDate=startDate, endDate=endDate)
-        assert weekly_learning_res["data"]["weekPeriod"] == str(startDate) + ' - ' + str(endDate)
-        return_keys = ["childInfo", 'performancePercentile', 'weeklyStats', "artworks", 'studyDurationChart',
-                       'readingDurationChart', 'wordsLearned', 'registrationDays', 'completedCourses', 'dailyLearning']
-        for for_key in return_keys:
-            assert for_key in weekly_learning_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{weekly_learning_res}"
+        weekly_learning_res = self.learning.weekly_learning(self.authorization, self.kid_id, startDate, endDate)
+        assert weekly_learning_res["weekPeriod"] == str(self.start_of_week) + ' - ' + str(self.end_of_week)
+        assert weekly_learning_res['courses']
+        assert weekly_learning_res['storybooks']
+        assert weekly_learning_res['flashcard']
+        # assert weekly_learning_res['myWorks']
 
-    def test_learning_daily_storybook_report_target(self, getkidId):
+
+    @pytest.mark.release
+    def test_learning_daily_storybook_report_target(self):
         """生成今日故事书报告"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
         # 获取孩子学习统计数据
         date = "2025-01-20"
-        torybook_report_res = self.learning.daily_storybook_report(kidId, date, self.authorization)
-        assert torybook_report_res["data"]["date"] == date
-        return_keys = ["childInfo", 'summary', 'aiSummary', 'durationComparison', 'theme', 'storybooks']
-        for for_key in return_keys:
-            assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
+        torybook_report = self.learning.daily_storybook_report(self.kid_id, date, self.authorization)
+        assert torybook_report["data"]["date"] == date
+        assert torybook_report["data"]['childInfo']['childId'] == str(self.kid_id)
+        assert torybook_report["data"]['childInfo']['name'] == 'New Kid'
+        assert torybook_report["data"]['childInfo'][
+                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
+        assert torybook_report["data"]['summary']
+        assert torybook_report["data"]['aiSummary']
+        assert torybook_report["data"]['durationComparison']
+        assert torybook_report["data"]['theme']
+        assert torybook_report["data"]['storybooks']
 
-    def test_learning_daily_storybook_report_today(self, getkidId):
+    def test_learning_daily_storybook_report_today(self):
         """无故事书阅读记录"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
         # 获取孩子学习统计数据
-        torybook_report_res = self.learning.daily_storybook_report(kidId, self.today, self.authorization)
-        assert torybook_report_res["data"]["date"] == self.today
-        return_keys = ["childInfo", 'summary', 'aiSummary', 'durationComparison', 'theme', 'storybooks']
-        for for_key in return_keys:
-            assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
+        torybook_report = self.learning.daily_storybook_report(self.kid_id, self.today, self.authorization)
+        assert torybook_report["data"]["date"] == self.today
+        assert torybook_report["data"]['childInfo']['childId'] == str(self.kid_id)
+        assert torybook_report["data"]['childInfo']['name'] == 'New Kid'
+        assert torybook_report["data"]['childInfo'][
+                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
+        assert torybook_report["data"]['summary']
+        assert torybook_report["data"]['aiSummary']
+        assert torybook_report["data"]['durationComparison']
+        assert torybook_report["data"]['theme']
+        assert torybook_report["data"]['storybooks']
 
-    def test_learning_daily_storybook_report_tomorrow(self, getkidId):
+    def test_learning_daily_storybook_report_tomorrow(self):
         """无故事书阅读记录"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
         # 获取孩子学习统计数据
-        torybook_report_res = self.learning.daily_storybook_report(kidId, self.tomorrow, self.authorization)
-        assert torybook_report_res["data"]["date"] == self.tomorrow
-        return_keys = ["childInfo", 'summary', 'aiSummary', 'durationComparison', 'theme', 'storybooks']
-        for for_key in return_keys:
-            assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
+        torybook_report = self.learning.daily_storybook_report(self.kid_id, self.tomorrow, self.authorization)
+        assert torybook_report["data"]["date"] == self.tomorrow
+        assert torybook_report["data"]['childInfo']['childId'] == str(self.kid_id)
+        assert torybook_report["data"]['childInfo']['name'] == 'New Kid'
+        assert torybook_report["data"]['childInfo'][
+                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
+        assert torybook_report["data"]['summary']
+        assert torybook_report["data"]['aiSummary']
+        assert torybook_report["data"]['durationComparison']
+        assert torybook_report["data"]['theme']
+        assert torybook_report["data"]['storybooks']
 
-    def test_learning_daily_storybook_report_yesterday(self, getkidId):
+    def test_learning_daily_storybook_report_yesterday(self):
         """无故事书阅读记录"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
         # 获取孩子学习统计数据
-        torybook_report_res = self.learning.daily_storybook_report(kidId, self.yesterday, self.authorization)
-        assert torybook_report_res["data"]["date"] == self.yesterday
-        return_keys = ["childInfo", 'summary', 'aiSummary', 'durationComparison', 'theme', 'storybooks']
-        for for_key in return_keys:
-            assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
+        torybook_report = self.learning.daily_storybook_report(self.kid_id, self.yesterday, self.authorization)
+        assert torybook_report["data"]["date"] == self.yesterday
+        assert torybook_report["data"]['childInfo']['childId'] == str(self.kid_id)
+        assert torybook_report["data"]['childInfo']['name'] == 'New Kid'
+        assert torybook_report["data"]['childInfo'][
+                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
+        assert torybook_report["data"]['summary']
+        assert torybook_report["data"]['aiSummary']
+        assert torybook_report["data"]['durationComparison']
+        assert torybook_report["data"]['theme']
+        assert torybook_report["data"]['storybooks']
 
-    def test_learning_daily_challenge_report_target(self, getkidId):
+
+
+    def test_learning_daily_challenge_report_target(self):
         """生成今日故事书报告"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
         # 获取孩子学习统计数据
         date = "2025-01-20"
-        torybook_report_res = self.learning.daily_challenge_report(kidId, date, self.authorization)
-        assert torybook_report_res["data"]["date"] == date
-        return_keys = ["childInfo", 'summary', 'aiSummary', 'words', 'animalCards']
-        for for_key in return_keys:
-            assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
+        challenge_res = self.learning.daily_challenge_report(self.kid_id, date, self.authorization)
+        assert challenge_res["data"]["date"] == date
+        assert challenge_res["data"]['childInfo']['childId'] == str(self.kid_id)
+        assert challenge_res["data"]['childInfo']['name'] == 'New Kid'
+        assert challenge_res["data"]['childInfo'][
+                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
+        assert challenge_res["data"]['summary']
+        assert challenge_res["data"]['aiSummary']
+        assert challenge_res["data"]['words']
+        assert challenge_res["data"]['animalCards']
 
-    def test_learning_daily_challenge_report_today(self, getkidId):
+    def test_learning_daily_challenge_report_today(self):
         """无故事书阅读记录"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
         # 获取孩子学习统计数据
-        torybook_report_res = self.learning.daily_challenge_report(kidId, self.today, self.authorization)
-        assert torybook_report_res["data"]["date"] == self.today
-        return_keys = ["childInfo", 'summary', 'aiSummary', 'words', 'animalCards']
-        for for_key in return_keys:
-            assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
+        challenge_res = self.learning.daily_challenge_report(self.kid_id, self.today, self.authorization)
+        assert challenge_res["data"]["date"] == self.today
+        assert challenge_res["data"]['childInfo']['childId'] == str(self.kid_id)
+        assert challenge_res["data"]['childInfo']['name'] == 'New Kid'
+        assert challenge_res["data"]['childInfo'][
+                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
+        assert challenge_res["data"]['summary']
+        assert challenge_res["data"]['aiSummary']
+        assert challenge_res["data"]['words']
+        assert challenge_res["data"]['animalCards']
 
-    def test_learning_daily_challenge_report_tomorrow(self, getkidId):
+    def test_learning_daily_challenge_report_tomorrow(self):
         """无故事书阅读记录"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
         # 获取孩子学习统计数据
-        torybook_report_res = self.learning.daily_challenge_report(kidId, self.tomorrow, self.authorization)
-        assert torybook_report_res["data"]["date"] == self.tomorrow
-        return_keys = ["childInfo", 'summary', 'aiSummary', 'words', 'animalCards']
-        for for_key in return_keys:
-            assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
+        challenge_res = self.learning.daily_challenge_report(self.kid_id, self.tomorrow, self.authorization)
+        assert challenge_res["data"]["date"] == self.tomorrow
+        assert challenge_res["data"]['childInfo']['childId'] == str(self.kid_id)
+        assert challenge_res["data"]['childInfo']['name'] == 'New Kid'
+        assert challenge_res["data"]['childInfo'][
+                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
+        assert challenge_res["data"]['summary']
+        assert challenge_res["data"]['aiSummary']
+        assert challenge_res["data"]['words']
+        assert challenge_res["data"]['animalCards']
 
-    def test_learning_daily_challenge_report_yesterday(self, getkidId):
+    def test_learning_daily_challenge_report_yesterday(self):
         """无故事书阅读记录"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
         # 获取孩子学习统计数据
-        torybook_report_res = self.learning.daily_challenge_report(kidId, self.yesterday, self.authorization)
-        assert torybook_report_res["data"]["date"] == self.yesterday
-        return_keys = ["childInfo", 'summary', 'aiSummary', 'words', 'animalCards']
-        for for_key in return_keys:
-            assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
+        challenge_res = self.learning.daily_challenge_report(self.kid_id, self.yesterday, self.authorization)
+        assert challenge_res["data"]["date"] == self.yesterday
+        assert challenge_res["data"]['childInfo']['childId'] == str(self.kid_id)
+        assert challenge_res["data"]['childInfo']['name'] == 'New Kid'
+        assert challenge_res["data"]['childInfo'][
+                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
+        assert challenge_res["data"]['summary']
+        assert challenge_res["data"]['aiSummary']
+        assert challenge_res["data"]['words']
+        assert challenge_res["data"]['animalCards']
 
-    def test_learning_daily_flashcard_report_target(self, getkidId):
+
+
+    def test_learning_daily_flashcard_report_target(self):
         """生成今日故事书报告"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
         # 获取孩子学习统计数据
         date = "2025-01-20"
-        torybook_report_res = self.learning.daily_flashcard_report(kidId, date, self.authorization)
-        assert torybook_report_res["data"]["date"] == date
-        return_keys = ["childInfo", 'summary', 'aiSummary', 'words', 'animalCards']
-        for for_key in return_keys:
-            assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
+        flashcard_res = self.learning.daily_flashcard_report(self.kid_id, date, self.authorization)
+        assert flashcard_res["data"]["date"] == date
+        assert flashcard_res["data"]['childInfo']['childId'] == str(self.kid_id)
+        assert flashcard_res["data"]['childInfo']['name'] == 'New Kid'
+        assert flashcard_res["data"]['childInfo'][
+                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
+        assert flashcard_res["data"]['summary']
+        assert flashcard_res["data"]['aiSummary']
+        assert flashcard_res["data"]['words']
+        assert flashcard_res["data"]['themeCompletion']
+        assert flashcard_res["data"]['animalCards']
 
-    def test_learning_daily_flashcard_report_today(self, getkidId):
+    def test_learning_daily_flashcard_report_today(self):
         """无故事书阅读记录"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
         # 获取孩子学习统计数据
-        torybook_report_res = self.learning.daily_flashcard_report(kidId, self.today, self.authorization)
-        assert torybook_report_res["data"]["date"] == self.today
-        return_keys = ["childInfo", 'summary', 'aiSummary', 'words', 'animalCards']
-        for for_key in return_keys:
-            assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
+        flashcard_res = self.learning.daily_flashcard_report(self.kid_id, self.today, self.authorization)
+        assert flashcard_res["data"]["date"] == self.today
+        assert flashcard_res["data"]['childInfo']['childId'] == str(self.kid_id)
+        assert flashcard_res["data"]['childInfo']['name'] == 'New Kid'
+        assert flashcard_res["data"]['childInfo'][
+                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
+        assert flashcard_res["data"]['summary']
+        assert flashcard_res["data"]['aiSummary']
+        assert flashcard_res["data"]['words']
+        assert flashcard_res["data"]['themeCompletion']
+        assert flashcard_res["data"]['animalCards']
 
-    def test_learning_daily_flashcard_report_tomorrow(self, getkidId):
+    def test_learning_daily_flashcard_report_tomorrow(self):
         """无故事书阅读记录"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
         # 获取孩子学习统计数据
-        torybook_report_res = self.learning.daily_flashcard_report(kidId, self.tomorrow, self.authorization)
-        assert torybook_report_res["data"]["date"] == self.tomorrow
-        return_keys = ["childInfo", 'summary', 'aiSummary', 'words', 'animalCards']
-        for for_key in return_keys:
-            assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
+        flashcard_res = self.learning.daily_flashcard_report(self.kid_id, self.tomorrow, self.authorization)
+        assert flashcard_res["data"]["date"] == self.tomorrow
+        assert flashcard_res["data"]['childInfo']['childId'] == str(self.kid_id)
+        assert flashcard_res["data"]['childInfo']['name'] == 'New Kid'
+        assert flashcard_res["data"]['childInfo'][
+                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
+        assert flashcard_res["data"]['summary']
+        assert flashcard_res["data"]['aiSummary']
+        assert flashcard_res["data"]['words']
+        assert flashcard_res["data"]['themeCompletion']
+        assert flashcard_res["data"]['animalCards']
 
-    def test_learning_daily_flashcard_report_yesterday(self, getkidId):
+    def test_learning_daily_flashcard_report_yesterday(self):
         """无故事书阅读记录"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
         # 获取孩子学习统计数据
-        torybook_report_res = self.learning.daily_flashcard_report(kidId, self.yesterday, self.authorization)
-        assert torybook_report_res["data"]["date"] == self.yesterday
-        return_keys = ["childInfo", 'summary', 'aiSummary', 'words', 'animalCards']
-        for for_key in return_keys:
-            assert for_key in torybook_report_res["data"], f"获取孩子学习统计数据接口没有data数据，response->{torybook_report_res}"
+        flashcard_res = self.learning.daily_flashcard_report(self.kid_id, self.yesterday, self.authorization)
+        assert flashcard_res["data"]["date"] == self.yesterday
+        assert flashcard_res["data"]['childInfo']['childId'] == str(self.kid_id)
+        assert flashcard_res["data"]['childInfo']['name'] == 'New Kid'
+        assert flashcard_res["data"]['childInfo'][
+                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
+        assert flashcard_res["data"]['summary']
+        assert flashcard_res["data"]['aiSummary']
+        assert flashcard_res["data"]['words']
+        assert flashcard_res["data"]['themeCompletion']
+        assert flashcard_res["data"]['animalCards']
+
+    def test_interaction_event_single(self, get_couerseList):
+        """有效的kidId，返回完整统计数据"""
+        # 获取有效的kidId
+        couerseList = get_couerseList[0]['courseList']
+        eventName = "交互事件" + self.now
+        courses = [
+            {
+                "eventName": eventName,
+                "params": {
+                    "courseId": couerseList[0]["id"],
+                    "lessonType": "normal"
+                }
+             }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"

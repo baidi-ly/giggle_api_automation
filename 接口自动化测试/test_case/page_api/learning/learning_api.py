@@ -64,7 +64,7 @@ class LearningApi(BaseAPI):
         response = response.json()
         return response
 
-    def weekly_learning(self, kidId, authorization="", startDate="", endDate="", DeviceType="web"):
+    def weekly_learning(self, authorization, kidId, startDate, endDate, DeviceType="web"):
         """
         获取指定孩子一周的学习情况（自然周：周一到周日）
         :param:
@@ -106,7 +106,7 @@ class LearningApi(BaseAPI):
         response = response.json()
         return response
 
-    def daily_storybook_report(self, kidId, date="", authorization="", DeviceType="web"):
+    def daily_storybook_report(self, kidId, date, authorization="", DeviceType="web"):
         """
         生成故事书报告
         :param:
@@ -166,7 +166,25 @@ class LearningApi(BaseAPI):
         response = response.json()
         return response
 
-
+    def interactionEvent(self, authorization, courses, DeviceType="web"):
+        """
+        上报用户交互事件
+        :param eventName: 事件名
+        :param courseId: 课程id
+        :param lessonType: 课程类型
+        :return:
+        """
+        # Create Data:  v.18.0  2025-09-05
+        # Creator: Baidi
+        url = f"https://{base_url}/api/interaction/event"
+        timestamp = str(int(time.time() * 1000))
+        payload = courses
+        headers = self.request_header(timestamp, authorization, DeviceType)
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "上报用户交互事件"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
 
 
 

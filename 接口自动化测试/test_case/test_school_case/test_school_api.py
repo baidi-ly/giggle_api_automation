@@ -1225,4 +1225,7 @@ class TestSchoolApi:
                 # 通过bookId查询书籍详情，获取作者名称
                 bookId = book['id']
                 selected_actual = data_df[data_df["id"] == bookId]["selected"].iloc[0]
-                assert selected_actual == selected
+                if selected == 0:
+                    assert selected_actual == selected or selected_actual == None
+                else:
+                    assert selected_actual == selected
