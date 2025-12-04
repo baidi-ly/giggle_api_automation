@@ -1008,16 +1008,23 @@ class AdminCourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def addVoiceMultilingual(self, authorization, req='', DeviceType="web", code=200, **kwargs):
+    def addVoiceMultilingual(self, authorization, courseId, DeviceType="web", code=200, **kwargs):
         """
         新增语音文案
-        :param req: (object, body, required) req
+        courseId + key + targetLanguage 组合不与现有重复
+        :param Long: (Long, required) 必填：课程ID
+        :param String: (String, required) 必填：环节标识（比如某一页、某一步骤的key）
+        :param String: (String, required) 必填：英文原文文案
+        :param String: (String, required) 必填：目标语言代码（如 "en"、"ar"）
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.22.0  &  2025-12-03
         url = f"https://{base_url}/admin/course/voice/multilingual/add"
         payload = {
-            "req": req
+            "courseId": courseId,          # Long，必填：课程ID
+            "key": "intro",           # String，必填：环节标识（比如某一页、某一步骤的key）
+            "englishText": "Hello",   # String，必填：英文原文文案
+            "targetLanguage": "en"    # String，必填：目标语言代码（如 "en"、"ar"）
         }
         payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))
