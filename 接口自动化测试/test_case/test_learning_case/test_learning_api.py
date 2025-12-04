@@ -488,8 +488,8 @@ class TestLearning:
         assert flashcard_res["data"]['animalCards']
 
     def test_interaction_lesson_event_InteractiveLessonStart(self, get_courseIds):
-        """有效的kidId，返回完整统计数据"""
-        # 获取有效的kidId
+        """上报用户交互事件 - 课程事件 - InteractiveLessonStart"""
+        # 上报用户交互事件
         course_id = get_courseIds[0]
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
@@ -514,7 +514,8 @@ class TestLearning:
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
     def test_interaction_lesson_event_InteractiveLessonEnd(self, get_courseIds):
-        """有效的kidId，返回完整统计数据"""
+        """上报用户交互事件 - 课程事件 - InteractiveLessonEnd"""
+        # 上报用户交互事件
         report_res = self.learning.daily_learning(self.kid_id, authorization=self.authorization, date=self.tomorrow)
         report_res = self.learning.daily_learning_report(self.kid_id, authorization=self.authorization, date=self.tomorrow)
         challenge_res = self.learning.daily_challenge_report(self.kid_id, self.yesterday, self.authorization)
@@ -545,8 +546,8 @@ class TestLearning:
         stats_res = self.learning.learning_stats(self.kid_id, self.authorization)
 
     def test_interaction_lesson_event_LessonUserInteraction(self, get_courseIds):
-        """有效的kidId，返回完整统计数据"""
-        # 获取有效的kidId
+        """上报用户交互事件 - 课程事件 - LessonUserInteraction"""
+        # 上报用户交互事件
         course_id = get_courseIds[0]
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
@@ -572,8 +573,8 @@ class TestLearning:
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
     def test_interaction_lesson_event_ChallengeLessonStart(self, get_courseIds):
-        """有效的kidId，返回完整统计数据"""
-        # 获取有效的kidId
+        """上报用户交互事件 - 课程事件 - ChallengeLessonStart"""
+        # 上报用户交互事件
         course_id = get_courseIds[0]
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
@@ -598,8 +599,8 @@ class TestLearning:
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
     def test_interaction_lesson_event_ChallengeLessonEnd(self, get_courseIds):
-        """有效的kidId，返回完整统计数据"""
-        # 获取有效的kidId
+        """上报用户交互事件 - 课程事件 - ChallengeLessonEnd"""
+        # 上报用户交互事件
         course_id = get_courseIds[0]
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
@@ -627,8 +628,8 @@ class TestLearning:
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
     def test_interaction_lesson_event_ChallengeSettleReward(self, get_courseIds):
-        """有效的kidId，返回完整统计数据"""
-        # 获取有效的kidId
+        """上报用户交互事件 - 课程事件 - LessonQuit"""
+        # 上报用户交互事件
         course_id = get_courseIds[0]
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
@@ -654,8 +655,8 @@ class TestLearning:
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
     def test_interaction_lesson_event_LessonQuit(self, get_courseIds):
-        """有效的kidId，返回完整统计数据"""
-        # 获取有效的kidId
+        """上报用户交互事件 - 课程事件 - LessonQuit"""
+        # 上报用户交互事件
         course_id = get_courseIds[0]
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
@@ -680,8 +681,8 @@ class TestLearning:
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
     def test_interaction_story_event_StoryBookStart(self, get_bookIds):
-        """有效的kidId，返回完整统计数据"""
-        # 获取有效的kidId
+        """上报用户交互事件 - 故事书事件 - StoryBookStart"""
+        # 上报用户交互事件
         book_id = get_bookIds[0]
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
@@ -706,7 +707,8 @@ class TestLearning:
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
     def test_interaction_book_event_StoryBookComplete(self, get_bookIds):
-        """有效的kidId，返回完整统计数据"""
+        """上报用户交互事件 - 故事书事件 - StoryBookComplete"""
+        # 上报用户交互事件
         report_res = self.learning.daily_learning(self.kid_id, authorization=self.authorization, date=self.tomorrow)
         report_res = self.learning.daily_learning_report(self.kid_id, authorization=self.authorization,
                                                          date=self.tomorrow)
@@ -739,8 +741,8 @@ class TestLearning:
         stats_res = self.learning.learning_stats(self.kid_id, self.authorization)
 
     def test_interaction_story_event_StoryBookExit(self, get_bookIds):
-        """有效的kidId，返回完整统计数据"""
-        # 获取有效的kidId
+        """上报用户交互事件 - 故事书事件 - FlashCardNewStudyStart"""
+        # 上报用户交互事件
         book_id = get_bookIds[0]
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
@@ -766,8 +768,8 @@ class TestLearning:
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
     def test_interaction_flashcard_event_FlashCardNewStudyStart(self, get_bookIds):
-        """有效的kidId，返回完整统计数据"""
-        # 获取有效的kidId
+        """上报用户交互事件 - 闪卡事件 - FlashCardNewStudyStart"""
+        # 上报用户交互事件
         session_id = get_bookIds[0]
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
@@ -792,7 +794,8 @@ class TestLearning:
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
     def test_interaction_flashcard_event_FlashCardThemeStudyComplete(self, get_resourceIds):
-        """有效的kidId，返回完整统计数据"""
+        """上报用户交互事件 - 闪卡事件 - FlashCardThemeStudyComplete"""
+        # 上报用户交互事件
         report_res = self.learning.daily_learning_report(self.kid_id, authorization=self.authorization,
                                                          date=self.tomorrow)
         challenge_res = self.learning.daily_flashcard_report(self.kid_id, self.yesterday, self.authorization)
@@ -825,8 +828,8 @@ class TestLearning:
         stats_res = self.learning.learning_stats(self.kid_id, self.authorization)
 
     def test_interaction_flashcard_event_FlashCardThemeStudyStart(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取有效的kidId
+        """上报用户交互事件 - 闪卡事件 - FlashCardThemeStudyStart"""
+        # 上报用户交互事件
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
@@ -850,8 +853,8 @@ class TestLearning:
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
     def test_interaction_flashcard_event_FlashCardThemeStudyComplete(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取有效的kidId
+        """上报用户交互事件 - 闪卡事件 - FlashCardThemeStudyComplete"""
+        # 上报用户交互事件
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
@@ -876,9 +879,9 @@ class TestLearning:
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
     def test_interaction_flashcard_event_FlashCardReviewStart(self, get_bookIds):
-        """有效的kidId，返回完整统计数据"""
+        """上报用户交互事件 - 闪卡事件 - FlashCardReviewStart"""
         session_id = get_bookIds[0]
-        # 获取有效的kidId
+        # 上报用户交互事件
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
@@ -902,9 +905,9 @@ class TestLearning:
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
     def test_interaction_flashcard_event_FlashCardReviewCompelete(self, get_bookIds):
-        """有效的kidId，返回完整统计数据"""
+        """上报用户交互事件 - 闪卡事件 - FlashCardReviewCompelete"""
         session_id = get_bookIds[0]
-        # 获取有效的kidId
+        # 上报用户交互事件
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
@@ -929,8 +932,8 @@ class TestLearning:
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
     def test_interaction_flashcard_event_FlashCardLetterStudyStart(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取有效的kidId
+        """上报用户交互事件 - 闪卡事件 - FlashCardLetterStudyStart"""
+        # 上报用户交互事件
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
@@ -954,8 +957,8 @@ class TestLearning:
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
     def test_interaction_flashcard_event_FlashCardLetterStudyComplete(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取有效的kidId
+        """上报用户交互事件 - 闪卡事件 - FlashCardLetterStudyComplete"""
+        # 上报用户交互事件
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
@@ -980,8 +983,8 @@ class TestLearning:
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
     def test_interaction_flashcard_event_FlashCardCvcStudyStart(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取有效的kidId
+        """上报用户交互事件 - 闪卡事件 - FlashCardCvcStudyStart"""
+        # 上报用户交互事件
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
@@ -1005,8 +1008,8 @@ class TestLearning:
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
     def test_interaction_flashcard_event_FlashCardCvcStudyComplete(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取有效的kidId
+        """上报用户交互事件 - 闪卡事件 - FlashCardCvcStudyComplete"""
+        # 上报用户交互事件
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
@@ -1031,8 +1034,8 @@ class TestLearning:
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
     def test_interaction_flashcard_event_FlashCardMathStudyStart(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取有效的kidId
+        """上报用户交互事件 - 闪卡事件 - FlashCardMathStudyStart"""
+        # 上报用户交互事件
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
@@ -1056,8 +1059,8 @@ class TestLearning:
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
     def test_interaction_flashcard_event_FlashCardMathStudyComplete(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取有效的kidId
+        """上报用户交互事件 - 闪卡事件 - FlashCardMathStudyComplete"""
+        # 上报用户交互事件
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
@@ -1074,7 +1077,6 @@ class TestLearning:
                 }
             }
         ]
-        # 获取孩子学习统计数据
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
         assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
