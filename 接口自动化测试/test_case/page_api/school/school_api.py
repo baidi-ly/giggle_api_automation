@@ -920,3 +920,59 @@ class SchoolApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def storybookThemes(self, authorization, DeviceType="web", code=200):
+        """
+        故事书主题列表（按标签分组展示故事书）
+
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-04
+        url = f"https://{base_url}/api/school/lesson/resource/storybook/themes"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "故事书主题列表（按标签分组展示故事书）"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def lessonStorybook(self, authorization, DeviceType="web", code=200, **kwargs):
+        """
+        故事书资源列表
+        :param keyword: (string, query, optional) keyword
+        :param official: (integer, query, optional) official
+        :param onlyFavorite: (boolean, query, optional) onlyFavorite
+        :param page: (integer, query, optional) page
+        :param selected: (integer, query, optional) selected
+        :param size: (integer, query, optional) size
+        :param tagId: (integer, query, optional) tagId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-04
+        url = f"https://{base_url}/api/school/lesson/resource/storybook"
+        payload = {
+            "keyword": '',
+            "official": 1,
+            "onlyFavorite": False,
+            "page": 0,
+            "selected": 1,
+            "size": 10000,
+            "tagId": 0
+        }
+        payload.update(kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "故事书资源列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+

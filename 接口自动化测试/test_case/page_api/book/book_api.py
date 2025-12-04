@@ -1,6 +1,8 @@
 import json
 import time
 
+from pandas import DataFrame
+
 from test_case.page_api.base_api import BaseAPI
 
 requests = BaseAPI().http_timeout()
@@ -1757,13 +1759,11 @@ class BookApi(BaseAPI):
         payload = {
             # "key": '',
             # "language": '',
-            # "maxAge": 10,
+            "maxAge": 10000,
             # "minAge": 0,
-            # "page": 0,
-            # "recommendation": '',
+            "page": 0,
             # "size": 10000,
             # "translateLanguage": '',
-            # "userAge": 0
         }
         payload.update(kwargs)
         timestamp = str(int(time.time() * 1000))
@@ -1775,6 +1775,82 @@ class BookApi(BaseAPI):
         try:
             response = response.json()
             return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def guest_book_list(self, authorization, DeviceType="web", code=200, **kwargs):
+        """
+        查询公开书籍列表（不需要鉴权）
+        :param categoryId: (integer, query, optional) 书籍分类ID（主题）
+        :param enableCache: (boolean, query, optional) 是否启用缓存
+        :param key: (string, query, optional) 搜索关键词
+        :param language: (string, query, optional) 书籍语言
+        :param maxAge: (integer, query, optional) 最大年龄
+        :param minAge: (integer, query, optional) 最小年龄
+        :param page: (integer, query, optional) 页码
+        :param recommendation: (string, query, optional) 推荐类型: RECENT, MOST_PLAYED, MOST_LIKED
+        :param size: (integer, query, optional) 每页数量
+        :param translateLanguage: (string, query, optional) 目标翻译语言，用于翻译书籍名称和描述
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-04
+        url = f"https://{base_url}/api/book/public/list/guest"
+        payload = {
+            # "enableCache": False,
+            # "key": '',
+            # "language": '',
+            # "maxAge": 6,
+            # "minAge": 3,
+            "page": 0,
+            # "recommendation": 'RECENT',
+            "size": 10000,
+            # "translateLanguage": ''
+        }
+        payload.update(kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "查询公开书籍列表（不需要鉴权）"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def searchBook(self, authorization, DeviceType="web", code=200, id_df=False, **kwargs):
+        """
+        根据书名/作者名/标签搜索书籍
+        :param key: (string, query, optional) key
+        :param page: (integer, query, optional) 页码
+        :param size: (integer, query, optional) 每页数量
+        :param tags: (array, query, required) tags
+        :param type: (string, query, required) type
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-04
+        url = f"https://{base_url}/api/book/search"
+        payload = {
+            "key": '',
+            "page": 0,
+            "size": 100,
+            "tags": '',
+            "type": ''
+        }
+        payload.update(kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "根据书名/作者名/标签搜索书籍"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            if not id_df:
+                return response
+            else:
+                return DataFrame(response['data'], columns=["id"])
         except json.decoder.JSONDecodeError:
             return False
 

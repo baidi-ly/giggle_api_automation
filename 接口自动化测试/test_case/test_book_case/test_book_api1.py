@@ -865,11 +865,19 @@ class TestBook:
                         assert False
 
     @pytest.mark.release
-    def test_book_positive_batchUpdateOfficial_ok(self):
-        """批量更新故事书的官方认证状态-正向用例"""
+    def test_book_batchUpdateOfficial_bookPubliclist_ok(self):
+        """批量更新故事书的官方认证状态-查询公开书籍列表，验证默认推送社区或精选的故事书"""
+        # 查询公开书籍列表
+        book_res = self.book.book_public_list(self.authorization)['data']['content']
+        bookIds = DataFrame(book_res)['id'].tolist()
+        # 批量更新故事书的官方认证状态
+        res = self.book.batchUpdateOfficial(self.authorization, bookIds)
+        assert res['data']['message'] == '批量更新成功', '批量更新失败！'
         # 查询公开书籍列表
         book_res = self.book.book_public_list(self.authorization)['data']['content']
         for book in book_res:
+            # 验证默认推送社区或精选的故事书
+            assert book['selected'] or book['official']
             # 通过bookId查询书籍详情，获取作者名称
             bookId = book['id']
             bookDetail1 = self.book.bookDetails(self.authorization, bookId)
@@ -886,9 +894,40 @@ class TestBook:
                     break
             else:
                 expected = 0
-            # 批量更新故事书的官方认证状态
-            res = self.book.batchUpdateOfficial(self.authorization, [bookId])
-            assert res['data']['message'] == '批量更新成功', '批量更新失败！'
+            # 通过bookId查询书籍详情，验证official字段返回成功
+            official = self.book.bookDetails(self.authorization, bookId)['data']['official']
+            assert expected == official, '通过bookId查询书籍详情,'
+
+    @pytest.mark.release
+    def test_book_batchUpdateOfficial_guestBookList_ok(self):
+        """批量更新故事书的官方认证状态-查询公开书籍列表，验证默认推送社区或精选的故事书"""
+        # 查询公开书籍列表（不需要鉴权）
+        book_res = self.book.guest_book_list(self.authorization)['data']['content']
+        bookIds = DataFrame(book_res)['id'].tolist()
+        # 批量更新故事书的官方认证状态
+        res = self.book.batchUpdateOfficial(self.authorization, bookIds)
+        assert res['data']['message'] == '批量更新成功', '批量更新失败！'
+        # 再次查询公开书籍列表，验证批量更新成功
+        book_res = self.book.guest_book_list(self.authorization)['data']['content']
+        for book in book_res:
+            # 验证默认推送社区或精选的故事书
+            assert book['selected'] or book['official']
+            # 通过bookId查询书籍详情，获取作者名称
+            bookId = book['id']
+            bookDetail1 = self.book.bookDetails(self.authorization, bookId)
+            if bookDetail1['data']:
+                authorName = bookDetail1['data']['authorName']
+            else:
+                continue
+            # 根据用户名搜索用户获取用户email
+            user_email_res = self.user.getSearch(self.authorization, authorName)['data']['content']
+            for user_email in user_email_res:
+                email = user_email['email']
+                if email.endswith('@giggleacademy.com') or email.endswith('@giggleacademy.me'):
+                    expected = 1
+                    break
+            else:
+                expected = 0
             # 通过bookId查询书籍详情，验证official字段返回成功
             official = self.book.bookDetails(self.authorization, bookId)['data']['official']
             assert expected == official, '通过bookId查询书籍详情,'
