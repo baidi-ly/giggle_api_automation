@@ -20,7 +20,7 @@ class AdminFlashcardsApi(BaseAPI):
         payload = {
             "name": "基础词汇闪卡",
             "description": "适合3-5岁儿童的基础单词学习",
-            "coverKey": "flashcard-cover-001.jpg",
+            "coverKey": "flash_cards-cover-001.jpg",
             "words": [
                 {
                     "name": "apple",

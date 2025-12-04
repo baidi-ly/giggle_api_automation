@@ -8,7 +8,9 @@ import os
 from pandas import DataFrame
 
 from test_case.page_api.admin.admin_course_api import AdminCourseApi
+from test_case.page_api.book.book_api import BookApi
 from test_case.page_api.course.course_api import CourseApi
+from test_case.page_api.flash_cards.flash_cards_api import Flash_cardsApi
 from test_case.page_api.game.game_api import GameApi
 from test_case.page_api.kid.kid_api import KidApi
 from test_case.page_api.learning.learning_api import LearningApi
@@ -30,6 +32,8 @@ class TestLearning:
         self.user = UserApi()
         self.game = GameApi()
         self.reward = RewardApi()
+        self.book = BookApi()
+        self.flashcard = Flash_cardsApi()
 
         self.admin_course = AdminCourseApi()
         self.admin_auth = self.admin_course.get_admin_authorization()[0]
@@ -86,6 +90,13 @@ class TestLearning:
                         continue
                     courseIds = ','.join(DataFrame(courselistAll)[:3]['id'].tolist())
                     return courseIds
+
+    @pytest.fixture(scope="class")
+    def get_bookIds(self):
+        '''方法前置 - 获取bookid'''
+        bookIds_res = self.book.book_list(self.authorization)['data']['content']
+        bookIds = DataFrame(bookIds_res)['id'].tolist()
+        yield bookIds
 
     @pytest.mark.release
     def test_learning_stats_byKidId_normal(self):
@@ -164,7 +175,7 @@ class TestLearning:
         assert daily_res['data']['date'] == today
         assert daily_res['data']['courses']
         assert daily_res['data']['storybooks']
-        assert daily_res['data']['flashcard']
+        assert daily_res['data']['flash_cards']
         # assert daily_res['data']['myWorks']
 
     def test_learning_daily_byKidId_normal_empty(self):
@@ -259,7 +270,7 @@ class TestLearning:
         endDate = self.end_of_week
         weekly_learning_res = self.learning.weekly_learning(self.authorization, self.kid_id, startDate, endDate)
         assert weekly_learning_res["weekPeriod"] == str(self.start_of_week) + ' - ' + str(self.end_of_week)
-        return_keys = ["courses", 'storybooks', 'flashcard', 'myWorks']
+        return_keys = ["courses", 'storybooks', 'flash_cards', 'myWorks']
         for for_key in return_keys:
             assert for_key in weekly_learning_res, f"获取孩子学习统计数据接口没有data数据，response->{weekly_learning_res}"
 
@@ -273,7 +284,7 @@ class TestLearning:
         assert weekly_learning_res["weekPeriod"] == str(self.start_of_week) + ' - ' + str(self.end_of_week)
         assert weekly_learning_res['courses']
         assert weekly_learning_res['storybooks']
-        assert weekly_learning_res['flashcard']
+        assert weekly_learning_res['flash_cards']
         # assert weekly_learning_res['myWorks']
 
     @pytest.mark.release
@@ -286,7 +297,7 @@ class TestLearning:
         assert weekly_learning_res["weekPeriod"] == str(self.start_of_week) + ' - ' + str(self.end_of_week)
         assert weekly_learning_res['courses']
         assert weekly_learning_res['storybooks']
-        assert weekly_learning_res['flashcard']
+        assert weekly_learning_res['flash_cards']
         # assert weekly_learning_res['myWorks']
 
     @pytest.mark.release
@@ -299,7 +310,7 @@ class TestLearning:
         assert weekly_learning_res["weekPeriod"] == str(self.start_of_week) + ' - ' + str(self.end_of_week)
         assert weekly_learning_res['courses']
         assert weekly_learning_res['storybooks']
-        assert weekly_learning_res['flashcard']
+        assert weekly_learning_res['flash_cards']
         # assert weekly_learning_res['myWorks']
 
 
@@ -767,10 +778,9 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
-    def test_interaction_flashcard_event_FlashCardNewStudyStart(self, get_bookIds):
+    def test_interaction_flashcard_event_FlashCardNewStudyStart(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardNewStudyStart"""
         # 上报用户交互事件
-        session_id = get_bookIds[0]
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
@@ -781,7 +791,7 @@ class TestLearning:
                     "child_name": self.kid_name,
                     "timezone": "+08:00",
                     "timestamp": timestamp_milliseconds,
-                    "session_id": session_id,
+                    "session_id": 'fc_review_001',
                     "word_ids": [101, 102, 103]
                 }
             }
@@ -878,9 +888,8 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
-    def test_interaction_flashcard_event_FlashCardReviewStart(self, get_bookIds):
+    def test_interaction_flashcard_event_FlashCardReviewStart(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardReviewStart"""
-        session_id = get_bookIds[0]
         # 上报用户交互事件
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
@@ -892,7 +901,7 @@ class TestLearning:
                     "child_name": self.kid_name,
                     "timezone": "+08:00",
                     "timestamp": timestamp_milliseconds,
-                    "session_id": session_id,
+                    "session_id": 'fc_review_001',
                     "word_ids": [101, 102, 201]
                 }
             }
@@ -904,9 +913,8 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
-    def test_interaction_flashcard_event_FlashCardReviewCompelete(self, get_bookIds):
+    def test_interaction_flashcard_event_FlashCardReviewCompelete(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardReviewCompelete"""
-        session_id = get_bookIds[0]
         # 上报用户交互事件
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
@@ -918,7 +926,7 @@ class TestLearning:
                     "child_name": self.kid_name,
                     "timezone": "+08:00",
                     "timestamp": timestamp_milliseconds,
-                    "session_id": session_id,
+                    "session_id": 'fc_review_001',
                     "word_ids": [101, 102, 201],
                     "correct_first_count": 2
                 }
@@ -1009,7 +1017,6 @@ class TestLearning:
 
     def test_interaction_flashcard_event_FlashCardCvcStudyComplete(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardCvcStudyComplete"""
-        # 上报用户交互事件
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
