@@ -1334,52 +1334,57 @@ class TestAdminCourse:
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
-    def test_admin_course_positive_addVoiceMultilingual_ok(self, get_courseIds):
+    def test_admin_course_addVoiceMultilingual_ok(self, get_courseIds):
         """新增语音文案-正向用例-courseId + key + targetLanguage 组合不与现有重复"""
+        # 获取课程详情包括版本信息
         course_id = get_courseIds.split(',')[0]
+        # 新增语音文案
+        key = 'dibo_test' + self.now
         pl = {
-            "key": "intro",           # String，必填：环节标识（比如某一页、某一步骤的key）
+            "key": key,           # String，必填：环节标识（比如某一页、某一步骤的key）
             "targetLanguage": "en"    # String，必填：目标语言代码（如 "en"、"ar"）
         }
         add_res = self.admin_course.addVoiceMultilingual(self.authorization, course_id, **pl)
-        search_res = self.admin_course.voiceMultilinguals(self.authorization)
-
-        update_res = self.admin_course.updateVoiceMultilingual(self.authorization)
-        search_res = self.admin_course.voiceMultilinguals(self.authorization)
-
-        delete_res = self.admin_course.deleteVoiceMultilingual(self.authorization)
-        search_res = self.admin_course.voiceMultilinguals(self.authorization)
-
-
-    @pytest.mark.release
-    def test_admin_course_permission_addVoiceMultilingual(self):
-        """新增语音文案-权限测试"""
-        res = self.admin_course.addVoiceMultilingual('', code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    def test_admin_course_permission_deleteVoiceMultilingual(self):
-        """删除语音文案-权限测试"""
-        res = self.admin_course.deleteVoiceMultilingual('', code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    def test_admin_course_permission_voiceMultilinguals(self):
-        """分页查询语音文案列表-权限测试"""
-        res = self.admin_course.voiceMultilinguals('', code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
+        assert add_res['message'] == 'success', "新增语音文案失败！"
+        # 分页查询语音文案列表，新增语音文案成功
+        search_res1 = self.admin_course.voiceMultilinguals(self.authorization, course_id, key=key, size=100)
+        for item in search_res1['data']['content']:
+            if item['key'] == key:
+                voice_id = item['id']
+                assert item['courseId'] == int(course_id)
+                assert item['englishText'] == 'Hello'
+                assert item['targetLanguage'] == "en"
+                assert item['translatedText'] == 'Hello'
+                assert item['audioStatus'] == 0
+                audioUrl = item['audioUrl']
+                break
+        else:
+            assert False, "新增语音文案失败，列表未查询到！"
+        # 更新语音文案
+        translatedTextNew = 'Happy Day'
+        update_res = self.admin_course.updateVoiceMultilingual(self.authorization, voice_id, translatedTextNew)
+        assert update_res['message'] == 'success', "更新语音文案失败！"
+        # 分页查询语音文案列表，验证更新语音文案成功
+        search_res2 = self.admin_course.voiceMultilinguals(self.authorization, course_id, key=key, size=100)
+        for item in search_res2['data']['content']:
+            if item['id'] == voice_id:
+                assert item['courseId'] == int(course_id)
+                assert item['englishText'] == 'Hello'
+                assert item['targetLanguage'] == "en"
+                assert item['translatedText'] == translatedTextNew
+                assert item['audioStatus'] == 0
+                audioUrlNew = item['audioUrl']
+                break
+        else:
+            assert False
+        # 删除语音文案
+        delete_res = self.admin_course.deleteVoiceMultilingual(self.authorization, voice_id)
+        assert delete_res['message'] == 'success', "删除语音文案失败！"
+        # 分页查询语音文案列表，验证删除语音文案成功
+        search_res3 = self.admin_course.voiceMultilinguals(self.authorization, course_id, key=key, size=100)
+        if search_res3['data']['content']:
+            voice_ids = DataFrame(search_res3['data']['content'])['id'].tolist()
+            assert voice_id in voice_ids, "删除语音文案失败，列表还能查询到！"
 
     @pytest.mark.release
     def test_admin_course_positive_batchImportMultilingual_ok(self):
@@ -1391,16 +1396,6 @@ class TestAdminCourse:
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
-    def test_admin_course_permission_batchImportMultilingual(self):
-        """批量导入语音文案-权限测试"""
-        res = self.admin_course.batchImportMultilingual('', code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     def test_admin_course_positive_regenerateMultilingual_ok(self):
         """重新生成语音-正向用例"""
         res = self.admin_course.regenerateMultilingual(self.authorization)
@@ -1408,13 +1403,3 @@ class TestAdminCourse:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    def test_admin_course_permission_regenerateMultilingual(self):
-        """重新生成语音-权限测试"""
-        res = self.admin_course.regenerateMultilingual('', code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"

@@ -1039,7 +1039,7 @@ class AdminCourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def deleteVoiceMultilingual(self, authorization, id=0, DeviceType="web", code=200):
+    def deleteVoiceMultilingual(self, authorization, id, DeviceType="web", code=200):
         """
         删除语音文案
         :param id: (integer, path, required) 记录ID
@@ -1083,8 +1083,7 @@ class AdminCourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def voiceMultilinguals(self, authorization, audioStatus, courseId, key='', page=0, size=100, targetLanguage='',
-                DeviceType="web", code=200):
+    def voiceMultilinguals(self, authorization, courseId, DeviceType="web", code=200, **kwargs):
         """
         分页查询语音文案列表
         :param audioStatus: (integer, query, optional) 音频状态
@@ -1098,13 +1097,14 @@ class AdminCourseApi(BaseAPI):
         # Create Data:  V1.22.0  &  2025-12-03
         url = f"https://{base_url}/admin/course/voice/multilingual/list"
         payload = {
-            "audioStatus": audioStatus,
+            "audioStatus": 0,
             "courseId": courseId,
-            "key": key,
-            "page": page,
-            "size": size,
-            "targetLanguage": targetLanguage
+            "key": '',
+            "page": 0,
+            "size": 10,
+            "targetLanguage": 'en'
         }
+        payload = self.request_body(payload)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
