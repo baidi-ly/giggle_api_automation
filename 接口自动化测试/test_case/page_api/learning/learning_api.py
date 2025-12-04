@@ -11,7 +11,7 @@ AUTH_KEY = RunConfig.AUTH_KEY
 class LearningApi(BaseAPI):
     """孩子学习统计接口"""
 
-    def learning_stats(self, kidId, authorization="", DeviceType="web", code=200):
+    def learning_stats(self, authorization, kidId, DeviceType="web", code=200):
         """
         获取孩子学习统计数据
         :param:
@@ -28,7 +28,7 @@ class LearningApi(BaseAPI):
             response = response.json()
             return response
 
-    def daily_learning(self, kidId, authorization="", DeviceType="web", code=200):
+    def daily_learning(self, authorization, kidId, DeviceType="web", code=200):
         """
         获取孩子今日学习详情
         :param:
@@ -45,7 +45,7 @@ class LearningApi(BaseAPI):
             response = response.json()
             return response
 
-    def daily_learning_report(self, kidId, date='', authorization="", DeviceType="web"):
+    def daily_learning_report(self, authorization, kidId, date, DeviceType="web"):
         """
         生成指定孩子的学习情况报表数据
         :param:
@@ -106,7 +106,7 @@ class LearningApi(BaseAPI):
         response = response.json()
         return response
 
-    def daily_storybook_report(self, kidId, date, authorization="", DeviceType="web"):
+    def daily_storybook_report(self, authorization, kidId, date, DeviceType="web"):
         """
         生成故事书报告
         :param:
@@ -126,7 +126,7 @@ class LearningApi(BaseAPI):
         response = response.json()
         return response
 
-    def daily_challenge_report(self, kidId, date="", authorization="", DeviceType="web"):
+    def daily_challenge_report(self, authorization, kidId, date, DeviceType="web"):
         """
         生成挑战课报告
         :param:
@@ -146,7 +146,7 @@ class LearningApi(BaseAPI):
         response = response.json()
         return response
 
-    def daily_flashcard_report(self, kidId, date="", authorization="", DeviceType="web"):
+    def daily_flashcard_report(self, authorization, kidId, date, DeviceType="web"):
         """
         生成闪卡报告
         :param:

@@ -94,8 +94,8 @@ class TestLearning:
     @pytest.fixture(scope="class")
     def get_bookIds(self):
         '''方法前置 - 获取bookid'''
-        bookIds_res = self.book.book_list(self.authorization)['data']['content']
-        bookIds = DataFrame(bookIds_res)['id'].tolist()
+        book_res = self.book.book_list(self.authorization)['data']['content']
+        bookIds = DataFrame(book_res)['id'].tolist()
         yield bookIds
 
     @pytest.mark.release
@@ -526,35 +526,88 @@ class TestLearning:
 
     def test_interaction_lesson_event_InteractiveLessonEnd(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - InteractiveLessonEnd"""
+        # 上报事件前，获取孩子今日学习详情
+        learning_res1 = self.learning.daily_learning(self.authorization, self.kid_id)
+        l_duration1 = learning_res1["data"]['courses']['normal']["duration"]
+        l_interaction1 = learning_res1["data"]['courses']['normal']["interaction"]
+        # 上报事件前，生成指定孩子的学习情况报表数据
+        report_res1 = self.learning.daily_learning_report(self.authorization, self.kid_id, self.today)
+        r_interaction1 = report_res1["data"]['summary']['stats']["interaction"]
+        r_duration1 = report_res1["data"]['summary']['stats']["duration"]
         # 上报用户交互事件
-        report_res = self.learning.daily_learning(self.kid_id, authorization=self.authorization, date=self.tomorrow)
-        report_res = self.learning.daily_learning_report(self.kid_id, authorization=self.authorization, date=self.tomorrow)
-        challenge_res = self.learning.daily_challenge_report(self.kid_id, self.yesterday, self.authorization)
-        stats_res = self.learning.learning_stats(self.kid_id, self.authorization)
-        # 获取有效的kidId
-        course_id = get_courseIds[0]
-        timestamp_milliseconds = int(time.time() * 1000)
+        course_id = get_courseIds.split(',')[0]
+        timestamp_milliseconds1 = int(time.time() * 1000) - 1000
+        timestamp_milliseconds2 = int(time.time() * 1000)
+        timestamp_milliseconds3 = int(time.time() * 1000) + 1000
         courses = [
             {
-            "eventName": "InteractiveLessonEnd",
-            "params": {
+                "eventName": "InteractiveLessonStart",
+                "params": {
                     "user_id": self.user_id,
                     "child_id": self.kid_id,
                     "child_name": self.kid_name,
-                    "timestamp": timestamp_milliseconds,
-                    "timezone": "Asia/Shanghai",
-                    "lesson_id": course_id
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds1,
+                    "lesson_id": course_id,
+                    "from_page": "home_recommend"
+                }
+            },
+            {
+                "eventName": "LessonUserInteraction",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds2,
+                    "lesson_id": course_id,
+                    "interaction_type": "tap",
+                    "component_key": "scene_1_q1"
+                }
+            },
+            {
+                "eventName": "InteractiveLessonEnd",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds3,
+                    "lesson_id": course_id,
+                    "duration": 360
                 }
             }
         ]
-        # 获取孩子学习统计数据
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
-        report_res = self.learning.daily_learning(self.kid_id, authorization=self.authorization, date=self.tomorrow)
-        report_res = self.learning.daily_learning_report(self.kid_id, authorization=self.authorization, date=self.tomorrow)
-        challenge_res = self.learning.daily_challenge_report(self.kid_id, self.yesterday, self.authorization)
-        stats_res = self.learning.learning_stats(self.kid_id, self.authorization)
+        assert event_res['data']['recordedCount'] == 3, f"接口返回data数据异常：{event_res['data']}"
+        for i in range(10):
+            try:
+                # 上报事件后，获取孩子今日学习详情
+                learning_res2 = self.learning.daily_learning(self.authorization, self.kid_id)
+                l_duration2 = learning_res2["data"]['courses']['normal']["duration"]
+                assert l_duration2 - l_duration1 == 6
+                l_interaction2 = learning_res2["data"]['courses']['normal']["interaction"]
+                assert l_interaction2 - l_interaction1 == 1
+                break
+            except:
+                time.sleep(.5)
+        else:
+            assert False, "5s内孩子今日学习详情未更新成功！"
+        for i in range(10):
+            try:
+                # 上报事件后，生成指定孩子的学习情况报表数据
+                report_res2 = self.learning.daily_learning_report(self.authorization, self.kid_id, self.today)
+                r_interaction2 = report_res2["data"]['summary']['stats']["interaction"]
+                assert r_interaction2 - r_interaction1 == 1
+                r_duration2 = report_res2["data"]['summary']['stats']["duration"]
+                assert r_duration2 - r_duration1 == 6
+                break
+            except:
+                time.sleep(.5)
+        else:
+            assert False, "5s内生成指定孩子的学习情况报表数据失败！"
 
     def test_interaction_lesson_event_LessonUserInteraction(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - LessonUserInteraction"""
@@ -611,10 +664,43 @@ class TestLearning:
 
     def test_interaction_lesson_event_ChallengeLessonEnd(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - ChallengeLessonEnd"""
+        # 上报事件前，获取孩子今日学习详情
+        learning_res1 = self.learning.daily_learning(self.authorization, self.kid_id)
+        l_duration1 = learning_res1["data"]['courses']['challenge']["duration"]
+        # 上报事件前，生成指定孩子的学习情况报表数据
+        report_res1 = self.learning.daily_learning_report(self.authorization, self.kid_id, self.today)
+        r_duration1 = report_res1["data"]['summary']['stats']["duration"]
         # 上报用户交互事件
-        course_id = get_courseIds[0]
-        timestamp_milliseconds = int(time.time() * 1000)
+        course_id = get_courseIds.split(',')[0]
+        timestamp_milliseconds1 = int(time.time() * 1000) - 1000
+        timestamp_milliseconds2 = int(time.time() * 1000)
+        timestamp_milliseconds3 = int(time.time() * 1000) + 1000
         courses = [
+            {
+                "eventName": "ChallengeLessonStart",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds1,
+                    "course_id": course_id,
+                    "interaction_type": "medium"
+                }
+            },
+            {
+                "eventName": "LessonUserInteraction",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds2,
+                    "lesson_id": course_id,
+                    "interaction_type": "tap",
+                    "component_key": "scene_1_q1"
+                }
+            },
             {
                 "eventName": "ChallengeLessonEnd",
                 "params": {
@@ -622,7 +708,7 @@ class TestLearning:
                     "child_id": self.kid_id,
                     "child_name": self.kid_name,
                     "timezone": "+08:00",
-                    "timestamp": timestamp_milliseconds,
+                    "timestamp": timestamp_milliseconds3,
                     "course_id": course_id,
                     "duration": 480,
                     "answers": 10,
@@ -636,7 +722,29 @@ class TestLearning:
         assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
         assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
-        assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
+        assert event_res['data']['recordedCount'] == 3, f"接口返回data数据异常：{event_res['data']}"
+        for i in range(10):
+            try:
+                # 上报事件后，获取孩子今日学习详情
+                learning_res2 = self.learning.daily_learning(self.authorization, self.kid_id)
+                l_duration2 = learning_res2["data"]['courses']['challenge']["duration"]
+                assert l_duration2 - l_duration1 == 8
+                break
+            except:
+                time.sleep(.5)
+        else:
+            assert False, "5s内孩子今日学习详情未更新成功！"
+        for i in range(10):
+            try:
+                # 上报事件后，生成指定孩子的学习情况报表数据
+                report_res2 = self.learning.daily_learning_report(self.authorization, self.kid_id, self.today)
+                r_duration2 = report_res2["data"]['summary']['stats']["duration"]
+                assert r_duration2 - r_duration1 == 8
+                break
+            except:
+                time.sleep(.5)
+        else:
+            assert False, "5s内生成指定孩子的学习情况报表数据失败！"
 
     def test_interaction_lesson_event_ChallengeSettleReward(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - LessonQuit"""
@@ -720,11 +828,15 @@ class TestLearning:
     def test_interaction_book_event_StoryBookComplete(self, get_bookIds):
         """上报用户交互事件 - 故事书事件 - StoryBookComplete"""
         # 上报用户交互事件
-        report_res = self.learning.daily_learning(self.kid_id, authorization=self.authorization, date=self.tomorrow)
-        report_res = self.learning.daily_learning_report(self.kid_id, authorization=self.authorization,
-                                                         date=self.tomorrow)
-        challenge_res = self.learning.daily_storybook_report(self.kid_id, self.yesterday, self.authorization)
-        stats_res = self.learning.learning_stats(self.kid_id, self.authorization)
+        learning_res1 = self.learning.daily_learning(self.authorization, self.kid_id)
+        l_duration1 = learning_res1['data']['storybooks']['duration']
+        report_res1 = self.learning.daily_learning_report(self.authorization, self.kid_id, self.today)
+        r_duration1 = report_res1['data']['summary']['stats']['duration']
+        story_res1 = self.learning.daily_storybook_report(self.authorization, self.kid_id, self.today)
+        if 'durationComparison' in story_res1["data"]:
+            s_duration1 = story_res1["data"]['durationComparison']['userDuration']
+        else:
+            s_duration1 = 0
         # 获取有效的kidId
         book_id = get_bookIds[0]
         timestamp_milliseconds = int(time.time() * 1000)
@@ -737,7 +849,10 @@ class TestLearning:
                     "child_name": self.kid_name,
                     "timestamp": timestamp_milliseconds,
                     "timezone": "Asia/Shanghai",
-                    "book_id": book_id
+                    "book_id": book_id,
+                    "duration": 300,    # 秒，可随便写个非0值测试
+                    "pages_read": 20,   # 可选，主要用于业务自用
+                    "words_read": 800   # 可选
                 }
             }
         ]
@@ -745,11 +860,36 @@ class TestLearning:
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
-        report_res = self.learning.daily_learning(self.kid_id, authorization=self.authorization, date=self.tomorrow)
-        report_res = self.learning.daily_learning_report(self.kid_id, authorization=self.authorization,
-                                                         date=self.tomorrow)
-        challenge_res = self.learning.daily_storybook_report(self.kid_id, self.yesterday, self.authorization)
-        stats_res = self.learning.learning_stats(self.kid_id, self.authorization)
+        for i in range(10):
+            try:
+                learning_res2 = self.learning.daily_learning(self.authorization, self.kid_id)
+                l_duration2 = learning_res2['data']['storybooks']['duration']
+                assert l_duration2 - l_duration1 == 5
+                break
+            except:
+                time.sleep(.5)
+        else:
+            assert False
+        for i in range(10):
+            try:
+                report_res2 = self.learning.daily_learning_report(self.authorization, self.kid_id, self.today)
+                r_duration2 = report_res2['data']['summary']['stats']['duration']
+                assert r_duration2 - r_duration1 == 5
+                break
+            except:
+                time.sleep(.5)
+        else:
+            assert False
+        for i in range(10):
+            try:
+                story_res2 = self.learning.daily_storybook_report(self.authorization, self.kid_id, self.today)
+                s_duration2 = story_res2["data"]['durationComparison']['userDuration']
+                assert s_duration2 - s_duration1 == 5
+                break
+            except:
+                time.sleep(.5)
+        else:
+            assert False
 
     def test_interaction_story_event_StoryBookExit(self, get_bookIds):
         """上报用户交互事件 - 故事书事件 - FlashCardNewStudyStart"""
@@ -803,15 +943,14 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
-    def test_interaction_flashcard_event_FlashCardThemeStudyComplete(self, get_resourceIds):
+    def test_interaction_flashcard_event_FlashCardThemeStudyComplete(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardThemeStudyComplete"""
         # 上报用户交互事件
-        report_res = self.learning.daily_learning_report(self.kid_id, authorization=self.authorization,
-                                                         date=self.tomorrow)
-        challenge_res = self.learning.daily_flashcard_report(self.kid_id, self.yesterday, self.authorization)
-        stats_res = self.learning.learning_stats(self.kid_id, self.authorization)
+        learning_res1 = self.learning.daily_learning(self.authorization, self.kid_id)
+        l_duration1 = learning_res1['data']['storybooks']['duration']
+        report_res1 = self.learning.daily_learning_report(self.authorization, self.kid_id, self.today)
+        challenge_res1 = self.learning.daily_flashcard_report(self.authorization, self.kid_id, self.today)
         # 获取有效的kidId
-        book_id = get_resourceIds[0]
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
@@ -820,10 +959,11 @@ class TestLearning:
                     "user_id": self.user_id,
                     "child_id": self.kid_id,
                     "child_name": self.kid_name,
+                    "timezone": "+08:00",
                     "timestamp": timestamp_milliseconds,
-                    "timezone": "Asia/Shanghai",
-                    "resource_id": book_id,
-                    "theme": "animals"
+                    "word_ids": [101, 102, 201], # 本次主题学习涉及的单词ID（flash_cards_words.id）
+                    "correct_first_count": 2, # 首次答对的单词数量，用来算正确率
+                    "duration": 180 # 本次学习时长（秒，可选，用于统计时长）
                 }
             }
         ]
@@ -831,11 +971,10 @@ class TestLearning:
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
-
-        report_res = self.learning.daily_learning_report(self.kid_id, authorization=self.authorization,
-                                                         date=self.tomorrow)
-        challenge_res = self.learning.daily_flashcard_report(self.kid_id, self.yesterday, self.authorization)
-        stats_res = self.learning.learning_stats(self.kid_id, self.authorization)
+        learning_res1 = self.learning.daily_learning(self.authorization, self.kid_id)
+        l_duration1 = learning_res1['data']['storybooks']['duration']
+        report_res1 = self.learning.daily_learning_report(self.authorization, self.kid_id, self.today)
+        challenge_res1 = self.learning.daily_flashcard_report(self.authorization, self.kid_id, self.today)
 
     def test_interaction_flashcard_event_FlashCardThemeStudyStart(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardThemeStudyStart"""
@@ -852,32 +991,6 @@ class TestLearning:
                     "timestamp": timestamp_milliseconds,
                     "theme_id": "animals",
                     "word_ids": [201, 202, 203]
-                }
-            }
-        ]
-        # 获取孩子学习统计数据
-        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
-        assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
-        assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
-        assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
-        assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
-
-    def test_interaction_flashcard_event_FlashCardThemeStudyComplete(self):
-        """上报用户交互事件 - 闪卡事件 - FlashCardThemeStudyComplete"""
-        # 上报用户交互事件
-        timestamp_milliseconds = int(time.time() * 1000)
-        courses = [
-            {
-                "eventName": "FlashCardThemeStudyComplete",
-                "params": {
-                    "user_id": self.user_id,
-                    "child_id": self.kid_id,
-                    "child_name": self.kid_name,
-                    "timezone": "+08:00",
-                    "timestamp": timestamp_milliseconds,
-                    "theme_id": "animals",
-                    "word_ids": [201, 202, 203],
-                    "correct_first_count": 3
                 }
             }
         ]
