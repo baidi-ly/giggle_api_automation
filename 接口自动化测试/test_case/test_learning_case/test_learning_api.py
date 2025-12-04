@@ -1,9 +1,13 @@
 import datetime
+import time
 
 import pytest
 import sys
 import os
 
+from pandas import DataFrame
+
+from test_case.page_api.admin.admin_course_api import AdminCourseApi
 from test_case.page_api.course.course_api import CourseApi
 from test_case.page_api.game.game_api import GameApi
 from test_case.page_api.kid.kid_api import KidApi
@@ -21,11 +25,14 @@ class TestLearning:
     def setup_class(self):
         self.learning = LearningApi()
         self.course = CourseApi()
-        self.authorization = self.learning.get_authorization()[0]
+        self.authorization, self.user_id = self.learning.get_authorization()
         self.kid = KidApi()
         self.user = UserApi()
         self.game = GameApi()
         self.reward = RewardApi()
+
+        self.admin_course = AdminCourseApi()
+        self.admin_auth = self.admin_course.get_admin_authorization()[0]
 
         self.today = datetime.date.today().strftime("%Y-%m-%d")
         self.yesterday = (datetime.date.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
@@ -58,6 +65,27 @@ class TestLearning:
         kidId = self.kid.getKids(self.authorization)
         # 注销小孩账户
         yield kidId
+
+    @pytest.fixture(scope='function')
+    def get_courseIds(self):
+        """获取课程详情包括版本信息"""
+        # 获取顶层课程目录列表
+        topcategory_res = self.admin_course.getAlltopcategory(self.admin_auth)
+        for category in topcategory_res['data']:
+            parentId = category['id']
+            # 获取课程子目录列表
+            category_res1 = self.admin_course.getAllsubcategory(self.admin_auth, parentId)
+            for subcategory in category_res1['data']:
+                parentId1 = subcategory['id']
+                category_res2 = self.admin_course.getAllsubcategory(self.admin_auth, parentId1)
+                for subcategory2 in category_res2['data']:
+                    categoryId = subcategory2['id']
+                    # 获取分类下所有课程
+                    courselistAll = self.admin_course.course_listAll(self.admin_auth, categoryId)['data']
+                    if not courselistAll:
+                        continue
+                    courseIds = ','.join(DataFrame(courselistAll)[:3]['id'].tolist())
+                    return courseIds
 
     @pytest.mark.release
     def test_learning_stats_byKidId_normal(self):
@@ -459,21 +487,596 @@ class TestLearning:
         assert flashcard_res["data"]['themeCompletion']
         assert flashcard_res["data"]['animalCards']
 
-    def test_interaction_event_single(self, get_couerseList):
+    def test_interaction_lesson_event_InteractiveLessonStart(self, get_courseIds):
         """有效的kidId，返回完整统计数据"""
         # 获取有效的kidId
-        couerseList = get_couerseList[0]['courseList']
-        eventName = "交互事件" + self.now
+        course_id = get_courseIds[0]
+        timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
-                "eventName": eventName,
+                "eventName": "InteractiveLessonStart",
                 "params": {
-                    "courseId": couerseList[0]["id"],
-                    "lessonType": "normal"
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds,
+                    "lesson_id": course_id,
+                    "from_page": "home_recommend"
                 }
-             }
+            }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
+        assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
+        assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
+        assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
+
+    def test_interaction_lesson_event_InteractiveLessonEnd(self, get_courseIds):
+        """有效的kidId，返回完整统计数据"""
+        report_res = self.learning.daily_learning(self.kid_id, authorization=self.authorization, date=self.tomorrow)
+        report_res = self.learning.daily_learning_report(self.kid_id, authorization=self.authorization, date=self.tomorrow)
+        challenge_res = self.learning.daily_challenge_report(self.kid_id, self.yesterday, self.authorization)
+        stats_res = self.learning.learning_stats(self.kid_id, self.authorization)
+        # 获取有效的kidId
+        course_id = get_courseIds[0]
+        timestamp_milliseconds = int(time.time() * 1000)
+        courses = [
+            {
+            "eventName": "InteractiveLessonEnd",
+            "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timestamp": timestamp_milliseconds,
+                    "timezone": "Asia/Shanghai",
+                    "lesson_id": course_id
+                }
+            }
         ]
         # 获取孩子学习统计数据
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
+        report_res = self.learning.daily_learning(self.kid_id, authorization=self.authorization, date=self.tomorrow)
+        report_res = self.learning.daily_learning_report(self.kid_id, authorization=self.authorization, date=self.tomorrow)
+        challenge_res = self.learning.daily_challenge_report(self.kid_id, self.yesterday, self.authorization)
+        stats_res = self.learning.learning_stats(self.kid_id, self.authorization)
+
+    def test_interaction_lesson_event_LessonUserInteraction(self, get_courseIds):
+        """有效的kidId，返回完整统计数据"""
+        # 获取有效的kidId
+        course_id = get_courseIds[0]
+        timestamp_milliseconds = int(time.time() * 1000)
+        courses = [
+            {
+                "eventName": "LessonUserInteraction",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds,
+                    "lesson_id": course_id,
+                    "interaction_type": "tap",
+                    "component_key": "scene_1_question_2"
+                }
+            }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
+        assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
+        assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
+        assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
+
+    def test_interaction_lesson_event_ChallengeLessonStart(self, get_courseIds):
+        """有效的kidId，返回完整统计数据"""
+        # 获取有效的kidId
+        course_id = get_courseIds[0]
+        timestamp_milliseconds = int(time.time() * 1000)
+        courses = [
+            {
+                "eventName": "ChallengeLessonStart",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds,
+                    "course_id": course_id,
+                    "interaction_type": "medium"
+                }
+            }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
+        assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
+        assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
+        assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
+
+    def test_interaction_lesson_event_ChallengeLessonEnd(self, get_courseIds):
+        """有效的kidId，返回完整统计数据"""
+        # 获取有效的kidId
+        course_id = get_courseIds[0]
+        timestamp_milliseconds = int(time.time() * 1000)
+        courses = [
+            {
+                "eventName": "ChallengeLessonEnd",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds,
+                    "course_id": course_id,
+                    "duration": 480,
+                    "answers": 10,
+                    "correct_answers": 8,
+                    "score": 80
+                }
+            }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
+        assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
+        assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
+        assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
+
+    def test_interaction_lesson_event_ChallengeSettleReward(self, get_courseIds):
+        """有效的kidId，返回完整统计数据"""
+        # 获取有效的kidId
+        course_id = get_courseIds[0]
+        timestamp_milliseconds = int(time.time() * 1000)
+        courses = [
+            {
+                "eventName": "ChallengeSettleReward",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds,
+                    "course_id": course_id,
+                    "reward_type": "coin",
+                    "reward_amount": 50
+                }
+            }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
+        assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
+        assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
+        assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
+
+    def test_interaction_lesson_event_LessonQuit(self, get_courseIds):
+        """有效的kidId，返回完整统计数据"""
+        # 获取有效的kidId
+        course_id = get_courseIds[0]
+        timestamp_milliseconds = int(time.time() * 1000)
+        courses = [
+            {
+                "eventName": "LessonQuit",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds,
+                    "lesson_id": course_id,
+                    "quit_reason": "user_close_app"
+                }
+            }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
+        assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
+        assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
+        assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
+
+    def test_interaction_story_event_StoryBookStart(self, get_bookIds):
+        """有效的kidId，返回完整统计数据"""
+        # 获取有效的kidId
+        book_id = get_bookIds[0]
+        timestamp_milliseconds = int(time.time() * 1000)
+        courses = [
+            {
+                "eventName": "StoryBookStart",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds,
+                    "book_id": book_id,
+                    "from_page": "home_story_tab"
+                }
+            }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
+        assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
+        assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
+        assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
+
+    def test_interaction_book_event_StoryBookComplete(self, get_bookIds):
+        """有效的kidId，返回完整统计数据"""
+        report_res = self.learning.daily_learning(self.kid_id, authorization=self.authorization, date=self.tomorrow)
+        report_res = self.learning.daily_learning_report(self.kid_id, authorization=self.authorization,
+                                                         date=self.tomorrow)
+        challenge_res = self.learning.daily_storybook_report(self.kid_id, self.yesterday, self.authorization)
+        stats_res = self.learning.learning_stats(self.kid_id, self.authorization)
+        # 获取有效的kidId
+        book_id = get_bookIds[0]
+        timestamp_milliseconds = int(time.time() * 1000)
+        courses = [
+            {
+                "eventName": "StoryBookComplete",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timestamp": timestamp_milliseconds,
+                    "timezone": "Asia/Shanghai",
+                    "book_id": book_id
+                }
+            }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
+        report_res = self.learning.daily_learning(self.kid_id, authorization=self.authorization, date=self.tomorrow)
+        report_res = self.learning.daily_learning_report(self.kid_id, authorization=self.authorization,
+                                                         date=self.tomorrow)
+        challenge_res = self.learning.daily_storybook_report(self.kid_id, self.yesterday, self.authorization)
+        stats_res = self.learning.learning_stats(self.kid_id, self.authorization)
+
+    def test_interaction_story_event_StoryBookExit(self, get_bookIds):
+        """有效的kidId，返回完整统计数据"""
+        # 获取有效的kidId
+        book_id = get_bookIds[0]
+        timestamp_milliseconds = int(time.time() * 1000)
+        courses = [
+            {
+                "eventName": "StoryBookExit",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds,
+                    "book_id": book_id,
+                    "current_page": 3,
+                    "exit_reason": "user_back"
+                }
+            }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
+        assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
+        assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
+        assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
+
+    def test_interaction_flashcard_event_FlashCardNewStudyStart(self, get_bookIds):
+        """有效的kidId，返回完整统计数据"""
+        # 获取有效的kidId
+        session_id = get_bookIds[0]
+        timestamp_milliseconds = int(time.time() * 1000)
+        courses = [
+            {
+                "eventName": "FlashCardNewStudyStart",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds,
+                    "session_id": session_id,
+                    "word_ids": [101, 102, 103]
+                }
+            }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
+        assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
+        assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
+        assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
+
+    def test_interaction_flashcard_event_FlashCardThemeStudyComplete(self, get_resourceIds):
+        """有效的kidId，返回完整统计数据"""
+        report_res = self.learning.daily_learning_report(self.kid_id, authorization=self.authorization,
+                                                         date=self.tomorrow)
+        challenge_res = self.learning.daily_flashcard_report(self.kid_id, self.yesterday, self.authorization)
+        stats_res = self.learning.learning_stats(self.kid_id, self.authorization)
+        # 获取有效的kidId
+        book_id = get_resourceIds[0]
+        timestamp_milliseconds = int(time.time() * 1000)
+        courses = [
+            {
+                "eventName": "FlashCardThemeStudyComplete",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timestamp": timestamp_milliseconds,
+                    "timezone": "Asia/Shanghai",
+                    "resource_id": book_id,
+                    "theme": "animals"
+                }
+            }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
+        assert event_res["message"] == "success"
+
+        report_res = self.learning.daily_learning_report(self.kid_id, authorization=self.authorization,
+                                                         date=self.tomorrow)
+        challenge_res = self.learning.daily_flashcard_report(self.kid_id, self.yesterday, self.authorization)
+        stats_res = self.learning.learning_stats(self.kid_id, self.authorization)
+
+    def test_interaction_flashcard_event_FlashCardThemeStudyStart(self):
+        """有效的kidId，返回完整统计数据"""
+        # 获取有效的kidId
+        timestamp_milliseconds = int(time.time() * 1000)
+        courses = [
+            {
+                "eventName": "FlashCardThemeStudyStart",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds,
+                    "theme_id": "animals",
+                    "word_ids": [201, 202, 203]
+                }
+            }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
+        assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
+        assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
+        assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
+
+    def test_interaction_flashcard_event_FlashCardThemeStudyComplete(self):
+        """有效的kidId，返回完整统计数据"""
+        # 获取有效的kidId
+        timestamp_milliseconds = int(time.time() * 1000)
+        courses = [
+            {
+                "eventName": "FlashCardThemeStudyComplete",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds,
+                    "theme_id": "animals",
+                    "word_ids": [201, 202, 203],
+                    "correct_first_count": 3
+                }
+            }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
+        assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
+        assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
+        assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
+
+    def test_interaction_flashcard_event_FlashCardReviewStart(self, get_bookIds):
+        """有效的kidId，返回完整统计数据"""
+        session_id = get_bookIds[0]
+        # 获取有效的kidId
+        timestamp_milliseconds = int(time.time() * 1000)
+        courses = [
+            {
+                "eventName": "FlashCardReviewStart",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds,
+                    "session_id": session_id,
+                    "word_ids": [101, 102, 201]
+                }
+            }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
+        assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
+        assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
+        assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
+
+    def test_interaction_flashcard_event_FlashCardReviewCompelete(self, get_bookIds):
+        """有效的kidId，返回完整统计数据"""
+        session_id = get_bookIds[0]
+        # 获取有效的kidId
+        timestamp_milliseconds = int(time.time() * 1000)
+        courses = [
+            {
+                "eventName": "FlashCardReviewCompelete",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds,
+                    "session_id": session_id,
+                    "word_ids": [101, 102, 201],
+                    "correct_first_count": 2
+                }
+            }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
+        assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
+        assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
+        assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
+
+    def test_interaction_flashcard_event_FlashCardLetterStudyStart(self):
+        """有效的kidId，返回完整统计数据"""
+        # 获取有效的kidId
+        timestamp_milliseconds = int(time.time() * 1000)
+        courses = [
+            {
+                "eventName": "FlashCardLetterStudyStart",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds,
+                    "letter": "A",
+                    "word_ids": [301, 302]
+                }
+            }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
+        assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
+        assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
+        assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
+
+    def test_interaction_flashcard_event_FlashCardLetterStudyComplete(self):
+        """有效的kidId，返回完整统计数据"""
+        # 获取有效的kidId
+        timestamp_milliseconds = int(time.time() * 1000)
+        courses = [
+            {
+                "eventName": "FlashCardLetterStudyComplete",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds,
+                    "letter": "A",
+                    "word_ids": [301, 302],
+                    "correct_first_count": 2
+                }
+            }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
+        assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
+        assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
+        assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
+
+    def test_interaction_flashcard_event_FlashCardCvcStudyStart(self):
+        """有效的kidId，返回完整统计数据"""
+        # 获取有效的kidId
+        timestamp_milliseconds = int(time.time() * 1000)
+        courses = [
+            {
+                "eventName": "FlashCardCvcStudyStart",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds,
+                    "pattern": "CVC",
+                    "word_ids": [401, 402]
+                }
+            }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
+        assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
+        assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
+        assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
+
+    def test_interaction_flashcard_event_FlashCardCvcStudyComplete(self):
+        """有效的kidId，返回完整统计数据"""
+        # 获取有效的kidId
+        timestamp_milliseconds = int(time.time() * 1000)
+        courses = [
+            {
+                "eventName": "FlashCardCvcStudyComplete",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds,
+                    "pattern": "CVC",
+                    "word_ids": [401, 402],
+                    "correct_first_count": 1
+                }
+            }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
+        assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
+        assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
+        assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
+
+    def test_interaction_flashcard_event_FlashCardMathStudyStart(self):
+        """有效的kidId，返回完整统计数据"""
+        # 获取有效的kidId
+        timestamp_milliseconds = int(time.time() * 1000)
+        courses = [
+            {
+                "eventName": "FlashCardMathStudyStart",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds,
+                    "topic": "addition",
+                    "question_count": 5
+                }
+            }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
+        assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
+        assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
+        assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
+
+    def test_interaction_flashcard_event_FlashCardMathStudyComplete(self):
+        """有效的kidId，返回完整统计数据"""
+        # 获取有效的kidId
+        timestamp_milliseconds = int(time.time() * 1000)
+        courses = [
+            {
+                "eventName": "FlashCardMathStudyComplete",
+                "params": {
+                    "user_id": self.user_id,
+                    "child_id": self.kid_id,
+                    "child_name": self.kid_name,
+                    "timezone": "+08:00",
+                    "timestamp": timestamp_milliseconds,
+                    "topic": "addition",
+                    "question_count": 5,
+                    "correct_first_count": 4
+                }
+            }
+        ]
+        # 获取孩子学习统计数据
+        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
+        assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
+        assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
+        assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
+        assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
