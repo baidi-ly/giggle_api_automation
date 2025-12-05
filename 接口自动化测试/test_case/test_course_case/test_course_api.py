@@ -1065,7 +1065,7 @@ class TestCourse:
         # Normal课程资源列表
         course_id = self.school.getNormalcourse(self.authorization)["data"]['content'][0]['id']
         # 保存课程评价
-        res = self.course.course_rating(self.authorization, course_id, self.kid_id, 3)
+        res = self.course.save_course_rating(self.authorization, course_id, self.kid_id, 3)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -1077,7 +1077,7 @@ class TestCourse:
     @pytest.mark.release
     def test_course_permission_course_rating(self):
         """保存课程评价-权限测试"""
-        res = self.course.course_rating('', code=401)
+        res = self.course.save_course_rating('', code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"

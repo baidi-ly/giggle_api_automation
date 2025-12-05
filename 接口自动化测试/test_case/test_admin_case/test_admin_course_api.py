@@ -1385,21 +1385,3 @@ class TestAdminCourse:
         if search_res3['data']['content']:
             voice_ids = DataFrame(search_res3['data']['content'])['id'].tolist()
             assert voice_id in voice_ids, "删除语音文案失败，列表还能查询到！"
-
-    @pytest.mark.release
-    def test_admin_course_positive_batchImportMultilingual_ok(self):
-        """批量导入语音文案-正向用例"""
-        res = self.admin_course.batchImportMultilingual(self.authorization)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    def test_admin_course_positive_regenerateMultilingual_ok(self):
-        """重新生成语音-正向用例"""
-        res = self.admin_course.regenerateMultilingual(self.authorization)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"

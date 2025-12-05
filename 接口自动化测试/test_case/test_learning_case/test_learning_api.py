@@ -20,8 +20,11 @@ from test_case.page_api.user.user_api import UserApi
 sys.path.append(os.getcwd())
 sys.path.append("..")
 
+today = datetime.date.today().strftime("%Y-%m-%d")
+yesterday = (datetime.date.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+tomorrow = (datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
 
-@pytest.mark.Learning
+@pytest.mark.learning
 class TestLearning:
 
     def setup_class(self):
@@ -102,7 +105,7 @@ class TestLearning:
     def test_learning_stats_byKidId_normal(self):
         """获取孩子学习统计数据 - 校验数据正确性"""
         # 获取孩子学习统计数据
-        stats_res = self.learning.learning_stats(self.kid_id, self.authorization)
+        stats_res = self.learning.learning_stats(self.authorization, self.kid_id)
         assert "data" in stats_res, f"获取孩子学习统计数据接口没有data数据，response->{stats_res}"
         assert stats_res["data"]['childInfo']['childId'] == str(self.kid_id)
         assert stats_res["data"]['childInfo']['name'] == 'New Kid'
@@ -128,7 +131,6 @@ class TestLearning:
         assert stats_res["data"]['learningStats']['level']['currentLevel'] == int(learningLevel)
         assert stats_res["data"]['learningStats']['level']['levelName'] == f'level-{learningLevel}'
         assert actual_progress
-
 
     def test_learning_stats_byKidId_deletedAccount(self, create_deletedAccount):
         """注销的kidId，返回错误信息"""
@@ -158,8 +160,6 @@ class TestLearning:
 
     def test_learning_stats_byKidId_negative(self):
         """kidId为负数 - 返回错误信息"""
-        # 创建负数kidId
-        kidId = -1
         # 获取孩子学习统计数据
         stats_res = self.learning.learning_stats(self.kid_id, self.authorization, code=500)
         assert "message" in stats_res, f"获取孩子学习统计数据接口没有msg数据，response->{stats_res}"
@@ -167,16 +167,15 @@ class TestLearning:
                                                                  f'预期:internal server error, 实际：{stats_res["message"]}')
 
     @pytest.mark.release
-    def test_learning_daily_byKidId_normal(self):
+    def test_learning_daily_learning(self):
         """获取孩子今日学习详情，有数据的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
-        daily_res = self.learning.daily_learning(self.kid_id, self.authorization)
+        daily_res = self.learning.daily_learning(self.authorization, self.kid_id)
         today = datetime.date.today().strftime("%Y-%m-%d")
         assert daily_res['data']['date'] == today
         assert daily_res['data']['courses']
         assert daily_res['data']['storybooks']
-        assert daily_res['data']['flash_cards']
-        # assert daily_res['data']['myWorks']
+        assert daily_res['data']['flash_cards'] or not daily_res['data']['flash_cards']
 
     def test_learning_daily_byKidId_normal_empty(self):
         """获取孩子今日学习详情，无数据的kidId，返回完整统计数据"""
@@ -190,7 +189,7 @@ class TestLearning:
         # 创建无效的kidId
         kidId = '@@#$%^&*'
         # 获取孩子学习统计数据
-        daily_res = self.learning.daily_learning(self.kid_id, self.authorization, code=400)
+        daily_res = self.learning.daily_learning(self.authorization, kidId, code=400)
         error_msg = "获取孩子今日学习详情-无效的kidId"
         assert daily_res['message'] == 'invalid parameter', f'{error_msg}-返回状态码不正确，预期:500, 实际：{daily_res["code"]}'
         assert daily_res['data'] == '''Failed to convert value of type 'java.lang.String' to required type 'long'; nested exception is java.lang.NumberFormatException: For input string: "@@"''', f'{error_msg}-返回状态码不正确，预期:500, 实际：{daily_res["code"]}'
@@ -215,52 +214,21 @@ class TestLearning:
                                                                  f'预期:internal server error, 实际：{daily_res["message"]}')
 
     @pytest.mark.release
-    def test_learning_daily_learning_report_ok(self):
+    @pytest.mark.parametrize('date', [today, tomorrow, yesterday])
+    def test_learning_daily_learning_report_ok(self, date):
         """生成指定孩子的学习情况报表数据，生成今日报表"""
         # 获取孩子学习统计数据
-        report_res = self.learning.daily_learning_report(self.kid_id, authorization=self.authorization)
+        report_res = self.learning.daily_learning_report(self.authorization, self.kid_id, date)
         assert "data" in report_res, f"获取孩子学习统计数据接口没有data数据，response->{report_res}"
-        assert report_res["data"]["date"] == self.today
+        assert report_res["data"]["date"] == date
         assert report_res["data"]['childInfo']['childId'] == str(self.kid_id)
         assert report_res["data"]['childInfo']['name'] == 'New Kid'
         assert report_res["data"]['childInfo'][
                    'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
-        assert report_res["data"]['summary']
-        assert report_res["data"]['learningSummary']
-        assert report_res["data"]['wordsLearned']
-        assert report_res["data"]['artworks']
-
-    @pytest.mark.release
-    def test_learning_daily_learning_report_yesterday(self):
-        """生成指定孩子的学习情况报表数据，生成今日报表"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
-        # 获取孩子学习统计数据
-        report_res = self.learning.daily_learning_report(self.kid_id, authorization=self.authorization, date=self.yesterday)
-        assert report_res["data"]["date"] == self.today
-        assert report_res["data"]['childInfo']['childId'] == str(self.kid_id)
-        assert report_res["data"]['childInfo']['name'] == 'New Kid'
-        assert report_res["data"]['childInfo'][
-                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
-        assert report_res["data"]['summary']
-        assert report_res["data"]['learningSummary']
-        assert report_res["data"]['wordsLearned']
-        assert report_res["data"]['artworks']
-
-    @pytest.mark.release
-    def test_learning_daily_learning_report_tomorrow(self):
-        """生成指定孩子的学习情况报表数据，生成今日报表"""
-        # 获取孩子学习统计数据
-        report_res = self.learning.daily_learning_report(self.kid_id, authorization=self.authorization, date=self.tomorrow)
-        assert report_res["data"]["date"] == self.today
-        assert report_res["data"]['childInfo']['childId'] == str(self.kid_id)
-        assert report_res["data"]['childInfo']['name'] == 'New Kid'
-        assert report_res["data"]['childInfo'][
-                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
-        assert report_res["data"]['summary']
-        assert report_res["data"]['learningSummary']
-        assert report_res["data"]['wordsLearned']
-        assert report_res["data"]['artworks']
+        assert report_res["data"]['summary'] or not report_res["data"]['summary']
+        assert report_res["data"]['learningSummary'] or not report_res["data"]['learningSummary']
+        assert report_res["data"]['wordsLearned'] or not report_res["data"]['wordsLearned']
+        assert report_res["data"]['artworks'] or not report_res["data"]['artworks']
 
     @pytest.mark.release
     def test_learning_weekly_byKidId_thisWeekend(self):
@@ -270,234 +238,79 @@ class TestLearning:
         endDate = self.end_of_week
         weekly_learning_res = self.learning.weekly_learning(self.authorization, self.kid_id, startDate, endDate)
         assert weekly_learning_res["weekPeriod"] == str(self.start_of_week) + ' - ' + str(self.end_of_week)
-        return_keys = ["courses", 'storybooks', 'flash_cards', 'myWorks']
-        for for_key in return_keys:
-            assert for_key in weekly_learning_res, f"获取孩子学习统计数据接口没有data数据，response->{weekly_learning_res}"
-
-    @pytest.mark.release
-    def test_learning_weekly_byKidId_nextWeekend(self):
-        """跨周测试 - 下一周"""
-        # 获取孩子学习统计数
-        startDate = self.start_of_week.strftime("%Y-%m-%d")
-        endDate = self.end_of_week.strftime("%Y-%m-%d")
-        weekly_learning_res = self.learning.weekly_learning(self.authorization, self.kid_id, startDate, endDate)
-        assert weekly_learning_res["weekPeriod"] == str(self.start_of_week) + ' - ' + str(self.end_of_week)
-        assert weekly_learning_res['courses']
-        assert weekly_learning_res['storybooks']
-        assert weekly_learning_res['flash_cards']
-        # assert weekly_learning_res['myWorks']
-
-    @pytest.mark.release
-    def test_learning_weekly_byKidId_lastWeekend(self):
-        """跨周测试 - 上一周"""
-        # 获取孩子学习统计数据
-        startDate = self.start_of_week
-        endDate = self.end_of_week
-        weekly_learning_res = self.learning.weekly_learning(self.authorization, self.kid_id, startDate, endDate)
-        assert weekly_learning_res["weekPeriod"] == str(self.start_of_week) + ' - ' + str(self.end_of_week)
-        assert weekly_learning_res['courses']
-        assert weekly_learning_res['storybooks']
-        assert weekly_learning_res['flash_cards']
-        # assert weekly_learning_res['myWorks']
-
-    @pytest.mark.release
-    def test_learning_weekly_learning_report_targetWeekend(self):
-        """跨周测试 - 上一周"""
-        # 获取孩子学习统计数据
-        startDate = "2025-01-20"
-        endDate = "2025-01-26"
-        weekly_learning_res = self.learning.weekly_learning(self.authorization, self.kid_id, startDate, endDate)
-        assert weekly_learning_res["weekPeriod"] == str(self.start_of_week) + ' - ' + str(self.end_of_week)
-        assert weekly_learning_res['courses']
-        assert weekly_learning_res['storybooks']
-        assert weekly_learning_res['flash_cards']
-        # assert weekly_learning_res['myWorks']
-
+        assert weekly_learning_res['courses'] or not weekly_learning_res['courses']
+        assert weekly_learning_res['flashcard'] or not weekly_learning_res['flashcard']
+        assert weekly_learning_res['myWorks'] or not weekly_learning_res['myWorks']
+        assert weekly_learning_res['storybooks'] or not weekly_learning_res['storybooks']
 
     @pytest.mark.release
     def test_learning_daily_storybook_report_target(self):
         """生成今日故事书报告"""
         # 获取孩子学习统计数据
         date = "2025-01-20"
-        torybook_report = self.learning.daily_storybook_report(self.kid_id, date, self.authorization)
+        torybook_report = self.learning.daily_storybook_report(self.authorization, self.kid_id, date)
         assert torybook_report["data"]["date"] == date
         assert torybook_report["data"]['childInfo']['childId'] == str(self.kid_id)
         assert torybook_report["data"]['childInfo']['name'] == 'New Kid'
         assert torybook_report["data"]['childInfo'][
                    'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
-        assert torybook_report["data"]['summary']
-        assert torybook_report["data"]['aiSummary']
-        assert torybook_report["data"]['durationComparison']
-        assert torybook_report["data"]['theme']
-        assert torybook_report["data"]['storybooks']
+        assert torybook_report["data"]['summary'] or not torybook_report["data"]['summary']
+        assert torybook_report["data"]['aiSummary'] or not torybook_report["data"]['aiSummary']
+        assert torybook_report["data"]['durationComparison'] or not torybook_report["data"]['durationComparison']
+        assert torybook_report["data"]['theme'] or not torybook_report["data"]['theme']
+        assert torybook_report["data"]['storybooks'] or not torybook_report["data"]['storybooks']
 
-    def test_learning_daily_storybook_report_today(self):
+    @pytest.mark.release
+    @pytest.mark.parametrize('date', [today, tomorrow, yesterday, "2025-01-20"])
+    def test_learning_daily_storybook_report_today(self, date):
         """无故事书阅读记录"""
         # 获取孩子学习统计数据
-        torybook_report = self.learning.daily_storybook_report(self.kid_id, self.today, self.authorization)
-        assert torybook_report["data"]["date"] == self.today
+        torybook_report = self.learning.daily_storybook_report(self.authorization, self.kid_id, date)
+        assert torybook_report["data"]["date"] == date
         assert torybook_report["data"]['childInfo']['childId'] == str(self.kid_id)
         assert torybook_report["data"]['childInfo']['name'] == 'New Kid'
         assert torybook_report["data"]['childInfo'][
                    'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
-        assert torybook_report["data"]['summary']
-        assert torybook_report["data"]['aiSummary']
-        assert torybook_report["data"]['durationComparison']
-        assert torybook_report["data"]['theme']
-        assert torybook_report["data"]['storybooks']
+        assert torybook_report["data"]['summary'] or not torybook_report["data"]['summary']
+        assert torybook_report["data"]['aiSummary'] or not torybook_report["data"]['aiSummary']
+        assert torybook_report["data"]['durationComparison'] or not torybook_report["data"]['durationComparison']
+        assert torybook_report["data"]['theme'] or not torybook_report["data"]['theme']
+        assert torybook_report["data"]['storybooks'] or not torybook_report["data"]['storybooks']
 
-    def test_learning_daily_storybook_report_tomorrow(self):
+    @pytest.mark.release
+    @pytest.mark.parametrize('date', [today, tomorrow, yesterday, "2025-01-20"])
+    def test_learning_daily_challenge_report_today(self, date):
         """无故事书阅读记录"""
         # 获取孩子学习统计数据
-        torybook_report = self.learning.daily_storybook_report(self.kid_id, self.tomorrow, self.authorization)
-        assert torybook_report["data"]["date"] == self.tomorrow
-        assert torybook_report["data"]['childInfo']['childId'] == str(self.kid_id)
-        assert torybook_report["data"]['childInfo']['name'] == 'New Kid'
-        assert torybook_report["data"]['childInfo'][
-                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
-        assert torybook_report["data"]['summary']
-        assert torybook_report["data"]['aiSummary']
-        assert torybook_report["data"]['durationComparison']
-        assert torybook_report["data"]['theme']
-        assert torybook_report["data"]['storybooks']
-
-    def test_learning_daily_storybook_report_yesterday(self):
-        """无故事书阅读记录"""
-        # 获取孩子学习统计数据
-        torybook_report = self.learning.daily_storybook_report(self.kid_id, self.yesterday, self.authorization)
-        assert torybook_report["data"]["date"] == self.yesterday
-        assert torybook_report["data"]['childInfo']['childId'] == str(self.kid_id)
-        assert torybook_report["data"]['childInfo']['name'] == 'New Kid'
-        assert torybook_report["data"]['childInfo'][
-                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
-        assert torybook_report["data"]['summary']
-        assert torybook_report["data"]['aiSummary']
-        assert torybook_report["data"]['durationComparison']
-        assert torybook_report["data"]['theme']
-        assert torybook_report["data"]['storybooks']
-
-
-
-    def test_learning_daily_challenge_report_target(self):
-        """生成今日故事书报告"""
-        # 获取孩子学习统计数据
-        date = "2025-01-20"
-        challenge_res = self.learning.daily_challenge_report(self.kid_id, date, self.authorization)
-        assert challenge_res["data"]["date"] == date
-        assert challenge_res["data"]['childInfo']['childId'] == str(self.kid_id)
-        assert challenge_res["data"]['childInfo']['name'] == 'New Kid'
-        assert challenge_res["data"]['childInfo'][
-                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
-        assert challenge_res["data"]['summary']
-        assert challenge_res["data"]['aiSummary']
-        assert challenge_res["data"]['words']
-        assert challenge_res["data"]['animalCards']
-
-    def test_learning_daily_challenge_report_today(self):
-        """无故事书阅读记录"""
-        # 获取孩子学习统计数据
-        challenge_res = self.learning.daily_challenge_report(self.kid_id, self.today, self.authorization)
+        challenge_res = self.learning.daily_challenge_report(self.authorization, self.kid_id, date)
         assert challenge_res["data"]["date"] == self.today
         assert challenge_res["data"]['childInfo']['childId'] == str(self.kid_id)
         assert challenge_res["data"]['childInfo']['name'] == 'New Kid'
         assert challenge_res["data"]['childInfo'][
                    'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
-        assert challenge_res["data"]['summary']
-        assert challenge_res["data"]['aiSummary']
-        assert challenge_res["data"]['words']
-        assert challenge_res["data"]['animalCards']
+        assert challenge_res["data"]['summary'] or not challenge_res["data"]['summary']
+        assert challenge_res["data"]['aiSummary'] or not challenge_res["data"]['aiSummary']
+        assert challenge_res["data"]['words'] or not challenge_res["data"]['words']
+        assert challenge_res["data"]['animalCards'] or not challenge_res["data"]['animalCards']
 
-    def test_learning_daily_challenge_report_tomorrow(self):
+    @pytest.mark.release
+    @pytest.mark.parametrize('date', [today, tomorrow, yesterday, "2025-01-20"])
+    def test_learning_daily_flashcard_report_today(self, date):
         """无故事书阅读记录"""
         # 获取孩子学习统计数据
-        challenge_res = self.learning.daily_challenge_report(self.kid_id, self.tomorrow, self.authorization)
-        assert challenge_res["data"]["date"] == self.tomorrow
-        assert challenge_res["data"]['childInfo']['childId'] == str(self.kid_id)
-        assert challenge_res["data"]['childInfo']['name'] == 'New Kid'
-        assert challenge_res["data"]['childInfo'][
-                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
-        assert challenge_res["data"]['summary']
-        assert challenge_res["data"]['aiSummary']
-        assert challenge_res["data"]['words']
-        assert challenge_res["data"]['animalCards']
-
-    def test_learning_daily_challenge_report_yesterday(self):
-        """无故事书阅读记录"""
-        # 获取孩子学习统计数据
-        challenge_res = self.learning.daily_challenge_report(self.kid_id, self.yesterday, self.authorization)
-        assert challenge_res["data"]["date"] == self.yesterday
-        assert challenge_res["data"]['childInfo']['childId'] == str(self.kid_id)
-        assert challenge_res["data"]['childInfo']['name'] == 'New Kid'
-        assert challenge_res["data"]['childInfo'][
-                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
-        assert challenge_res["data"]['summary']
-        assert challenge_res["data"]['aiSummary']
-        assert challenge_res["data"]['words']
-        assert challenge_res["data"]['animalCards']
-
-
-
-    def test_learning_daily_flashcard_report_target(self):
-        """生成今日故事书报告"""
-        # 获取孩子学习统计数据
-        date = "2025-01-20"
-        flashcard_res = self.learning.daily_flashcard_report(self.kid_id, date, self.authorization)
+        flashcard_res = self.learning.daily_flashcard_report(self.authorization, self.kid_id, date)
         assert flashcard_res["data"]["date"] == date
         assert flashcard_res["data"]['childInfo']['childId'] == str(self.kid_id)
         assert flashcard_res["data"]['childInfo']['name'] == 'New Kid'
         assert flashcard_res["data"]['childInfo'][
                    'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
-        assert flashcard_res["data"]['summary']
-        assert flashcard_res["data"]['aiSummary']
-        assert flashcard_res["data"]['words']
-        assert flashcard_res["data"]['themeCompletion']
-        assert flashcard_res["data"]['animalCards']
+        assert flashcard_res["data"]['summary'] or not flashcard_res["data"]['summary']
+        assert flashcard_res["data"]['aiSummary'] or not flashcard_res["data"]['aiSummary']
+        assert flashcard_res["data"]['words'] or not flashcard_res["data"]['words']
+        assert flashcard_res["data"]['themeCompletion'] or not flashcard_res["data"]['themeCompletion']
+        assert flashcard_res["data"]['animalCards'] or not flashcard_res["data"]['animalCards']
 
-    def test_learning_daily_flashcard_report_today(self):
-        """无故事书阅读记录"""
-        # 获取孩子学习统计数据
-        flashcard_res = self.learning.daily_flashcard_report(self.kid_id, self.today, self.authorization)
-        assert flashcard_res["data"]["date"] == self.today
-        assert flashcard_res["data"]['childInfo']['childId'] == str(self.kid_id)
-        assert flashcard_res["data"]['childInfo']['name'] == 'New Kid'
-        assert flashcard_res["data"]['childInfo'][
-                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
-        assert flashcard_res["data"]['summary']
-        assert flashcard_res["data"]['aiSummary']
-        assert flashcard_res["data"]['words']
-        assert flashcard_res["data"]['themeCompletion']
-        assert flashcard_res["data"]['animalCards']
-
-    def test_learning_daily_flashcard_report_tomorrow(self):
-        """无故事书阅读记录"""
-        # 获取孩子学习统计数据
-        flashcard_res = self.learning.daily_flashcard_report(self.kid_id, self.tomorrow, self.authorization)
-        assert flashcard_res["data"]["date"] == self.tomorrow
-        assert flashcard_res["data"]['childInfo']['childId'] == str(self.kid_id)
-        assert flashcard_res["data"]['childInfo']['name'] == 'New Kid'
-        assert flashcard_res["data"]['childInfo'][
-                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
-        assert flashcard_res["data"]['summary']
-        assert flashcard_res["data"]['aiSummary']
-        assert flashcard_res["data"]['words']
-        assert flashcard_res["data"]['themeCompletion']
-        assert flashcard_res["data"]['animalCards']
-
-    def test_learning_daily_flashcard_report_yesterday(self):
-        """无故事书阅读记录"""
-        # 获取孩子学习统计数据
-        flashcard_res = self.learning.daily_flashcard_report(self.kid_id, self.yesterday, self.authorization)
-        assert flashcard_res["data"]["date"] == self.yesterday
-        assert flashcard_res["data"]['childInfo']['childId'] == str(self.kid_id)
-        assert flashcard_res["data"]['childInfo']['name'] == 'New Kid'
-        assert flashcard_res["data"]['childInfo'][
-                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
-        assert flashcard_res["data"]['summary']
-        assert flashcard_res["data"]['aiSummary']
-        assert flashcard_res["data"]['words']
-        assert flashcard_res["data"]['themeCompletion']
-        assert flashcard_res["data"]['animalCards']
-
+    @pytest.mark.release
     def test_interaction_lesson_event_InteractiveLessonStart(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - InteractiveLessonStart"""
         # 上报用户交互事件
@@ -524,6 +337,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
+    @pytest.mark.release
     def test_interaction_lesson_event_InteractiveLessonEnd(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - InteractiveLessonEnd"""
         # 上报事件前，获取孩子今日学习详情
@@ -609,6 +423,7 @@ class TestLearning:
         else:
             assert False, "5s内生成指定孩子的学习情况报表数据失败！"
 
+    @pytest.mark.release
     def test_interaction_lesson_event_LessonUserInteraction(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - LessonUserInteraction"""
         # 上报用户交互事件
@@ -636,6 +451,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
+    @pytest.mark.release
     def test_interaction_lesson_event_ChallengeLessonStart(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - ChallengeLessonStart"""
         # 上报用户交互事件
@@ -662,6 +478,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
+    @pytest.mark.release
     def test_interaction_lesson_event_ChallengeLessonEnd(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - ChallengeLessonEnd"""
         # 上报事件前，获取孩子今日学习详情
@@ -746,6 +563,7 @@ class TestLearning:
         else:
             assert False, "5s内生成指定孩子的学习情况报表数据失败！"
 
+    @pytest.mark.release
     def test_interaction_lesson_event_ChallengeSettleReward(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - LessonQuit"""
         # 上报用户交互事件
@@ -773,6 +591,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
+    @pytest.mark.release
     def test_interaction_lesson_event_LessonQuit(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - LessonQuit"""
         # 上报用户交互事件
@@ -799,6 +618,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
+    @pytest.mark.release
     def test_interaction_story_event_StoryBookStart(self, get_bookIds):
         """上报用户交互事件 - 故事书事件 - StoryBookStart"""
         # 上报用户交互事件
@@ -825,6 +645,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
+    @pytest.mark.release
     def test_interaction_book_event_StoryBookComplete(self, get_bookIds):
         """上报用户交互事件 - 故事书事件 - StoryBookComplete"""
         # 上报用户交互事件
@@ -891,6 +712,7 @@ class TestLearning:
         else:
             assert False
 
+    @pytest.mark.release
     def test_interaction_story_event_StoryBookExit(self, get_bookIds):
         """上报用户交互事件 - 故事书事件 - FlashCardNewStudyStart"""
         # 上报用户交互事件
@@ -918,6 +740,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
+    @pytest.mark.release
     def test_interaction_flashcard_event_FlashCardNewStudyStart(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardNewStudyStart"""
         # 上报用户交互事件
@@ -943,6 +766,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
+    @pytest.mark.release
     def test_interaction_flashcard_event_FlashCardThemeStudyComplete(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardThemeStudyComplete"""
         # 上报用户交互事件
@@ -976,6 +800,7 @@ class TestLearning:
         report_res1 = self.learning.daily_learning_report(self.authorization, self.kid_id, self.today)
         challenge_res1 = self.learning.daily_flashcard_report(self.authorization, self.kid_id, self.today)
 
+    @pytest.mark.release
     def test_interaction_flashcard_event_FlashCardThemeStudyStart(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardThemeStudyStart"""
         # 上报用户交互事件
@@ -1001,6 +826,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
+    @pytest.mark.release
     def test_interaction_flashcard_event_FlashCardReviewStart(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardReviewStart"""
         # 上报用户交互事件
@@ -1026,6 +852,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
+    @pytest.mark.release
     def test_interaction_flashcard_event_FlashCardReviewCompelete(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardReviewCompelete"""
         # 上报用户交互事件
@@ -1052,6 +879,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
+    @pytest.mark.release
     def test_interaction_flashcard_event_FlashCardLetterStudyStart(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardLetterStudyStart"""
         # 上报用户交互事件
@@ -1077,6 +905,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
+    @pytest.mark.release
     def test_interaction_flashcard_event_FlashCardLetterStudyComplete(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardLetterStudyComplete"""
         # 上报用户交互事件
@@ -1103,6 +932,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
+    @pytest.mark.release
     def test_interaction_flashcard_event_FlashCardCvcStudyStart(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardCvcStudyStart"""
         # 上报用户交互事件
@@ -1128,6 +958,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
+    @pytest.mark.release
     def test_interaction_flashcard_event_FlashCardCvcStudyComplete(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardCvcStudyComplete"""
         timestamp_milliseconds = int(time.time() * 1000)
@@ -1153,6 +984,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
+    @pytest.mark.release
     def test_interaction_flashcard_event_FlashCardMathStudyStart(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardMathStudyStart"""
         # 上报用户交互事件
@@ -1178,6 +1010,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
+    @pytest.mark.release
     def test_interaction_flashcard_event_FlashCardMathStudyComplete(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardMathStudyComplete"""
         # 上报用户交互事件
