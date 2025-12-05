@@ -383,18 +383,18 @@ class BaseAPI:
             assert False, "登录失败-->{}".format(error_msg)
         return authorization, userId
 
-    def operate_download(self, ETEAMSID, url, payload, fileName):
-        '''下载docx文件文件'''
-
-        headers = {'Cookie': 'ETEAMSID='+ETEAMSID+''}
-        response = self.http_timeout().request("POST", url, headers=headers, json=payload)
-        if response.status_code == 302:
-            redirect_url = response.headers.get('Location')
-            response = requests.get(redirect_url, headers=headers)
-        assert response.status_code == 200, f"下载文件失败，url->{url}，失败信息->{response.reason}{response.json()}"
-        file_path = os.getcwd() + f'/report/{fileName}.docx'
-        with open(file_path, 'wb') as file:
-            file.write(response.content)
+    # def operate_download(self, ETEAMSID, url, payload, fileName):
+    #     '''下载docx文件文件'''
+    #
+    #     headers = {'Cookie': 'ETEAMSID='+ETEAMSID+''}
+    #     response = self.http_timeout().request("POST", url, headers=headers, json=payload)
+    #     if response.status_code == 302:
+    #         redirect_url = response.headers.get('Location')
+    #         response = requests.get(redirect_url, headers=headers)
+    #     assert response.status_code == 200, f"下载文件失败，url->{url}，失败信息->{response.reason}{response.json()}"
+    #     file_path = os.getcwd() + f'/report/{fileName}.docx'
+    #     with open(file_path, 'wb') as file:
+    #         file.write(response.content)
 
     def _generate_auth_token(self, timestamp, device_id=""):
         """生成AuthToken"""
@@ -437,5 +437,3 @@ class BaseAPI:
             return "zh"
         elif bool(re.search('[a-zA-Z]', _string)):
             return "en"
-
-
