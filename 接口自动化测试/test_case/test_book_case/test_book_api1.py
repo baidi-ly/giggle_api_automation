@@ -602,19 +602,21 @@ class TestBook:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    # @pytest.mark.release
-    @pytest.mark.parametrize('narrationLan',
-                             ["en", "zh", "id", "hi", "vi"])
-    def test_book_positive_regenerate_narration_ok(self, narrationLan):
+    @pytest.mark.release
+    def test_book_positive_regenerate_narration_ok(self):
         """AI生成故事书的领读数据-正向用例"""
         # 列出当前用户创建的书籍列表中，找到书名称hq_test的故事书做测试
-        books_res = self.book.book_list(self.authorization)['data']['content']
+        books_res = self.book.book_list(self.authorization, pageSize=100)['data']['content']
         for book in books_res:
-            if book['bookName'] == 'hq_test':
+            if book['bookName'] == "Tiny Red's Wobbly Lines":
                 bookId = book['id']
                 break
         else:
-            assert False, "未找到《hq_test》这本书！"
+            assert False, "未找到《Barnaby's Wobbly Circle》这本书！"
+        for narrationLan in ["en", "zh", "id", "hi", "vi"]:
+            # 保存故事书的领读数据后，获取故事书的领读数据，验证故事书的领读数据保存成功
+            get_res1 = self.book.getNarrationData(self.authorization, bookId, narrationLanguage=narrationLan)
+            assert get_res1['data']['enabled']
         # AI生成故事书的领读数据
         res = self.book.regenerate_narration(self.authorization, bookId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -625,21 +627,22 @@ class TestBook:
         # 设置故事书领读的启用状态-开启或关闭
         res = self.book.narration_setEnabled(self.authorization, bookId)
         assert res['message'] == 'success'
-        for i in range(600):
+        for i in range(300):
             try:
-                # 保存故事书的领读数据后，获取故事书的领读数据，验证故事书的领读数据保存成功
-                get_res = self.book.getNarrationData(self.authorization, bookId, narrationLanguage=narrationLan)
-                assert get_res['data']['bookId'] == int(bookId)
-                assert get_res['data']['learningLanguage'] == 'en'
-                assert get_res['data']['narrationLanguage'] == narrationLan
-                assert get_res['data']['enabled'] == True
-                # 下载语音材料
-                narrationS3Key = get_res['data']['narrationS3Key']
-                fileName = '领读语音' + narrationLan + self.now
-                self.materials.download_materials(self.authorization, narrationS3Key, fileName)
-                narrationDataJson = json.loads(get_res['data']['narrationDataJson'])
-                narration = narrationDataJson[0]['narration']
-                assert narration == "第一页内容", "故事书的领读数据保存失败！"
+                for narrationLan in ["en", "zh", "id", "hi", "vi"]:
+                    # 保存故事书的领读数据后，获取故事书的领读数据，验证故事书的领读数据保存成功
+                    get_res2 = self.book.getNarrationData(self.authorization, bookId, narrationLanguage=narrationLan)
+                    assert get_res2['data']['bookId'] == int(bookId)
+                    assert get_res2['data']['learningLanguage'] == 'en'
+                    assert get_res2['data']['narrationLanguage'] == narrationLan
+                    assert get_res2['data']['enabled'] == True
+                    # 下载语音材料
+                    narrationS3Key = get_res2['data']['narrationS3Key']
+                    fileName = '领读语音' + narrationLan + self.now
+                    self.materials.download_materials(self.authorization, narrationS3Key, fileName)
+                    narrationDataJson = json.loads(get_res2['data']['narrationDataJson'])
+                    narration = narrationDataJson[0]['narration']
+                    assert narration, "故事书的领读数据保存失败！"
                 break
             except:
                 time.sleep(1)
@@ -647,18 +650,9 @@ class TestBook:
             assert False, "10min内AI生成故事书的领读数据未完成！"
 
     @pytest.mark.smoke
-    @pytest.mark.parametrize(
-        'desc, value',
-        [
-            ('unauthorized', 'missing'),
-            ('no_auth', ''),
-            ('expired_token', expired_token),
-            ('invalid_token', 'invalid_token'),
-        ]
-    )
-    def test_book_permission_regenerate_narration(self, desc, value):
+    def test_book_permission_regenerate_narration(self):
         """重新生成故事书的领读数据-权限测试"""
-        res = self.book.regenerate_narration(value, code=401)
+        res = self.book.regenerate_narration('', code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"

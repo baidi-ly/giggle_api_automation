@@ -56,7 +56,8 @@ class BookApi(BaseAPI):
             "pageSize": 10,
             "sortBy": "createTime",
             "sortDirection": "desc",
-            "status": ""
+            "status": "",
+            "searchKey": searchKey
         }
         payload.update(kwargs)
         timestamp = str(int(time.time() * 1000))
