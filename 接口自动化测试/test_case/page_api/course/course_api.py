@@ -180,7 +180,7 @@ class CourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def course_public_recommends(self, authorization, learningLevel='L1', DeviceType="web", code=200, **kwargs):
+    def course_public_recommends(self, authorization, learningLevel='L1', DeviceType="web", code=200):
         """
         获取课程推荐列表（公开接口）
         :param learningLevel: (string, query, required) 学习等级，如L1、L2等

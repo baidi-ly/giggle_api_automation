@@ -1087,7 +1087,7 @@ class TestCourse:
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
-    @pytest.mark.parametrize('rate', [1,2,3])
+    @pytest.mark.parametrize('rate', [1, 2, 3])
     def test_course_course_rating_total_ok(self, rate):
         """保存获取课程评价-正向用例"""
         '''这个需要添加前后置添加课程'''
@@ -1115,3 +1115,41 @@ class TestCourse:
         rating_res = self.course.course_ratings(self.authorization, [course_id], self.kid_id)
         assert rating_res['data'][str(course_id)]['hasRated']
         assert rating_res['data'][str(course_id)]['rating'] == rate
+
+    @pytest.fixture(scope="function")
+    def kid_data_fixture(self):
+        '''创建测试学生'''
+        # 创建测试学生
+        kid_name = 'dibo_test_kid' + self.now
+        kid_id = self.user.createkid(self.authorization, kid_name)['data']['id']
+        yield kid_id
+        # 删除测试学生
+        self.user.deletekid(self.authorization, kid_id)
+
+    @pytest.mark.release
+    @pytest.mark.parametrize('learningLevel', ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'L10', 'L11', 'L12', 'L13', 'L14', 'L15', 'L16', 'L17', 'L18','L19', 'L20'])
+    def test_course_recommend_list_check(self, learningLevel, kid_data_fixture):
+        '''通过kid.learninglevel匹配课程difficulty,过滤出来的课程按旧level+no正序排序返回'''
+        # 创建测试学生
+        kid_id = kid_data_fixture
+        # 获取课程推荐列表（需要认证）
+        recommends_res = self.course.course_recommends(self.authorization, kid_id, learningLevel)
+        no = 0  # 校验书籍正序排序返回
+        for course in recommends_res['data']:
+            assert course['difficulty'] == learningLevel
+            course_no = course['no']
+            assert course_no > no
+            no = course_no
+
+    @pytest.mark.release
+    @pytest.mark.parametrize('learningLevel', ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'L10', 'L11', 'L12', 'L13', 'L14', 'L15', 'L16', 'L17', 'L18','L19', 'L20'])
+    def test_course_public_recommends_check(self, learningLevel):
+        '''通过kid.learninglevel匹配课程difficulty,过滤出来的课程按旧level+no正序排序返回'''
+        # 获取课程推荐列表（公开接口）
+        recommends_res = self.course.course_public_recommends(self.authorization, learningLevel)
+        no = 0  # 校验书籍正序排序返回
+        for course in recommends_res['data']:
+            assert course['difficulty'] == learningLevel
+            course_no = course['no']
+            assert course_no > no
+            no = course_no

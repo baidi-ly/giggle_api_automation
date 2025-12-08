@@ -541,3 +541,55 @@ class UserApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def createkid(self, authorization, name, yearOfBirth=2018, gender=1,
+                  avatarUrl='https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=400&auto=format&fit=crop&q=80',
+                  DeviceType="web", code=200, **kwargs):
+        """
+        新建孩子
+        :param kidData: (object, body, required) kidData
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-08
+        url = f"https://{base_url}/api/user/createKid"
+        payload = {
+            "name": name,
+            "yearOfBirth": yearOfBirth,
+            "gender": gender,
+            "avatarUrl": avatarUrl
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "新建孩子"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def deletekid(self, authorization, id, DeviceType="web", code=200):
+        """
+        删除孩子
+        :param id: (integer, query, required) id
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-08
+        url = f"https://{base_url}/api/user/deleteKid"
+        payload = {
+            "id": id
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("DELETE", url, headers=headers, params=payload)
+        error_msg = "删除孩子"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
