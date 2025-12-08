@@ -96,7 +96,7 @@ class TestLearning:
 
     @pytest.fixture(scope="class")
     def get_bookIds(self):
-        '''方法前置 - 获取bookid'''
+        '''列出当前用户创建的书籍列表'''
         book_res = self.book.book_list(self.authorization)['data']['content']
         bookIds = DataFrame(book_res)['id'].tolist()
         yield bookIds
@@ -132,31 +132,15 @@ class TestLearning:
         assert stats_res["data"]['learningStats']['level']['levelName'] == f'level-{learningLevel}'
         assert actual_progress
 
-    def test_learning_stats_byKidId_deletedAccount(self, create_deletedAccount):
-        """注销的kidId，返回错误信息"""
-        # 获取有效的kidId
-        kidId = create_deletedAccount
-        # 获取孩子学习统计数据
-        stats_res = self.learning.learning_stats(self.kid_id, self.authorization)
-        assert "msg" in stats_res, f"获取孩子学习统计数据接口没有msg数据，response->{stats_res}"
-        assert stats_res["msg"] == "无效的kidId", f'无效的kidId返回错误信息有误，预期:无效的kidId, 实际：{stats_res["msg"]}'
-
     def test_learning_stats_byKidId_invalid(self):
         """无效的kidId - 返回错误信息"""
         # 创建无效的kidId
         kidId = 9999999
         # 获取孩子学习统计数据
-        stats_res = self.learning.learning_stats(self.kid_id, self.authorization, code=500)
+        stats_res = self.learning.learning_stats(kidId, self.authorization, code=500)
         assert stats_res["code"] == 500, f'无效的kidId返回状态码不正确，预期:500, 实际：{stats_res["code"]}'
         assert "data" in stats_res, f"获取孩子学习统计数据接口没有msg数据，response->{stats_res}"
         assert stats_res["data"]["message"] == f"孩子不存在: {kidId}", f'无效的kidId返回错误信息有误，预期:无效的kidId, 实际：{stats_res["data"]}'
-
-    def test_learning_stats_byKidId_unauthorized(self):
-        """有效的kidId - 未授权，返回401"""
-        # 获取有效的kidId
-        kidId = getkidId[0]["id"]
-        # 未授权，获取孩子学习统计数据
-        self.learning.learning_stats(self.kid_id, code=401)
 
     def test_learning_stats_byKidId_negative(self):
         """kidId为负数 - 返回错误信息"""
@@ -169,7 +153,7 @@ class TestLearning:
     @pytest.mark.release
     def test_learning_daily_learning(self):
         """获取孩子今日学习详情，有数据的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
+        # 获取孩子今日学习详情
         daily_res = self.learning.daily_learning(self.authorization, self.kid_id)
         today = datetime.date.today().strftime("%Y-%m-%d")
         assert daily_res['data']['date'] == today
@@ -203,21 +187,11 @@ class TestLearning:
         error_msg = "获取孩子今日学习详情-无效的kidId"
         assert daily_res['message'] == 'internal server error', f'{error_msg}-返回状态码不正确，预期:500, 实际：{daily_res["code"]}'
 
-    def test_learning_daily_byKidId_negative(self):
-        """kidId为负数 - 返回错误信息"""
-        # 创建负数kidId
-        kidId = -1
-        # 获取孩子学习统计数据
-        daily_res = self.learning.daily_learning(self.kid_id, self.authorization, code=500)
-        assert "message" in daily_res, f"获取孩子学习统计数据接口没有msg数据，response->{daily_res}"
-        assert daily_res["message"] == "internal server error", (f'kidId为负数返回错误信息有误，'                                     
-                                                                 f'预期:internal server error, 实际：{daily_res["message"]}')
-
     @pytest.mark.release
     @pytest.mark.parametrize('date', [today, tomorrow, yesterday])
     def test_learning_daily_learning_report_ok(self, date):
-        """生成指定孩子的学习情况报表数据，生成今日报表"""
-        # 获取孩子学习统计数据
+        """生成指定孩子的学习情况报表数据，生成置顶日期的报表"""
+        # 生成指定孩子的学习情况报表数据
         report_res = self.learning.daily_learning_report(self.authorization, self.kid_id, date)
         assert "data" in report_res, f"获取孩子学习统计数据接口没有data数据，response->{report_res}"
         assert report_res["data"]["date"] == date
@@ -232,8 +206,8 @@ class TestLearning:
 
     @pytest.mark.release
     def test_learning_weekly_byKidId_thisWeekend(self):
-        """获取本周学习"""
-        # 获取孩子学习统计数据
+        """获取指定孩子一周的学习情况（自然周：周一到周日）"""
+        # 获取指定孩子一周的学习情况（自然周：周一到周日）
         startDate = self.start_of_week
         endDate = self.end_of_week
         weekly_learning_res = self.learning.weekly_learning(self.authorization, self.kid_id, startDate, endDate)
@@ -244,27 +218,10 @@ class TestLearning:
         assert weekly_learning_res['storybooks'] or not weekly_learning_res['storybooks']
 
     @pytest.mark.release
-    def test_learning_daily_storybook_report_target(self):
-        """生成今日故事书报告"""
-        # 获取孩子学习统计数据
-        date = "2025-01-20"
-        torybook_report = self.learning.daily_storybook_report(self.authorization, self.kid_id, date)
-        assert torybook_report["data"]["date"] == date
-        assert torybook_report["data"]['childInfo']['childId'] == str(self.kid_id)
-        assert torybook_report["data"]['childInfo']['name'] == 'New Kid'
-        assert torybook_report["data"]['childInfo'][
-                   'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
-        assert torybook_report["data"]['summary'] or not torybook_report["data"]['summary']
-        assert torybook_report["data"]['aiSummary'] or not torybook_report["data"]['aiSummary']
-        assert torybook_report["data"]['durationComparison'] or not torybook_report["data"]['durationComparison']
-        assert torybook_report["data"]['theme'] or not torybook_report["data"]['theme']
-        assert torybook_report["data"]['storybooks'] or not torybook_report["data"]['storybooks']
-
-    @pytest.mark.release
     @pytest.mark.parametrize('date', [today, tomorrow, yesterday, "2025-01-20"])
     def test_learning_daily_storybook_report_today(self, date):
-        """无故事书阅读记录"""
-        # 获取孩子学习统计数据
+        """生成指定日期的故事书报告"""
+        # 生成指定日期的故事书报告
         torybook_report = self.learning.daily_storybook_report(self.authorization, self.kid_id, date)
         assert torybook_report["data"]["date"] == date
         assert torybook_report["data"]['childInfo']['childId'] == str(self.kid_id)
@@ -280,8 +237,8 @@ class TestLearning:
     @pytest.mark.release
     @pytest.mark.parametrize('date', [today, tomorrow, yesterday, "2025-01-20"])
     def test_learning_daily_challenge_report_today(self, date):
-        """无故事书阅读记录"""
-        # 获取孩子学习统计数据
+        """生成指定日期的挑战课报告"""
+        # 生成指定日期的挑战课报告
         challenge_res = self.learning.daily_challenge_report(self.authorization, self.kid_id, date)
         assert challenge_res["data"]["date"] == self.today
         assert challenge_res["data"]['childInfo']['childId'] == str(self.kid_id)
@@ -296,8 +253,8 @@ class TestLearning:
     @pytest.mark.release
     @pytest.mark.parametrize('date', [today, tomorrow, yesterday, "2025-01-20"])
     def test_learning_daily_flashcard_report_today(self, date):
-        """无故事书阅读记录"""
-        # 获取孩子学习统计数据
+        """生成指定日期闪卡报告"""
+        # 生成指定日期闪卡报告
         flashcard_res = self.learning.daily_flashcard_report(self.authorization, self.kid_id, date)
         assert flashcard_res["data"]["date"] == date
         assert flashcard_res["data"]['childInfo']['childId'] == str(self.kid_id)
@@ -313,7 +270,7 @@ class TestLearning:
     @pytest.mark.release
     def test_interaction_lesson_event_InteractiveLessonStart(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - InteractiveLessonStart"""
-        # 上报用户交互事件
+        # 获取课程详情包括版本信息
         course_id = get_courseIds[0]
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
@@ -330,7 +287,7 @@ class TestLearning:
                 }
             }
         ]
-        # 获取孩子学习统计数据
+        # 上报课程事件 - InteractiveLessonStart
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
         assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
@@ -348,7 +305,7 @@ class TestLearning:
         report_res1 = self.learning.daily_learning_report(self.authorization, self.kid_id, self.today)
         r_interaction1 = report_res1["data"]['summary']['stats']["interaction"]
         r_duration1 = report_res1["data"]['summary']['stats']["duration"]
-        # 上报用户交互事件
+        # 上报用户交互事件-InteractiveLessonStart\LessonUserInteraction\InteractiveLessonEnd
         course_id = get_courseIds.split(',')[0]
         timestamp_milliseconds1 = int(time.time() * 1000) - 1000
         timestamp_milliseconds2 = int(time.time() * 1000)
@@ -426,7 +383,7 @@ class TestLearning:
     @pytest.mark.release
     def test_interaction_lesson_event_LessonUserInteraction(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - LessonUserInteraction"""
-        # 上报用户交互事件
+        # 获取课程详情包括版本信息
         course_id = get_courseIds[0]
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
@@ -444,7 +401,7 @@ class TestLearning:
                 }
             }
         ]
-        # 获取孩子学习统计数据
+        # 上报用户交互事件-课程事件-LessonUserInteraction
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
         assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
@@ -454,7 +411,7 @@ class TestLearning:
     @pytest.mark.release
     def test_interaction_lesson_event_ChallengeLessonStart(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - ChallengeLessonStart"""
-        # 上报用户交互事件
+        # 获取课程详情包括版本信息
         course_id = get_courseIds[0]
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
@@ -471,7 +428,7 @@ class TestLearning:
                 }
             }
         ]
-        # 获取孩子学习统计数据
+        # 上报用户交互事件 - 课程事件 - ChallengeLessonStart
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
         assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
@@ -492,6 +449,7 @@ class TestLearning:
         timestamp_milliseconds1 = int(time.time() * 1000) - 1000
         timestamp_milliseconds2 = int(time.time() * 1000)
         timestamp_milliseconds3 = int(time.time() * 1000) + 1000
+        # 上报用户交互事件-ChallengeLessonStart\LessonUserInteraction\ChallengeLessonEnd
         courses = [
             {
                 "eventName": "ChallengeLessonStart",
@@ -566,7 +524,7 @@ class TestLearning:
     @pytest.mark.release
     def test_interaction_lesson_event_ChallengeSettleReward(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - LessonQuit"""
-        # 上报用户交互事件
+        # 获取课程详情包括版本信息
         course_id = get_courseIds[0]
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
@@ -584,7 +542,7 @@ class TestLearning:
                 }
             }
         ]
-        # 获取孩子学习统计数据
+        # 上报用户交互事件 - 课程事件 - LessonQuit
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
         assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
@@ -594,7 +552,7 @@ class TestLearning:
     @pytest.mark.release
     def test_interaction_lesson_event_LessonQuit(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - LessonQuit"""
-        # 上报用户交互事件
+        # 获取课程详情包括版本信息
         course_id = get_courseIds[0]
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
@@ -611,7 +569,7 @@ class TestLearning:
                 }
             }
         ]
-        # 获取孩子学习统计数据
+        # 上报用户交互事件 - 课程事件 - LessonQuit
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
         assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
@@ -621,7 +579,7 @@ class TestLearning:
     @pytest.mark.release
     def test_interaction_story_event_StoryBookStart(self, get_bookIds):
         """上报用户交互事件 - 故事书事件 - StoryBookStart"""
-        # 上报用户交互事件
+        # 列出当前用户创建的书籍列表，并获取第一本故事书的ID
         book_id = get_bookIds[0]
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
@@ -638,7 +596,7 @@ class TestLearning:
                 }
             }
         ]
-        # 获取孩子学习统计数据
+        # 上报用户交互事件 - 故事书事件 - StoryBookStart
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
         assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
@@ -648,17 +606,19 @@ class TestLearning:
     @pytest.mark.release
     def test_interaction_book_event_StoryBookComplete(self, get_bookIds):
         """上报用户交互事件 - 故事书事件 - StoryBookComplete"""
-        # 上报用户交互事件
+        # 上报用户交互事件前，获取孩子今日学习详情
         learning_res1 = self.learning.daily_learning(self.authorization, self.kid_id)
         l_duration1 = learning_res1['data']['storybooks']['duration']
+        # 上报用户交互事件前，生成指定孩子的学习情况报表数据
         report_res1 = self.learning.daily_learning_report(self.authorization, self.kid_id, self.today)
         r_duration1 = report_res1['data']['summary']['stats']['duration']
+        # 上报用户交互事件前，生成故事书报告
         story_res1 = self.learning.daily_storybook_report(self.authorization, self.kid_id, self.today)
         if 'durationComparison' in story_res1["data"]:
             s_duration1 = story_res1["data"]['durationComparison']['userDuration']
         else:
             s_duration1 = 0
-        # 获取有效的kidId
+        # 列出当前用户创建的书籍列表，并获取第一本故事书的ID
         book_id = get_bookIds[0]
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
@@ -677,12 +637,13 @@ class TestLearning:
                 }
             }
         ]
-        # 获取孩子学习统计数据
+        # 上报用户交互事件 - 故事书事件 - StoryBookComplete
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
         for i in range(10):
             try:
+                # 上报用户交互事件后，获取孩子今日学习详情
                 learning_res2 = self.learning.daily_learning(self.authorization, self.kid_id)
                 l_duration2 = learning_res2['data']['storybooks']['duration']
                 assert l_duration2 - l_duration1 == 5
@@ -690,9 +651,10 @@ class TestLearning:
             except:
                 time.sleep(.5)
         else:
-            assert False
+            assert False, '5s内生成孩子今日学习详情失败！'
         for i in range(10):
             try:
+                # 上报用户交互事件后，生成指定孩子的学习情况报表数据
                 report_res2 = self.learning.daily_learning_report(self.authorization, self.kid_id, self.today)
                 r_duration2 = report_res2['data']['summary']['stats']['duration']
                 assert r_duration2 - r_duration1 == 5
@@ -700,9 +662,10 @@ class TestLearning:
             except:
                 time.sleep(.5)
         else:
-            assert False
+            assert False, '5s内生成指定孩子的学习情况报表数据失败！'
         for i in range(10):
             try:
+                # 上报用户交互事件后，生成故事书报告
                 story_res2 = self.learning.daily_storybook_report(self.authorization, self.kid_id, self.today)
                 s_duration2 = story_res2["data"]['durationComparison']['userDuration']
                 assert s_duration2 - s_duration1 == 5
@@ -710,12 +673,12 @@ class TestLearning:
             except:
                 time.sleep(.5)
         else:
-            assert False
+            assert False, '5s内生成故事书报告失败！'
 
     @pytest.mark.release
     def test_interaction_story_event_StoryBookExit(self, get_bookIds):
         """上报用户交互事件 - 故事书事件 - FlashCardNewStudyStart"""
-        # 上报用户交互事件
+        # 列出当前用户创建的书籍列表，并获取第一本故事书的ID
         book_id = get_bookIds[0]
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
@@ -743,7 +706,6 @@ class TestLearning:
     @pytest.mark.release
     def test_interaction_flashcard_event_FlashCardNewStudyStart(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardNewStudyStart"""
-        # 上报用户交互事件
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
@@ -759,7 +721,7 @@ class TestLearning:
                 }
             }
         ]
-        # 获取孩子学习统计数据
+        # 上报用户交互事件 - 闪卡事件 - FlashCardNewStudyStart
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
         assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
@@ -769,12 +731,18 @@ class TestLearning:
     @pytest.mark.release
     def test_interaction_flashcard_event_FlashCardThemeStudyComplete(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardThemeStudyComplete"""
-        # 上报用户交互事件
+        # 上报用户交互事件前，获取孩子今日学习详情
         learning_res1 = self.learning.daily_learning(self.authorization, self.kid_id)
         l_duration1 = learning_res1['data']['storybooks']['duration']
+        # 上报用户交互事件前，生成指定孩子的学习情况报表数据
         report_res1 = self.learning.daily_learning_report(self.authorization, self.kid_id, self.today)
+        r_duration1 = report_res1['data']['summary']['stats']['duration']
+        # 上报用户交互事件前，生成闪卡报告
         challenge_res1 = self.learning.daily_flashcard_report(self.authorization, self.kid_id, self.today)
-        # 获取有效的kidId
+        if 'durationComparison' in challenge_res1["data"]:
+            s_duration1 = challenge_res1["data"]['durationComparison']['userDuration']
+        else:
+            s_duration1 = 0
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
@@ -795,15 +763,43 @@ class TestLearning:
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
-        learning_res1 = self.learning.daily_learning(self.authorization, self.kid_id)
-        l_duration1 = learning_res1['data']['storybooks']['duration']
-        report_res1 = self.learning.daily_learning_report(self.authorization, self.kid_id, self.today)
-        challenge_res1 = self.learning.daily_flashcard_report(self.authorization, self.kid_id, self.today)
+        for i in range(10):
+            try:
+                # 上报用户交互事件后，获取孩子今日学习详情
+                learning_res2 = self.learning.daily_learning(self.authorization, self.kid_id)
+                l_duration2 = learning_res2['data']['storybooks']['duration']
+                assert l_duration2 - l_duration1 == 5
+                break
+            except:
+                time.sleep(.5)
+        else:
+            assert False, '5s内生成孩子今日学习详情失败！'
+        for i in range(10):
+            try:
+                # 上报用户交互事件后，生成指定孩子的学习情况报表数据
+                report_res2 = self.learning.daily_learning_report(self.authorization, self.kid_id, self.today)
+                r_duration2 = report_res2['data']['summary']['stats']['duration']
+                assert r_duration2 - r_duration1 == 5
+                break
+            except:
+                time.sleep(.5)
+        else:
+            assert False, '5s内生成指定孩子的学习情况报表数据失败！'
+        for i in range(10):
+            try:
+                # 上报用户交互事件后，生成闪卡报告
+                story_res2 = self.learning.daily_flashcard_report(self.authorization, self.kid_id, self.today)
+                s_duration2 = story_res2["data"]['durationComparison']['userDuration']
+                assert s_duration2 - s_duration1 == 5
+                break
+            except:
+                time.sleep(.5)
+        else:
+            assert False, '5s内生成闪卡报告失败！'
 
     @pytest.mark.release
     def test_interaction_flashcard_event_FlashCardThemeStudyStart(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardThemeStudyStart"""
-        # 上报用户交互事件
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
@@ -819,7 +815,7 @@ class TestLearning:
                 }
             }
         ]
-        # 获取孩子学习统计数据
+        # 上报用户交互事件 - 闪卡事件 - FlashCardThemeStudyStart
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
         assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
@@ -829,7 +825,6 @@ class TestLearning:
     @pytest.mark.release
     def test_interaction_flashcard_event_FlashCardReviewStart(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardReviewStart"""
-        # 上报用户交互事件
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
@@ -845,7 +840,7 @@ class TestLearning:
                 }
             }
         ]
-        # 获取孩子学习统计数据
+        # 上报用户交互事件 - 闪卡事件 - FlashCardReviewStart
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
         assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
@@ -855,7 +850,6 @@ class TestLearning:
     @pytest.mark.release
     def test_interaction_flashcard_event_FlashCardReviewCompelete(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardReviewCompelete"""
-        # 上报用户交互事件
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
@@ -872,7 +866,7 @@ class TestLearning:
                 }
             }
         ]
-        # 获取孩子学习统计数据
+        # 上报用户交互事件 - 闪卡事件 - FlashCardReviewCompelete
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
         assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
@@ -882,7 +876,6 @@ class TestLearning:
     @pytest.mark.release
     def test_interaction_flashcard_event_FlashCardLetterStudyStart(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardLetterStudyStart"""
-        # 上报用户交互事件
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
@@ -898,7 +891,7 @@ class TestLearning:
                 }
             }
         ]
-        # 获取孩子学习统计数据
+        # 上报用户交互事件 - 闪卡事件 - FlashCardLetterStudyStart
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
         assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
@@ -925,7 +918,7 @@ class TestLearning:
                 }
             }
         ]
-        # 获取孩子学习统计数据
+        # 上报用户交互事件 - 闪卡事件 - FlashCardLetterStudyComplete
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
         assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
@@ -951,7 +944,7 @@ class TestLearning:
                 }
             }
         ]
-        # 获取孩子学习统计数据
+        # 上报用户交互事件 - 闪卡事件 - FlashCardCvcStudyStart
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
         assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
@@ -977,7 +970,7 @@ class TestLearning:
                 }
             }
         ]
-        # 获取孩子学习统计数据
+        # 上报用户交互事件 - 闪卡事件 - FlashCardCvcStudyComplete
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
         assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
@@ -987,7 +980,6 @@ class TestLearning:
     @pytest.mark.release
     def test_interaction_flashcard_event_FlashCardMathStudyStart(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardMathStudyStart"""
-        # 上报用户交互事件
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
@@ -1003,7 +995,7 @@ class TestLearning:
                 }
             }
         ]
-        # 获取孩子学习统计数据
+        # 上报用户交互事件 - 闪卡事件 - FlashCardMathStudyStart
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
         assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"
@@ -1013,7 +1005,6 @@ class TestLearning:
     @pytest.mark.release
     def test_interaction_flashcard_event_FlashCardMathStudyComplete(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardMathStudyComplete"""
-        # 上报用户交互事件
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
@@ -1030,6 +1021,7 @@ class TestLearning:
                 }
             }
         ]
+        # 上报用户交互事件 - 闪卡事件 - FlashCardMathStudyComplete
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
         assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"

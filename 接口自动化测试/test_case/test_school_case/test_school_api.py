@@ -14,9 +14,7 @@ base_url = RunConfig.baseurl
 expired_token = RunConfig.expired_token
 
 class TestSchoolApi:
-    """
-    school 接口测试用例
-    """
+    """school 接口测试用例"""
 
     def setup_class(self):
         self.school = SchoolApi()
