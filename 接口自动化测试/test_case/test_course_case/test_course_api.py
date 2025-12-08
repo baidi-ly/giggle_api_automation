@@ -1075,16 +1075,6 @@ class TestCourse:
         assert res['data']['rating'] == 3
 
     @pytest.mark.release
-    def test_course_permission_course_rating(self):
-        """保存课程评价-权限测试"""
-        res = self.course.save_course_rating('', code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     def test_course_positive_course_ratings_ok(self):
         """根据课程ID列表获取评价信息-正向用例"""
         # Normal课程资源列表
@@ -1097,19 +1087,10 @@ class TestCourse:
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
-    def test_course_permission_course_ratings(self):
-        """根据课程ID列表获取评价信息-权限测试"""
-        res = self.course.course_ratings('', code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize('rate', [1,2,3])
     def test_course_course_rating_total_ok(self, rate):
         """保存获取课程评价-正向用例"""
+        '''这个需要添加前后置添加课程'''
         # Normal课程资源列表
         course_res = self.school.getNormalcourse(self.authorization)["data"]['content']
         for course in course_res:

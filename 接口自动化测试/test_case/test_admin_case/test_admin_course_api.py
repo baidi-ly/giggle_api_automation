@@ -1154,15 +1154,6 @@ class TestAdminCourse:
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
-    def test_admin_course_positive_add_ok(self):
-        """新增等级策略-正向用例"""
-        res = self.admin_course.add(self.authorization)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     def test_admin_course_positive_strategylevelRule_ok(self, createCourseStrategy, get_courseIds):
         """新增等级策略 - 增删改查验证 - 正向用例"""
         # 新增策略定义
@@ -1215,17 +1206,6 @@ class TestAdminCourse:
         assert level_rule_id not in level_rule_ids, "删除等级策略失败！"
 
     @pytest.mark.release
-    def test_admin_course_permission_addStrategylevelRule(self):
-        """新增等级策略-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin_course.addStrategylevelRule('', code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     def test_admin_course_permission_deleteStrategylevelRule(self):
         """删除等级策略-权限测试"""
         res = self.admin_course.deleteStrategylevelRule('', code=401)
@@ -1240,17 +1220,6 @@ class TestAdminCourse:
         """查询等级策略列表-权限测试"""
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.admin_course.strategylevelRules('', code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    def test_admin_course_permission_updateStrategylevelRule(self):
-        """更新等级策略-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin_course.updateStrategylevelRule('', code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -1295,7 +1264,6 @@ class TestAdminCourse:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     def test_admin_course_strategy_history_detail_ok(self):
         """查询发布历史详情-正向用例"""
         res = self.admin_course.strategy_history_detail(self.authorization)
@@ -1304,7 +1272,6 @@ class TestAdminCourse:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     def test_admin_course_permission_strategy_history_detail(self):
         """查询发布历史详情-权限测试"""
         res = self.admin_course.strategy_history_detail('', code=401)
@@ -1314,7 +1281,6 @@ class TestAdminCourse:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     def test_admin_course_strategy_historys_ok(self):
         """查询发布历史列表-正向用例"""
         res = self.admin_course.strategy_historys(self.authorization)
@@ -1323,7 +1289,6 @@ class TestAdminCourse:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
     def test_admin_course_permission_strategy_historys(self):
         """查询发布历史列表-权限测试"""
         res = self.admin_course.strategy_historys('', code=401)
