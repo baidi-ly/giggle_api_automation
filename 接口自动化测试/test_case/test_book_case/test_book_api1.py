@@ -617,6 +617,10 @@ class TestBook:
             # 保存故事书的领读数据后，获取故事书的领读数据，验证故事书的领读数据保存成功
             get_res1 = self.book.getNarrationData(self.authorization, bookId, narrationLanguage=narrationLan)
             assert get_res1['data']['enabled']
+            # 清空故事书当前语言的领读数据，预备后续校验ai生成的领读数据
+            pl = {'narrationLanguage': narrationLan}
+            save_res = self.book.save_narration(self.authorization, bookId, **pl)
+            assert save_res['message'] == 'success'
         # AI生成故事书的领读数据
         res = self.book.regenerate_narration(self.authorization, bookId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
