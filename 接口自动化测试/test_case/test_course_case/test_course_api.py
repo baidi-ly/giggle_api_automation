@@ -48,7 +48,7 @@ class TestCourse:
 
         kids_res = self.kid.getKids(self.authorization)
         for kid in kids_res['data']:
-            if kid['name'] == 'giggle-kid-UHS4NE':
+            if kid['name'] == 'New Kid':
                 self.kid_id = kid['id']
                 break
 

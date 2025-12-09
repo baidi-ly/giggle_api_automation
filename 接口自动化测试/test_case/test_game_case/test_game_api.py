@@ -21,6 +21,12 @@ class TestGame:
         self.kid = KidApi()
         self.authorization = self.game.get_authorization()[0]
 
+        kids_res = self.kid.getKids(self.authorization)
+        for kid in kids_res['data']:
+            if kid['name'] == 'New Kid':
+                self.kid_id = kid['id']
+                break
+
     def teardown_class(self):
         '''
         所有用例执行完之后执行，可执行动作，清理所有注册的数据
@@ -257,7 +263,6 @@ class TestGame:
     )
     def test_game_permission_getDailyLearning(self, desc, value):
         """检查用户今日是否完成学习-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.game.getDailyLearning(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'

@@ -593,3 +593,46 @@ class UserApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def getDailyLessonLimitNew(self, authorization, kidId='', DeviceType="web", code=200):
+        """
+        获取孩子的每日课程数量限制
+        :param kidId: (integer, query, optional) kidId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-09
+        url = f"https://{base_url}/api/user/kid/daily-lesson-limit"
+        payload = {
+            "kidId": kidId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "获取孩子的每日课程数量限制"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def existingKidLevelInit(self, authorization, kidId, DeviceType="web", code=200):
+        """
+        老用户Kid学习等级初始化
+        :param kidId: (integer, path, required) kidId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-09
+        url = f"https://{base_url}/api/user/kid/{kidId}/existing-kid-level-init"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers)
+        error_msg = "老用户Kid学习等级初始化"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
