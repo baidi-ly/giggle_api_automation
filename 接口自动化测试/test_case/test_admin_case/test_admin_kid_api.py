@@ -404,13 +404,16 @@ class TestAdminkid:
 
     @pytest.mark.release
     def test_admin_kid_all_skillEventPublish_ok(self, kid_data_fixture):
-        """手动发布技能事件-正向用例"""
+        """手动发布技能事件-验证批量触发技能事件，学生技能分数增加"""
         # 创建测试学生
         kid_id = kid_data_fixture
+        # 手动发布技能事件前，获取学生技能掌握程度，验证新增学生无技能数据
         skillMastery1 = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']
         assert not skillMastery1['skillMasteryMap']
+        # 手动发布技能事件前，分页查询课程等级技能列表，验证新增学生无技能数据
         skills_res = self.admin_levelskills.level_skills(self.authorization)['data']
         skills = list(set(DataFrame(skills_res)['skill'].tolist()))
+        # 手动批量发布技能事件
         res = self.admin_kid.skillEventPublish(self.authorization, kid_id, skills, 85.2)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -418,6 +421,7 @@ class TestAdminkid:
         assert res['data'] == True, f"接口返回data数据异常：{res['data']}"
         time.sleep(2)   # /admin/kid/skill-event/publish 只是把事件丢到 MQ（topic skill_mastery_update），由消费者异步更新技能表/缓存
         for i in range(20):
+            # 手动发布技能事件后，获取学生技能掌握程度，手动批量发布技能事件后台处理后，学生技能增加
             skillMastery2 = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']
             if skillMastery2['skillMasteryMap']:
                 for k, v in skillMastery2['skillMasteryMap'].items():
@@ -437,11 +441,13 @@ class TestAdminkid:
 
     @pytest.mark.release
     def test_admin_kid_skill_skillEventPublish_check(self, kid_data_fixture):
-        """手动发布技能事件-正向用例"""
+        """手动发布技能事件-验证无子技能的技能标签学习分数正常增加"""
         # 创建测试学生
         kid_id = kid_data_fixture
+        # 手动发布技能事件前，获取学生技能掌握程度，验证新增学生无技能数据
         skillMastery1 = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']
         assert not skillMastery1['skillMasteryMap']
+        # 手动发布技能事件前，分页查询课程等级技能列表，选择无子技能的技能标签进行测试
         skills_res = self.admin_levelskills.level_skills(self.authorization)['data']
         for skill in skills_res:
             if not skill['parentSkill']:
@@ -449,6 +455,7 @@ class TestAdminkid:
                 break
         actual_score = 0
         for i in range(10):
+            # 手动发布技能事件
             random_score = round(random.uniform(0, 100), 2)
             res = self.admin_kid.skillEventPublish(self.authorization, kid_id, skills, random_score)
             assert res['message'] == 'success'
@@ -458,6 +465,7 @@ class TestAdminkid:
 
             time.sleep(2)   # /admin/kid/skill-event/publish 只是把事件丢到 MQ（topic skill_mastery_update），由消费者异步更新技能表/缓存
             for i in range(20):
+                # 手动发布技能事件后，获取学生技能掌握程度，手动批量发布技能事件后台处理后，学生技能增加
                 skillMastery2 = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']
                 if skillMastery2['skillMasteryMap']:
                     for k, v in skillMastery2['skillMasteryMap'].items():
@@ -485,11 +493,13 @@ class TestAdminkid:
 
     @pytest.mark.release
     def test_admin_kid_subSkill_skillEventPublish_full_check(self, kid_data_fixture):
-        """手动发布技能事件-正向用例"""
+        """手动发布技能事件-验证有子技能的技能标签学习分数正常增加（遍历5种子技能，且每种子技能得分100）"""
         # 创建测试学生
         kid_id = kid_data_fixture
+        # 手动发布技能事件前，获取学生技能掌握程度，验证新增学生无技能数据
         skillMastery1 = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']
         assert not skillMastery1['skillMasteryMap']
+        # 手动发布技能事件前，分页查询课程等级技能列表，选择有子技能的技能标签进行测试
         skills_res = self.admin_levelskills.level_skills(self.authorization)['data']
         sub_skills, parentSkill = [], ''
         for skill in skills_res:
@@ -500,8 +510,8 @@ class TestAdminkid:
                 sub_skills.append(skill['skill'])
         actual_score = 0
         for sub_skill in sub_skills:
-            # random_score = round(random.uniform(0, 100), 2)
             random_score = 100.00
+            # 手动发布技能事件
             res = self.admin_kid.skillEventPublish(self.authorization, kid_id, [sub_skill], random_score)
             assert res['message'] == 'success'
             expected_score =  round(0.8 * actual_score + 0.2 * random_score, 2)
@@ -510,6 +520,7 @@ class TestAdminkid:
 
             time.sleep(2)   # /admin/kid/skill-event/publish 只是把事件丢到 MQ（topic skill_mastery_update），由消费者异步更新技能表/缓存
             for i in range(20):
+                # 手动发布技能事件后，获取学生技能掌握程度，手动批量发布技能事件后台处理后，学生技能增加
                 skillMastery2 = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']
                 if skillMastery2['skillMasteryMap']:
                     for k, v in skillMastery2['skillMasteryMap'].items():
@@ -537,11 +548,13 @@ class TestAdminkid:
 
     @pytest.mark.release
     def test_admin_kid_subSkill_skillEventPublish_type_check(self, kid_data_fixture):
-        """手动发布技能事件-正向用例"""
+        """手动发布技能事件-验证有子技能的技能标签学习分数正常增加（随机子技能，随机得分）"""
         # 创建测试学生
         kid_id = kid_data_fixture
+        # 手动发布技能事件前，获取学生技能掌握程度，验证新增学生无技能数据
         skillMastery1 = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']
         assert not skillMastery1['skillMasteryMap']
+        # 手动发布技能事件前，分页查询课程等级技能列表，选择有子技能的技能标签进行测试
         skills_res = self.admin_levelskills.level_skills(self.authorization)['data']
         sub_skills, parentSkill = [], ''
         for skill in skills_res:
@@ -553,8 +566,10 @@ class TestAdminkid:
         actual_score = 0
         for i in range(10):
             random_score = round(random.uniform(0, 100), 2)
+            # 随机选择一种子技能
             choice_sub_skills = random.choice(sub_skills)
             skills = [choice_sub_skills]
+            # 手动发布技能事件
             res = self.admin_kid.skillEventPublish(self.authorization, kid_id, skills, random_score)
             assert res['message'] == 'success'
             expected_score =  round(0.8 * actual_score + 0.2 * random_score, 2)
@@ -563,6 +578,7 @@ class TestAdminkid:
             componentExposureRate = 0
             time.sleep(2)   # /admin/kid/skill-event/publish 只是把事件丢到 MQ（topic skill_mastery_update），由消费者异步更新技能表/缓存
             for j in range(20):
+                # 手动发布技能事件后，获取学生技能掌握程度，手动批量发布技能事件后台处理后，学生技能增加
                 skillMastery2 = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']
                 if skillMastery2['skillMasteryMap']:
                     for k, v in skillMastery2['skillMasteryMap'].items():

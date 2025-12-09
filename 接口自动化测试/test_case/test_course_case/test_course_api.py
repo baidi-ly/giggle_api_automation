@@ -1150,7 +1150,9 @@ class TestCourse:
                 no = course_no
 
     @pytest.mark.release
-    @pytest.mark.parametrize('learningLevel', ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'L10', 'L11', 'L12', 'L13', 'L14', 'L15', 'L16', 'L17', 'L18','L19', 'L20'])
+    @pytest.mark.parametrize('learningLevel',
+                             ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'L10', 'L11', 'L12', 'L13', 'L14',
+                              'L15', 'L16', 'L17', 'L18', 'L19', 'L20'])
     def test_course_public_recommends_check(self, learningLevel):
         '''通过kid.learninglevel匹配课程difficulty,过滤出来的课程按旧level+no正序排序返回'''
         # 获取课程推荐列表（公开接口）
@@ -1167,5 +1169,28 @@ class TestCourse:
             else:
                 ids.append(id)
                 no = 0
+                assert course_no > no
+                no = course_no
+
+    @pytest.mark.release
+    @pytest.mark.parametrize('learningLevel',
+                             ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'L10', 'L11', 'L12', 'L13', 'L14',
+                              'L15', 'L16', 'L17', 'L18', 'L19', 'L20'])
+    def test_course_positive_getFixOrderRecommend_ok(self, learningLevel):
+        """获取推荐课程列表-正向用例"""
+        # 获取推荐课程列表
+        recommends_res = self.course.getFixOrderRecommend(self.authorization, learningLevel=learningLevel)
+        assert recommends_res['message'] == 'success'
+        if recommends_res['data']:
+            categoryLevel = 0 # 校验书籍正序排序返回
+            for course in recommends_res['data']:
+                assert course['difficulty'] == learningLevel
+                course_no = course['courseNo']
+                categoryName = int(course['categoryName'].split('-')[-1])
+                # 如果当前level发生改变，则先判断level等级增加，再将初始no清零
+                if categoryLevel != categoryName:
+                    assert categoryName>categoryLevel
+                    categoryLevel = categoryName
+                    no = 0
                 assert course_no > no
                 no = course_no

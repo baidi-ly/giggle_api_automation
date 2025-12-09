@@ -329,3 +329,33 @@ class CourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def getFixOrderRecommend(self, authorization, DeviceType="web", code=200, **kwargs):
+        """
+        获取推荐课程列表
+        :param kidId: (integer, query, optional) 孩子ID，注册用户必填
+        :param learningLevel: (string, query, optional) 学习等级，访客模式必填
+        :param size: (integer, query, optional) 返回数量，最大50
+        :param strategy: (string, query, optional) 推荐策略，当前仅支持BasicFiltering
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-09
+        url = f"https://{base_url}/api/course/fix-order-recommend"
+        payload = {
+            "kidId": '',
+            "learningLevel": '',
+            "size": 10,
+            "strategy": ''
+        }
+        payload.update(kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "获取推荐课程列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
