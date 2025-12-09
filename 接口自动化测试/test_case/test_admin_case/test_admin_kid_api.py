@@ -1,11 +1,16 @@
 import datetime
 import json
+import random
 import sys
 import os
+import time
 from time import strftime
+
+from pandas import DataFrame
 
 import config
 from test_case.page_api.admin.admin_kid_api import AdminKidApi
+from test_case.page_api.admin.admin_levelskills_api import AdminLevelskillsApi
 from test_case.page_api.kid.kid_api import KidApi
 from test_case.page_api.quiz.quiz_api import QuizApi
 from test_case.page_api.school.school_api import SchoolApi
@@ -29,6 +34,7 @@ class TestAdminkid:
         self.user = UserApi()
         self.school = SchoolApi()
         self.quiz = QuizApi()
+        self.admin_levelskills = AdminLevelskillsApi()
         self.kid_id = self.kid.getKids(self.authorization)["data"][0]['id']
 
         self.now = strftime("%Y%m%d%H%M%S")
@@ -395,3 +401,192 @@ class TestAdminkid:
             else:
                 assert not log['oldValue']
                 assert log['newValue'] == question['skill']
+
+    @pytest.mark.release
+    def test_admin_kid_all_skillEventPublish_ok(self, kid_data_fixture):
+        """手动发布技能事件-正向用例"""
+        # 创建测试学生
+        kid_id = kid_data_fixture
+        skillMastery1 = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']
+        assert not skillMastery1['skillMasteryMap']
+        skills_res = self.admin_levelskills.level_skills(self.authorization)['data']
+        skills = list(set(DataFrame(skills_res)['skill'].tolist()))
+        res = self.admin_kid.skillEventPublish(self.authorization, kid_id, skills, 85.2)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'] == True, f"接口返回data数据异常：{res['data']}"
+        time.sleep(2)   # /admin/kid/skill-event/publish 只是把事件丢到 MQ（topic skill_mastery_update），由消费者异步更新技能表/缓存
+        for i in range(20):
+            skillMastery2 = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']
+            if skillMastery2['skillMasteryMap']:
+                for k, v in skillMastery2['skillMasteryMap'].items():
+                    assert k in skills
+                    assert v['skill'] in skills
+                    if not v['components']['allComponents']:
+                        assert v['masteryScore'] == 17.04
+                        assert v['masteryState'] == 'Weak'
+                        assert v['componentExposureRate'] == 1.0
+                    else:
+                        pass
+                break
+            else:
+                time.sleep(1)
+        else:
+            assert False, "12s消费者异步更新技能表/缓存未成功！"
+
+    @pytest.mark.release
+    def test_admin_kid_skill_skillEventPublish_check(self, kid_data_fixture):
+        """手动发布技能事件-正向用例"""
+        # 创建测试学生
+        kid_id = kid_data_fixture
+        skillMastery1 = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']
+        assert not skillMastery1['skillMasteryMap']
+        skills_res = self.admin_levelskills.level_skills(self.authorization)['data']
+        for skill in skills_res:
+            if not skill['parentSkill']:
+                skills = [skill['skill']]
+                break
+        actual_score = 0
+        for i in range(10):
+            random_score = round(random.uniform(0, 100), 2)
+            res = self.admin_kid.skillEventPublish(self.authorization, kid_id, skills, random_score)
+            assert res['message'] == 'success'
+            expected_score =  round(0.8 * actual_score + 0.2 * random_score, 2)
+            if expected_score >= 100:
+                expected_score = 100
+
+            time.sleep(2)   # /admin/kid/skill-event/publish 只是把事件丢到 MQ（topic skill_mastery_update），由消费者异步更新技能表/缓存
+            for i in range(20):
+                skillMastery2 = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']
+                if skillMastery2['skillMasteryMap']:
+                    for k, v in skillMastery2['skillMasteryMap'].items():
+                        if k == skills[0]:
+                            assert v['componentExposureRate'] == 1.0
+                            assert v['masteryScore'] == expected_score
+                            if expected_score < 25:
+                                assert v['masteryState'] == 'Weak'
+                                actual_score = expected_score
+                            elif 25 < expected_score <= 75:
+                                assert v['masteryState'] == 'Practicing'
+                                actual_score = expected_score
+                            elif expected_score >= 75:
+                                assert v['masteryState'] == 'Mastered'
+                                actual_score = expected_score
+                        break
+                else:
+                    time.sleep(1)
+                if actual_score == expected_score:
+                    break
+            else:
+                assert False, "12s消费者异步更新技能表/缓存未成功！"
+            if expected_score == 100:
+                break
+
+    @pytest.mark.release
+    def test_admin_kid_subSkill_skillEventPublish_full_check(self, kid_data_fixture):
+        """手动发布技能事件-正向用例"""
+        # 创建测试学生
+        kid_id = kid_data_fixture
+        skillMastery1 = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']
+        assert not skillMastery1['skillMasteryMap']
+        skills_res = self.admin_levelskills.level_skills(self.authorization)['data']
+        sub_skills, parentSkill = [], ''
+        for skill in skills_res:
+            if skill['parentSkill'] and not parentSkill:
+                parentSkill = skill['parentSkill']
+                sub_skills.append(skill['skill'])
+            elif skill['parentSkill'] == parentSkill:
+                sub_skills.append(skill['skill'])
+        actual_score = 0
+        for sub_skill in sub_skills:
+            # random_score = round(random.uniform(0, 100), 2)
+            random_score = 100.00
+            res = self.admin_kid.skillEventPublish(self.authorization, kid_id, [sub_skill], random_score)
+            assert res['message'] == 'success'
+            expected_score =  round(0.8 * actual_score + 0.2 * random_score, 2)
+            if expected_score >= 100:
+                expected_score = 100
+
+            time.sleep(2)   # /admin/kid/skill-event/publish 只是把事件丢到 MQ（topic skill_mastery_update），由消费者异步更新技能表/缓存
+            for i in range(20):
+                skillMastery2 = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']
+                if skillMastery2['skillMasteryMap']:
+                    for k, v in skillMastery2['skillMasteryMap'].items():
+                        if k == parentSkill:
+                            assert v['componentExposureRate'] == round(0.2 * (sub_skills.index(sub_skill)+1), 2)
+                            assert v['masteryScore'] == expected_score
+                            if expected_score < 25:
+                                assert v['masteryState'] == 'Weak'
+                                actual_score = expected_score
+                            elif 25 < expected_score <= 75:
+                                assert v['masteryState'] == 'Practicing'
+                                actual_score = expected_score
+                            elif expected_score >= 75:
+                                assert v['masteryState'] == 'Mastered'
+                                actual_score = expected_score
+                        break
+                else:
+                    time.sleep(1)
+                if actual_score == expected_score:
+                    break
+            else:
+                assert False, "12s消费者异步更新技能表/缓存未成功！"
+            if expected_score == 100:
+                break
+
+    @pytest.mark.release
+    def test_admin_kid_subSkill_skillEventPublish_type_check(self, kid_data_fixture):
+        """手动发布技能事件-正向用例"""
+        # 创建测试学生
+        kid_id = kid_data_fixture
+        skillMastery1 = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']
+        assert not skillMastery1['skillMasteryMap']
+        skills_res = self.admin_levelskills.level_skills(self.authorization)['data']
+        sub_skills, parentSkill = [], ''
+        for skill in skills_res:
+            if skill['parentSkill'] and not parentSkill:
+                parentSkill = skill['parentSkill']
+                sub_skills.append(skill['skill'])
+            elif skill['parentSkill'] == parentSkill:
+                sub_skills.append(skill['skill'])
+        actual_score = 0
+        for i in range(10):
+            random_score = round(random.uniform(0, 100), 2)
+            choice_sub_skills = random.choice(sub_skills)
+            skills = [choice_sub_skills]
+            res = self.admin_kid.skillEventPublish(self.authorization, kid_id, skills, random_score)
+            assert res['message'] == 'success'
+            expected_score =  round(0.8 * actual_score + 0.2 * random_score, 2)
+            if expected_score >= 100:
+                expected_score = 100
+            componentExposureRate = 0
+            time.sleep(2)   # /admin/kid/skill-event/publish 只是把事件丢到 MQ（topic skill_mastery_update），由消费者异步更新技能表/缓存
+            for j in range(20):
+                skillMastery2 = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']
+                if skillMastery2['skillMasteryMap']:
+                    for k, v in skillMastery2['skillMasteryMap'].items():
+                        if k == parentSkill:
+                            exposedComponents = DataFrame(v['components']['exposedComponents'])['componentKey'].tolist()
+                            if choice_sub_skills not in exposedComponents:
+                                assert v['componentExposureRate'] == componentExposureRate + 0.2
+                                componentExposureRate = v['componentExposureRate']
+                            assert v['masteryScore'] == expected_score
+                            if expected_score < 25:
+                                assert v['masteryState'] == 'Weak'
+                                actual_score = expected_score
+                            elif 25 < expected_score <= 75:
+                                assert v['masteryState'] == 'Practicing'
+                                actual_score = expected_score
+                            elif expected_score >= 75:
+                                assert v['masteryState'] == 'Mastered'
+                                actual_score = expected_score
+                        break
+                else:
+                    time.sleep(1)
+                if actual_score == expected_score:
+                    break
+            else:
+                assert False, "12s消费者异步更新技能表/缓存未成功！"
+            if expected_score == 100:
+                break

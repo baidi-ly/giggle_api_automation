@@ -173,3 +173,30 @@ class AdminKidApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def skillEventPublish(self, authorization, kidId, skills, score, DeviceType="web", code=200):
+        """
+        手动发布技能事件
+        :param request: Long类型，必填，不能为空
+        :param request: List<String>类型，必填，技能列表不能为空
+        :param request: Double类型，必填，范围0-100之间  表示quiz得分或者课程完成度
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-09
+        url = f"https://{base_url}/admin/kid/skill-event/publish"
+        payload = {
+            "kidId": kidId,
+            "skills": skills,
+            "score": score
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "手动发布技能事件"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
