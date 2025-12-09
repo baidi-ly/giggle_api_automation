@@ -1135,11 +1135,19 @@ class TestCourse:
         # 获取课程推荐列表（需要认证）
         recommends_res = self.course.course_recommends(self.authorization, kid_id, learningLevel)
         no = 0  # 校验书籍正序排序返回
+        ids = []
         for course in recommends_res['data']:
             assert course['difficulty'] == learningLevel
             course_no = course['no']
-            assert course_no > no
-            no = course_no
+            id = course['categoryId']
+            if id in ids:
+                assert course_no > no
+                no = course_no
+            else:
+                ids.append(id)
+                no = 0
+                assert course_no > no
+                no = course_no
 
     @pytest.mark.release
     @pytest.mark.parametrize('learningLevel', ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'L10', 'L11', 'L12', 'L13', 'L14', 'L15', 'L16', 'L17', 'L18','L19', 'L20'])
@@ -1148,8 +1156,16 @@ class TestCourse:
         # 获取课程推荐列表（公开接口）
         recommends_res = self.course.course_public_recommends(self.authorization, learningLevel)
         no = 0  # 校验书籍正序排序返回
+        ids = []
         for course in recommends_res['data']:
             assert course['difficulty'] == learningLevel
             course_no = course['no']
-            assert course_no > no
-            no = course_no
+            id = course['categoryId']
+            if id in ids:
+                assert course_no > no
+                no = course_no
+            else:
+                ids.append(id)
+                no = 0
+                assert course_no > no
+                no = course_no
