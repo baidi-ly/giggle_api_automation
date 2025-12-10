@@ -1092,11 +1092,20 @@ class TestActivity:
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
-    def test_activity_permission_dailyLessonCompleteCheck(self):
-        """检查今天是否已经通过每日课程完成增加过抽奖次数-权限测试"""
-        res = self.activity.dailyLessonCompleteCheck('', 0, code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
+    def test_activity_positive_getCheckByCourses_ok(self, get_course_ids_session, kid_data_session):
+        """根据课程id列表,查询是否已经通过每日课程完成增加过抽奖次数"""
+        # 获取课程详情包括版本信息
+        courseIds = get_course_ids_session[:2]
+        # 创建测试学生
+        kid_id, kid_name = kid_data_session
+        # 据课程id列表, 查询是否已经通过每日课程完成增加过抽奖次数
+        res1 = self.activity.getCheckByCourses(self.authorization, courseIds, kid_id)
+        for courseId in courseIds:
+            assert not res1['data'][courseId]
+        # 根据每日学习计划课程完成增加抽奖次数
+        lessonComplete_res = self.activity.dailyLessonComplete(self.authorization, courseIds, kid_id)
+        assert lessonComplete_res['message'] == 'success'
+        # 据课程id列表, 查询是否已经通过每日课程完成增加过抽奖次数
+        res2 = self.activity.getCheckByCourses(self.authorization, courseIds, kid_id)
+        for courseId in courseIds:
+            assert res2['data'][courseId]

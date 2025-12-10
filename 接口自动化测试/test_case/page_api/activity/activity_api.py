@@ -240,3 +240,25 @@ class ActivityApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def getCheckByCourses(self, authorization, courseIds, kidId, DeviceType="web"):
+        """
+        根据课程id列表,查询是否已经通过每日课程完成增加过抽奖次数
+        :param courseIds: (array, query, required) courseIds
+        :param kidId: (integer, query, required) kidId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-10
+        url = f"https://{base_url}/api/activity/gacha/daily-lesson-complete/check-by-courses"
+        payload = {
+            "courseIds": courseIds,
+            "kidId": kidId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "根据课程id列表,查询是否已经通过每日课程完成增加过抽奖次数"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+

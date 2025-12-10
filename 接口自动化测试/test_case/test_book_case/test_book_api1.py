@@ -983,3 +983,22 @@ class TestBook:
             # 通过bookId查询书籍详情，验证official字段返回成功
             official = self.book.bookDetails(self.authorization, bookId)['data']['official']
             assert expected == official, '通过bookId查询书籍详情,'
+
+    @pytest.mark.release
+    def test_book_positive_trigger_ok(self):
+        """触发故事书翻译"""
+        # 列出当前用户创建的书籍列表
+        bookList = self.book.book_list(self.authorization)['data']['content']
+        for book in bookList:
+            if book['bookName'] == "Barnaby and the Giggle-Berries":
+                bookIds = [book['id']]
+                break
+        else:
+            assert False, "未找到故事书《Barnaby and the Giggle-Berries》"
+
+        res = self.book.translation_trigger(self.authorization, bookIds)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        expect_res = {'message': '已触发 1 本书籍的翻译任务', 'nonExistingBooks': [], 'triggeredBooks': [int(book['id'])]}
+        assert res['data'] == expect_res
