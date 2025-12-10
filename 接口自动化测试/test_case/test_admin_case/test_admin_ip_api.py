@@ -39,9 +39,9 @@ class TestAdminIp:
         assert ipBannedList3 == ipBannedList1
 
     @pytest.mark.release
-    def test_admin_ip_positive_ban_o1k(self):
-        """封禁IP-正向用例"""
-        countryCode = '86'
+    @pytest.mark.parametrize('countryCode', ['86', '1', '44', '81', '852', '886', '65', '91', '62', '82'])
+    def test_admin_ip_positive_ban_o1k(self, countryCode):
+        """封禁IP - 遍历常见国家区号"""
         # 查询封禁国家区号列表
         countryBannedList1 = self.admin_ip.countryBannedList(self.auth_admin)['data']
         # 封禁的国家区号
