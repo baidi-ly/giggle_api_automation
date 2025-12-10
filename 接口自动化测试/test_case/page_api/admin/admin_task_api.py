@@ -54,16 +54,16 @@ class AdminTaskApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def aggregateDailyBehavior(self, authorization, DeviceType="web", code=200):
+    def aggregateDailyBehavior(self, authorization, date, DeviceType="web", code=200):
         """
         手动触发指定日期的互动行为数据聚合任务
 
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-11-22
+        # Create Data:  V1.20.0  &  2025-11-22
         url = f"https://{base_url}/admin/task/aggregate-daily-behavior"
         payload = {
-            'date': '2025-11-25'
+            'date': date
         }
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)

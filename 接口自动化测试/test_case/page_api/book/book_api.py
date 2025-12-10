@@ -1875,3 +1875,22 @@ class BookApi(BaseAPI):
         response = response.json()
         return response
 
+    def languagePack(self, authorization, bookId, languageCode, DeviceType="web"):
+        """
+        根据故事书ID和语言代码查询语言包地址
+        :param bookId: (integer, path, required) bookId
+        :param languageCode: (string, path, required) languageCode
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-10
+        url = f"https://{base_url}/api/book/{bookId}/language-pack/{languageCode}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "根据故事书ID和语言代码查询语言包地址"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+

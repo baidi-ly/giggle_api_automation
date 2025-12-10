@@ -631,7 +631,7 @@ class TestBook:
         # 设置故事书领读的启用状态-开启或关闭
         res = self.book.narration_setEnabled(self.authorization, bookId)
         assert res['message'] == 'success'
-        for i in range(300):
+        for i in range(5):
             try:
                 for narrationLan in ["en", "zh", "id", "hi", "vi"]:
                     # 保存故事书的领读数据后，获取故事书的领读数据，验证故事书的领读数据保存成功
@@ -1002,3 +1002,23 @@ class TestBook:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         expect_res = {'message': '已触发 1 本书籍的翻译任务', 'nonExistingBooks': [], 'triggeredBooks': [int(book['id'])]}
         assert res['data'] == expect_res
+
+    @pytest.mark.release
+    # @pytest.mark.parametrize('languageCode', ['en', 'ar', 'es', 'fr', 'de', 'pt', 'id', 'hi', 'th', 'vi', 'tr', 'ru', 'ja', 'ko'])
+    @pytest.mark.parametrize('languageCode', ['en'])
+    def test_book_positive_languagePack_details_ok(self, languageCode):
+        """根据故事书ID和语言代码查询语言包地址"""
+        # 列出当前用户创建的书籍列表
+        bookList = self.book.book_list(self.authorization)['data']['content']
+        for book in bookList:
+            if book['bookName'] == "Barnaby and the Giggle-Berries":
+                book_id = book['id']
+                break
+        else:
+            assert False, "未找到故事书《Barnaby and the Giggle-Berries》"
+        # 根据故事书ID和语言代码查询语言包地址
+        res = self.book.languagePack(self.authorization, book_id, languageCode)
+        assert res['data']['bookId'] == int(book_id)
+        url = res['data']['url']
+        fileName = '字幕' + languageCode + self.now
+        self.materials.download_materials(self.authorization, '', fileName, url=url)

@@ -32,21 +32,23 @@ class MaterialsApi(BaseAPI):
         response = response.json()
         return response
 
-    def download_materials(self, authorization, key, fileName, DeviceType="web"):
+    def download_materials(self, authorization, key, fileName, DeviceType="web", **kwargs):
         """
         下载材料
         :param key: (string, query, required) key
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-12-05
-        url = f"https://{base_url}/api/materials/download"
-        payload = {
-            "key": key
-        }
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
-
-        response = requests.request("GET", url, headers=headers, params=payload, allow_redirects=False)
+        if key:
+            url = f"https://{base_url}/api/materials/download"
+            payload = {
+                "key": key
+            }
+            response = requests.request("GET", url, headers=headers, params=payload, allow_redirects=False)
+        else:
+            response = requests.request("GET", kwargs.get('url'), headers=headers, allow_redirects=False)
         if response.status_code == 302:
             redirect_url = response.headers.get('Location')
             # redirect_url = "https://" + self.baseurl() + redirect_url

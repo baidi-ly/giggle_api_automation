@@ -1,6 +1,6 @@
 {
   "apis": [
-    "/api/book/translation/trigger"
+    "/api/book/{bookId}/language-pack/{languageCode}"
   ],
   "update_apis": [],
   "scan_time": "2025-10-17 10:54:39.746089",

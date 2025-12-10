@@ -200,3 +200,33 @@ class AdminKidApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def getKidList(self, authorization, userId, DeviceType="web", **kwargs):
+        """
+        listKids
+        :param createEndTime: (string, query, optional) createEndTime
+        :param createStartTime: (string, query, optional) createStartTime
+        :param kidId: (integer, query, optional) kidId
+        :param kidName: (string, query, optional) kidName
+        :param page: (integer, query, optional) page
+        :param pageSize: (integer, query, optional) pageSize
+        :param userId: (integer, query, optional) userId
+        :param username: (string, query, optional) username
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-10
+        url = f"https://{base_url}/admin/kid/list"
+        payload = {
+            "page": 0,
+            "pageSize": 100,
+            "userId": userId
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "listKids"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
