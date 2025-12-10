@@ -1022,3 +1022,14 @@ class TestBook:
         url = res['data']['url']
         fileName = '字幕' + languageCode + self.now
         self.materials.download_materials(self.authorization, '', fileName, url=url)
+
+    @pytest.mark.release
+    def test_book_positive_upload_webp_check(self):
+        """上传书籍内容json-验证支持Webp格式的动图"""
+        bookName = 'dibo_test_book' + self.now
+        bookId = self.book.createBookWithName(self.authorization, bookName)['data']['id']
+        file = {
+            'file': ('webp_test.webp', open(os.getcwd() + f'/test_data/webp_test.webp', 'rb'))
+        }
+        res = self.book.book_upload(self.authorization, bookId, file)
+        assert res['data']['bookKey'], f"接口返回data数据异常：{res['data']}"
