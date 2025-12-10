@@ -4,6 +4,7 @@ import os
 from pandas import DataFrame
 
 import config
+from test_case.page_api.course.course_api import CourseApi
 from test_case.page_api.game.game_api import GameApi
 from test_case.page_api.kid.kid_api import KidApi
 
@@ -19,6 +20,7 @@ class TestGame:
     def setup_class(self):
         self.game = GameApi()
         self.kid = KidApi()
+        self.course = CourseApi()
         self.authorization = self.game.get_authorization()[0]
 
         kids_res = self.kid.getKids(self.authorization)
@@ -269,3 +271,31 @@ class TestGame:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    @pytest.mark.parametrize('level', [1,2,4,5,8])
+    def test_game_positive_queryCourseStrategy_ok(self, level):
+        """查询课程策略配置-正向用例"""
+        # 获取推荐课程列表
+        recommends_res = self.course.getFixOrderRecommend(self.authorization, learningLevel='L1')
+        courseId = recommends_res['data'][0]['courseId']
+        res = self.game.queryCourseStrategy(self.authorization, courseId, level)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'] == {
+            "matchType": "LEVEL_STRATEGY",
+            "matched": True,
+            "ruleInfo": {
+                "courseIds": None,
+                "levelRange": f"L{level}"
+            },
+            "strategyConfig": {
+                "description": "test",
+                "enabled": True,
+                "pattern": "true,false,false,true,false,false",
+                "patternBehavior": "STICK_TO_LAST",
+                "resetOnSegmentChange": False
+            },
+            "strategyId": "howell"
+        }

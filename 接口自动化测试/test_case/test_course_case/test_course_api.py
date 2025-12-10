@@ -44,7 +44,7 @@ class TestCourse:
         self.admin_quiz = AdminQuizApi()
         self.now = strftime("%Y%m%d%H%M%S")
         self.authorization, self.userId = self.course.get_authorization()
-        # self.authorization_admin = self.admin_course.get_admin_authorization()[0]
+        self.admin_auth = self.admin_course.get_admin_authorization()[0]
 
         kids_res = self.kid.getKids(self.authorization)
         for kid in kids_res['data']:
@@ -125,6 +125,27 @@ class TestCourse:
                 assert del_res['code'] == 200
         except Exception as e:
             print(f'删除等级技能失败，原因是：{e}')
+
+    @pytest.fixture(scope='class')
+    def courseId_fixture(self):
+        """获取课程详情包括版本信息"""
+        # 获取顶层课程目录列表
+        topcategory_res = self.admin_course.getAlltopcategory(self.admin_auth)
+        for category in topcategory_res['data']:
+            parentId = category['id']
+            # 获取课程子目录列表
+            category_res1 = self.admin_course.getAllsubcategory(self.admin_auth, parentId)
+            for subcategory in category_res1['data']:
+                parentId1 = subcategory['id']
+                category_res2 = self.admin_course.getAllsubcategory(self.admin_auth, parentId1)
+                for subcategory2 in category_res2['data']:
+                    categoryId = subcategory2['id']
+                    # 获取分类下所有课程
+                    courselistAll = self.admin_course.course_listAll(self.admin_auth, categoryId)['data']
+                    if not courselistAll:
+                        continue
+                    course_id = DataFrame(courselistAll)['id'].tolist()[0]
+                    return course_id
 
     @pytest.fixture(scope='function')
     def createCourseTag_method(self):
@@ -1194,3 +1215,55 @@ class TestCourse:
                     no = 0
                 assert course_no > no
                 no = course_no
+
+    @pytest.fixture(scope='function')
+    def voiceMultilingual_fixture(self, courseId_fixture):
+        '''新增语音文案'''
+        # 获取课程详情包括版本信息
+        course_id = courseId_fixture
+        # 新增语音文案
+        key = 'dibo_test' + self.now
+        pl = {
+            "key": key,  # String，必填：环节标识（比如某一页、某一步骤的key）
+            "targetLanguage": "en"  # String，必填：目标语言代码（如 "en"、"ar"）
+        }
+        add_res = self.admin_course.addVoiceMultilingual(self.authorization, course_id, **pl)
+        assert add_res['message'] == 'success', "新增语音文案失败！"
+        # 分页查询语音文案列表，新增语音文案成功
+        search_res1 = self.admin_course.voiceMultilinguals(self.authorization, course_id, key=key, size=100)
+        for item in search_res1['data']['content']:
+            if item['key'] == key:
+                voice_id = item['id']
+                break
+        else:
+            assert False, "新增语音文案失败，列表未查询到！"
+
+        yield course_id, voice_id
+
+        # 删除语音文案
+        delete_res = self.admin_course.deleteVoiceMultilingual(self.authorization, voice_id)
+        assert delete_res['message'] == 'success', "删除语音文案失败！"
+
+    @pytest.mark.release
+    def test_game_positive_voiceMultilinguals_ok22(self, voiceMultilingual_fixture):
+        """查询课程策略配置-正向用例"""
+        # 新增语音文案
+        course_id, voice_id = voiceMultilingual_fixture
+        # 查询课程语音列表
+        voice_res = self.course.voiceMultilinguals(self.authorization, course_id)
+        for item in voice_res['data']:
+            if item['id'] == voice_id:
+                item1 = item
+                break
+        else:
+            assert False, "新增语音文案失败，列表未查询到！"
+        # 分页查询语音文案列表，新增语音文案成功
+        search_res1 = self.admin_course.voiceMultilinguals(self.authorization, course_id, size=100)
+        for item in search_res1['data']['content']:
+            if item['id'] == voice_id:
+                item2 = item
+                break
+        else:
+            assert False, "新增语音文案失败，列表未查询到！"
+        # 验证课程语音文案添加成功
+        assert item1 == item2, "课程语音文案添加失败！"

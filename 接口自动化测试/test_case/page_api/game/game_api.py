@@ -332,3 +332,29 @@ class GameApi(BaseAPI):
             return response
         except json.decoder.JSONDecodeError:
             return False
+
+    def queryCourseStrategy(self, authorization, courseId='', level='', DeviceType="web"):
+        """
+        查询课程策略配置
+        :param courseId: (string, query, optional) 课程ID（非必传）
+        :param level: (integer, query, optional) 用户等级1-20（非必传）
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-10
+        url = f"https://{base_url}/api/game/courseStrategy/query"
+        payload = {
+            "courseId": courseId,
+            "level": level
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "查询课程策略配置"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+

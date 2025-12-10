@@ -1,9 +1,13 @@
 import datetime
+import json
+import random
 import sys
 import os
+from time import strftime
 
 from pandas import DataFrame
 
+from test_case.page_api.activity.activity_api import ActivityApi
 from test_case.page_api.admin.admin_activity_api import AdminActivityApi
 
 sys.path.append(os.getcwd())
@@ -16,24 +20,44 @@ import pytest
 class TestAdminActivity:
 
     def setup_class(self):
-        self.activity = AdminActivityApi()
-        self.authorization = self.activity.get_admin_authorization()[0]
+        self.admin_activity = AdminActivityApi()
+        self.activity = ActivityApi()
+        self.auth_admin, self.user_admin_id = self.admin_activity.get_admin_authorization()
+        self.authorization, self.user_id = self.activity.get_authorization()
         self.now = str(datetime.datetime.now())
+        self.before_yesterday = (datetime.date.today() + datetime.timedelta(days=-2)).strftime("%Y-%m-%d %H:%M:%S")  # 前天
+        self.yesterday = (datetime.date.today() + datetime.timedelta(days=-1)).strftime("%Y-%m-%d %H:%M:%S")  # 昨天
+        self.today = strftime("%Y-%m-%d %H:%M:%S")  # 今天
+        self.tomorrow = (datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S")  # 明天
 
     @pytest.fixture(scope="class")
     def create_activity(self):
         activity_name = "2025年夏季活动" + self.now
+
         pl = {
             "name": activity_name,
             "activityCode": "GENERAL",
-            "startTime": "2025-08-12 08:00:00",
-            "endTime": "2025-08-13 08:00:00",
+            "startTime": self.before_yesterday,
+            "endTime": self.tomorrow,
             "status": "NOT_STARTED",
-            "config": "{\"theme\":\"summer\"}"
+            "stickerSeries": "Summer Series",
+            "config": json.dumps({
+                "normalStickerProbability": 0.8,
+                "pointsProbability": 0.2,
+                "normalStickerCount": 10,
+                "hiddenStickerCount": 2,
+                "pointsRewardAmount": 10,
+                "maxShareTimes": 2,
+                "maxDrawTimes": 30,
+                "stickerSeries": "Summer Series",   # 关键字段，不能为空
+                "dailyGrant": True,
+                "theme": "summer"
+                }
+            )
         }
-        activity_id = self.activity.activity_create(self.authorization, **pl)['data']['id']
+        activity_id = self.admin_activity.activity_create(self.auth_admin, **pl)['data']['id']
         yield activity_id
-        self.activity.updateActivityStatus(self.authorization, activity_id, status='INACTIVE')
+        self.admin_activity.updateActivityStatus(self.auth_admin, activity_id, status='INACTIVE')
 
     @pytest.fixture(scope="class")
     def create_task(self, create_activity):
@@ -44,14 +68,14 @@ class TestAdminActivity:
             "actionCode": "SHARE",
             "name": task_name
         }
-        activity_task_id = self.activity.create_activity_task(self.authorization, **pl)['data']['id']
+        activity_task_id = self.admin_activity.create_activity_task(self.auth_admin, **pl)['data']['id']
         yield activity_task_id
-        self.activity.delete_activity_task(self.authorization, activity_task_id)
+        self.admin_activity.delete_activity_task(self.auth_admin, activity_task_id)
 
     @pytest.mark.smoke
     def test_activity_positive_create_ok(self):
         """创建活动-正向用例"""
-        res = self.activity.activity_create(self.authorization)
+        res = self.admin_activity.activity_create(self.auth_admin)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -67,7 +91,7 @@ class TestAdminActivity:
             "actionCode": "SHARE",
             "name": task_name
         }
-        res = self.activity.create_activity_task(self.authorization, **pl)
+        res = self.admin_activity.create_activity_task(self.auth_admin, **pl)
         try:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -75,7 +99,7 @@ class TestAdminActivity:
             assert res['data'], f"接口返回data数据异常：{res['data']}"
             activity_task_id = res['data']['id']
         finally:
-            self.activity.delete_activity_task(self.authorization, activity_task_id)
+            self.admin_activity.delete_activity_task(self.auth_admin, activity_task_id)
 
     @pytest.mark.parametrize(
         'desc, value',
@@ -89,7 +113,7 @@ class TestAdminActivity:
     def test_activity_permission_create(self, desc, value):
         """创建活动-权限测试"""
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.activity.activity_create(value)
+        res = self.admin_activity.activity_create(value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -109,7 +133,7 @@ class TestAdminActivity:
             pl = {'pop_items': 'name'}
         else:
             pl = {'name': value}
-        res = self.activity.activity_create(authorization=self.authorization, **pl)
+        res = self.admin_activity.activity_create(authorization=self.auth_admin, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -144,7 +168,7 @@ class TestAdminActivity:
     )
     def test_activity_format_create_name(self, desc, value):
         """创建活动-数据格式测试(name)"""
-        res = self.activity.activity_create(self.authorization, name=value)
+        res = self.admin_activity.activity_create(self.auth_admin, name=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -159,7 +183,7 @@ class TestAdminActivity:
     )
     def test_activity_boundary_create_name(self, desc, value):
         """创建活动-边界值测试(name)"""
-        res = self.activity.activity_create(self.authorization, name=value)
+        res = self.admin_activity.activity_create(self.auth_admin, name=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -168,7 +192,7 @@ class TestAdminActivity:
     def test_activity_scenario_create_invalid_name(self):
         """创建活动-场景异常-无效的name"""
         name = 'INVALID_VALUE'
-        res = self.activity.activity_create(self.authorization, name=name)
+        res = self.admin_activity.activity_create(self.auth_admin, name=name)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -192,7 +216,7 @@ class TestAdminActivity:
     )
     def test_activity_security_create_name(self, desc, value):
         """创建活动-安全测试(name)"""
-        res = self.activity.activity_create(self.authorization, name=value)
+        res = self.admin_activity.activity_create(self.auth_admin, name=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -212,7 +236,7 @@ class TestAdminActivity:
             pl = {'pop_items': 'activityCode'}
         else:
             pl = {'activityCode': value}
-        res = self.activity.activity_create(authorization=self.authorization, **pl)
+        res = self.admin_activity.activity_create(authorization=self.auth_admin, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -247,7 +271,7 @@ class TestAdminActivity:
     )
     def test_activity_format_create_activityCode(self, desc, value):
         """创建活动-数据格式测试(activityCode)"""
-        res = self.activity.activity_create(self.authorization, activityCode=value)
+        res = self.admin_activity.activity_create(self.auth_admin, activityCode=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -262,7 +286,7 @@ class TestAdminActivity:
     )
     def test_activity_boundary_create_activityCode(self, desc, value):
         """创建活动-边界值测试(activityCode)"""
-        res = self.activity.activity_create(self.authorization, activityCode=value)
+        res = self.admin_activity.activity_create(self.auth_admin, activityCode=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -271,7 +295,7 @@ class TestAdminActivity:
     def test_activity_scenario_create_invalid_activityCode(self):
         """创建活动-场景异常-无效的activityCode"""
         activityCode = 'INVALID_VALUE'
-        res = self.activity.activity_create(self.authorization, activityCode=activityCode)
+        res = self.admin_activity.activity_create(self.auth_admin, activityCode=activityCode)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -295,7 +319,7 @@ class TestAdminActivity:
     )
     def test_activity_security_create_activityCode(self, desc, value):
         """创建活动-安全测试(activityCode)"""
-        res = self.activity.activity_create(self.authorization, activityCode=value)
+        res = self.admin_activity.activity_create(self.auth_admin, activityCode=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -315,7 +339,7 @@ class TestAdminActivity:
             pl = {'pop_items': 'startTime'}
         else:
             pl = {'startTime': value}
-        res = self.activity.activity_create(authorization=self.authorization, **pl)
+        res = self.admin_activity.activity_create(authorization=self.auth_admin, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -350,7 +374,7 @@ class TestAdminActivity:
     )
     def test_activity_format_create_startTime(self, desc, value):
         """创建活动-数据格式测试(startTime)"""
-        res = self.activity.activity_create(self.authorization, startTime=value)
+        res = self.admin_activity.activity_create(self.auth_admin, startTime=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -365,7 +389,7 @@ class TestAdminActivity:
     )
     def test_activity_boundary_create_startTime(self, desc, value):
         """创建活动-边界值测试(startTime)"""
-        res = self.activity.activity_create(self.authorization, startTime=value)
+        res = self.admin_activity.activity_create(self.auth_admin, startTime=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -374,7 +398,7 @@ class TestAdminActivity:
     def test_activity_scenario_create_invalid_startTime(self):
         """创建活动-场景异常-无效的startTime"""
         startTime = 'INVALID_VALUE'
-        res = self.activity.activity_create(self.authorization, startTime=startTime)
+        res = self.admin_activity.activity_create(self.auth_admin, startTime=startTime)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -398,7 +422,7 @@ class TestAdminActivity:
     )
     def test_activity_security_create_startTime(self, desc, value):
         """创建活动-安全测试(startTime)"""
-        res = self.activity.activity_create(self.authorization, startTime=value)
+        res = self.admin_activity.activity_create(self.auth_admin, startTime=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -418,7 +442,7 @@ class TestAdminActivity:
             pl = {'pop_items': 'endTime'}
         else:
             pl = {'endTime': value}
-        res = self.activity.activity_create(authorization=self.authorization, **pl)
+        res = self.admin_activity.activity_create(authorization=self.auth_admin, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -453,7 +477,7 @@ class TestAdminActivity:
     )
     def test_activity_format_create_endTime(self, desc, value):
         """创建活动-数据格式测试(endTime)"""
-        res = self.activity.activity_create(self.authorization, endTime=value)
+        res = self.admin_activity.activity_create(self.auth_admin, endTime=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -468,7 +492,7 @@ class TestAdminActivity:
     )
     def test_activity_boundary_create_endTime(self, desc, value):
         """创建活动-边界值测试(endTime)"""
-        res = self.activity.activity_create(self.authorization, endTime=value)
+        res = self.admin_activity.activity_create(self.auth_admin, endTime=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -477,7 +501,7 @@ class TestAdminActivity:
     def test_activity_scenario_create_invalid_endTime(self):
         """创建活动-场景异常-无效的endTime"""
         endTime = 'INVALID_VALUE'
-        res = self.activity.activity_create(self.authorization, endTime=endTime)
+        res = self.admin_activity.activity_create(self.auth_admin, endTime=endTime)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -501,7 +525,7 @@ class TestAdminActivity:
     )
     def test_activity_security_create_endTime(self, desc, value):
         """创建活动-安全测试(endTime)"""
-        res = self.activity.activity_create(self.authorization, endTime=value)
+        res = self.admin_activity.activity_create(self.auth_admin, endTime=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -521,7 +545,7 @@ class TestAdminActivity:
             pl = {'pop_items': 'config'}
         else:
             pl = {'config': value}
-        res = self.activity.activity_create(authorization=self.authorization, **pl)
+        res = self.admin_activity.activity_create(authorization=self.auth_admin, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -556,7 +580,7 @@ class TestAdminActivity:
     )
     def test_activity_format_create_config(self, desc, value):
         """创建活动-数据格式测试(config)"""
-        res = self.activity.activity_create(self.authorization, config=value)
+        res = self.admin_activity.activity_create(self.auth_admin, config=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -565,7 +589,7 @@ class TestAdminActivity:
     def test_activity_scenario_create_invalid_config(self):
         """创建活动-场景异常-无效的config"""
         config = 'INVALID_VALUE'
-        res = self.activity.activity_create(self.authorization, config=config)
+        res = self.admin_activity.activity_create(self.auth_admin, config=config)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -585,7 +609,7 @@ class TestAdminActivity:
             pl = {'pop_items': 'status'}
         else:
             pl = {'status': value}
-        res = self.activity.activity_create(authorization=self.authorization, **pl)
+        res = self.admin_activity.activity_create(authorization=self.auth_admin, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -620,7 +644,7 @@ class TestAdminActivity:
     )
     def test_activity_format_create_status(self, desc, value):
         """创建活动-数据格式测试(status)"""
-        res = self.activity.activity_create(self.authorization, status=value)
+        res = self.admin_activity.activity_create(self.auth_admin, status=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -635,7 +659,7 @@ class TestAdminActivity:
     )
     def test_activity_boundary_create_status(self, desc, value):
         """创建活动-边界值测试(status)"""
-        res = self.activity.activity_create(self.authorization, status=value)
+        res = self.admin_activity.activity_create(self.auth_admin, status=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -644,7 +668,7 @@ class TestAdminActivity:
     def test_activity_scenario_create_invalid_status(self):
         """创建活动-场景异常-无效的status"""
         status = 'INVALID_VALUE'
-        res = self.activity.activity_create(self.authorization, status=status)
+        res = self.admin_activity.activity_create(self.auth_admin, status=status)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -668,7 +692,7 @@ class TestAdminActivity:
     )
     def test_activity_security_create_status(self, desc, value):
         """创建活动-安全测试(status)"""
-        res = self.activity.activity_create(self.authorization, status=value)
+        res = self.admin_activity.activity_create(self.auth_admin, status=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -677,7 +701,7 @@ class TestAdminActivity:
     @pytest.mark.smoke
     def test_admin_activity_positive_activity_tags_ok(self):
         """获取标签列表-正向用例"""
-        res = self.activity.activity_tags(self.authorization)
+        res = self.admin_activity.activity_tags(self.auth_admin)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -696,7 +720,7 @@ class TestAdminActivity:
     def test_admin_activity_permission_activity_tags(self, desc, value):
         """获取标签列表-权限测试"""
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.activity.activity_tags(value, code=401)
+        res = self.admin_activity.activity_tags(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -706,7 +730,7 @@ class TestAdminActivity:
     @pytest.mark.smoke
     def test_admin_activity_positive_activity_general_tasks_ok(self):
         """获取通用活动任务定义列表-正向用例"""
-        res = self.activity.activity_general_tasks(self.authorization)
+        res = self.admin_activity.activity_general_tasks(self.auth_admin)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -727,9 +751,35 @@ class TestAdminActivity:
     def test_admin_activity_permission_getList1(self, desc, value):
         """获取通用活动任务定义列表-权限测试"""
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.activity.activity_general_tasks(value, code=401)
+        res = self.admin_activity.activity_general_tasks(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_activity_positive_addDrawCount_ok(self, kid_data_session, create_activity):
+        """给指定用户增加抽奖次数-验证添加效果"""
+        # 创建测试学生
+        kid_id, kid_name = kid_data_session
+        activity_id = int(create_activity)
+        # 给指定用户增加抽奖次数前，获取用户抽奖信息
+        gachaInfo_before = self.activity.userGachaInfo(self.authorization, activity_id, kid_id)
+        previousCount = gachaInfo_before['data']['totalCount']
+        addedCount = random.randint(1, 100)
+        # 给指定用户增加抽奖次数
+        res = self.admin_activity.addDrawCount(self.auth_admin, activity_id, addedCount, kid_id, self.user_admin_id)
+        # 给指定用户增加抽奖次数后，获取用户抽奖信息，验证给指定用户增加抽奖次数成功
+        gachaInfo_after = self.activity.userGachaInfo(self.authorization, activity_id, kid_id)
+        newCount1 = gachaInfo_after['data']['totalCount']
+        assert newCount1 == previousCount + addedCount
+        assert res['data'] == {
+            "activityId": activity_id,
+            "addedCount": addedCount,
+            "drawType": "daily",
+            "kidId": kid_id,
+            "newCount": newCount1,
+            "previousCount": previousCount,
+            "userId": int(self.user_admin_id)
+        }

@@ -198,3 +198,30 @@ class AdminActivityApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def addDrawCount(self, authorization, activityId, count, kidId, userId, drawType="daily", DeviceType="web"):
+        """
+        给指定用户增加抽奖次数
+        :param request: (object, body, required) request
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-10
+        url = f"https://{base_url}/admin/activity/gacha/add-draw-count"
+        payload = {
+            "activityId": activityId,
+            "count": count,
+            "drawType": drawType,
+            "kidId": kidId,
+            "userId": userId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "给指定用户增加抽奖次数"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
