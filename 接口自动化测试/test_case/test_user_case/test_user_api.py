@@ -948,122 +948,13 @@ class TestUser:
 
     @pytest.mark.release
     def test_user_positive_existingKidLevelInit_ok(self, kid_data_fixture):
-        """老用户Kid学习等级初始化-正向用例"""
+        """老用户Kid学习等级初始化-只能去app上完成课程改变history的数量，没有接口可以实现，所以只能校验单接口"""
         '''
         1) 准备数据：kid 当前 learning_level=L1；learn_history 中有某个 NORMAL 课程完成次数≥3，且该课程 difficulty=L2（或更高）。
         2) 调用 POST /api/user/kid/{kidId}/existing-kid-level-init。
         3) 调用 GET /api/user/kid/{kidId}/learning-level 验证返回提升为 L2（updated=true）。
         '''
         kid_id, kid_name = kid_data_fixture
-        course_res = self.school.getNormalcourse(self.authorization)["data"]['content']
-        for course in course_res:
-            if course:
-                course_id = course['id']
-                break
-        # 上报用户交互事件-InteractiveLessonStart\LessonUserInteraction\InteractiveLessonEnd
-        timestamp_milliseconds1 = int(time.time() * 1000) - 1000
-        timestamp_milliseconds2 = int(time.time() * 1000)
-        timestamp_milliseconds3 = int(time.time() * 1000) + 1000
-        courses = [
-            {
-                "eventName": "InteractiveLessonStart",
-                "params": {
-                    "user_id": self.userId,
-                    "child_id": kid_id,
-                    "child_name": kid_name,
-                    "timezone": "+08:00",
-                    "timestamp": timestamp_milliseconds1,
-                    "lesson_id": course_id,
-                    "from_page": "home_recommend"
-                }
-            },
-            {
-                "eventName": "LessonUserInteraction",
-                "params": {
-                    "user_id": self.userId,
-                    "child_id": kid_id,
-                    "child_name": kid_name,
-                    "timezone": "+08:00",
-                    "timestamp": timestamp_milliseconds2,
-                    "lesson_id": course_id,
-                    "interaction_type": "tap",
-                    "component_key": "scene_1_q1"
-                }
-            },
-            {
-                "eventName": "InteractiveLessonEnd",
-                "params": {
-                    "user_id": self.userId,
-                    "child_id": kid_id,
-                    "child_name": kid_name,
-                    "resource_id": course_id,
-                    "timestamp": timestamp_milliseconds3,
-                    "GameID": 1,
-                    "ActionType": "Complete"
-                }
-            }
-        ]
-        event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
-        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["message"] == "success"
-        res = self.user.existingKidLevelInit(self.authorization, self.kid_id)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    def test_user_positive_existingKidLevelInit_ok1(self):
-        """老用户Kid学习等级初始化-正向用例"""
-        '''
-        1) 准备：同一课程完成 1~2 次（NORMAL 课程），kid 仍为 L1。
-        2) POST /existing-kid-level-init → 预期不更新。
-        3) GET /learning-level 验证仍是 L1（updated=false）。
-        '''
-        res = self.user.existingKidLevelInit(self.authorization, self.kid_id)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    def test_user_positive_existingKidLevelInit_ok2(self):
-        """老用户Kid学习等级初始化-正向用例"""
-        '''
-        1) 准备：完成次数≥3 的课程，但 course_type ≠ 2。
-        2) POST /existing-kid-level-init → 预期不更新。
-        3) GET /learning-level 验证仍是原等级。
-        '''
-        res = self.user.existingKidLevelInit(self.authorization, self.kid_id)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    def test_user_positive_existingKidLevelInit_ok3(self):
-        """老用户Kid学习等级初始化-正向用例"""
-        '''
-        1) 准备：kid.learning_level 已是 L2；learn_history 最高 NORMAL difficulty 也为 L2。
-        2) POST /existing-kid-level-init → 预期不更新。
-        3) GET /learning-level 验证仍是 L2。
-        '''
-        res = self.user.existingKidLevelInit(self.authorization, self.kid_id)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    def test_user_positive_existingKidLevelInit_ok4(self):
-        """老用户Kid学习等级初始化-正向用例"""
-        '''
-        1) 准备：learn_history 有完成次数≥3 的 NORMAL 课程，难度涵盖 L2、L3，最高为 L3；kid 当前为 L1。
-        2) POST /existing-kid-level-init → 预期更新到 L3。
-        3) GET /learning-level 验证为 L3（updated=true）。
-        '''
-        res = self.user.existingKidLevelInit(self.authorization, self.kid_id)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        init_res1 = self.user.existingKidLevelInit(self.authorization, kid_id)
+        assert init_res1['data']['learningLevel'] == 'L1'
+        assert init_res1['data']['updated'] == False

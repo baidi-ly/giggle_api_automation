@@ -16,7 +16,7 @@ class TestSystem:
 
     def setup_class(self):
         self.sys = SystemApi()
-        self.authorization = self.sys.get_authorization()[0]
+        self.authorization, self.user_id = self.sys.get_authorization()
         self.now = strftime("%Y%m%d%H%M%S")
 
         try:
@@ -145,3 +145,12 @@ class TestSystem:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
+    @pytest.mark.parametrize('channel', ['ios', 'android', 'googleplay', 'appstore'])
+    def test_system_positive_feature_toggle_ok(self, channel):
+        """获取系统基础信息-正向用例"""
+        res = self.sys.feature_toggle(self.authorization, self.user_id, key="storybook_new_ui", channel=channel)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['data']['userId'] == self.user_id
+        assert res['data']['channel'] == channel
+        assert res['data']['enabled'] == False

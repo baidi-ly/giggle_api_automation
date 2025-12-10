@@ -117,3 +117,26 @@ class SystemApi(BaseAPI):
         response = response.json()
         return response
 
+    def feature_toggle(self, authorization, userId, DeviceType="web", code=200, **kwargs):
+        """
+        检查某个功能对用户是否开启（AB 测试开关)
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-10
+        url = f"https://{base_url}/api/config/feature-toggle"
+        timestamp = str(int(time.time() * 1000))
+        payload = {
+            'key': '',
+            'userId':userId,
+            'channel': '',  # ios、android、googleplay、appstore
+            'enabled': True
+        }
+        payload.update(kwargs)
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "检查某个功能对用户是否开启（AB 测试开关)"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
