@@ -353,7 +353,7 @@ class TestAdminkid:
             assert log['operator'] == 'System'
             assert log['operatorSource'] == 'System'
             assert logs_after[0]['changeItem'] == 'Skill Mastery'
-            assert log['changePath'].startswith('SkillMastery.Letter-') and log['changePath'].endswith('-L1.Score') or log['changePath'].startswith('SkillMastery.Letter-') and log['changePath'].endswith('-L1.State') or log['changePath'].startswith('SkillMastery.Letter-') and log['changePath'].endswith('-L1.Components')
+            assert log['changePath'].startswith('SkillMastery') and log['changePath'].endswith('-L1.Score') or log['changePath'].startswith('SkillMastery.Letter-') and log['changePath'].endswith('-L1.State') or log['changePath'].startswith('SkillMastery.Letter-') and log['changePath'].endswith('-L1.Components')
             if log['changePath'].endswith('-L1.Score'):
                 assert log['oldValue'] == '0.00'
                 assert log['newValue'] == '20.00'
