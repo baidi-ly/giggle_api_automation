@@ -1109,31 +1109,31 @@ class TestCourse:
 
     @pytest.mark.release
     @pytest.mark.parametrize('rate', [1, 2, 3])
-    def test_course_course_rating_total_ok(self, rate):
+    def test_course_course_rating_total_ok(self, rate, get_course_ids_session, kid_data_session):
         """保存获取课程评价-正向用例"""
-        '''这个需要添加前后置添加课程'''
-        # Normal课程资源列表
-        course_res = self.school.getNormalcourse(self.authorization)["data"]['content']
-        for course in course_res:
-            course_id = course['id']
+        # 获取课程详情包括版本信息
+        courseIds = get_course_ids_session
+        # 创建测试学生
+        kid_id, kid_name = kid_data_session
+        for course_id in courseIds:
             # 根据课程ID列表获取评价信息
-            rating_res = self.course.course_ratings(self.authorization, [course_id], self.kid_id)
+            rating_res = self.course.course_ratings(self.authorization, [course_id], kid_id)
             # 如果课程未被评价过则进行评价
             if not rating_res['data'][str(course_id)]['hasRated']:
                 # 保存课程评价
-                res = self.course.save_course_rating(self.authorization, course_id, self.kid_id, rate)
+                res = self.course.save_course_rating(self.authorization, course_id, kid_id, rate)
                 assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
                 assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
                 assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
                 assert res['data']['userId'] == int(self.userId)
-                assert res['data']['kidId'] == self.kid_id
-                assert res['data']['courseId'] == course_id
+                assert res['data']['kidId'] == kid_id
+                assert res['data']['courseId'] == int(course_id)
                 assert res['data']['rating'] == rate
                 break
         else:
             assert False, "未找到未评价的课程！"
         # 保存课程评价后，获取评价信息，验证保存课程评价成功
-        rating_res = self.course.course_ratings(self.authorization, [course_id], self.kid_id)
+        rating_res = self.course.course_ratings(self.authorization, [course_id], kid_id)
         assert rating_res['data'][str(course_id)]['hasRated']
         assert rating_res['data'][str(course_id)]['rating'] == rate
 

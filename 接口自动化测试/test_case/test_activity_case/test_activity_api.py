@@ -1065,16 +1065,17 @@ class TestActivity:
         assert check_after['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
-    def test_activity_ailyLessonComplete_without_activity(self):
+    def test_activity_ailyLessonComplete_without_activity(self, kid_data_session):
         """根据每日学习计划课程完成增加抽奖次数-验证没有完课活动时提示活动不存在"""
-        '''需要维护'''  # todo
+        # 创建测试学生
+        kid_id, kid_name = kid_data_session
         # 通过查询晋级资格获取学生level
-        learningLevel = self.course.promotion_check(self.authorization, self.kid_id)['data']['currentLevel']
+        learningLevel = self.course.promotion_check(self.authorization, kid_id)['data']['currentLevel']
         # 根据level获取课程推荐列表
-        recommends_res = self.course.course_recommends(self.authorization, self.kid_id, learningLevel)['data'][:2]
+        recommends_res = self.course.course_recommends(self.authorization, kid_id, learningLevel)['data'][:2]
         courseIds = ','.join(DataFrame(recommends_res)['id'].tolist())
         # 根据每日学习计划课程完成增加抽奖次数，验证没有活动时无法增加抽奖次数
-        res = self.activity.dailyLessonComplete(self.authorization, courseIds, self.kid_id)
+        res = self.activity.dailyLessonComplete(self.authorization, courseIds, kid_id)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 100114, f"接口返回状态码异常: 预期【100114】，实际【{res['code']}】"
         assert res['message'] == 'Activity not found', f"接口返回message信息异常: 预期【Activity not found】，实际【{res['message']}】"

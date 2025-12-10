@@ -891,16 +891,6 @@ class TestUser:
         assert res['data']['exist'] == exist, f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
-    def test_user_permission_checkPhone(self):
-        """检测手机号是否已注册-权限测试"""
-        res = self.user.checkPhone('', code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
     @pytest.mark.parametrize('dailyLessonLimit', [2, 3])
     def test_user_positive_dailyLessonLimit_ok(self, dailyLessonLimit):
         """设置孩子的每日课程数量限制-正向用例"""

@@ -1217,13 +1217,17 @@ class TestSchoolApi:
         for theme in themes_res:
             # 故事书资源列表
             tagId = theme['id']
-            pl = {"selected": 1}
+            pl = {"selected": selected}
             books_res = self.school.lessonStorybook(self.authorization, tagId=tagId, **pl)['data']['content']
             for book in books_res:
                 # 通过bookId查询书籍详情，获取作者名称
                 bookId = book['id']
-                selected_actual = data_df[data_df["id"] == bookId]["selected"].iloc[0]
+                selected_actual = data_df[data_df["id"] == str(bookId)]["selected"].iloc[0]
                 if selected == 0:
-                    assert selected_actual == selected or selected_actual == None
-                else:
+                    try:
+                        selected_actual = int(selected_actual)
+                    except:
+                        continue
                     assert selected_actual == selected
+                else:
+                    assert int(selected_actual) == selected

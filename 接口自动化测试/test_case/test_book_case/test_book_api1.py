@@ -1004,8 +1004,7 @@ class TestBook:
         assert res['data'] == expect_res
 
     @pytest.mark.release
-    # @pytest.mark.parametrize('languageCode', ['en', 'ar', 'es', 'fr', 'de', 'pt', 'id', 'hi', 'th', 'vi', 'tr', 'ru', 'ja', 'ko'])
-    @pytest.mark.parametrize('languageCode', ['en'])
+    @pytest.mark.parametrize('languageCode', ['en', 'ar', 'es', 'fr', 'de', 'pt', 'id', 'hi', 'th', 'vi', 'tr', 'ru', 'ja', 'ko'])
     def test_book_positive_languagePack_details_ok(self, languageCode):
         """根据故事书ID和语言代码查询语言包地址"""
         # 列出当前用户创建的书籍列表

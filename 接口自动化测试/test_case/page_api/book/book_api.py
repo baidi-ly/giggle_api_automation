@@ -1835,7 +1835,7 @@ class BookApi(BaseAPI):
         payload = {
             "key": '',
             "page": 0,
-            "size": 100,
+            "size": 1000,
             "tags": '',
             "type": ''
         }

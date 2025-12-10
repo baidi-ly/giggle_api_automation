@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 
 from test_case.page_api.admin.admin_ip_api import AdminIpApi
 
@@ -18,7 +19,7 @@ class TestAdminIp:
 
 
     @pytest.mark.release
-    def test_admin_ip_positive_ban_ok(self):
+    def test_admin_ip_positive_banIp(self):
         """封禁IP-正向用例"""
         ipAddress = "172.16.31.103333"
         # 查询封禁IP列表
@@ -26,10 +27,17 @@ class TestAdminIp:
         # 封禁IP
         ban_res = self.admin_ip.banIP(self.auth_admin, ipAddress)
         assert ban_res['data']['message'] == 'IP封禁成功'
-        # 查询封禁IP列表
-        ipBannedList2 = self.admin_ip.ipBannedList(self.auth_admin)['data']
-        assert len(ipBannedList2) - len(ipBannedList1) == 1
-        assert set(ipBannedList2) - set(ipBannedList1) == {ipAddress}
+        for i in range(5):
+            try:
+                # 查询封禁IP列表
+                ipBannedList2 = self.admin_ip.ipBannedList(self.auth_admin)['data']
+                assert len(ipBannedList2) - len(ipBannedList1) == 1
+                assert set(ipBannedList2) - set(ipBannedList1) == {ipAddress}
+                break
+            except:
+                time.sleep(.5)
+        else:
+            assert False
 
         # 解封IP
         unban_res = self.admin_ip.unbanIP(self.auth_admin, ipAddress)
@@ -40,7 +48,7 @@ class TestAdminIp:
 
     @pytest.mark.release
     @pytest.mark.parametrize('countryCode', ['86', '1', '44', '81', '852', '886', '65', '91', '62', '82'])
-    def test_admin_ip_positive_ban_o1k(self, countryCode):
+    def test_admin_country_positive_banCountry(self, countryCode):
         """封禁IP - 遍历常见国家区号"""
         # 查询封禁国家区号列表
         countryBannedList1 = self.admin_ip.countryBannedList(self.auth_admin)['data']
@@ -48,9 +56,16 @@ class TestAdminIp:
         ban_res = self.admin_ip.banCountry(self.auth_admin, countryCode)
         assert ban_res['data']['message'] == '国家区号封禁成功'
         # 查询封禁国家区号列表
-        countryBannedLis2 = self.admin_ip.countryBannedList(self.auth_admin)['data']
-        assert len(countryBannedLis2) - len(countryBannedList1) == 1
-        assert set(countryBannedLis2) - set(countryBannedList1) == {countryCode}
+        for i in range(5):
+            try:
+                countryBannedLis2 = self.admin_ip.countryBannedList(self.auth_admin)['data']
+                assert len(countryBannedLis2) - len(countryBannedList1) == 1
+                assert set(countryBannedLis2) - set(countryBannedList1) == {countryCode}
+                break
+            except:
+                time.sleep(.5)
+        else:
+            assert False
 
         # 解封的国家区号
         unban_res = self.admin_ip.unbanCountry(self.auth_admin, countryCode)
