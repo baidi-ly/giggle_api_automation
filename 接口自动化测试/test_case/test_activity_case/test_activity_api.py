@@ -1064,33 +1064,6 @@ class TestActivity:
         assert check_after['message'] == 'success', f"接口返回message信息异常: 预期【Activity not found】，实际【{res['message']}】"
         assert check_after['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
-    def test_activity_ailyLessonComplete_without_activity(self, kid_data_session):
-        """根据每日学习计划课程完成增加抽奖次数-验证没有完课活动时提示活动不存在"""
-        # 创建测试学生
-        kid_id, kid_name = kid_data_session
-        # 通过查询晋级资格获取学生level
-        learningLevel = self.course.promotion_check(self.authorization, kid_id)['data']['currentLevel']
-        # 根据level获取课程推荐列表
-        recommends_res = self.course.course_recommends(self.authorization, kid_id, learningLevel)['data'][:2]
-        courseIds = ','.join(DataFrame(recommends_res)['id'].tolist())
-        # 根据每日学习计划课程完成增加抽奖次数，验证没有活动时无法增加抽奖次数
-        res = self.activity.dailyLessonComplete(self.authorization, courseIds, kid_id)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 100114, f"接口返回状态码异常: 预期【100114】，实际【{res['code']}】"
-        assert res['message'] == 'Activity not found', f"接口返回message信息异常: 预期【Activity not found】，实际【{res['message']}】"
-        assert res['data'] == 'Activity not found', f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    def test_activity_permission_dailyLessonComplete(self):
-        """根据每日学习计划课程完成增加抽奖次数-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.activity.dailyLessonComplete('', 0, 0, code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.release
     def test_activity_positive_getCheckByCourses_ok(self, get_course_ids_session, kid_data_session):

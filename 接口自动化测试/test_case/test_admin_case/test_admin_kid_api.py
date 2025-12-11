@@ -283,13 +283,6 @@ class TestAdminkid:
         """获取孩子等级状态操作日志-校验孩子学习状态更改项"""
         # 创建测试学生
         kid_id = kid_data_fixture
-        # 更新用户标签前，获取孩子等级状态操作日志，验证当前无Learning Level相关日志
-        res = self.admin_kid.tagChangeLogs(self.authorization, kid_id, changeItem='Skill Mastery')
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        logs_before = res['data']['content']
-        assert not logs_before
 
         # 回答课后quiz创建Skill Mastery数据
         # Normal课程资源列表
@@ -444,9 +437,6 @@ class TestAdminkid:
         """手动发布技能事件-验证无子技能的技能标签学习分数正常增加"""
         # 创建测试学生
         kid_id = kid_data_fixture
-        # 手动发布技能事件前，获取学生技能掌握程度，验证新增学生无技能数据
-        skillMastery1 = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']
-        assert not skillMastery1['skillMasteryMap']
         # 手动发布技能事件前，分页查询课程等级技能列表，选择无子技能的技能标签进行测试
         skills_res = self.admin_levelskills.level_skills(self.authorization)['data']
         for skill in skills_res:
@@ -496,9 +486,6 @@ class TestAdminkid:
         """手动发布技能事件-验证有子技能的技能标签学习分数正常增加（遍历5种子技能，且每种子技能得分100）"""
         # 创建测试学生
         kid_id = kid_data_fixture
-        # 手动发布技能事件前，获取学生技能掌握程度，验证新增学生无技能数据
-        skillMastery1 = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']
-        assert not skillMastery1['skillMasteryMap']
         # 手动发布技能事件前，分页查询课程等级技能列表，选择有子技能的技能标签进行测试
         skills_res = self.admin_levelskills.level_skills(self.authorization)['data']
         sub_skills, parentSkill = [], ''

@@ -450,11 +450,11 @@ class TestBook:
         assert res['data']['enabled']
 
         for book in books_res:
-            if book['bookName'] == 'hq_test':
+            if book['bookName'] == "Tiny Red's Wobbly Lines":
                 bookId = book['id']
                 break
         else:
-            assert False, "未找到《hq_test》这本书！"
+            assert False, "未找到《Tiny Red's Wobbly Lines》这本书！"
         res1 = self.book.getNarrationData(self.authorization, bookId)
         assert isinstance(res1, dict), f'接口返回类型异常: {type(res1)}'
         assert res1['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res1['code']}】"
@@ -508,11 +508,11 @@ class TestBook:
         # 列出当前用户创建的书籍列表中，找到书名称hq_test的故事书做测试
         books_res = self.book.book_list(self.authorization)['data']['content']
         for book in books_res:
-            if book['bookName'] == 'hq_test':
+            if book['bookName'] == "Tiny Red's Wobbly Lines":
                 bookId = book['id']
                 break
         else:
-            assert False, "未找到《hq_test》这本书！"
+            assert False, "未找到《Tiny Red's Wobbly Lines》这本书！"
         # 保存故事书的领读数据
         narrationData = [
             {
@@ -1010,11 +1010,11 @@ class TestBook:
         # 列出当前用户创建的书籍列表
         bookList = self.book.book_list(self.authorization)['data']['content']
         for book in bookList:
-            if book['bookName'] == "Barnaby and the Giggle-Berries":
+            if book['bookName'] == "The Sock-Eating Bear":
                 book_id = book['id']
                 break
         else:
-            assert False, "未找到故事书《Barnaby and the Giggle-Berries》"
+            assert False, "未找到故事书《The Sock-Eating Bear》"
         # 根据故事书ID和语言代码查询语言包地址
         res = self.book.languagePack(self.authorization, book_id, languageCode)
         assert res['data']['bookId'] == int(book_id)
