@@ -2055,7 +2055,7 @@ class BookApi(BaseAPI):
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType, Content_Type='multipart/form-data')
 
-        response = requests.request("POST", url, headers=headers, params=payload, files=file)
+        response = requests.request("POST", url, headers=headers, params=payload, data=payload, files=file)
         error_msg = "修改封面"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()

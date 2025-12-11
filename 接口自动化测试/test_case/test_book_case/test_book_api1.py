@@ -1063,24 +1063,22 @@ class TestBook:
         image_url = self.book.generateCoverimageStatus(self.authorization, request_id)['data']['url']
         fileName = 'coverimage_test'
         # 下载材料
-        # self.materials.download_materials(self.authorization, '', fileName, url=image_url, fileType="png")
-        # time.sleep(.5)
-        thread = threading.Thread(target=self.book.download_file, args=(self.authorization, fileName, image_url))
-        thread.start()
+        self.materials.download_materials(self.authorization, '', fileName, url=image_url, fileType="png")
+
 
     def test_book_positive_upload_book_cover(self):
+        '''修改封面'''
         fileName = 'coverimage_test'
         # 修改封面
         file = {
-            "bookId": self.book_id,
-            'file': (f'{fileName}.png', open(os.getcwd() + f'/test_data/{fileName}.png', 'rb'))
+            # "bookId": self.book_id,
+            'file': (f'{fileName}.png', open(os.getcwd() + f'/report/{fileName}.png', 'rb'))
         }
         res1 = self.book.upload_book_cover(self.authorization, self.book_id, file)
         assert res1['message'] == 'success'
         # 上传书籍内容
         file = {
-            "bookId": self.book_id,
-            'file': ('webp_test.webp', open(os.getcwd() + f'/test_data/webp_test.webp', 'rb'))
+            'file': (f'{fileName}.png', open(os.getcwd() + f'/report/{fileName}.png', 'rb'))
         }
         res = self.book.book_upload(self.authorization, self.book_id, file)
         assert res['data']['bookKey'], f"接口返回data数据异常：{res['data']}"
