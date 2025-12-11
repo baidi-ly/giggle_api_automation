@@ -11,6 +11,8 @@ from pandas import DataFrame
 import config
 from test_case.page_api.admin.admin_kid_api import AdminKidApi
 from test_case.page_api.admin.admin_levelskills_api import AdminLevelskillsApi
+from test_case.page_api.course.course_api import CourseApi
+from test_case.page_api.game.game_api import GameApi
 from test_case.page_api.kid.kid_api import KidApi
 from test_case.page_api.quiz.quiz_api import QuizApi
 from test_case.page_api.school.school_api import SchoolApi
@@ -33,7 +35,9 @@ class TestAdminkid:
         self.kid = KidApi()
         self.user = UserApi()
         self.school = SchoolApi()
+        self.course = CourseApi()
         self.quiz = QuizApi()
+        self.game = GameApi()
         self.admin_levelskills = AdminLevelskillsApi()
         self.kid_id = self.kid.getKids(self.authorization)["data"][0]['id']
 

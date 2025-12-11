@@ -12,6 +12,8 @@ from pandas import DataFrame
 import config
 from test_case.page_api.admin.admin_course_api import AdminCourseApi
 from test_case.page_api.admin.admin_levelskills_api import AdminLevelskillsApi
+from test_case.page_api.course.course_api import CourseApi
+from test_case.page_api.game.game_api import GameApi
 
 sys.path.append(os.getcwd())
 sys.path.append("..")
@@ -24,6 +26,8 @@ expired_token = config.RunConfig.expired_token
 class TestAdminCourse:
 
     def setup_class(self):
+        self.game = GameApi()
+        self.course = CourseApi()
         self.admin_course = AdminCourseApi()
         self.admin_levelskills = AdminLevelskillsApi()
         self.authorization = self.admin_course.get_authorization()[0]
@@ -962,47 +966,7 @@ class TestAdminCourse:
         strategy_ids = DataFrame(strategy_res3['data']['content'])['id'].tolist()
         assert strategy_id not in strategy_ids, '删除课程策略后，仍在策略定义列表中查询到！'
 
-    @pytest.mark.release
-    def test_admin_course_permission_addCourseStrategy(self):
-        """新增策略定义-权限测试"""
-        res = self.admin_course.addCourseStrategy('', code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    def test_admin_course_permission_deleteCourseStrategy(self):
-        """删除策略定义-权限测试"""
-        res = self.admin_course.deleteCourseStrategy('', 0, code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    def test_admin_course_permission_updateCourseStrategy(self):
-        """更新策略定义-权限测试"""
-        res = self.admin_course.updateCourseStrategy('', 0, code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.release
-    def test_admin_course_permission_courseStrategies(self):
-        """查询策略定义列表-权限测试"""
-        res = self.admin_course.courseStrategies('', 0, code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
-            
-    @pytest.fixture(scope='function')
+    @pytest.fixture(scope='class')
     def createCourseStrategy(self):
         '''新增策略定义'''
         # 新增策略定义
@@ -1011,7 +975,6 @@ class TestAdminCourse:
             "strategyId": strategyId
         }
         add_res = self.admin_course.addCourseStrategy(self.admin_auth, **pl)
-        assert add_res['message'] == 'success', "新增策略定义失败！"
         assert add_res['message'] == 'success', "新增策略定义失败！"
         # 查询策略定义列表，验证新增策略定义成功
         strategy_res1 = self.admin_course.courseStrategies(self.admin_auth)
@@ -1112,6 +1075,70 @@ class TestAdminCourse:
         strategyRules3 = self.admin_course.strategyRules(self.admin_auth)
         rule_ids = DataFrame(strategyRules3['data']['content'])['id'].tolist()
         assert rule_id1 not in rule_ids, "删除课程规则失败！"
+
+    @pytest.fixture(scope='function')
+    def createStrategyRule(self, createCourseStrategy):
+        # 新增策略定义
+        strategyId = createCourseStrategy
+        # 获取推荐课程列表
+        recommends_res = self.course.getFixOrderRecommend(self.authorization, learningLevel='L1')
+        courseIds = [str(i) for i in DataFrame(recommends_res['data'])['courseId'].tolist()[:3]]
+        courseIds1 = ','.join(courseIds)
+        # 新增课程规则
+        add_res = self.admin_course.addStrategyRule(self.admin_auth, strategyId, courseIds1)
+        # 如果选中的课程已经添加课程规则则先移除
+        if add_res['code'] == 100006:
+            set_course = add_res['data']
+            set_course = re.search(r"(\d+)", set_course).group(1).split(',')
+            for course_id in set_course:
+                # 查询课程规则列表，移除目标课程已参与的课程规则
+                strategyRules0 = self.admin_course.strategyRules(self.admin_auth)
+                for strategyRule in strategyRules0['data']['content']:
+                    courseIds2 = strategyRule['courseIds'].split(',')
+                    if course_id in courseIds2:
+                        rule_id = strategyRule['id']
+                        strategyId1 = strategyRule['strategyId']
+                        new_courseIds = str(random.randint(1000, 9999))
+                        update_res = self.admin_course.updateStrategyRule(self.admin_auth, rule_id, strategyId1, new_courseIds)
+                        assert update_res['message'] == 'success'
+                        break
+            # 再次新增课程规则
+            add_res1 = self.admin_course.addStrategyRule(self.admin_auth, strategyId, courseIds1)
+            assert add_res1['message'] == 'success'
+        else:
+            assert add_res['message'] == 'success', "新增课程规则失败！"
+
+        yield rule_id, courseIds
+
+        # 删除课程规则
+        delete_res = self.admin_course.deleteStrategyRule(self.admin_auth, rule_id)
+        assert delete_res['message'] == 'success', "删除课程规则失败！"
+
+    @pytest.mark.release
+    def test_game_positive_queryCourseStrategy_ok(self, createStrategyRule):
+        """查询课程策略配置-正向用例"""
+        rule_id, courseId = createStrategyRule
+        level = 1
+        res = self.game.queryCourseStrategy(self.authorization, courseId, level)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'] == {
+            "matchType": "LEVEL_STRATEGY",
+            "matched": True,
+            "ruleInfo": {
+                "courseIds": None,
+                "levelRange": f"L{level}"
+            },
+            "strategyConfig": {
+                "description": "test",
+                "enabled": True,
+                "pattern": "true,false,false,true,false,false",
+                "patternBehavior": "STICK_TO_LAST",
+                "resetOnSegmentChange": False
+            },
+            "strategyId": "howell"
+        }
 
     @pytest.mark.release
     def test_admin_course_permission_addStrategyRule(self):

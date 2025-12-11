@@ -441,7 +441,6 @@ def clear_test_data():
     except Exception as err:
         print('批量删除测试学生失败，原因是：', err)
 
-    yield
     # 批量删除测试故事书
     try:
         books_res = book1.book_list(authorization, user_id)['data']['content']
