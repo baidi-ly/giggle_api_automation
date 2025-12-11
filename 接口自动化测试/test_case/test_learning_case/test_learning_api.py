@@ -809,7 +809,7 @@ class TestLearning:
         timestamp_milliseconds = int(time.time() * 1000)
         courses = [
             {
-                "eventName": "FlashCardReviewCompelete",
+                "eventName": "FlashCardReviewComplete",
                 "params": {
                     "user_id": self.user_id,
                     "child_id": self.kid_id,
@@ -822,7 +822,7 @@ class TestLearning:
                 }
             }
         ]
-        # 上报用户交互事件 - 闪卡事件 - FlashCardReviewCompelete
+        # 上报用户交互事件 - 闪卡事件 - FlashCardReviewComplete
         event_res = self.learning.interactionEvent(self.authorization, courses, DeviceType="web")
         assert isinstance(event_res, dict), f'接口返回类型异常: {type(event_res)}'
         assert event_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{event_res['code']}】"

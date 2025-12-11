@@ -1228,6 +1228,7 @@ class TestSchoolApi:
                         selected_actual = int(selected_actual)
                     except:
                         continue
+                    print(book)
                     assert selected_actual == selected
                 else:
                     assert int(selected_actual) == selected

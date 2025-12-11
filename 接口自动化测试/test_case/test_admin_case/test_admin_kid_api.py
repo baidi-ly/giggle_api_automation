@@ -187,7 +187,7 @@ class TestAdminkid:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.fixture(scope="class")
+    @pytest.fixture(scope="function")
     def kid_data_fixture(self):
         '''创建测试学生'''
         # 创建测试学生
