@@ -1930,3 +1930,20 @@ class BookApi(BaseAPI):
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
+
+    def createBookWithName(self, authorization, bookName, DeviceType="web"):
+        """
+        给一本书的名字，根据该名字创建一本故事书
+        :param bookName: (string, path, required) bookName
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-10
+        url = f"https://{base_url}/api/storybook/storyboard/coverimage"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers)
+        error_msg = "给一本书的名字，根据该名字创建一本故事书"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response

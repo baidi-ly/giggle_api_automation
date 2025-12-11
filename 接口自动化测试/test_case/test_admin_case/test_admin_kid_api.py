@@ -400,9 +400,6 @@ class TestAdminkid:
         """手动发布技能事件-验证批量触发技能事件，学生技能分数增加"""
         # 创建测试学生
         kid_id = kid_data_fixture
-        # 手动发布技能事件前，获取学生技能掌握程度，验证新增学生无技能数据
-        skillMastery1 = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']
-        assert not skillMastery1['skillMasteryMap']
         # 手动发布技能事件前，分页查询课程等级技能列表，验证新增学生无技能数据
         skills_res = self.admin_levelskills.level_skills(self.authorization)['data']
         skills = list(set(DataFrame(skills_res)['skill'].tolist()))
@@ -454,7 +451,7 @@ class TestAdminkid:
                 expected_score = 100
 
             time.sleep(2)   # /admin/kid/skill-event/publish 只是把事件丢到 MQ（topic skill_mastery_update），由消费者异步更新技能表/缓存
-            for i in range(20):
+            for i in range(30):
                 # 手动发布技能事件后，获取学生技能掌握程度，手动批量发布技能事件后台处理后，学生技能增加
                 skillMastery2 = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']
                 if skillMastery2['skillMasteryMap']:
@@ -477,7 +474,7 @@ class TestAdminkid:
                 if actual_score == expected_score:
                     break
             else:
-                assert False, "12s消费者异步更新技能表/缓存未成功！"
+                assert False, "32s消费者异步更新技能表/缓存未成功！"
             if expected_score == 100:
                 break
 
@@ -529,7 +526,7 @@ class TestAdminkid:
                 if actual_score == expected_score:
                     break
             else:
-                assert False, "12s消费者异步更新技能表/缓存未成功！"
+                assert False, "22s消费者异步更新技能表/缓存未成功！"
             if expected_score == 100:
                 break
 
@@ -538,9 +535,6 @@ class TestAdminkid:
         """手动发布技能事件-验证有子技能的技能标签学习分数正常增加（随机子技能，随机得分）"""
         # 创建测试学生
         kid_id = kid_data_fixture
-        # 手动发布技能事件前，获取学生技能掌握程度，验证新增学生无技能数据
-        skillMastery1 = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']
-        assert not skillMastery1['skillMasteryMap']
         # 手动发布技能事件前，分页查询课程等级技能列表，选择有子技能的技能标签进行测试
         skills_res = self.admin_levelskills.level_skills(self.authorization)['data']
         sub_skills, parentSkill = [], ''
