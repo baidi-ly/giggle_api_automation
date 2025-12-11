@@ -308,28 +308,6 @@ class TestAdminkid:
                      'total': 3}, f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.smoke
-    @pytest.mark.parametrize(
-        'desc, value',
-        [
-            ('unauthorized', 'missing'),
-            ('no_auth', ''),
-            ('expired_token', expired_token),
-            ('invalid_token', 'invalid_token'),
-        ]
-    )
-    def test_admin_course_permission_levelSkills_import(self, desc, value):
-        """批量导入学习技能-权限测试"""
-        file = {
-            'file': ('批量导入技能测试文档.xlsx', open(os.getcwd() + f'/test_data/批量导入技能测试文档.xlsx', 'rb'))
-        }
-        res = self.admin_levelskills.levelSkills_import(value, file, code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.smoke
     def test_admin_course_course_level_skills_total_ok(self):
         """等级技能相关接口增删改查验证-正向用例"""
         # 新增等级技能

@@ -17,7 +17,6 @@ class TestAdminIp:
         self.admin_ip = AdminIpApi()
         self.auth_admin, self.user_admin_id = self.admin_ip.get_admin_authorization()
 
-
     @pytest.mark.release
     def test_admin_ip_positive_banIp(self):
         """封禁IP-正向用例"""

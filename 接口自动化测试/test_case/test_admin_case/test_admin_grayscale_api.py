@@ -1,17 +1,10 @@
-import datetime
-import random
-import string
 import sys
 import os
 from time import strftime
 
-import pandas as pd
-from pandas import DataFrame
 
 import config
-from test_case.page_api.admin.admin_course_api import AdminCourseApi
 from test_case.page_api.admin.admin_grayscale_api import AdminGrayscaleApi
-from test_case.page_api.admin.admin_levelskills_api import AdminLevelskillsApi
 
 sys.path.append(os.getcwd())
 sys.path.append("..")
