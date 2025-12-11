@@ -2,7 +2,9 @@ import datetime
 import json
 import sys
 import os
+import threading
 import time
+import uuid
 from time import strftime
 
 from pandas import DataFrame
@@ -34,6 +36,19 @@ class TestBook:
         self.now = strftime("%Y%m%d%H%M%S")
         # 查询故事书标签类型列表
         self.bookTagtType_id = self.book.bookTagTypeList(self.authorization)['data']['content'][0]['id']
+
+        try:
+            # 列出当前用户创建的书籍列表
+            self.book_name = 'The Sock-Eating Bear'
+            bookList = self.book.book_list(self.authorization)['data']['content']
+            for book in bookList:
+                if book['bookName'] == self.book_name:
+                    self.book_id = book['id']
+                    break
+            else:
+                assert False, "未找到故事书《The Sock-Eating Bear》"
+        except Exception as e:
+            print('未找到故事书《The Sock-Eating Bear》')
 
     @pytest.fixture(scope="class")
     def get_bookId(self):
@@ -987,38 +1002,22 @@ class TestBook:
     @pytest.mark.release
     def test_book_positive_trigger_ok(self):
         """触发故事书翻译"""
-        # 列出当前用户创建的书籍列表
-        bookList = self.book.book_list(self.authorization)['data']['content']
-        for book in bookList:
-            if book['bookName'] == "The Sock-Eating Bear":
-                bookIds = [book['id']]
-                break
-        else:
-            assert False, "未找到故事书《The Sock-Eating Bear》"
-
+        bookIds = [self.book_id]
         res = self.book.translation_trigger(self.authorization, bookIds)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        expect_res = {'message': '已触发 1 本书籍的翻译任务', 'nonExistingBooks': [], 'triggeredBooks': [int(book['id'])]}
+        expect_res = {'message': '已触发 1 本书籍的翻译任务', 'nonExistingBooks': [], 'triggeredBooks': [int(self.book_id)]}
         assert res['data'] == expect_res
 
     @pytest.mark.release
     @pytest.mark.parametrize('languageCode', ['en', 'ar', 'es', 'fr', 'de', 'pt', 'id', 'hi', 'th', 'vi', 'tr', 'ru', 'ja', 'ko'])
     def test_book_positive_languagePack_details_ok(self, languageCode):
         """根据故事书ID和语言代码查询语言包地址"""
-        # 列出当前用户创建的书籍列表
-        bookList = self.book.book_list(self.authorization)['data']['content']
-        for book in bookList:
-            if book['bookName'] == "The Sock-Eating Bear":
-                book_id = book['id']
-                break
-        else:
-            assert False, "未找到故事书《The Sock-Eating Bear》"
         # 根据故事书ID和语言代码查询语言包地址
-        res = self.book.languagePack(self.authorization, book_id, languageCode)
+        res = self.book.languagePack(self.authorization, self.book_id, languageCode)
         if res['code'] == 200:  # 如果code不是200，说明字幕还未生成成功，校验code是100051
-            assert res['data']['bookId'] == int(book_id)
+            assert res['data']['bookId'] == int(self.book_id)
             url = res['data']['url']
             fileName = '字幕' + languageCode + self.now
             self.materials.download_materials(self.authorization, '', fileName, url=url)
@@ -1035,4 +1034,53 @@ class TestBook:
             'file': ('webp_test.webp', open(os.getcwd() + f'/test_data/webp_test.webp', 'rb'))
         }
         res = self.book.book_upload(self.authorization, bookId, file)
+        assert res['data']['bookKey'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_book_positive_storybook_generateCoverimage(self):
+        """使用提示词和角色信息生成最终的封面图片 - 流程测试"""
+        # 查询故事书Storyboard内容
+        storyBoard_res = self.book.storyBoard(self.authorization, self.book_id)['data']
+        # 故事书风格生成
+        style_res = self.book.storyBookStyle(self.authorization)
+        assert style_res['message'] == '风格生成成功'
+        # 生成封面图片的提示词和角色信息
+        pl = {
+            "characters": storyBoard_res['characters'],
+            "story": storyBoard_res['story'],
+            "style": storyBoard_res['storyboard'][0]['prompt'],
+            "title": self.book_name,
+        }
+        info_res = self.book.generateCoverimageInfo(self.authorization, **pl)['data']
+        assert info_res['characters'] == storyBoard_res['characters']
+        # 使用提示词和角色信息生成最终的封面图片
+        task_id = str(uuid.uuid4())
+        info_res.update({"task_id": task_id})
+        request_res = self.book.generateCoverimage(self.authorization, **info_res)['data']
+        assert request_res['task_id'] == task_id
+        request_id = request_res['request_id']
+        # 查看提示词和角色信息生成最终的封面图片状态
+        image_url = self.book.generateCoverimageStatus(self.authorization, request_id)['data']['url']
+        fileName = 'coverimage_test'
+        # 下载材料
+        # self.materials.download_materials(self.authorization, '', fileName, url=image_url, fileType="png")
+        # time.sleep(.5)
+        thread = threading.Thread(target=self.book.download_file, args=(self.authorization, fileName, image_url))
+        thread.start()
+
+    def test_book_positive_upload_book_cover(self):
+        fileName = 'coverimage_test'
+        # 修改封面
+        file = {
+            "bookId": self.book_id,
+            'file': (f'{fileName}.png', open(os.getcwd() + f'/test_data/{fileName}.png', 'rb'))
+        }
+        res1 = self.book.upload_book_cover(self.authorization, self.book_id, file)
+        assert res1['message'] == 'success'
+        # 上传书籍内容
+        file = {
+            "bookId": self.book_id,
+            'file': ('webp_test.webp', open(os.getcwd() + f'/test_data/webp_test.webp', 'rb'))
+        }
+        res = self.book.book_upload(self.authorization, self.book_id, file)
         assert res['data']['bookKey'], f"接口返回data数据异常：{res['data']}"

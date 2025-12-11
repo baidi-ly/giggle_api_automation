@@ -1931,19 +1931,133 @@ class BookApi(BaseAPI):
         response = response.json()
         return response
 
-    def createBookWithName(self, authorization, bookName, DeviceType="web"):
+    def storyBoard(self, authorization, bookId, DeviceType="web"):
         """
-        给一本书的名字，根据该名字创建一本故事书
+        查询故事书Storyboard内容
         :param bookName: (string, path, required) bookName
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.22.0  &  2025-12-10
-        url = f"https://{base_url}/api/storybook/storyboard/coverimage"
+        # Create Data:  V1.22.0  &  2025-12-11
+        url = f"https://{base_url}/api/book/{bookId}/storyboard"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "查询故事书Storyboard内容"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def storyBookStyle(self, authorization, DeviceType="web"):
+        """故事书风格生成"""
+        # Create Data:  V1.22.0  &  2025-12-11
+        url = f"https://{base_url}/api/aiserver/storybook/style"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
         response = requests.request("POST", url, headers=headers)
-        error_msg = "给一本书的名字，根据该名字创建一本故事书"
+        error_msg = "故事书风格生成"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
+
+    def generateCoverimageInfo(self, authorization, DeviceType="web", **kwargs):
+        """
+        生成封面图片的提示词和角色信息
+        :param bookName: (string, path, required) bookName
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-11
+        url = f"https://{base_url}/api/aiserver/storybook/storyboard/coverimage"
+        payload = {
+            "characters": [
+                {
+                    "name": "Dusty",
+                    "description": "Dusty is a small, perfectly round dust bunny composed of exceptionally soft, fluffy grey dust with gentle hints of light blue and lavender woven throughout his body. He does not wear any clothes. He lacks distinct limbs, moving by hopping and wiggling his entire body. His face is simple, dominated by two large, shiny black button-like eyes that sparkle with curiosity and express his emotions. When he's scared, he shrinks a little, and when he's brave, he puffs up his fluff to appear bigger.",
+                    "description1": "Dusty is a small, perfectly round dust bunny composed of exceptionally soft, fluffy grey dust with gentle hints of light blue and lavender woven throughout his body. He does not wear any clothes. He lacks distinct limbs, moving by hopping and wiggling his entire body. His face is simple, dominated by two large, shiny black button-like eyes that sparkle with curiosity and express his emotions. When he's scared, he shrinks a little, and when he's brave, he puffs up his fluff to appear bigger.",
+                    "url": "https://creator.qakjukl.net/api/book/content?contentKey=storyboard/characters/1763196508038_Ut4Ny3rt"
+                }
+            ],
+            "story": "Dusty the dust bunny hummed a wee, wobbly tune. He saw a sparkly light! It danced under the big chair. Oh, his fluffy self might get tangled if he left his snug spot. But the light called to him. It whispered of secrets!\n\nDusty puffed up. He took a tiny hop. The light shimmered brighter! He wiggled a bit closer. A big, scary dust clump blocked his way. \"Oh dear!\" squeaked Dusty. He squeezed past. The light pulsed, warm and inviting.\n\nHe took another brave hop. A crumb mountain rose high. \"Too tall!\" he cried. But the light winked. Dusty tumbled over it, rolling, rolling, rolling! He landed with a soft thump. The light glowed like a tiny sun.\n\nOne more leap! A giant, fuzzy sock lay flat. It stretched like a long, dark cave. Dusty shivered. He hummed a bit louder, a braver tune now. He scurried through the soft, dark tunnel. He popped out! The sparkly light was right there. It was a lost button, shiny and round. Dusty giggled. He had found it!",
+            "style": "A comic cartoon style, crisp, bold brushstrokes that outline shapes with a playful, energetic edge. The color tones are bright yet balanced, with a flat, even finish that pops off the page without overwhelming. The drawing skill is precise but exaggerated, focusing on thick, confident lines and simplified forms that are instantly recognizable and fun. Lighting is flat and uniform, giving a cheerful, cartoonish clarity that keeps the tone light and engaging.",
+            "title": "Dusty the Dust Bunny's Adventure"
+        }
+        payload.update(kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "生成封面图片的提示词和角色信息"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def generateCoverimage(self, authorization, DeviceType="web", **kwargs):
+        """使用提示词和角色信息生成最终的封面图片"""
+        # Create Data:  V1.22.0  &  2025-12-11
+        url = f"https://{base_url}/api/aiserver/storybook/image/nano_create"
+        payload = {
+            "characters": [
+                {
+                    "name": "Dusty",
+                    "description": "Dusty is a small, perfectly round dust bunny composed of exceptionally soft, fluffy grey dust with gentle hints of light blue and lavender woven throughout his body. He does not wear any clothes. He lacks distinct limbs, moving by hopping and wiggling his entire body. His face is simple, dominated by two large, shiny black button-like eyes that sparkle with curiosity and express his emotions. When he's scared, he shrinks a little, and when he's brave, he puffs up his fluff to appear bigger.",
+                    "description1": "Dusty is a small, perfectly round dust bunny composed of exceptionally soft, fluffy grey dust with gentle hints of light blue and lavender woven throughout his body. He does not wear any clothes. He lacks distinct limbs, moving by hopping and wiggling his entire body. His face is simple, dominated by two large, shiny black button-like eyes that sparkle with curiosity and express his emotions. When he's scared, he shrinks a little, and when he's brave, he puffs up his fluff to appear bigger.",
+                    "url": "https://creator.qakjukl.net/api/book/content?contentKey=storyboard/characters/1763196508038_Ut4Ny3rt"
+                }
+            ],
+            "prompt": "A comic cartoon style, crisp, bold brushstrokes that outline shapes with a playful, energetic edge. The color tones are bright yet balanced, with a flat, even finish that pops off the page without overwhelming. The drawing skill is precise but exaggerated, focusing on thick, confident lines and simplified forms that are instantly recognizable and fun. Lighting is flat and uniform, giving a cheerful, cartoonish clarity that keeps the tone light and engaging. A typography with a soft, fuzzy texture, like a dust bunny, with subtle shimmers of light emanating from within, in a playful, slightly wobbly yet bold font, with hints of very soft grey and pale yellow, as if lit by a tiny, warm glow. says \"Dusty the Dust Bunny's Adventure\". An extreme close-up, low-angle shot, making a tiny, fluffy, light grey dust bunny named Dusty appear monumental as he stands bravely before an enormous, soft, dark blue sock that stretches across the scene like a vast, intimidating cave entrance. Dusty is puffing up his fluff to appear bigger, with his large, shiny black button-like eyes sparkling with curiosity, gazing forward with a determined front view. The sock is slightly frayed at the opening, hinting at its age. In the distance, just beyond the sock's mouth, a single, tiny, golden-yellow light gleams invitingly. The setting is a dusty, shadowy floor, with giant crumbs, fuzz, and other household debris creating a miniature, adventurous landscape around Dusty. The lighting is soft and warm from Dusty's perspective, emanating subtly from the distant light source, contrasting with the cool, dim shadows of the floor. The color palette is dominated by muted blues, greys, and browns, with a vibrant, warm glow from the distant light.",
+            "aspect_ratio": "16:9",
+            "names": ["Dusty"],
+            "task_id": "845705ff-c5c6-4aa2-9b5b-402519e8d86b"
+        }
+        payload.update(kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "使用提示词和角色信息生成最终的封面图片"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def generateCoverimageStatus(self, authorization, request_id, DeviceType="web"):
+        """
+        查看提示词和角色信息生成最终的封面图片状态
+        :param request_id: 提示词和角色信息生成最终的封面图片任务请求id
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.22.0  &  2025-12-11
+        url = f"https://{base_url}/api/aiserver/storybook/image/status"
+        payload = {
+            "request_id": request_id
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "使用提示词和角色信息生成最终的封面图片"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def upload_book_cover(self, authorization, bookId, file, DeviceType="web"):
+        """
+        修改封面
+        :param bookId: (integer, query, required) bookId
+        :param file: (file, formData, optional) 上传文件
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-11
+        url = f"https://{base_url}/api/book/uploadCover"
+        payload = {
+            "bookId": bookId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType, Content_Type='multipart/form-data')
+
+        response = requests.request("POST", url, headers=headers, params=payload, files=file)
+        error_msg = "修改封面"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+

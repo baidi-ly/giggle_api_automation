@@ -32,7 +32,7 @@ class MaterialsApi(BaseAPI):
         response = response.json()
         return response
 
-    def download_materials(self, authorization, key, fileName, DeviceType="web", **kwargs):
+    def download_materials(self, authorization, key, fileName, DeviceType="web", fileType="msgpack", real_time=False, **kwargs):
         """
         下载材料
         :param key: (string, query, required) key
@@ -55,7 +55,14 @@ class MaterialsApi(BaseAPI):
             response = requests.get(redirect_url, headers=headers)
         error_msg = "下载材料"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        file_path = os.getcwd() + fr'/report/{fileName}.msgpack'
-        with open(file_path, 'wb') as file:
-            file.write(response.content)
-
+        file_path = os.getcwd() + fr'/report/{fileName}.{fileType}'
+        if not real_time:
+            with open(file_path, 'wb') as file:
+                file.write(response.content)
+        else:
+            with open(file_path, 'wb') as file:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        file.write(chunk)
+                        file.flush()  # 刷新缓冲
+                        os.fsync(file.fileno())  # 可选：强制落盘

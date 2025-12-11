@@ -437,3 +437,22 @@ class BaseAPI:
             return "zh"
         elif bool(re.search('[a-zA-Z]', _string)):
             return "en"
+
+    def download_file(self, authorization, fileName, url, DeviceType="web", fileType="png"):
+        """
+        下载材料
+        :param key: (string, query, required) key
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-05
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+        response = requests.request("GET", url, headers=headers, allow_redirects=False)
+        if response.status_code == 302:
+            redirect_url = response.headers.get('Location')
+            response = requests.get(redirect_url, headers=headers)
+        error_msg = "下载材料"
+        assert response.status_code == 200, f"{error_msg}失败，失败信息->{response.reason}{response.content}"
+        file_path = os.getcwd() + fr'/report/{fileName}.{fileType}'
+        with open(file_path, 'wb') as file:
+            file.write(response.content)
