@@ -506,13 +506,13 @@ class TestBook:
         uk	Ukrainian (乌克兰语)
         '''
         # 列出当前用户创建的书籍列表中，找到书名称hq_test的故事书做测试
-        books_res = self.book.book_list(self.authorization)['data']['content']
+        books_res = self.book.book_list(self.authorization, pageSize=100)['data']['content']
         for book in books_res:
-            if book['bookName'] == "Tiny Red's Wobbly Lines":
+            if book['bookName'] == "hq_test":
                 bookId = book['id']
                 break
         else:
-            assert False, "未找到《Tiny Red's Wobbly Lines》这本书！"
+            assert False, "未找到《hq_test》这本书！"
         # 保存故事书的领读数据
         narrationData = [
             {
@@ -990,11 +990,11 @@ class TestBook:
         # 列出当前用户创建的书籍列表
         bookList = self.book.book_list(self.authorization)['data']['content']
         for book in bookList:
-            if book['bookName'] == "Barnaby and the Giggle-Berries":
+            if book['bookName'] == "The Sock-Eating Bear":
                 bookIds = [book['id']]
                 break
         else:
-            assert False, "未找到故事书《Barnaby and the Giggle-Berries》"
+            assert False, "未找到故事书《The Sock-Eating Bear》"
 
         res = self.book.translation_trigger(self.authorization, bookIds)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -1017,10 +1017,14 @@ class TestBook:
             assert False, "未找到故事书《The Sock-Eating Bear》"
         # 根据故事书ID和语言代码查询语言包地址
         res = self.book.languagePack(self.authorization, book_id, languageCode)
-        assert res['data']['bookId'] == int(book_id)
-        url = res['data']['url']
-        fileName = '字幕' + languageCode + self.now
-        self.materials.download_materials(self.authorization, '', fileName, url=url)
+        if res['code'] == 200:  # 如果code不是200，说明字幕还未生成成功，校验code是100051
+            assert res['data']['bookId'] == int(book_id)
+            url = res['data']['url']
+            fileName = '字幕' + languageCode + self.now
+            self.materials.download_materials(self.authorization, '', fileName, url=url)
+        else:
+            assert res['code'] == 100051
+            assert res['data'] == 'The specified key does not exist'
 
     @pytest.mark.release
     def test_book_positive_upload_webp_check(self):

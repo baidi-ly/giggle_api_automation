@@ -14,6 +14,7 @@ import sys
 from config import RunConfig
 from test_case.page_api.admin.admin_course_api import AdminCourseApi
 from test_case.page_api.admin.admin_kid_api import AdminKidApi
+from test_case.page_api.book.book_api import BookApi
 from test_case.page_api.user.user_api import UserApi
 
 sys.path.append(r'..\..\..\E10自动化')
@@ -405,6 +406,7 @@ def add_interface_description_to_request_header(request):
     os.environ.update({"case_des": ""})
 
 user = UserApi()
+book1 = BookApi()
 admin_course = AdminCourseApi()
 admin_kid = AdminKidApi()
 authorization, user_id = user.get_authorization()
@@ -438,6 +440,17 @@ def clear_test_data():
                 user.deletekid(authorization, kid['kidId'])
     except Exception as err:
         print('批量删除测试学生失败，原因是：', err)
+
+    yield
+    # 批量删除测试故事书
+    try:
+        books_res = book1.book_list(authorization, user_id)['data']['content']
+        for book in books_res:
+            if book['bookName'].startswith('dibo_test_book'):
+                bookId = book['id']
+                book1.delete_book(authorization, bookId)
+    except Exception as err:
+        print('批量删除测试故事书失败，原因是：', err)
 
 @pytest.fixture(scope='session')
 def get_course_ids_session():
