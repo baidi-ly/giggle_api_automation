@@ -29,13 +29,6 @@ class TestGame:
                 self.kid_id = kid['id']
                 break
 
-    def teardown_class(self):
-        '''
-        所有用例执行完之后执行，可执行动作，清理所有注册的数据
-        本次测试mock只创建了注册接口，未创建清除注册用户接口，暂无代码
-        '''
-        pass
-
     @pytest.fixture(scope="class")
     def getkidId(self):
         '''类前置 - 获取kidId'''
@@ -57,7 +50,8 @@ class TestGame:
 
     @pytest.mark.smoke
     def test_game_positive_getVisible_ok(self):
-        """查询故事书Tab是否显示-正向用例"""
+        """查询故事书Tab是否显示"""
+        # 查询故事书Tab是否显示
         res = self.game.getVisible(self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -84,7 +78,7 @@ class TestGame:
             assert res['data']['visible'] in [True, False], f"接口返回data数据异常：{res['data']}"
 
     def test_game_positive_drawing_word(self):
-        """画词-正向流程"""
+        """画词"""
         word = "cat"
         res = self.game.drawing_word(self.authorization, word)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -128,17 +122,25 @@ class TestGame:
             assert res['message'] == 'Course word not found', f"接口返回message信息异常: 预期【Course word not found】，实际【{res['message']}】"
             assert res['data'] == 'Course word not found', f"接口返回data数据异常：{res['data']}"
 
-    def test_game_positive_get_playzone_price(self):
-        """playZone价格-正向流程"""
+    @pytest.mark.smoke
+    def test_game_positive_published_play_zones(self):
+        """获取所有已发布的游戏列表"""
+        # 获取所有已发布的游戏列表
         playZoneId = self.game.published_play_zones(self.authorization)['data']['content'][0]['id']
+        # 获取playZone价格
         res = self.game.get_playzone_price(self.authorization, playZoneId)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【100054】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data']['playZoneId'] == playZoneId, f"接口返回data数据异常：{res['data']}"
+        playZone_info = {
+            "isPurchased": False,
+            "name": "video test",
+            "playZoneId": 703396694306885,
+            "plays": 3,
+            "points": 0,
+            "remainingPlays": 0
+        }
+        assert res['data'] == playZone_info
 
     def test_game_positive_get_playzone_invalid(self):
-        """playZone价格-正向流程"""
+        """playZone价格"""
         playZoneId = 1
         res = self.game.get_playzone_price(self.authorization, playZoneId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -166,7 +168,7 @@ class TestGame:
 
     @pytest.mark.smoke
     def test_game_positive_getLearningstatus_ok(self, getkidId):
-        """获取孩子学习状态-正向用例"""
+        """获取孩子学习状态"""
         kid_id = getkidId
         res = self.game.getLearningstatus(self.authorization, kid_id)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -176,7 +178,7 @@ class TestGame:
 
     @pytest.mark.smoke
     def test_game_positive_getUnreviewedWords_ok(self, getkidId):
-        """获取未复习的单词-正向用例"""
+        """获取未复习的单词"""
         kid_id = getkidId
         learningStatus_res = self.game.getLearningstatus(self.authorization, kid_id)
         courseIds = DataFrame(learningStatus_res['data'])['lessonId'].tolist()
@@ -192,7 +194,7 @@ class TestGame:
 
     @pytest.mark.smoke
     def test_game_positive_reportReviewedWords_ok(self, getkidId):
-        """上报学习过的单词-正向用例"""
+        """上报学习过的单词"""
         kid_id = getkidId
         learningStatus_res = self.game.getLearningstatus(self.authorization, kid_id)
         courseIds_res = DataFrame(learningStatus_res['data'])['lessonId'].tolist()
@@ -217,14 +219,13 @@ class TestGame:
 
     @pytest.mark.smoke
     def test_game_positive_dailyLearning_ok(self):
-        """记录用户今日学习完成状态-正向用例"""
+        """记录用户今日学习完成状态"""
         res = self.game.recorde_dailyLearning(self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == None, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -246,14 +247,13 @@ class TestGame:
 
     @pytest.mark.smoke
     def test_game_positive_getDailyLearning_ok(self):
-        """检查用户今日是否完成学习-正向用例"""
+        """检查用户今日是否完成学习"""
         res = self.game.getDailyLearning(self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == True, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [

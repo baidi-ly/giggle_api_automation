@@ -123,7 +123,7 @@ class BaseAPI:
             "Deviceid": Deviceid,
             "DeviceType": DeviceType,    # android/ios/web
             "Timestamp": timestamp,
-            # "k8scluster": 'true'
+            "k8scluster": 'true'
         }
         response = self.http_timeout().request("POST", url, headers=headers, json=payload)
         error_msg = "用户登录 - 邮箱密码"
@@ -411,7 +411,7 @@ class BaseAPI:
             "DeviceId": DeviceId,
             "DeviceType": DeviceType,  # android/ios/web
             "Timestamp": timestamp,
-            # "k8scluster": 'true'
+            "k8scluster": 'true'
         }
         headers.update(kwargs)
         if authorization == 'missing':

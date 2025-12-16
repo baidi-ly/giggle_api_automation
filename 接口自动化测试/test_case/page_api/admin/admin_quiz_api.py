@@ -102,7 +102,7 @@ class AdminQuizApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def quiz_questions(self, authorization, courseName='', page=0, size=20, DeviceType="web", code=200, **kwargs):
+    def quiz_questions(self, authorization, DeviceType="web", **kwargs):
         """
         题库列表查询（分页）
         :param courseName: (string, query, optional) courseName
@@ -117,17 +117,17 @@ class AdminQuizApi(BaseAPI):
         # Create Data:  V1.21.0  &  2025-11-20
         url = f"https://{admin_base_url}/admin/quiz/question/list"
         payload = {
-            "courseName": courseName,
-            "page": page,
-            "size": size,
+            "courseName": '',
+            "page": 0,
+            "size": 200,
         }
-        payload = self.request_body(payload, **kwargs)
+        payload.update(kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
         response = requests.request("GET", url, headers=headers, params=payload)
         error_msg = "题库列表查询（分页）"
-        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()
             return response

@@ -28,7 +28,7 @@ if __name__ =="__main__":
     # 2. 确保Pytest参数正确
     pytest.main([
         pathcase,
-        "-m release",  # 测试标记
+        "-m smoke",  # 测试标记
         f"--html={pathreport}",  # 路径需用引号包裹（避免空格）
         "--self-contained-html",
         "--reruns=3",  # 失败重试 3 次

@@ -68,110 +68,101 @@ class TestCourse:
 
     def teardown_class(self):
         '''清除所有课程用户标签测试数据'''
-        try:
-            for status in [0, 1]:
-                pl = {"status": status}
-                course_tags = self.admin_course.course_tag_list(self.authorization, **pl)['data']
-                for course_tag in course_tags:
-                    # 删除课程用户标签
-                    if course_tag['name'].startswith('course_tag_test'):
-                        course_tag_id = course_tag['id']
-                        delete_res = self.admin_course.delete_course_tag(self.authorization, course_tag_id)
-                        assert delete_res['data'] == '删除成功', f"接口返回data数据异常：{delete_res['data']}"
-        except Exception as e:
-            print(f'删除课程用户标签失败，原因是：{e}')
+        # try:
+        #     for status in [0, 1]:
+        #         pl = {"status": status}
+        #         course_tags = self.admin_course.course_tag_list(self.authorization, **pl)['data']
+        #         for course_tag in course_tags:
+        #             # 删除课程用户标签
+        #             if course_tag['name'].startswith('course_tag_test'):
+        #                 course_tag_id = course_tag['id']
+        #                 delete_res = self.admin_course.delete_course_tag(self.authorization, course_tag_id)
+        #                 assert delete_res['data'] == '删除成功', f"接口返回data数据异常：{delete_res['data']}"
+        # except Exception as e:
+        #     print(f'删除课程用户标签失败，原因是：{e}')
+        #
+        # try:
+        #     for status in [0, 1]:
+        #         pl = {"status": status}
+        #         course_tags = self.admin_course.course_tag_list(self.authorization, **pl)['data']['content']
+        #         for course_tag in course_tags:
+        #             # 删除课程用户标签
+        #             if course_tag['name'].startswith('course_tag_test'):
+        #                 course_tag_id = course_tag['id']
+        #                 if status == 1:
+        #                     tag_id = course_tag['id']
+        #                     pl = {
+        #                         "name": course_tag['name'],
+        #                         "multilingualKey": course_tag['multilingualKey'],
+        #                         "skillIds": course_tag['skills'],
+        #                         "status": 0
+        #                     }
+        #                     self.admin_course.update_course_tag(self.authorization, tag_id, **pl)
+        #                 delete_res = self.admin_course.delete_course_tag(self.authorization, course_tag_id)
+        #                 assert delete_res['data'] == '删除成功', f"接口返回data数据异常：{delete_res['data']}"
+        # except Exception as e:
+        #     print(f'删除课程用户标签失败，原因是：{e}')
+        #
+        # try:
+        #     # 获取所有教育类型为dibo_test开头的等级技能
+        #     delete_skills = []
+        #     level_skills = self.admin_level.level_skills(self.authorization)['data']
+        #     for course_skill in level_skills:
+        #         if course_skill['educationType'].startswith('dibo_test'):
+        #             delete_skills.append(course_skill['id'])
+        #     # 删除等级技能
+        #     if delete_skills:
+        #         del_res = self.admin_level.deleteLevelskills(self.authorization, delete_skills)
+        #         assert del_res['code'] == 200
+        # except Exception as e:
+        #     print(f'删除等级技能失败，原因是：{e}')
 
-        try:
-            questions_res = self.admin_quiz.quiz_questions(self.authorization, 'Colors', size=1000)
-            questionIds = DataFrame(questions_res['data']['content'])['id'].tolist()
-            for questionId in questionIds:
-                # 删除quiz题目
-                self.admin_quiz.delete_quiz_question(self.authorization, questionId)
-        except Exception as e:
-            print(f'删除quiz题目失败，原因是：{e}')
+    # @pytest.fixture(scope='class')
+    # def courseId_fixture(self):
+    #     """获取课程详情包括版本信息"""
+    #     # 获取顶层课程目录列表
+    #     topcategory_res = self.admin_course.getAlltopcategory(self.admin_auth)
+    #     for category in topcategory_res['data']:
+    #         parentId = category['id']
+    #         # 获取课程子目录列表
+    #         category_res1 = self.admin_course.getAllsubcategory(self.admin_auth, parentId)
+    #         for subcategory in category_res1['data']:
+    #             parentId1 = subcategory['id']
+    #             category_res2 = self.admin_course.getAllsubcategory(self.admin_auth, parentId1)
+    #             for subcategory2 in category_res2['data']:
+    #                 categoryId = subcategory2['id']
+    #                 # 获取分类下所有课程
+    #                 courselistAll = self.admin_course.course_listAll(self.admin_auth, categoryId)['data']
+    #                 if not courselistAll:
+    #                     continue
+    #                 course_id = DataFrame(courselistAll)['id'].tolist()[0]
+    #                 return course_id
 
-        try:
-            for status in [0, 1]:
-                pl = {"status": status}
-                course_tags = self.admin_course.course_tag_list(self.authorization, **pl)['data']['content']
-                for course_tag in course_tags:
-                    # 删除课程用户标签
-                    if course_tag['name'].startswith('course_tag_test'):
-                        course_tag_id = course_tag['id']
-                        if status == 1:
-                            tag_id = course_tag['id']
-                            pl = {
-                                "name": course_tag['name'],
-                                "multilingualKey": course_tag['multilingualKey'],
-                                "skillIds": course_tag['skills'],
-                                "status": 0
-                            }
-                            self.admin_course.update_course_tag(self.authorization, tag_id, **pl)
-                        delete_res = self.admin_course.delete_course_tag(self.authorization, course_tag_id)
-                        assert delete_res['data'] == '删除成功', f"接口返回data数据异常：{delete_res['data']}"
-        except Exception as e:
-            print(f'删除课程用户标签失败，原因是：{e}')
-
-        try:
-            # 获取所有教育类型为dibo_test开头的等级技能
-            delete_skills = []
-            level_skills = self.admin_level.level_skills(self.authorization)['data']
-            for course_skill in level_skills:
-                if course_skill['educationType'].startswith('dibo_test'):
-                    delete_skills.append(course_skill['id'])
-            # 删除等级技能
-            if delete_skills:
-                del_res = self.admin_level.deleteLevelskills(self.authorization, delete_skills)
-                assert del_res['code'] == 200
-        except Exception as e:
-            print(f'删除等级技能失败，原因是：{e}')
-
-    @pytest.fixture(scope='class')
-    def courseId_fixture(self):
-        """获取课程详情包括版本信息"""
-        # 获取顶层课程目录列表
-        topcategory_res = self.admin_course.getAlltopcategory(self.admin_auth)
-        for category in topcategory_res['data']:
-            parentId = category['id']
-            # 获取课程子目录列表
-            category_res1 = self.admin_course.getAllsubcategory(self.admin_auth, parentId)
-            for subcategory in category_res1['data']:
-                parentId1 = subcategory['id']
-                category_res2 = self.admin_course.getAllsubcategory(self.admin_auth, parentId1)
-                for subcategory2 in category_res2['data']:
-                    categoryId = subcategory2['id']
-                    # 获取分类下所有课程
-                    courselistAll = self.admin_course.course_listAll(self.admin_auth, categoryId)['data']
-                    if not courselistAll:
-                        continue
-                    course_id = DataFrame(courselistAll)['id'].tolist()[0]
-                    return course_id
-
-    @pytest.fixture(scope='function')
-    def createCourseTag_method(self):
-        '''方法固件 - 创建课程用户标签'''
-        # 创建课程用户标签
-        tag_name = 'course_tag_test' + self.now + random.choice(string.ascii_letters)
-        pl = {
-            "name": tag_name,
-            "multilingualKey": "tag.reading",
-            "tagType": 'normal', # 必填，可选值包括 normal、hot、recommended_search 等。
-            "status": 1,
-            "skillIds": self.skillIds, # 关联的课程等级技能 ID 列表，Long 数组，可选，默认空数组。
-        }
-
-        file = {
-            'coverImage': ('story_face.webp', open(os.getcwd() + f'/test_data/story_face.webp', 'rb'))
-        }
-        res = self.admin_course.create_course_tag(self.authorization, file=file, **pl)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        course_tag_id = res['data']['id']
-
-        yield course_tag_id
-
-        # 删除课程标签
-        res = self.admin_course.delete_course_tag(self.authorization, course_tag_id)
-        assert res['code'] == 200, f"删除课程标签失败！"
+    # @pytest.fixture(scope='function')
+    # def createCourseTag_method(self):
+    #     '''方法固件 - 创建课程用户标签'''
+    #     # 创建课程用户标签
+    #     tag_name = 'course_tag_test' + self.now + random.choice(string.ascii_letters)
+    #     pl = {
+    #         "name": tag_name,
+    #         "multilingualKey": "tag.reading",
+    #         "tagType": 'normal', # 必填，可选值包括 normal、hot、recommended_search 等。
+    #         "status": 1,
+    #         "skillIds": self.skillIds, # 关联的课程等级技能 ID 列表，Long 数组，可选，默认空数组。
+    #     }
+    #
+    #     file = {
+    #         'coverImage': ('story_face.webp', open(os.getcwd() + f'/test_data/story_face.webp', 'rb'))
+    #     }
+    #     res = self.admin_course.create_course_tag(self.authorization, file=file, **pl)
+    #     assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+    #     course_tag_id = res['data']['id']
+    #
+    #     yield course_tag_id
+    #
+    #     # 删除课程标签
+    #     res = self.admin_course.delete_course_tag(self.authorization, course_tag_id)
+    #     assert res['code'] == 200, f"删除课程标签失败！"
 
     def test_course_blockedCourseIds_login(self):
         """有效的kidId，返回完整统计数据"""
@@ -252,43 +243,43 @@ class TestCourse:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.fixture(scope='function')
-    def create_course_tag_method(self):
-        # 创建多个等级技能
-        skillIds = []
-        for i in range(3):
-            educationType = "debbie_test" + self.now + str(i)
-            pl = {
-                "educationType": educationType,
-            }
-            skill_id = self.admin_course.createLevelSkill(self.authorization, **pl)['data']['id']
-            skillIds.append(skill_id)
-        # 创建课程用户标签
-        tag_name = 'course_tag_test' + self.now
-        pl = {
-            "name": tag_name,
-            "multilingualKey": "tag.reading",
-            "tagType": 'normal', # 必填，可选值包括 normal、hot、recommended_search 等。
-            "status": 1,
-            "skillIds": skillIds, # 关联的课程等级技能 ID 列表，Long 数组，可选，默认空数组。
-        }
-
-        file = {
-            'coverImage': ('story_face.webp', open(os.getcwd() + f'/test_data/story_face.webp', 'rb'))
-        }
-        create_res = self.admin_course.create_course_tag(self.authorization, file=file, **pl)
-        course_tag_id = create_res['data']['id']    # 用户标签ID
-
-        yield course_tag_id
-
-        # 删除课程用户标签
-        res = self.admin_course.delete_course_tag(self.authorization, course_tag_id)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-
-        # 删除等级技能
-        del_res = self.admin_course.deleteLevelskills(self.authorization, skillIds)
-        assert del_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{del_res['code']}】"
+    # @pytest.fixture(scope='function')
+    # def create_course_tag_method(self):
+    #     # 创建多个等级技能
+    #     skillIds = []
+    #     for i in range(3):
+    #         educationType = "debbie_test" + self.now + str(i)
+    #         pl = {
+    #             "educationType": educationType,
+    #         }
+    #         skill_id = self.admin_course.createLevelSkill(self.authorization, **pl)['data']['id']
+    #         skillIds.append(skill_id)
+    #     # 创建课程用户标签
+    #     tag_name = 'course_tag_test' + self.now
+    #     pl = {
+    #         "name": tag_name,
+    #         "multilingualKey": "tag.reading",
+    #         "tagType": 'normal', # 必填，可选值包括 normal、hot、recommended_search 等。
+    #         "status": 1,
+    #         "skillIds": skillIds, # 关联的课程等级技能 ID 列表，Long 数组，可选，默认空数组。
+    #     }
+    #
+    #     file = {
+    #         'coverImage': ('story_face.webp', open(os.getcwd() + f'/test_data/story_face.webp', 'rb'))
+    #     }
+    #     create_res = self.admin_course.create_course_tag(self.authorization, file=file, **pl)
+    #     course_tag_id = create_res['data']['id']    # 用户标签ID
+    #
+    #     yield course_tag_id
+    #
+    #     # 删除课程用户标签
+    #     res = self.admin_course.delete_course_tag(self.authorization, course_tag_id)
+    #     assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+    #     assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+    #
+    #     # 删除等级技能
+    #     del_res = self.admin_course.deleteLevelskills(self.authorization, skillIds)
+    #     assert del_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{del_res['code']}】"
 
     @pytest.mark.smoke
     def test_course_positive_getAlbums_ok(self):
@@ -490,15 +481,15 @@ class TestCourse:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.fixture(scope="class")
-    def getSecondekidId(self):
-        '''类前置 - 获取kidId'''
-        kid_res = self.kid.getKids(self.authorization)['data']
-        for kid in kid_res:
-            if kid['name'] == "New Kid":
-                kid_id = kid['id']
-                break
-        yield kid_id
+    # @pytest.fixture(scope="class")
+    # def getSecondekidId(self):
+    #     '''类前置 - 获取kidId'''
+    #     kid_res = self.kid.getKids(self.authorization)['data']
+    #     for kid in kid_res:
+    #         if kid['name'] == "New Kid":
+    #             kid_id = kid['id']
+    #             break
+    #     yield kid_id
 
     def test_course_positive_questionnaire(self, getSecondekidId):
         '''
@@ -1138,15 +1129,15 @@ class TestCourse:
         assert rating_res['data'][str(course_id)]['hasRated']
         assert rating_res['data'][str(course_id)]['rating'] == rate
 
-    @pytest.fixture(scope="function")
-    def kid_data_fixture(self):
-        '''创建测试学生'''
-        # 创建测试学生
-        kid_name = 'dibo_test_kid' + self.now
-        kid_id = self.user.createkid(self.authorization, kid_name)['data']['id']
-        yield kid_id
-        # 删除测试学生
-        self.user.deletekid(self.authorization, kid_id)
+    # @pytest.fixture(scope="function")
+    # def kid_data_fixture(self):
+    #     '''创建测试学生'''
+    #     # 创建测试学生
+    #     kid_name = 'dibo_test_kid' + self.now
+    #     kid_id = self.user.createkid(self.authorization, kid_name)['data']['id']
+    #     yield kid_id
+    #     # 删除测试学生
+    #     self.user.deletekid(self.authorization, kid_id)
 
     @pytest.mark.smoke
     @pytest.mark.parametrize('learningLevel', ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'L10', 'L11', 'L12', 'L13', 'L14', 'L15', 'L16', 'L17', 'L18','L19', 'L20'])
@@ -1217,33 +1208,33 @@ class TestCourse:
                 assert course_no > no
                 no = course_no
 
-    @pytest.fixture(scope='function')
-    def voiceMultilingual_fixture(self, courseId_fixture):
-        '''新增语音文案'''
-        # 获取课程详情包括版本信息
-        course_id = courseId_fixture
-        # 新增语音文案
-        key = 'dibo_test' + self.now
-        pl = {
-            "key": key,  # String，必填：环节标识（比如某一页、某一步骤的key）
-            "targetLanguage": "en"  # String，必填：目标语言代码（如 "en"、"ar"）
-        }
-        add_res = self.admin_course.addVoiceMultilingual(self.authorization, course_id, **pl)
-        assert add_res['message'] == 'success', "新增语音文案失败！"
-        # 分页查询语音文案列表，新增语音文案成功
-        search_res1 = self.admin_course.voiceMultilinguals(self.authorization, course_id, key=key, size=100)
-        for item in search_res1['data']['content']:
-            if item['key'] == key:
-                voice_id = item['id']
-                break
-        else:
-            assert False, "新增语音文案失败，列表未查询到！"
-
-        yield course_id, voice_id
-
-        # 删除语音文案
-        delete_res = self.admin_course.deleteVoiceMultilingual(self.authorization, voice_id)
-        assert delete_res['message'] == 'success', "删除语音文案失败！"
+    # @pytest.fixture(scope='function')
+    # def voiceMultilingual_fixture(self, courseId_fixture):
+    #     '''新增语音文案'''
+    #     # 获取课程详情包括版本信息
+    #     course_id = courseId_fixture
+    #     # 新增语音文案
+    #     key = 'dibo_test' + self.now
+    #     pl = {
+    #         "key": key,  # String，必填：环节标识（比如某一页、某一步骤的key）
+    #         "targetLanguage": "en"  # String，必填：目标语言代码（如 "en"、"ar"）
+    #     }
+    #     add_res = self.admin_course.addVoiceMultilingual(self.authorization, course_id, **pl)
+    #     assert add_res['message'] == 'success', "新增语音文案失败！"
+    #     # 分页查询语音文案列表，新增语音文案成功
+    #     search_res1 = self.admin_course.voiceMultilinguals(self.authorization, course_id, key=key, size=100)
+    #     for item in search_res1['data']['content']:
+    #         if item['key'] == key:
+    #             voice_id = item['id']
+    #             break
+    #     else:
+    #         assert False, "新增语音文案失败，列表未查询到！"
+    #
+    #     yield course_id, voice_id
+    #
+    #     # 删除语音文案
+    #     delete_res = self.admin_course.deleteVoiceMultilingual(self.authorization, voice_id)
+    #     assert delete_res['message'] == 'success', "删除语音文案失败！"
 
     @pytest.mark.smoke
     def test_game_positive_voiceMultilinguals_ok22(self, voiceMultilingual_fixture):
@@ -1268,3 +1259,42 @@ class TestCourse:
             assert False, "新增语音文案失败，列表未查询到！"
         # 验证课程语音文案添加成功
         assert item1 == item2, "课程语音文案添加失败！"
+
+    @pytest.mark.release
+    def test_game_positive_voiceMultilinguals_oaa(self, kid_data_session, get_course_ids_session):
+        '''xxx'''
+        kid_id, kid_name = kid_data_session
+        # 获取顶层课程目录列表
+        topcategory_res = self.admin_course.getAlltopcategory(self.admin_auth)
+        for category in topcategory_res['data']:
+            parentId = category['id']
+            # 获取课程子目录列表
+            category_res1 = self.admin_course.getAllsubcategory(self.admin_auth, parentId)
+            for subcategory in category_res1['data']:
+                parentId1 = subcategory['id']
+                # 获取课程子目录列表
+                category_res2 = self.admin_course.getAllsubcategory(self.admin_auth, parentId1)
+                for subcategory2 in category_res2['data']:
+                    categoryId = subcategory2['id']
+                    # 获取分类下所有课程
+                    courselistAll = self.admin_course.course_listAll(self.admin_auth, categoryId)
+                    for course in courselistAll['data']:
+                        course_difficulty = course['difficulty']
+                        course_id = course['id']
+                        course_name = course['name']
+                        skills = course['skillList']
+                        # 题库列表查询（分页）
+                        course_quiz_res = self.admin_quiz.quiz_questions(self.authorization, courseName=course_name)
+                        # 根据题库获取Quiz题目
+                        quiz_ids = DataFrame(course_quiz_res['data']['content'])['id'].tolist()
+                        pl = {
+                            "count": 3,
+                            "kidId": kid_id,
+                            "quizType": "LESSON",
+                            "courseId": course_id
+                        }
+                        question_res = self.quiz.fetchQuestions(self.authorization, **pl)['data']['data']
+                        for question in question_res[0]['questions']:
+                            assert question['difficulty'] == course_difficulty
+                            assert question['skill'] in skills or any(question['skill'].startswith(kill) for kill in skills)
+                            assert question['id'] in quiz_ids
