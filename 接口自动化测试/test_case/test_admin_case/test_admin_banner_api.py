@@ -11,8 +11,8 @@ sys.path.append("..")
 
 import pytest
 
-@pytest.mark.Admin
-@pytest.mark.AdminBanner
+@pytest.mark.admin
+@pytest.mark.adminBanner
 class TestAdminBanner:
 
     def setup_class(self):

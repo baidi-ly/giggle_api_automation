@@ -9,7 +9,7 @@ sys.path.append("..")
 
 import pytest
 
-@pytest.mark.Admin
+@pytest.mark.admin
 @pytest.mark.adminIp
 class TestAdminIp:
 

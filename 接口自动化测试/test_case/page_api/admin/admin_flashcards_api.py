@@ -72,3 +72,30 @@ class AdminFlashcardsApi(BaseAPI):
             return response
         except json.decoder.JSONDecodeError:
             return False
+
+    def flashcards_list(self, authorization, DeviceType="web", **kwargs):
+        """
+        获取闪卡列表
+        :param keyword: (string, query, optional) keyword
+        :param page: (integer, query, optional) page
+        :param size: (integer, query, optional) size
+        :param type: (string, query, optional) type
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.23.0  &  2025-12-16
+        url = f"https://{base_url}/admin/flashcards/list"
+        payload = {
+            "keyword": '',
+            "page": 0,
+            "size": 10,
+            "type": ''
+        }
+        payload.update(kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "获取闪卡列表"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response

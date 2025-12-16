@@ -12,8 +12,8 @@ sys.path.append("..")
 import pytest
 expired_token = config.RunConfig.expired_token
 
-@pytest.mark.Admin
-@pytest.mark.AdminGrayscale
+@pytest.mark.admin
+@pytest.mark.adminGrayscale
 class TestAdminGrayscale:
 
     def setup_class(self):
@@ -29,4 +29,11 @@ class TestAdminGrayscale:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        grayscale_data = {
+            "enabled": True,
+            "failCount": 0,
+            "feature": "new_user_home_page",
+            "successCount": 1,
+            "total": 1
+        }
+        assert res['data'] == grayscale_data

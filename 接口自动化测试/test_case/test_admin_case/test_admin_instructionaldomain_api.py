@@ -9,8 +9,9 @@ sys.path.append("..")
 
 import pytest
 
-@pytest.mark.Admin
-@pytest.mark.AdminInstructionalDomain
+@pytest.mark.skip(reason='教学纬度功能已停用，已被技能标签替代')
+@pytest.mark.admin
+@pytest.mark.adminInstructionalDomain
 class TestAdminInstructionalDomain:
 
     def setup_class(self):
@@ -19,10 +20,10 @@ class TestAdminInstructionalDomain:
         self.now = strftime("%Y%m%d%H%M%S")
 
     @pytest.mark.smoke
-    def test_admin_instructionaldomain_positive_create_ok(self):
+    def test_admin_instructionaldomain_createInstructionalDomain_ok(self):
         """创建教学维度标签-正向用例"""
-        name = 'teaching_test' + self.now
-        res = self.admin_instructional.create(self.authorization, name)
+        name = 'dibo_test' + self.now
+        res = self.admin_instructional.createInstructionalDomain(self.authorization, name)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -30,8 +31,8 @@ class TestAdminInstructionalDomain:
 
     def test_admin_instructionaldomain_positive_create_twice(self):
         """创建教学维度标签-正向用例"""
-        self.admin_instructional.create(self.authorization)
-        res = self.admin_instructional.create(self.authorization)
+        self.admin_instructional.createInstructionalDomain(self.authorization)
+        res = self.admin_instructional.createInstructionalDomain(self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 100055, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'Resource name already exists', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -48,8 +49,7 @@ class TestAdminInstructionalDomain:
     )
     def test_admin_instructionaldomain_permission_create(self, desc, value):
         """创建教学维度标签-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin_instructional.create(value, code=401)
+        res = self.admin_instructional.createInstructionalDomain(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -70,7 +70,7 @@ class TestAdminInstructionalDomain:
             pl = {'pop_items': 'name'}
         else:
             pl = {'name': value}
-        res = self.admin_instructional.create(authorization=self.authorization, **pl, code=code)
+        res = self.admin_instructional.createInstructionalDomain(authorization=self.authorization, **pl, code=code)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         if code == 500:
             assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
@@ -90,7 +90,7 @@ class TestAdminInstructionalDomain:
     )
     def test_admin_instructionaldomain_boundary_create_name(self, desc, value, code):
         """创建教学维度标签-边界值测试(req)"""
-        res = self.admin_instructional.create(self.authorization, name=value, code=code)
+        res = self.admin_instructional.createInstructionalDomain(self.authorization, name=value, code=code)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 100006, f"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】"

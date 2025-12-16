@@ -11,8 +11,8 @@ sys.path.append("..")
 
 import pytest
 
-@pytest.mark.Admin
-@pytest.mark.AdminUser
+@pytest.mark.admin
+@pytest.mark.adminUser
 class TestAdminUser:
 
     def setup_class(self):
@@ -24,13 +24,14 @@ class TestAdminUser:
         courselistAll = self.admin.course_listAll(self.authorization, 641364052840517)
         yield courselistAll
 
+    @pytest.mark.smoke
     def test_admin_user_positive_sendemail_ok(self):
         """发送邮件-正向用例"""
         res = self.admin_user.sendemail(self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        assert res['data'] == 'SUCCESS', f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.parametrize(
         'desc, value',
@@ -366,9 +367,73 @@ class TestAdminUser:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        problem_user = {
+            "allInvitedRelatedKids": [],
+            "allInvitedRelatedKidsCount": 0,
+            "batchSize": 1500,
+            "dryRun": True,
+            "invitedUserEmails": [],
+            "invitedUsers": [],
+            "invitedUsersCount": 0,
+            "kidsFoundByInvitation": [],
+            "kidsFoundByInvitationCount": 0,
+            "kidsOwnedByInvitedUsers": [],
+            "kidsOwnedByInvitedUsersCount": 0,
+            "maxKidsLimit": 100000,
+            "message": "预览模式：已分析需要删除的数据，未执行实际删除操作",
+            "operation": "DRY_RUN",
+            "operationConfig": {
+                "batchSize": 1500,
+                "dryRun": True,
+                "maxKidsLimit": 100000
+            },
+            "problemUserEmail": "di.bbb@giggleacademy.me",
+            "problemUserId": 723894162968645,
+            "problemUserKids": [
+                {
+                    "id": 723894164357189,
+                    "inviteByKidsId": None,
+                    "userId": "723894162968645"
+                },
+                {
+                    "id": 750907965289605,
+                    "inviteByKidsId": None,
+                    "userId": "723894162968645"
+                },
+                {
+                    "id": 750923303363781,
+                    "inviteByKidsId": None,
+                    "userId": "723894162968645"
+                },
+                {
+                    "id": 751108612171077,
+                    "inviteByKidsId": None,
+                    "userId": "723894162968645"
+                }
+            ],
+            "problemUserKidsCount": 4,
+            "success": True,
+            "summary": {
+                "invitedData": {
+                    "allInvitedRelatedKidsCount": 0,
+                    "invitedUsersCount": 0,
+                    "kidsFoundByInvitationCount": 0,
+                    "kidsOwnedByInvitedUsersCount": 0
+                },
+                "problemUser": {
+                    "email": "di.bbb@giggleacademy.me",
+                    "kidsCount": 4,
+                    "userId": 723894162968645
+                },
+                "totalToDelete": {
+                    "totalKidsCount": 4,
+                    "totalUsersCount": 1
+                }
+            },
+            "totalKidsToDelete": 4
+        }
+        assert res['data'] == problem_user, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [

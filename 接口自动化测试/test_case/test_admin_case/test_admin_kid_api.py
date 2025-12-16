@@ -43,6 +43,26 @@ class TestAdminkid:
 
         self.now = strftime("%Y%m%d%H%M%S")
 
+    @pytest.fixture(scope="class")
+    def getSecondekidId(self):
+        '''类前置 - 获取kidId'''
+        kid_res = self.kid.getKids(self.authorization)['data']
+        for kid in kid_res:
+            if kid['name'] == "uuid":
+                kid_id = kid['id']
+                break
+        yield kid_id
+
+    @pytest.fixture(scope="function")
+    def kid_data_fixture(self):
+        '''创建测试学生'''
+        # 创建测试学生
+        kid_name = 'dibo_test_kid' + self.now
+        kid_id = self.user.createkid(self.authorization, kid_name)['data']['id']
+        yield kid_id
+        # 删除测试学生
+        self.user.deletekid(self.authorization, kid_id)
+
     @pytest.mark.smoke
     def test_admin_kid_positive_getInteractionPreference_ok(self):
         """查询孩子互动偏好-正向用例"""
@@ -131,9 +151,12 @@ class TestAdminkid:
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.smoke
-    def test_admin_kid_positive_update_ok(self):
+    def test_admin_kid_positive_update_ok(self, kid_data_fixture):
         """更新用户标签-正向用例"""
-        res = self.admin_kid.updateKidTags(self.authorization, self.kid_id, learningLevel='L2')
+        # 创建测试学生
+        kid_id = kid_data_fixture
+        # 更新用户标签
+        res = self.admin_kid.updateKidTags(self.authorization, kid_id, learningLevel='L2')
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -158,44 +181,55 @@ class TestAdminkid:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.fixture(scope="class")
-    def getSecondekidId(self):
-        '''类前置 - 获取kidId'''
-        kid_res = self.kid.getKids(self.authorization)['data']
-        for kid in kid_res:
-            if kid['name'] == "uuid":
-                kid_id = kid['id']
-                break
-        yield kid_id
-
     @pytest.mark.smoke
-    def test_admin_kid_positive_updateSkillMastery_ok(self, getSecondekidId):
+    def test_admin_kid_positive_updateSkillMastery_ok(self, kid_data_fixture):
         """更新用户技能标签-正向用例"""
-        kid_id = getSecondekidId
-        skillMasteryMap = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']['skillMasteryMap']
-        for k, v in skillMasteryMap.items():
-            if k == 'Letter Recognition-L2':
-                pl = {
-                    "kidId": kid_id,
-                    "skill": v['skill'],
-                    "masteryScore": 74.0,
-                    "masteryState": "Practicing"
-                }
-        res = self.admin_kid.updateSkillMastery(self.authorization, **pl)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.fixture(scope="function")
-    def kid_data_fixture(self):
-        '''创建测试学生'''
         # 创建测试学生
-        kid_name = 'dibo_test_kid' + self.now
-        kid_id = self.user.createkid(self.authorization, kid_name)['data']['id']
-        yield kid_id
-        # 删除测试学生
-        self.user.deletekid(self.authorization, kid_id)
+        kid_id = kid_data_fixture
+        # 获取学生技能掌握程度
+        skillMasteryMap = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']['skillMasteryMap']
+        assert not skillMasteryMap
+        # 更新用户技能标签
+        skill = 'Letter Recognition-L1'
+        pl = {
+            "kidId": kid_id,
+            "skill": skill,
+            "masteryScore": 74.0,
+            "masteryState": "Practicing"
+        }
+        res = self.admin_kid.updateSkillMastery(self.authorization, **pl)
+        assert res['message'] == 'success'
+        assert res['data'] == True, f"接口返回data数据异常：{res['data']}"
+        # 再次获取学生技能掌握程度
+        skillMasteryMap = self.admin_kid.getSkillMastery(self.authorization, kid_id)['data']['skillMasteryMap']
+        skill_data = {
+            "componentExposureRate": 0.0,
+            "components": {
+                "allComponents": [
+                    "Letter Recognition-L1-Letter-a",
+                    "Letter Recognition-L1-Letter-h",
+                    "Letter Recognition-L1-Letter-p",
+                    "Letter Recognition-L1-Letter-s",
+                    "Letter Recognition-L1-Letter-t"
+                ],
+                "exposedComponents": [],
+                "unexposedComponents": [
+                    "Letter Recognition-L1-Letter-a",
+                    "Letter Recognition-L1-Letter-h",
+                    "Letter Recognition-L1-Letter-p",
+                    "Letter Recognition-L1-Letter-s",
+                    "Letter Recognition-L1-Letter-t"
+                ]
+            },
+            "exposedComponents": None,
+            "masteryScore": 74.0,
+            "masteryState": "Practicing",
+            "skill": "Letter Recognition-L1",
+            "totalComponents": 5
+        }
+        skill_res = skillMasteryMap[skill]
+        assert skill_res.pop('lastUpdatedTime')
+        assert skill_res == skill_data
 
     @pytest.mark.smoke
     def test_adminKid_tagChangeLogs_changeItem_learningLevel(self, kid_data_fixture):

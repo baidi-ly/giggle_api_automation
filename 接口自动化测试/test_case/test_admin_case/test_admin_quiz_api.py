@@ -9,9 +9,9 @@ sys.path.append("..")
 
 import pytest
 
-@pytest.mark.Admin
-@pytest.mark.AdminCourse
-class TestAdminCourse:
+@pytest.mark.admin
+@pytest.mark.adminCourse
+class TestAdminQuiz:
 
     def setup_class(self):
         self.admin_quiz = AdminQuizApi()
@@ -24,4 +24,4 @@ class TestAdminCourse:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        assert res['data'] == True, f"接口返回data数据异常：{res['data']}"

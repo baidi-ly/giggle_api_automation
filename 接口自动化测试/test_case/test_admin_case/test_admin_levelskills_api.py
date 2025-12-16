@@ -18,8 +18,8 @@ import pytest
 expired_token = config.RunConfig.expired_token
 
 @pytest.mark.admin
-@pytest.mark.adminKid
-class TestAdminkid:
+@pytest.mark.adminLevelSkills
+class TestAdminLevelskills:
 
     def setup_class(self):
         self.admin_levelskills = AdminLevelskillsApi()
@@ -154,7 +154,6 @@ class TestAdminkid:
         assert res['data']['skill'] == "Reading-Level1"
         assert res['data']['necessary'] == necessary
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -193,7 +192,6 @@ class TestAdminkid:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -205,7 +203,6 @@ class TestAdminkid:
     )
     def test_admin_course_permission_deleteLevelskills(self, desc, value):
         """批量删除等级技能-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.admin_levelskills.deleteLevelskills(value, ids=[1,2,3], code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -260,7 +257,6 @@ class TestAdminkid:
         else:
             assert False
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -292,7 +288,6 @@ class TestAdminkid:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke
     def test_admin_course_positive_levelSkills_import_abnormal(self):
         """批量导入学习技能-正向用例"""
         file = {

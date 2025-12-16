@@ -15,8 +15,9 @@ class TestAdminFlashcard:
 
     def setup_class(self):
         self.admin_learning = AdminLearningApi()
-        self.authorization = self.admin_learning.get_authorization()[0]
+        self.authorization = self.admin_learning.get_admin_authorization()[0]
 
+    @pytest.mark.skip('临时测试接口')
     def test_admin_learningstats_positive_ok(self):
         """创建学习计划（包含单元和内容）-正向用例"""
         res = self.admin_learning.trigger_weekly_reports(self.authorization)

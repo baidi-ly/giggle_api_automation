@@ -12,8 +12,8 @@ import pytest
 
 expired_token = config.RunConfig.expired_token
 
-@pytest.mark.Admin
-@pytest.mark.AdminUser
+@pytest.mark.admin
+@pytest.mark.adminUser
 class TestAdminUser:
 
     def setup_class(self):
@@ -45,7 +45,6 @@ class TestAdminUser:
         for content in res['data']:
             assert 'localName' not in content, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [

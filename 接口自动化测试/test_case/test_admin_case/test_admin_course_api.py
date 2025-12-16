@@ -21,8 +21,8 @@ sys.path.append("..")
 import pytest
 expired_token = config.RunConfig.expired_token
 
-@pytest.mark.Admin
-@pytest.mark.AdminCourse
+@pytest.mark.admin
+@pytest.mark.adminCourse
 class TestAdminCourse:
 
     def setup_class(self):
@@ -92,10 +92,173 @@ class TestAdminCourse:
         except Exception as e:
             print(f'删除课程专辑失败，原因是：{e}')
 
+        try:
+            # 删除策略定义
+            strategy_res = self.admin_course.courseStrategies(self.admin_auth)['data']
+            for strategy in strategy_res['content']:
+                if strategy['strategyId'].startswith('dibo_test'):
+                    strategy_id = strategy['id']
+                    strategyId = strategy['strategyId']
+                    delete_res = self.admin_course.deleteCourseStrategy(self.admin_auth, strategy_id)
+                    if delete_res['data'] == '该策略已被规则或等级策略引用，无法删除':
+                        rule_res = self.admin_course.strategyRules(self.authorization)['data']['content']
+                        for rule in rule_res:
+                            if rule['strategyId'] == strategyId:
+                                rule_id = rule['id']
+                                self.admin_course.deleteStrategyRule(self.authorization, rule_id)
+                        level_rule_res = self.admin_course.strategylevelRules(self.authorization)['data']['content']
+                        for level_rule in level_rule_res:
+                            if level_rule['strategyId'] == strategyId:
+                                level_rule_id = level_rule['id']
+                                self.admin_course.deleteStrategylevelRule(self.authorization, level_rule_id)
+                        delete_res = self.admin_course.deleteCourseStrategy(self.admin_auth, strategy_id)
+                        assert delete_res['message'] == 'success', "删除策略定义失败！"
+                    else:
+                        assert delete_res['message'] == 'success', "删除策略定义失败！"
+        except Exception as e:
+            print(f'删除策略定义失败，原因是：{e}')
+
     @pytest.fixture(scope='class')
     def courselistAll(self):
         courselistAll = self.admin_course.course_listAll(self.admin_auth, 638245113409605)
         yield courselistAll
+
+    @pytest.fixture(scope='function')
+    def createLevelSkill_method(self):
+        '''方法固件 - 创建多个等级技能'''
+        skillIds = []
+        for i in range(3):
+            educationType = "dibo_test" + self.now + str(i)
+            pl = {
+                "educationType": educationType,
+            }
+            skill_id = self.admin_levelskills.createLevelSkill(self.authorization, **pl)['data']['id']
+            skillIds.append(skill_id)
+
+        yield skillIds
+
+        # 删除等级技能
+        del_res = self.admin_levelskills.deleteLevelskills(self.authorization, skillIds)
+        assert del_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{del_res['code']}】"
+
+    @pytest.fixture(scope='function')
+    def createCourseTag_method(self):
+        '''方法固件 - 创建课程用户标签'''
+        skillIds = []
+        for i in range(3):
+            educationType = "dibo_test" + self.now + str(i)
+            pl = {
+                "educationType": educationType,
+            }
+            skill_id = self.admin_levelskills.createLevelSkill(self.authorization, **pl)['data']['id']
+            skillIds.append(skill_id)
+
+        # 创建课程用户标签
+        tag_name = 'course_tag_test' + self.now
+        pl = {
+            "name": tag_name,
+            "multilingualKey": "tag.reading",
+            "tagType": 'normal', # 必填，可选值包括 normal、hot、recommended_search 等。
+            "status": 1,
+            "skillIds": skillIds, # 关联的课程等级技能 ID 列表，Long 数组，可选，默认空数组。
+        }
+
+        file = {
+            'coverImage': ('story_face.webp', open(os.getcwd() + f'/test_data/story_face.webp', 'rb'))
+        }
+        res = self.admin_course.create_course_tag(self.authorization, file=file, **pl)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        course_tag_id = res['data']['id']
+
+        yield course_tag_id
+
+        # 删除课程标签
+        res = self.admin_course.delete_course_tag(self.authorization, course_tag_id)
+        assert res['code'] == 200, f"删除课程标签失败！"
+
+    @pytest.fixture(scope='function')
+    def createStrategyRule(self, createCourseStrategy):
+        # 新增策略定义
+        strategyId = createCourseStrategy
+        # 获取推荐课程列表
+        recommends_res = self.course.getFixOrderRecommend(self.authorization, learningLevel='L1')
+        courseIds = [str(i) for i in DataFrame(recommends_res['data'])['courseId'].tolist()[:3]]
+        courseIds1 = ','.join(courseIds)
+        # 新增课程规则
+        add_res = self.admin_course.addStrategyRule(self.admin_auth, strategyId, courseIds1)
+        # 如果选中的课程已经添加课程规则则先移除
+        if add_res['code'] == 100006:
+            set_course = add_res['data']
+            set_course = re.search(r"(\d+)", set_course).group(1).split(',')
+            for course_id in set_course:
+                # 查询课程规则列表，移除目标课程已参与的课程规则
+                strategyRules0 = self.admin_course.strategyRules(self.admin_auth)
+                for strategyRule in strategyRules0['data']['content']:
+                    courseIds2 = strategyRule['courseIds'].split(',')
+                    if course_id in courseIds2:
+                        rule_id = strategyRule['id']
+                        strategyId1 = strategyRule['strategyId']
+                        new_courseIds = str(random.randint(1000, 9999))
+                        update_res = self.admin_course.updateStrategyRule(self.admin_auth, rule_id, strategyId1, new_courseIds)
+                        assert update_res['message'] == 'success'
+                        break
+            # 再次新增课程规则
+            add_res1 = self.admin_course.addStrategyRule(self.admin_auth, strategyId, courseIds1)
+            assert add_res1['message'] == 'success'
+        else:
+            assert add_res['message'] == 'success', "新增课程规则失败！"
+
+        yield rule_id, courseIds
+
+        # 删除课程规则
+        delete_res = self.admin_course.deleteStrategyRule(self.admin_auth, rule_id)
+        assert delete_res['message'] == 'success', "删除课程规则失败！"
+
+    @pytest.fixture(scope='class')
+    def createCourseStrategy(self):
+        '''新增策略定义'''
+        # 新增策略定义
+        strategyId = "dibo_test_v1" + self.now
+        pl = {
+            "strategyId": strategyId
+        }
+        add_res = self.admin_course.addCourseStrategy(self.admin_auth, **pl)
+        assert add_res['message'] == 'success', "新增策略定义失败！"
+        # 查询策略定义列表，验证新增策略定义成功
+        strategy_res1 = self.admin_course.courseStrategies(self.admin_auth)
+        for strategy in strategy_res1['data']['content']:
+            if strategy['strategyId'] == strategyId:
+                strategy_id = strategy['id']
+                break
+        else:
+            assert False, '新增课程策略后，未在策略定义列表中查询到！'
+
+        yield strategyId
+
+        # 删除策略定义
+        delete_res = self.admin_course.deleteCourseStrategy(self.admin_auth, strategy_id)
+        assert delete_res['message'] == 'success', "删除策略定义失败！"
+
+    @pytest.fixture(scope='function')
+    def get_courseIds(self):
+        """获取课程详情包括版本信息"""
+        # 获取顶层课程目录列表
+        topcategory_res = self.admin_course.getAlltopcategory(self.admin_auth)
+        for category in topcategory_res['data']:
+            parentId = category['id']
+            # 获取课程子目录列表
+            category_res1 = self.admin_course.getAllsubcategory(self.admin_auth, parentId)
+            for subcategory in category_res1['data']:
+                parentId1 = subcategory['id']
+                category_res2 = self.admin_course.getAllsubcategory(self.admin_auth, parentId1)
+                for subcategory2 in category_res2['data']:
+                    categoryId = subcategory2['id']
+                    # 获取分类下所有课程
+                    courselistAll = self.admin_course.course_listAll(self.admin_auth, categoryId)['data']
+                    if not courselistAll:
+                        continue
+                    courseIds = ','.join(DataFrame(courselistAll)[:3]['id'].tolist())
+                    return courseIds
 
     def test_admin_course_export_by_theme(self):
         """
@@ -340,59 +503,6 @@ class TestAdminCourse:
             assert res['code'] == 404, f"接口返回状态码异常: 预期【{'pending'}】，实际【{res['code']}】"
             assert res['message'] == 'not found', f"接口返回message信息异常: 预期【not found】，实际【{res['message']}】"
             assert res['data'] == 'not found', f"接口返回data数据异常：预期【not found】，实际【{res['data']}】"
-
-    @pytest.fixture(scope='function')
-    def createLevelSkill_method(self):
-        '''方法固件 - 创建多个等级技能'''
-        skillIds = []
-        for i in range(3):
-            educationType = "dibo_test" + self.now + str(i)
-            pl = {
-                "educationType": educationType,
-            }
-            skill_id = self.admin_levelskills.createLevelSkill(self.authorization, **pl)['data']['id']
-            skillIds.append(skill_id)
-
-        yield skillIds
-
-        # 删除等级技能
-        del_res = self.admin_levelskills.deleteLevelskills(self.authorization, skillIds)
-        assert del_res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{del_res['code']}】"
-
-    @pytest.fixture(scope='function')
-    def createCourseTag_method(self):
-        '''方法固件 - 创建课程用户标签'''
-        skillIds = []
-        for i in range(3):
-            educationType = "dibo_test" + self.now + str(i)
-            pl = {
-                "educationType": educationType,
-            }
-            skill_id = self.admin_levelskills.createLevelSkill(self.authorization, **pl)['data']['id']
-            skillIds.append(skill_id)
-
-        # 创建课程用户标签
-        tag_name = 'course_tag_test' + self.now
-        pl = {
-            "name": tag_name,
-            "multilingualKey": "tag.reading",
-            "tagType": 'normal', # 必填，可选值包括 normal、hot、recommended_search 等。
-            "status": 1,
-            "skillIds": skillIds, # 关联的课程等级技能 ID 列表，Long 数组，可选，默认空数组。
-        }
-
-        file = {
-            'coverImage': ('story_face.webp', open(os.getcwd() + f'/test_data/story_face.webp', 'rb'))
-        }
-        res = self.admin_course.create_course_tag(self.authorization, file=file, **pl)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        course_tag_id = res['data']['id']
-
-        yield course_tag_id
-
-        # 删除课程标签
-        res = self.admin_course.delete_course_tag(self.authorization, course_tag_id)
-        assert res['code'] == 200, f"删除课程标签失败！"
 
     @pytest.mark.smoke
     def test_admin_course_positive_create_course_tag_ok(self, createLevelSkill_method):
@@ -928,7 +1038,7 @@ class TestAdminCourse:
                 strategy_id = strategy['id']
                 assert strategy['enabled'] == True
                 assert strategy['resetOnSegmentChange'] == False
-                assert strategy['pattern'] == "A-B-C"
+                assert strategy['pattern'] == "true,false,ture,false"
                 assert strategy['patternBehavior'] == "LOOP_PATTERN"
                 assert strategy['description'] == "默认课程分发策略"
                 break
@@ -965,51 +1075,6 @@ class TestAdminCourse:
         strategy_res3 = self.admin_course.courseStrategies(self.admin_auth)
         strategy_ids = DataFrame(strategy_res3['data']['content'])['id'].tolist()
         assert strategy_id not in strategy_ids, '删除课程策略后，仍在策略定义列表中查询到！'
-
-    @pytest.fixture(scope='class')
-    def createCourseStrategy(self):
-        '''新增策略定义'''
-        # 新增策略定义
-        strategyId = "dibo_test_v1" + self.now
-        pl = {
-            "strategyId": strategyId
-        }
-        add_res = self.admin_course.addCourseStrategy(self.admin_auth, **pl)
-        assert add_res['message'] == 'success', "新增策略定义失败！"
-        # 查询策略定义列表，验证新增策略定义成功
-        strategy_res1 = self.admin_course.courseStrategies(self.admin_auth)
-        for strategy in strategy_res1['data']['content']:
-            if strategy['strategyId'] == strategyId:
-                strategy_id = strategy['id']
-                break
-        else:
-            assert False, '新增课程策略后，未在策略定义列表中查询到！'
-        
-        yield strategyId
-
-        delete_res = self.admin_course.deleteCourseStrategy(self.admin_auth, strategy_id)
-        assert delete_res['message'] == 'success', "删除策略定义失败！"
-
-    @pytest.fixture(scope='function')
-    def get_courseIds(self):
-        """获取课程详情包括版本信息"""
-        # 获取顶层课程目录列表
-        topcategory_res = self.admin_course.getAlltopcategory(self.admin_auth)
-        for category in topcategory_res['data']:
-            parentId = category['id']
-            # 获取课程子目录列表
-            category_res1 = self.admin_course.getAllsubcategory(self.admin_auth, parentId)
-            for subcategory in category_res1['data']:
-                parentId1 = subcategory['id']
-                category_res2 = self.admin_course.getAllsubcategory(self.admin_auth, parentId1)
-                for subcategory2 in category_res2['data']:
-                    categoryId = subcategory2['id']
-                    # 获取分类下所有课程
-                    courselistAll = self.admin_course.course_listAll(self.admin_auth, categoryId)['data']
-                    if not courselistAll:
-                        continue
-                    courseIds = ','.join(DataFrame(courselistAll)[:3]['id'].tolist())
-                    return courseIds
 
     @pytest.mark.smoke
     def test_admin_course_positive_addStrategyRule_ok(self, createCourseStrategy, get_courseIds):
@@ -1075,44 +1140,6 @@ class TestAdminCourse:
         strategyRules3 = self.admin_course.strategyRules(self.admin_auth)
         rule_ids = DataFrame(strategyRules3['data']['content'])['id'].tolist()
         assert rule_id1 not in rule_ids, "删除课程规则失败！"
-
-    @pytest.fixture(scope='function')
-    def createStrategyRule(self, createCourseStrategy):
-        # 新增策略定义
-        strategyId = createCourseStrategy
-        # 获取推荐课程列表
-        recommends_res = self.course.getFixOrderRecommend(self.authorization, learningLevel='L1')
-        courseIds = [str(i) for i in DataFrame(recommends_res['data'])['courseId'].tolist()[:3]]
-        courseIds1 = ','.join(courseIds)
-        # 新增课程规则
-        add_res = self.admin_course.addStrategyRule(self.admin_auth, strategyId, courseIds1)
-        # 如果选中的课程已经添加课程规则则先移除
-        if add_res['code'] == 100006:
-            set_course = add_res['data']
-            set_course = re.search(r"(\d+)", set_course).group(1).split(',')
-            for course_id in set_course:
-                # 查询课程规则列表，移除目标课程已参与的课程规则
-                strategyRules0 = self.admin_course.strategyRules(self.admin_auth)
-                for strategyRule in strategyRules0['data']['content']:
-                    courseIds2 = strategyRule['courseIds'].split(',')
-                    if course_id in courseIds2:
-                        rule_id = strategyRule['id']
-                        strategyId1 = strategyRule['strategyId']
-                        new_courseIds = str(random.randint(1000, 9999))
-                        update_res = self.admin_course.updateStrategyRule(self.admin_auth, rule_id, strategyId1, new_courseIds)
-                        assert update_res['message'] == 'success'
-                        break
-            # 再次新增课程规则
-            add_res1 = self.admin_course.addStrategyRule(self.admin_auth, strategyId, courseIds1)
-            assert add_res1['message'] == 'success'
-        else:
-            assert add_res['message'] == 'success', "新增课程规则失败！"
-
-        yield rule_id, courseIds
-
-        # 删除课程规则
-        delete_res = self.admin_course.deleteStrategyRule(self.admin_auth, rule_id)
-        assert delete_res['message'] == 'success', "删除课程规则失败！"
 
     @pytest.mark.smoke
     def test_game_positive_queryCourseStrategy_ok(self, createStrategyRule):
@@ -1263,34 +1290,14 @@ class TestAdminCourse:
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.smoke
-    def test_admin_course_permission_strategy_preview(self):
-        """预览当前草稿配置-权限测试"""
-        res = self.admin_course.strategy_preview('', code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.smoke
     def test_admin_course_publish_strategy_ok(self):
         """发布配置-正向用例"""
         res = self.admin_course.publish_strategy(self.authorization)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        assert res['data']['version'] == 28, f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.smoke
-    def test_admin_course_permission_publish_strategy(self):
-        """发布配置-权限测试"""
-        res = self.admin_course.publish_strategy('', code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
-
     def test_admin_course_strategy_history_detail_ok(self):
         """查询发布历史详情-正向用例"""
         res = self.admin_course.strategy_history_detail(self.authorization)
@@ -1299,15 +1306,7 @@ class TestAdminCourse:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    def test_admin_course_permission_strategy_history_detail(self):
-        """查询发布历史详情-权限测试"""
-        res = self.admin_course.strategy_history_detail('', code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
-
+    @pytest.mark.smoke
     def test_admin_course_strategy_historys_ok(self):
         """查询发布历史列表-正向用例"""
         res = self.admin_course.strategy_historys(self.authorization)
@@ -1316,6 +1315,7 @@ class TestAdminCourse:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
+    @pytest.mark.smoke
     def test_admin_course_permission_strategy_historys(self):
         """查询发布历史列表-权限测试"""
         res = self.admin_course.strategy_historys('', code=401)

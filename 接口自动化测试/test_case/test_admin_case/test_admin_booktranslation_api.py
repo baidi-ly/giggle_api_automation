@@ -10,14 +10,15 @@ sys.path.append("..")
 
 import pytest
 
-@pytest.mark.Admin
-@pytest.mark.AdminBooktranslation
+@pytest.mark.admin
+@pytest.mark.adminBooktranslation
 class TestAdminBooktranslation:
 
     def setup_class(self):
         self.admin_booktranslation = AdminBooktranslationApi()
         self.authorization = self.admin_booktranslation.get_admin_authorization()[0]
 
+    @pytest.mark.smoke
     def test_admin_booktranslation_positive_update_concurrent_threshold_ok(self):
         """更新书籍翻译并发阈值设置-正向用例"""
         threshold = 5

@@ -10,14 +10,15 @@ sys.path.append("..")
 
 import pytest
 
-@pytest.mark.Admin
-@pytest.mark.AdminTabStoryBookApi
+@pytest.mark.admin
+@pytest.mark.adminTabStoryBookApi
 class TestAdminTabStoryBookApi:
 
     def setup_class(self):
         self.admin_tab = AdminTabstorybookApi()
         self.authorization = self.admin_tab.get_admin_authorization()[0]
 
+    @pytest.mark.smoke
     def test_admin_tabstorybook_positive_visible_ok(self):
         """设置故事书Tab显示状态-正向用例"""
         visible = True

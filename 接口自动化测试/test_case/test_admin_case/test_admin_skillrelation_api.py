@@ -28,7 +28,7 @@ class TestAdminSkillRelation:
 
         self.now = strftime("%Y%m%d%H%M%S")
 
-    @pytest.mark.smoke1
+    @pytest.mark.smoke
     def test_admin_skillrelation_positive_importSkillRelation_ById_ok(self):
         """根据ID导入技能关系-正向用例"""
         res = self.admin.importSkillRelation_ById(self.authorization)
@@ -37,7 +37,6 @@ class TestAdminSkillRelation:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke1
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -56,7 +55,7 @@ class TestAdminSkillRelation:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke1
+    @pytest.mark.smoke
     def test_admin_skillrelation_positive_importByName_ok(self):
         """根据名称导入技能关系-正向用例"""
         res = self.admin.importSkillRelation_ByName(self.authorization)
@@ -65,7 +64,6 @@ class TestAdminSkillRelation:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke1
     @pytest.mark.parametrize(
         'desc, value',
         [

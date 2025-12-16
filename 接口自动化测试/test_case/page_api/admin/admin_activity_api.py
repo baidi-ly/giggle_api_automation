@@ -10,7 +10,7 @@ base_url = BaseAPI().admin_baseurl()
 class AdminActivityApi(BaseAPI):
     """活动接口"""
 
-    def getList(self, authorization, all=False, keyword='', page=0, size=10, status='', DeviceType="web", code=200, **kwargs):
+    def activity_list(self, authorization, DeviceType="web", code=200, **kwargs):
         """
         获取活动列表
         :param all: (boolean, query, optional) all
@@ -23,12 +23,13 @@ class AdminActivityApi(BaseAPI):
         # Create Data:  V1.19.0  &  2025-09-24
         url = f"https://{base_url}/admin/activity/list"
         payload = {
-            "all": all,
-            "keyword": keyword,
-            "page": page,
-            "size": size,
-            "status": status
+            "all": True,
+            "keyword": '',
+            "page": 0,
+            "size": 10,
+            "status": ''
         }
+        payload.update(kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
@@ -52,10 +53,10 @@ class AdminActivityApi(BaseAPI):
         # Create Data:  V1.19.0  &  2025-09-25
         url = f"https://{base_url}/admin/activity/create"
         payload = {
-            "name": "扭蛋抽奖活动",
+            "name": "dibo_test_扭蛋抽奖活动",
             "activityCode": "GACHA_2024",
-            "startTime": "",
-            "endTime": "",
+            "startTime": "2025-12-20 08:00:00",
+            "endTime": "2025-12-21 08:00:00",
             "status": "ACTIVE"
         }
         payload = self.request_body(payload, **kwargs)
@@ -147,26 +148,6 @@ class AdminActivityApi(BaseAPI):
 
         response = requests.request("DELETE", url, headers=headers)
         error_msg = "删除活动任务定义"
-        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        try:
-            response = response.json()
-            return response
-        except json.decoder.JSONDecodeError:
-            return False
-
-    def delete_activity(self, authorization, activityId=0, DeviceType="web", code=200, **kwargs):
-        """
-        获取活动详情
-        :param activityId: (integer, path, required) activityId
-        :return: 接口原始返回（已 json 解析）
-        """
-        # Create Data:  V1.21.0  &  2025-11-06
-        url = f"https://{base_url}/admin/activity/{activityId}"
-        timestamp = str(int(time.time() * 1000))
-        headers = self.request_header(timestamp, authorization, DeviceType)
-
-        response = requests.request("DELETE", url, headers=headers)
-        error_msg = "获取活动详情"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()

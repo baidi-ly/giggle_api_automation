@@ -9,8 +9,8 @@ sys.path.append("..")
 
 import pytest
 
-@pytest.mark.Admin
-@pytest.mark.AdminDonate
+@pytest.mark.admin
+@pytest.mark.adminDonate
 class TestAdminDonate:
 
     def setup_class(self):
