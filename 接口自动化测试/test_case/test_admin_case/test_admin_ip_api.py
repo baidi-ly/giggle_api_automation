@@ -17,7 +17,7 @@ class TestAdminIp:
         self.admin_ip = AdminIpApi()
         self.auth_admin, self.user_admin_id = self.admin_ip.get_admin_authorization()
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_ip_positive_banIp(self):
         """封禁IP-正向用例"""
         ipAddress = "172.16.31.103333"
@@ -45,7 +45,7 @@ class TestAdminIp:
         ipBannedList3 = self.admin_ip.ipBannedList(self.auth_admin)['data']
         assert ipBannedList3 == ipBannedList1
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('countryCode', ['86', '1', '44', '81', '852', '886', '65', '91', '62', '82'])
     def test_admin_country_positive_banCountry(self, countryCode):
         """封禁IP - 遍历常见国家区号"""

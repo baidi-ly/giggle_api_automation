@@ -197,7 +197,7 @@ class TestAdminkid:
         # 删除测试学生
         self.user.deletekid(self.authorization, kid_id)
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_adminKid_tagChangeLogs_changeItem_learningLevel(self, kid_data_fixture):
         """获取孩子等级状态操作日志-校验孩子学习状态更改项"""
         # 创建测试学生
@@ -255,7 +255,7 @@ class TestAdminkid:
         assert logs_after[0]['oldValue'] == 'L1'
         assert logs_after[0]['newValue'] == 'L2'
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_adminKid_tagChangeLogs_changeItem_childAge(self, kid_data_fixture):
         """获取孩子等级状态操作日志-校验孩子学习状态更改项"""
         # 创建测试学生
@@ -282,7 +282,7 @@ class TestAdminkid:
         assert int(logs_after[0]['oldValue']) == 7
         assert int(logs_after[0]['newValue']) == 8
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_adminKid_tagChangeLogs_changeItem_skillMastery(self, kid_data_fixture):
         """获取孩子等级状态操作日志-校验孩子学习状态更改项"""
         # 创建测试学生
@@ -399,7 +399,7 @@ class TestAdminkid:
                 assert not log['oldValue']
                 assert log['newValue'] == question['skill']
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_kid_all_skillEventPublish_ok(self, kid_data_fixture):
         """手动发布技能事件-验证批量触发技能事件，学生技能分数增加"""
         # 创建测试学生
@@ -433,7 +433,7 @@ class TestAdminkid:
         else:
             assert False, "12s消费者异步更新技能表/缓存未成功！"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_kid_skill_skillEventPublish_check(self, kid_data_fixture):
         """手动发布技能事件-验证无子技能的技能标签学习分数正常增加"""
         # 创建测试学生
@@ -482,7 +482,7 @@ class TestAdminkid:
             if expected_score == 100:
                 break
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_kid_subSkill_skillEventPublish_full_check(self, kid_data_fixture):
         """手动发布技能事件-验证有子技能的技能标签学习分数正常增加（遍历5种子技能，且每种子技能得分100）"""
         # 创建测试学生
@@ -534,7 +534,7 @@ class TestAdminkid:
             if expected_score == 100:
                 break
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_kid_subSkill_skillEventPublish_type_check(self, kid_data_fixture):
         """手动发布技能事件-验证有子技能的技能标签学习分数正常增加（随机子技能，随机得分）"""
         # 创建测试学生

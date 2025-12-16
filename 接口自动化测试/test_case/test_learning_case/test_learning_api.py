@@ -101,7 +101,7 @@ class TestLearning:
         bookIds = DataFrame(book_res)['id'].tolist()
         yield bookIds
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_learning_stats_byKidId_normal(self):
         """获取孩子学习统计数据 - 校验数据正确性"""
         # 获取孩子学习统计数据
@@ -150,7 +150,7 @@ class TestLearning:
         assert stats_res["message"] == "internal server error", (f'kidId为负数返回错误信息有误，'
                                                                  f'预期:internal server error, 实际：{stats_res["message"]}')
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_learning_daily_learning(self):
         """获取孩子今日学习详情，有数据的kidId，返回完整统计数据"""
         # 获取孩子今日学习详情
@@ -187,7 +187,7 @@ class TestLearning:
         error_msg = "获取孩子今日学习详情-无效的kidId"
         assert daily_res['message'] == 'internal server error', f'{error_msg}-返回状态码不正确，预期:500, 实际：{daily_res["code"]}'
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('date', [today, tomorrow, yesterday])
     def test_learning_daily_learning_report_ok(self, date):
         """生成指定孩子的学习情况报表数据，生成置顶日期的报表"""
@@ -204,7 +204,7 @@ class TestLearning:
         assert report_res["data"]['wordsLearned'] or not report_res["data"]['wordsLearned']
         assert report_res["data"]['artworks'] or not report_res["data"]['artworks']
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_learning_weekly_byKidId_thisWeekend(self):
         """获取指定孩子一周的学习情况（自然周：周一到周日）"""
         # 获取指定孩子一周的学习情况（自然周：周一到周日）
@@ -217,7 +217,7 @@ class TestLearning:
         assert weekly_learning_res['myWorks'] or not weekly_learning_res['myWorks']
         assert weekly_learning_res['storybooks'] or not weekly_learning_res['storybooks']
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('date', [today, tomorrow, yesterday, "2025-01-20"])
     def test_learning_daily_storybook_report_today(self, date):
         """生成指定日期的故事书报告"""
@@ -234,7 +234,7 @@ class TestLearning:
         assert torybook_report["data"]['theme'] or not torybook_report["data"]['theme']
         assert torybook_report["data"]['storybooks'] or not torybook_report["data"]['storybooks']
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('date', [today, tomorrow, yesterday, "2025-01-20"])
     def test_learning_daily_challenge_report_today(self, date):
         """生成指定日期的挑战课报告"""
@@ -250,7 +250,7 @@ class TestLearning:
         assert challenge_res["data"]['words'] or not challenge_res["data"]['words']
         assert challenge_res["data"]['animalCards'] or not challenge_res["data"]['animalCards']
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('date', [today, tomorrow, yesterday, "2025-01-20"])
     def test_learning_daily_flashcard_report_today(self, date):
         """生成指定日期闪卡报告"""
@@ -267,7 +267,7 @@ class TestLearning:
         assert flashcard_res["data"]['themeCompletion'] or not flashcard_res["data"]['themeCompletion']
         assert flashcard_res["data"]['animalCards'] or not flashcard_res["data"]['animalCards']
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_interaction_lesson_event_InteractiveLessonStart(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - InteractiveLessonStart"""
         # 获取课程详情包括版本信息
@@ -294,7 +294,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_interaction_lesson_event_InteractiveLessonEnd(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - InteractiveLessonEnd"""
         # 上报事件前，获取孩子今日学习详情
@@ -380,7 +380,7 @@ class TestLearning:
         else:
             assert False, "5s内生成指定孩子的学习情况报表数据失败！"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_interaction_lesson_event_LessonUserInteraction(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - LessonUserInteraction"""
         # 获取课程详情包括版本信息
@@ -408,7 +408,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_interaction_lesson_event_ChallengeLessonStart(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - ChallengeLessonStart"""
         # 获取课程详情包括版本信息
@@ -435,7 +435,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_interaction_lesson_event_ChallengeLessonEnd(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - ChallengeLessonEnd"""
         # 上报事件前，获取孩子今日学习详情
@@ -521,7 +521,7 @@ class TestLearning:
         else:
             assert False, "5s内生成指定孩子的学习情况报表数据失败！"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_interaction_lesson_event_ChallengeSettleReward(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - LessonQuit"""
         # 获取课程详情包括版本信息
@@ -549,7 +549,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_interaction_lesson_event_LessonQuit(self, get_courseIds):
         """上报用户交互事件 - 课程事件 - LessonQuit"""
         # 获取课程详情包括版本信息
@@ -576,7 +576,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_interaction_story_event_StoryBookStart(self, get_bookIds):
         """上报用户交互事件 - 故事书事件 - StoryBookStart"""
         # 列出当前用户创建的书籍列表，并获取第一本故事书的ID
@@ -603,7 +603,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_interaction_book_event_StoryBookComplete(self, get_bookIds):
         """上报用户交互事件 - 故事书事件 - StoryBookComplete"""
         # 上报用户交互事件前，获取孩子今日学习详情
@@ -675,7 +675,7 @@ class TestLearning:
         else:
             assert False, '5s内生成故事书报告失败！'
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_interaction_story_event_StoryBookExit(self, get_bookIds):
         """上报用户交互事件 - 故事书事件 - FlashCardNewStudyStart"""
         # 列出当前用户创建的书籍列表，并获取第一本故事书的ID
@@ -703,7 +703,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_interaction_flashcard_event_FlashCardNewStudyStart(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardNewStudyStart"""
         timestamp_milliseconds = int(time.time() * 1000)
@@ -728,7 +728,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_interaction_flashcard_event_FlashCardThemeStudyComplete(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardThemeStudyComplete"""
         # 上报用户交互事件 - 闪卡事件 - FlashCardThemeStudyComplete
@@ -753,7 +753,7 @@ class TestLearning:
         assert event_res["message"] == "success"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_interaction_flashcard_event_FlashCardThemeStudyStart(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardThemeStudyStart"""
         timestamp_milliseconds = int(time.time() * 1000)
@@ -778,7 +778,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_interaction_flashcard_event_FlashCardReviewStart(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardReviewStart"""
         timestamp_milliseconds = int(time.time() * 1000)
@@ -803,7 +803,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_interaction_flashcard_event_FlashCardReviewCompelete(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardReviewCompelete"""
         timestamp_milliseconds = int(time.time() * 1000)
@@ -829,7 +829,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_interaction_flashcard_event_FlashCardLetterStudyStart(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardLetterStudyStart"""
         timestamp_milliseconds = int(time.time() * 1000)
@@ -854,7 +854,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_interaction_flashcard_event_FlashCardLetterStudyComplete(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardLetterStudyComplete"""
         # 上报用户交互事件
@@ -881,7 +881,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_interaction_flashcard_event_FlashCardCvcStudyStart(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardCvcStudyStart"""
         # 上报用户交互事件
@@ -907,7 +907,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_interaction_flashcard_event_FlashCardCvcStudyComplete(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardCvcStudyComplete"""
         timestamp_milliseconds = int(time.time() * 1000)
@@ -933,7 +933,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_interaction_flashcard_event_FlashCardMathStudyStart(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardMathStudyStart"""
         timestamp_milliseconds = int(time.time() * 1000)
@@ -958,7 +958,7 @@ class TestLearning:
         assert event_res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{event_res['message']}】"
         assert event_res['data']['recordedCount'] == 1, f"接口返回data数据异常：{event_res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_interaction_flashcard_event_FlashCardMathStudyComplete(self):
         """上报用户交互事件 - 闪卡事件 - FlashCardMathStudyComplete"""
         timestamp_milliseconds = int(time.time() * 1000)

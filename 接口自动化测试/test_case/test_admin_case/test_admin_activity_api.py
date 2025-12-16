@@ -758,7 +758,7 @@ class TestAdminActivity:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_activity_positive_addDrawCount_ok(self, kid_data_session, create_activity):
         """给指定用户增加抽奖次数-验证添加效果"""
         # 创建测试学生

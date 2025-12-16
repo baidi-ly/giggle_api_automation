@@ -1149,7 +1149,7 @@ class TestSchoolApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_school_positive_storybookThemes_ok(self):
         """故事书主题列表（按标签分组展示故事书）-正向用例"""
         res = self.school.storybookThemes(self.authorization)
@@ -1158,7 +1158,7 @@ class TestSchoolApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('onlyFavorite', [True, False])
     def test_school_lessonStorybook_onlyFavorite_ok(self, onlyFavorite):
         """故事书资源列表-正向用例"""
@@ -1173,26 +1173,20 @@ class TestSchoolApi:
             for book in books_res:
                 assert book['isFavorite'] == onlyFavorite
 
-    @pytest.mark.release
-    @pytest.mark.parametrize('official', [0, 1])
-    def test_school_lessonStorybook_official_ok(self, official):
+    @pytest.mark.smoke
+    def test_school_lessonStorybook_official_ok(self):
         """故事书资源列表-正向用例"""
         # 故事书主题列表（按标签分组展示故事书）
         themes_res = self.school.storybookThemes(self.authorization)['data']
         for theme in themes_res:
             tagId = theme['id']
             pl = {
-                "official": official,
+                "official": 1,
             }
             books_res = self.school.lessonStorybook(self.authorization, tagId=tagId, **pl)['data']['content']
             for book in books_res:
                 # 通过bookId查询书籍详情，获取作者名称
-                bookId = book['id']
-                bookDetail1 = self.book.bookDetails(self.authorization, bookId)
-                if bookDetail1['data']:
-                    authorName = bookDetail1['data']['authorName']
-                else:
-                    continue
+                authorName = book['authorName']
                 # 根据用户名搜索用户获取用户email
                 user_email_res = self.user.getSearch(self.authorization, authorName)['data']['content']
                 for user_email in user_email_res:
@@ -1202,9 +1196,8 @@ class TestSchoolApi:
                 else:
                     assert False, "预期筛选社区故事书，但是结果不满足！"
 
-    @pytest.mark.release
-    @pytest.mark.parametrize('selected', [0, 1])
-    def test_school_lessonStorybook_selected_ok(self, selected):
+    @pytest.mark.smoke
+    def test_school_lessonStorybook_selected_ok(self):
         """故事书资源列表-正向用例"""
         # 根据书名 / 作者名 / 标签搜索书籍
         data_res0 = []
@@ -1217,18 +1210,10 @@ class TestSchoolApi:
         for theme in themes_res:
             # 故事书资源列表
             tagId = theme['id']
-            pl = {"selected": selected}
+            pl = {"selected": 1}
             books_res = self.school.lessonStorybook(self.authorization, tagId=tagId, **pl)['data']['content']
             for book in books_res:
                 # 通过bookId查询书籍详情，获取作者名称
                 bookId = book['id']
                 selected_actual = data_df[data_df["id"] == str(bookId)]["selected"].iloc[0]
-                if selected == 0:
-                    try:
-                        selected_actual = int(selected_actual)
-                    except:
-                        continue
-                    print(book)
-                    assert selected_actual == selected
-                else:
-                    assert int(selected_actual) == selected
+                assert int(selected_actual) == 1

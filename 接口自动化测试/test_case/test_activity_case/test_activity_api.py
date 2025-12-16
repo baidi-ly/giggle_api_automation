@@ -1039,7 +1039,7 @@ class TestActivity:
         # 更新活动状态为无效
         self.adminActivity.updateActivityStatus(self.admin_auth, activity_id, status='INACTIVE')
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_activity_positive_dailyLessonComplete_ok(self, create_task):
         """根据每日学习计划课程完成增加抽奖次数-正向用例"""
         # 根据每日学习计划课程完成增加抽奖次数前，确认今天没有通过每日课程完成增加过抽奖次数
@@ -1065,7 +1065,7 @@ class TestActivity:
         assert check_after['data'], f"接口返回data数据异常：{res['data']}"
 
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_activity_positive_getCheckByCourses_ok(self, get_course_ids_session, kid_data_session):
         """根据课程id列表,查询是否已经通过每日课程完成增加过抽奖次数"""
         # 获取课程详情包括版本信息

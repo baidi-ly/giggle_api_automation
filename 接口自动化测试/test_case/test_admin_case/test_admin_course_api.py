@@ -911,7 +911,7 @@ class TestAdminCourse:
         else:
             assert False
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_addCourseStrategy_ok(self):
         """策略定义 - 增删改查检查 - 正向用例"""
         # 新增策略定义
@@ -1011,7 +1011,7 @@ class TestAdminCourse:
                     courseIds = ','.join(DataFrame(courselistAll)[:3]['id'].tolist())
                     return courseIds
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_addStrategyRule_ok(self, createCourseStrategy, get_courseIds):
         """新增课程规则 - 增删改查验证 - 正向用例"""
         # 新增策略定义
@@ -1114,7 +1114,7 @@ class TestAdminCourse:
         delete_res = self.admin_course.deleteStrategyRule(self.admin_auth, rule_id)
         assert delete_res['message'] == 'success', "删除课程规则失败！"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_game_positive_queryCourseStrategy_ok(self, createStrategyRule):
         """查询课程策略配置-正向用例"""
         rule_id, courseId = createStrategyRule
@@ -1140,7 +1140,7 @@ class TestAdminCourse:
             "strategyId": "howell"
         }
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_permission_addStrategyRule(self):
         """新增课程规则-权限测试"""
         res = self.admin_course.addStrategyRule('', 0,0, code=401)
@@ -1150,7 +1150,7 @@ class TestAdminCourse:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_permission_deleteStrategyRule(self):
         """删除课程规则-权限测试"""
         res = self.admin_course.deleteStrategyRule('', 0, code=401)
@@ -1160,7 +1160,7 @@ class TestAdminCourse:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_permission_strategyRules(self):
         """查询课程规则列表-权限测试"""
         res = self.admin_course.strategyRules('', code=401)
@@ -1170,7 +1170,7 @@ class TestAdminCourse:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_permission_updateStrategyRule(self):
         """更新课程规则-权限测试"""
         res = self.admin_course.updateStrategyRule('', 0, 0, '', code=401)
@@ -1180,7 +1180,7 @@ class TestAdminCourse:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_positive_strategylevelRule_ok(self, createCourseStrategy, get_courseIds):
         """新增等级策略 - 增删改查验证 - 正向用例"""
         # 新增策略定义
@@ -1232,7 +1232,7 @@ class TestAdminCourse:
         level_rule_ids = DataFrame(strategylevelRules3['data']['content'])['id'].tolist()
         assert level_rule_id not in level_rule_ids, "删除等级策略失败！"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_permission_deleteStrategylevelRule(self):
         """删除等级策略-权限测试"""
         res = self.admin_course.deleteStrategylevelRule('', code=401)
@@ -1242,7 +1242,7 @@ class TestAdminCourse:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_permission_strategylevelRules(self):
         """查询等级策略列表-权限测试"""
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
@@ -1253,7 +1253,7 @@ class TestAdminCourse:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_strategy_preview_ok(self):
         """预览当前草稿配置-正向用例"""
         res = self.admin_course.strategy_preview(self.authorization)
@@ -1262,7 +1262,7 @@ class TestAdminCourse:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_permission_strategy_preview(self):
         """预览当前草稿配置-权限测试"""
         res = self.admin_course.strategy_preview('', code=401)
@@ -1272,7 +1272,7 @@ class TestAdminCourse:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_publish_strategy_ok(self):
         """发布配置-正向用例"""
         res = self.admin_course.publish_strategy(self.authorization)
@@ -1281,7 +1281,7 @@ class TestAdminCourse:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_permission_publish_strategy(self):
         """发布配置-权限测试"""
         res = self.admin_course.publish_strategy('', code=401)
@@ -1325,7 +1325,7 @@ class TestAdminCourse:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_course_addVoiceMultilingual_ok(self, get_courseIds):
         """新增语音文案-正向用例-courseId + key + targetLanguage 组合不与现有重复"""
         # 获取课程详情包括版本信息

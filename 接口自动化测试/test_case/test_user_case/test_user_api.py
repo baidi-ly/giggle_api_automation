@@ -866,7 +866,7 @@ class TestUser:
             assert res['message'] == 'not found', f"接口返回message信息异常: 预期【'not found'】，实际【{res['message']}】"
             assert res['data'] == 'not found', f"接口返回data数据异常：预期【'not found'】，实际【{res['data']}】"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('countryCode, phoneNumber, exist',
                              [
                                  (86, 18380143661, True), # 中国
@@ -890,7 +890,7 @@ class TestUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data']['exist'] == exist, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('dailyLessonLimit', [2, 3])
     def test_user_positive_dailyLessonLimit_ok(self, dailyLessonLimit):
         """设置孩子的每日课程数量限制-正向用例"""
@@ -905,7 +905,7 @@ class TestUser:
         assert dailyLessonLimit_res['data']['kidId'] == self.kid_id
         assert dailyLessonLimit_res['data']['kidName'] == self.kid_name
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('dailyLessonLimit', [1, 4])
     def test_user_positive_dailyLessonLimit_not_support(self, dailyLessonLimit):
         """非标准dailyLessonLimit数字设置孩子的每日课程数量限制-正向用例"""
@@ -916,7 +916,7 @@ class TestUser:
         assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
         assert res['data'] == 'invalid parameter', f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_user_positive_updatelanguage_ok(self):
         """更新用户语言偏好-正向用例"""
         res = self.user.updatelanguage(self.authorization)
@@ -936,7 +936,7 @@ class TestUser:
         # 删除测试学生
         self.user.deletekid(self.authorization, kid_id)
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_user_positive_existingKidLevelInit_ok(self, kid_data_fixture):
         """老用户Kid学习等级初始化-只能去app上完成课程改变history的数量，没有接口可以实现，所以只能校验单接口"""
         '''

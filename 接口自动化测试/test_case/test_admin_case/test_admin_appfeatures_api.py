@@ -23,7 +23,7 @@ class TestAdminCourse:
         self.admin_auth = self.admin_app.get_admin_authorization()[0]
         self.now = strftime("%Y%m%d%H%M%S")
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_appfeatures_createAppFeatures_ok(self):
         """APP功能 - 增删改查验证"""
         # 新增APP功能

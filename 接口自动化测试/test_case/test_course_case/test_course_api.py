@@ -495,7 +495,7 @@ class TestCourse:
         '''类前置 - 获取kidId'''
         kid_res = self.kid.getKids(self.authorization)['data']
         for kid in kid_res:
-            if kid['name'] == "uuid":
+            if kid['name'] == "New Kid":
                 kid_id = kid['id']
                 break
         yield kid_id
@@ -1040,8 +1040,9 @@ class TestCourse:
         for course in recommends_res['data']:
             assert course['difficulty'] == user_after_level
 
-    def test_check_kid_status(self, getSecondekidId):
-        kid_id = getSecondekidId
+    def test_check_kid_status(self):
+        # kid_id = getSecondekidId
+        kid_id = 751101058991429
         lp_res = self.kid.getLearningProgress(self.authorization, kid_id)
         assert lp_res
         eligible_res = self.course.promotion_check(self.authorization, kid_id)
@@ -1080,7 +1081,7 @@ class TestCourse:
         for course in recommends_res['data']:
             assert course['difficulty'] == user_level
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_course_positive_course_rating_ok(self):
         """保存课程评价-正向用例"""
         # Normal课程资源列表
@@ -1095,7 +1096,7 @@ class TestCourse:
         assert res['data']['courseId'] == course_id
         assert res['data']['rating'] == 3
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_course_positive_course_ratings_ok(self):
         """根据课程ID列表获取评价信息-正向用例"""
         # Normal课程资源列表
@@ -1107,7 +1108,7 @@ class TestCourse:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('rate', [1, 2, 3])
     def test_course_course_rating_total_ok(self, rate, get_course_ids_session, kid_data_session):
         """保存获取课程评价-正向用例"""
@@ -1147,7 +1148,7 @@ class TestCourse:
         # 删除测试学生
         self.user.deletekid(self.authorization, kid_id)
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('learningLevel', ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'L10', 'L11', 'L12', 'L13', 'L14', 'L15', 'L16', 'L17', 'L18','L19', 'L20'])
     def test_course_recommend_list_check(self, learningLevel, kid_data_fixture):
         '''通过kid.learninglevel匹配课程difficulty,过滤出来的课程按旧level+no正序排序返回'''
@@ -1170,7 +1171,7 @@ class TestCourse:
                 assert course_no > no
                 no = course_no
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('learningLevel',
                              ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'L10', 'L11', 'L12', 'L13', 'L14',
                               'L15', 'L16', 'L17', 'L18', 'L19', 'L20'])
@@ -1193,7 +1194,7 @@ class TestCourse:
                 assert course_no > no
                 no = course_no
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('learningLevel',
                              ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'L10', 'L11', 'L12', 'L13', 'L14',
                               'L15', 'L16', 'L17', 'L18', 'L19', 'L20'])
@@ -1244,7 +1245,7 @@ class TestCourse:
         delete_res = self.admin_course.deleteVoiceMultilingual(self.authorization, voice_id)
         assert delete_res['message'] == 'success', "删除语音文案失败！"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_game_positive_voiceMultilinguals_ok22(self, voiceMultilingual_fixture):
         """查询课程策略配置-正向用例"""
         # 新增语音文案

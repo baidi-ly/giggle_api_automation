@@ -956,10 +956,10 @@ class SchoolApi(BaseAPI):
         url = f"https://{base_url}/api/school/lesson/resource/storybook"
         payload = {
             "keyword": '',
-            "official": 1,
+            "official": 0,
             "onlyFavorite": False,
             "page": 0,
-            "selected": 1,
+            "selected": 0,
             "size": 10000,
             "tagId": 0
         }

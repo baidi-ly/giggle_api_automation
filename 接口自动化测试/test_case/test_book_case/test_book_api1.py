@@ -497,7 +497,7 @@ class TestBook:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('narrationLan',
                              ['bn', 'zh', 'en', 'de', 'id', 'pt',
                               'es', 'vi', 'it', 'ms', 'hi',
@@ -617,7 +617,7 @@ class TestBook:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_book_positive_regenerate_narration_ok(self):
         """AI生成故事书的领读数据-正向用例"""
         # 列出当前用户创建的书籍列表中，找到书名称hq_test的故事书做测试
@@ -756,7 +756,7 @@ class TestBook:
         narration = narrationDataJson[0]['narration']
         assert narration, "故事书的领读数据保存失败！"
         
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_book_positive_lexiLelevelMapping_ok(self):
         """获取蓝思分数等级映射关系-前端下拉筛选用 – 等级枚举一致性"""
         res = self.book.lexiLelevelMapping(self.authorization)
@@ -790,7 +790,7 @@ class TestBook:
                 assert _data['max'] == None
                 assert _data['min'] == 500
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize("certifications", ['official', 'community', 'official,community'])
     @pytest.mark.parametrize("levels", ['A', 'B', 'C', 'D', 'E', 'A,B', 'A,C', 'A,D', 'A,E', 'B,C', 'B,D', 'B,E', 'C,D', 'C,E', 'D,E',
                   'A,B,C', 'A,B,D', 'A,B,E', 'A,C,D', 'A,C,E', 'A,D,E', 'B,C,D', 'B,C,E', 'B,D,E', 'C,D,E',
@@ -852,7 +852,7 @@ class TestBook:
                     else:
                         assert False
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize("levels", ['A', 'B', 'C', 'D', 'E', 'A,B', 'A,C', 'A,D', 'A,E', 'B,C', 'B,D', 'B,E', 'C,D', 'C,E', 'D,E',
                   'A,B,C', 'A,B,D', 'A,B,E', 'A,C,D', 'A,C,E', 'A,D,E', 'B,C,D', 'B,C,E', 'B,D,E', 'C,D,E',
                   'A,B,C,D', 'A,B,C,E', 'A,B,D,E', 'A,C,D,E', 'B,C,D,E', 'A,B,C,D,E'])
@@ -892,7 +892,7 @@ class TestBook:
             else:
                 assert False, f"根据等级过滤查询书籍失败，返回的数据蓝思值不符合等级{levels}要求"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize("certifications", ['official', 'community', 'official,community'])
     def test_book_getQuerybyfilter_without_levels(self, certifications):
         """根据等级和认证过滤查询书籍-levels为空"""
@@ -931,7 +931,7 @@ class TestBook:
                     else:
                         assert False
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_book_batchUpdateOfficial_bookPubliclist_ok(self):
         """批量更新故事书的官方认证状态-查询公开书籍列表，验证默认推送社区或精选的故事书"""
         # 查询公开书籍列表
@@ -965,7 +965,7 @@ class TestBook:
             official = self.book.bookDetails(self.authorization, bookId)['data']['official']
             assert expected == official, '通过bookId查询书籍详情,'
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_book_batchUpdateOfficial_guestBookList_ok(self):
         """批量更新故事书的官方认证状态-查询公开书籍列表，验证默认推送社区或精选的故事书"""
         # 查询公开书籍列表（不需要鉴权）
@@ -999,7 +999,7 @@ class TestBook:
             official = self.book.bookDetails(self.authorization, bookId)['data']['official']
             assert expected == official, '通过bookId查询书籍详情,'
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_book_positive_trigger_ok(self):
         """触发故事书翻译"""
         bookIds = [self.book_id]
@@ -1010,7 +1010,7 @@ class TestBook:
         expect_res = {'message': '已触发 1 本书籍的翻译任务', 'nonExistingBooks': [], 'triggeredBooks': [int(self.book_id)]}
         assert res['data'] == expect_res
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('languageCode', ['en', 'ar', 'es', 'fr', 'de', 'pt', 'id', 'hi', 'th', 'vi', 'tr', 'ru', 'ja', 'ko'])
     def test_book_positive_languagePack_details_ok(self, languageCode):
         """根据故事书ID和语言代码查询语言包地址"""
@@ -1025,7 +1025,7 @@ class TestBook:
             assert res['code'] == 100051
             assert res['data'] == 'The specified key does not exist'
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_book_positive_upload_webp_check(self):
         """上传书籍内容json-验证支持Webp格式的动图"""
         bookName = 'dibo_test_book' + self.now
@@ -1036,7 +1036,7 @@ class TestBook:
         res = self.book.book_upload(self.authorization, bookId, file)
         assert res['data']['bookKey'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_book_positive_storybook_generateCoverimage(self):
         """使用提示词和角色信息生成最终的封面图片 - 流程测试"""
         # 查询故事书Storyboard内容
