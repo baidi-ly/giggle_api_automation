@@ -43,7 +43,6 @@ class DonateApi(BaseAPI):
             "platform": "WEB",
             "donateChannel": "binance_pay",
             "networkType": "BSC",
-            "transactionId": "0x66711962a74056d7e6bd4dab7be5c03ec35b76ace90cc38e120b1d0e2087e8d8"
         }
         payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))
@@ -136,7 +135,7 @@ class DonateApi(BaseAPI):
         response = response.json()
         return response
 
-    def cancel(self, authorization='', orderId=0, DeviceType="web", code=200, **kwargs):
+    def cancelOrders(self, authorization, orderId, DeviceType="web"):
         """
         取消捐赠订单
         :param orderId: (integer, path, required) 订单ID
@@ -149,7 +148,7 @@ class DonateApi(BaseAPI):
 
         response = requests.request("POST", url, headers=headers)
         error_msg = "取消捐赠订单"
-        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
 
@@ -167,7 +166,7 @@ class DonateApi(BaseAPI):
 
         response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "币安支付Webhook回调处理"
-        # assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
 
@@ -191,7 +190,7 @@ class DonateApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def getOrders(self, authorization, currency='', donorName='', endDate='', page=0, size=20, startDate='', DeviceType="web", code=200, **kwargs):
+    def donate_orders(self, authorization, DeviceType="web", **kwargs):
         """
         分页获取捐赠订单列表
         :param currency: (string, query, optional) 币种
@@ -205,23 +204,19 @@ class DonateApi(BaseAPI):
         # Create Data:  V1.19.0  &  2025-10-06
         url = f"https://{base_url}/api/donate/orders"
         payload = {
-            "currency": currency,
-            "donorName": donorName,
-            "endDate": endDate,
-            "page": page,
-            "size": size,
-            "startDate": startDate
+            "currency": '',
+            "donorName": '',
+            "endDate": '',
+            "page": 0,
+            "size": 20,
+            "startDate": ''
         }
+        payload.update(kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
         response = requests.request("GET", url, headers=headers, params=payload)
         error_msg = "分页获取捐赠订单列表"
-        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        try:
-            response = response.json()
-            return response
-        except json.decoder.JSONDecodeError:
-            return False
-
-
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
