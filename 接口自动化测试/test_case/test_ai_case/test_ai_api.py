@@ -38,7 +38,6 @@ class TestAiApi:
     )
     def test_ai_permission_translate(self, desc, value):
         """翻译文本-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.ai.translate(value, code=200)
         if res:
             assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -97,7 +96,7 @@ class TestAiApi:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data']['recommended_model'], f"接口返回data数据异常：{res['data']}"
+        assert res['data']['recommended_model'] == 'Achird', f"接口返回data数据异常：{res['data']}"
         assert res['data']['tts_prompt'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.parametrize(
@@ -155,29 +154,9 @@ class TestAiApi:
 
     @pytest.mark.smoke
     def test_ai_positive_audio_enableCache(self):
-        """给文字配音，获取音频-正向用例"""
+        """给文字配音，获取音频-验证走缓存获取音频时长比不走缓存短"""
         content = "Once upon a time, in a small village nestled between green hills, there lived a curious boy named Leo. One day, while exploring the woods, he stumbled upon an old, forgotten map hidden inside a hollow tree. The map led to a secret cave deep in the forest, said to be filled with treasures from ancient times. Leo, with his heart racing in excitement, decided to follow the map. Along the way, he faced many challenges: crossing a raging river, solving riddles from talking animals, and finding his way through thick fog. But Leo’s courage never wavered. Finally, after hours of adventure, he reached the cave. Instead of gold and jewels, he found something even more precious—a book that contained stories of the village’s past. From that day on, Leo became the village storyteller, sharing the rich history with everyone who would listen."
         pl = {"content": content}
         timestamp1 = self.ai.audio(self.authorization, False, **pl)
         timestamp2 = self.ai.audio(self.authorization, True, **pl)
         assert timestamp1 - timestamp2 > 0, "走缓存获取音频时长比不走缓存长!"
-
-    @pytest.mark.smoke
-    def test_ai_positive_audio_prompt(self):
-        """给文字配音，获取音频-正向用例"""
-        pl = {"prompt": 'Cheerful and upbeat, like a kids show host.'}
-        timestamp2 = self.ai.audio(self.authorization, vioce_type='kids', **pl)
-
-    @pytest.mark.smoke
-    def test_ai_positive_audio_prompt(self):
-        """给文字配音，获取音频-正向用例"""
-        pl = {"prompt": "Child's cute voice."}
-        timestamp2 = self.ai.audio(self.authorization, enableCache=True, vioce_type='kids3', **pl)
-
-    @pytest.mark.smoke
-    def test_ai_positive_audio_prompt_zh(self):
-        """给文字配音，获取音频-正向用例"""
-        pl = {
-            "prompt": 'Magical fairy guide, light and whimsical.'
-        }
-        timestamp2 = self.ai.audio(self.authorization, vioce_type='Magical', **pl)

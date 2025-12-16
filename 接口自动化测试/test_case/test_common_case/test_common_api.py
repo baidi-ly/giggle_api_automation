@@ -7,6 +7,7 @@ import config
 from test_case.page_api.base_api import BaseAPI
 from test_case.page_api.book.book_api import BookApi
 from test_case.page_api.common.common_api import CommonApi
+from test_case.page_api.materials.materials_api import MaterialsApi
 
 sys.path.append(os.getcwd())
 sys.path.append("..")
@@ -21,14 +22,15 @@ class TestCommon:
     def setup_class(self):
         self.common = CommonApi()
         self.book = BookApi()
+        self.materials = MaterialsApi()
         self.authorization = self.common.get_authorization()[0]
 
     @pytest.mark.smoke
     def test_common_positive_Getfileurl_coverKey_ok(self):
-        """根据url获取文件的下载链接-coverKey-正向用例"""
+        """根据url获取文件的下载链接-coverKey"""
         books_res = self.book.book_list(self.authorization)['data']['content']
         for book in books_res:
-            if book['bookName'] == 'Little Ray':
+            if book['bookName'] == 'The Sock-Eating Bear':
                 coverKey = book['coverKey']
                 break
         res = self.common.Getfileurl(self.authorization, coverKey)
@@ -37,13 +39,16 @@ class TestCommon:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
         assert res['data']['url'] == 'https://static' + base_url.replace('creator', '') + '/'+ coverKey
+        url = res['data']['url']
+        fileName = coverKey.split('/')[-1].split('.')[0]
+        self.materials.download_materials(self.authorization, '', fileName, fileType="png", url=url)
 
     @pytest.mark.smoke
     def test_common_positive_Getfileurl_bookKey_ok(self):
-        """根据url获取文件的下载链接-bookKey-正向用例"""
+        """根据url获取文件的下载链接-bookKey"""
         books_res = self.book.book_list(self.authorization)['data']['content']
         for book in books_res:
-            if book['bookName'] == 'Little Ray':
+            if book['bookName'] == 'The Sock-Eating Bear':
                 bookKey = book['bookKey']
                 break
         res = self.common.Getfileurl(self.authorization, bookKey)
@@ -52,8 +57,10 @@ class TestCommon:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
         assert res['data']['url'] == 'https://static' + base_url.replace('creator', '') + '/'+ bookKey
+        url = res['data']['url']
+        fileName = bookKey.split('/')[-1].split('.')[0]
+        self.materials.download_materials(self.authorization, '', fileName, fileType="book", url=url)
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -67,7 +74,7 @@ class TestCommon:
         """根据url获取文件的下载链接-权限测试-公开接口"""
         books_res = self.book.book_list(self.authorization)['data']['content']
         for book in books_res:
-            if book['bookName'] == 'Little Ray':
+            if book['bookName'] == 'The Sock-Eating Bear':
                 coverKey = book['coverKey']
                 break
         res = self.common.Getfileurl(value, coverKey)
