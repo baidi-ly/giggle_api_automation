@@ -1262,7 +1262,7 @@ class TestCourse:
 
     @pytest.mark.release
     def test_game_positive_voiceMultilinguals_oaa(self, kid_data_session, get_course_ids_session):
-        '''xxx'''
+        '''课程抽题改为根据课程id从题库中抽'''
         kid_id, kid_name = kid_data_session
         # 获取顶层课程目录列表
         topcategory_res = self.admin_course.getAlltopcategory(self.admin_auth)
