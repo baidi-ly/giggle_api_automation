@@ -27,6 +27,7 @@ class TestSchoolApi:
     @pytest.fixture(scope='class')
     def create_class(self):
         '''创建班级数据'''
+        # 创建班级
         pl = {
             "className": "baidi_test" + self.now,
             "description": "三年级历史学习班",
@@ -35,45 +36,50 @@ class TestSchoolApi:
         }
         class_id = self.school.school_class(self.authorization, **pl)['data']['id']
         student_names = ['student_1', 'student_2', 'student_3', 'student_4', 'student_5', 'student_6']
+        # 批量添加学生
         pl = {"studentNames": student_names}
         students_res = self.school.batch(self.authorization, class_id, **pl)['data']
         studentIds = DataFrame(students_res).loc[:, "id"].tolist()
 
         yield class_id, studentIds
 
+        # 删除班级
         self.school.delete_class(self.authorization, class_id)
         
     @pytest.fixture(scope='function')
     def create_lesson_function(self):
+        # 创建班级
         class_id = self.school.school_class(self.authorization)['data']['id']
         student_names = ['student1', 'student2', 'student3', 'student4', 'student5', 'student6']
+        # 批量添加学生
         pl = {"studentNames": student_names}
         self.school.batch(self.authorization, class_id, **pl)['data']
+        # 创建课堂
         lessonId = self.school.create_lesson(self.authorization, classId=class_id)['data']['id']
         yield lessonId
+        # 删除班级
         self.school.delete_class(self.authorization, class_id)
         
     @pytest.fixture(scope='class')
     def create_lesson(self):
+        '''创建课程'''
+        # 创建班级
         class_id = self.school.school_class(self.authorization)['data']['id']
+        # Normal课程资源列表
         course_id = self.school.getNormalcourse(self.authorization)["data"]['content'][0]['id']
         resources = [
             {
                 "resourceType": "course",
                 "id": course_id
             }
-            # {
-            #     "resourceType": "storybook",
-            #     "id": 1234567890123456789
-            # },
-            # {
-            #     "resourceType": "quiz",
-            #     "id": 1234567890123456789
-            # }
         ]
+        # 创建课堂
         lesson_id = self.school.lesson(self.authorization, classId=class_id, resources=resources)['data']['id']
+        # 获取课堂学习资源
         resource_id = self.school.lesson_resources(self.authorization, lessonId=lesson_id)['data'][0]['resourceId']
+        # 批量添加学生
         students_id = self.school.batch(self.authorization, class_id)['data'][0]['id']
+        # 获取quiz列表
         res_quiz = self.admin.quiz_list(self.authorization)['data']['content'][0]
         quizId, quizData = res_quiz['id'], res_quiz['quizData']
 
@@ -90,11 +96,13 @@ class TestSchoolApi:
             "subject": "Math"
         }
         class_a_id = self.school.school_class(self.authorization, **pl)['data']['id']
+        # 批量添加学生
         student_names = ['class_a1', 'class_a2']
         pl1 = {"studentNames": student_names}
         students_res = self.school.batch(self.authorization, class_a_id, **pl1)['data']
         studentIds_a = DataFrame(students_res).loc[:, "id"].tolist()
 
+        # 创建班级
         pl = {
             "className": "debbie_test_b" + self.now,
             "description": "三年级数学学习班",
@@ -103,10 +111,12 @@ class TestSchoolApi:
         }
         class_b_id = self.school.school_class(self.authorization, **pl)['data']['id']
         student_names = ['class_b1', 'class_b2']
+        # 批量添加学生
         pl1 = {"studentNames": student_names}
         students_res = self.school.batch(self.authorization, class_b_id, **pl1)['data']
         studentIds_b = DataFrame(students_res).loc[:, "id"].tolist()
 
+        # 创建班级
         pl = {
             "className": "debbie_test_c" + self.now,
             "description": "三年级数学学习班",
@@ -115,6 +125,7 @@ class TestSchoolApi:
         }
         class_c_id = self.school.school_class(self.authorization, **pl)['data']['id']
         student_names = ['class_c1', 'class_c2']
+        # 批量添加学生
         pl1 = {"studentNames": student_names}
         students_res = self.school.batch(self.authorization, class_c_id, **pl1)['data']
         studentIds_c = DataFrame(students_res).loc[:, "id"].tolist()
@@ -122,15 +133,19 @@ class TestSchoolApi:
         yield [(class_a_id, studentIds_a), (class_b_id, studentIds_b), (class_c_id, studentIds_c)]
 
         for class_id in [class_a_id, class_b_id, class_c_id]:
+            # 删除班级
             self.school.delete_class(self.authorization, class_id)
 
     @pytest.mark.smoke
     def test_school_positive_putGroups_ok(self):
         """更新班级学生默认分组-正向用例"""
+        # 创建班级
         className = 'dibo_test_class' + self.now
         class_id = self.school.school_class(self.authorization, className=className)['data']['id']
+        # 批量添加学生
         students_res = self.school.batch(self.authorization, class_id)['data']
         studentIds = DataFrame(students_res).loc[:, "id"].tolist()
+        # 更新班级学生默认分组
         res = self.school.putGroups(self.authorization, classId=class_id, groupSeqNo=0, studentIds=studentIds)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -594,7 +609,6 @@ class TestSchoolApi:
         students_c = self.school.getStudents(self.authorization, class_c_id)
         assert not students_c['data']["content"]
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -617,14 +631,15 @@ class TestSchoolApi:
     @pytest.mark.smoke
     def test_school_positive_class_group_qrcode_ok(self, create_class):
         """获取班级小组二维码-正向用例"""
+        # 创建班级数据
         class_id, studentIds = create_class
+        # 获取班级小组二维码
         res = self.school.class_group_qrcode(self.authorization, class_id)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data']['qrCodeContent'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -693,7 +708,6 @@ class TestSchoolApi:
             for lessonId in lessonIds:
                 self.school.delete_lesson(self.authorization, lessonId)
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -774,7 +788,6 @@ class TestSchoolApi:
         assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【internal server error】，实际【{res['message']}】"
         assert res['data']
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -786,7 +799,6 @@ class TestSchoolApi:
     )
     def test_school_permission_favorite(self, desc, value):
         """收藏资源-权限测试"""
-        
         res = self.school.favorite(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -798,14 +810,17 @@ class TestSchoolApi:
     def test_school_positive_deleteFavorite_course_ok(self):
         """取消收藏资源-课程-正向用例"""
         try:
+            # Normal课程资源列表
             resourceRefId = self.school.getNormalcourse(self.authorization)["data"]['content'][0]['id']
             pl = {
                 "resourceRefId": resourceRefId,
                 "resourceType": "COURSE"
             }
+            # 收藏资源
             res = self.school.favorite(self.authorization, **pl)
         except:
             pass
+        # 取消收藏资源
         res = self.school.deleteFavorite(self.authorization, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -816,14 +831,17 @@ class TestSchoolApi:
     def test_school_positive_deleteFavorite_quiz_ok(self):
         """取消收藏资源-quiz-正向用例"""
         try:
+            # 测验列表
             resourceRefId = self.school.getQuiz(self.authorization)["data"]['content'][0]['id']
             pl = {
                 "resourceRefId": resourceRefId,
                 "resourceType": "QUIZ"
             }
+            # 收藏资源
             res = self.school.favorite(self.authorization, **pl)
         except:
             pass
+        # 取消收藏资源
         res = self.school.deleteFavorite(self.authorization, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -832,19 +850,20 @@ class TestSchoolApi:
 
     @pytest.mark.smoke
     def test_school_positive_deleteFavorite_false_check(self):
-        """取消收藏资源-检测资源未被收藏资源取消失败"""
+        """取消收藏资源-检测资源未被收藏资源取消"""
+        # Normal课程资源列表
         resourceRefId = self.school.getNormalcourse(self.authorization)["data"]['content'][0]['id']
         pl = {
             "resourceRefId": resourceRefId,
             "resourceType": "COURSE"
         }
+        # 取消收藏资源
         res = self.school.deleteFavorite(self.authorization, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == False, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -856,7 +875,6 @@ class TestSchoolApi:
     )
     def test_school_permission_deleteFavorite(self, desc, value):
         """取消收藏资源-权限测试"""
-        
         res = self.school.deleteFavorite(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -867,6 +885,7 @@ class TestSchoolApi:
     @pytest.mark.smoke
     def test_school_positive_report_ok(self):
         """测验结果上报-正向用例"""
+        # 获取用户的班级列表
         class_res = self.school.class_list(self.authorization, size=100)['data']['content']
         for class_info in class_res:
             class_id = class_info['id']
@@ -877,13 +896,15 @@ class TestSchoolApi:
                 break
         else:
             assert False, "未找到有课程的班级!"
-
+        # 测验列表
         quiz_id = self.school.getQuiz(self.authorization)['data']['content'][0]['id']
         resources = [
             { "resourceType": "quiz", "id": quiz_id}
         ]
+        # 更新课堂信息
         update_res = self.school.update_lesson(self.authorization, lesson_id, lesson_name, class_id, resources)
         assert update_res['code'] == 200, "更新课堂信息失败！"
+        # 获取班级学生列表
         students_res = self.school.getStudents(self.authorization, class_id)['data']['content']
         if not students_res:
             student_names = ['baidi', 'huangmin']
@@ -891,6 +912,7 @@ class TestSchoolApi:
             self.school.batch(self.authorization, class_id, **pl)
             students_res = self.school.getStudents(self.authorization, class_id)['data']['content']
         students_id = students_res[0]['id']
+        # 测验结果上报
         answers = []
         for i in range(10):
             answers.append({
@@ -911,7 +933,6 @@ class TestSchoolApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == True, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -934,6 +955,7 @@ class TestSchoolApi:
     @pytest.mark.smoke
     def test_school_positive_quiz_reports_ok(self):
         """测验报告列表-正向用例"""
+        # 获取用户的班级列表
         class_res = self.school.class_list(self.authorization, size=100)['data']['content']
         for class_info in class_res:
             class_id = class_info['id']
@@ -945,14 +967,17 @@ class TestSchoolApi:
         else:
             assert False, "未找到有课程的班级!"
 
+        # 测验列表
         quiz_id = self.school.getQuiz(self.authorization)['data']['content'][0]['id']
         resources = [
             { "resourceType": "quiz", "id": quiz_id}
         ]
+        # 更新课堂信息
         update_res = self.school.update_lesson(self.authorization, lesson_id, lesson_name, class_id, resources)
         assert update_res['code'] == 200, "更新课堂信息失败！"
+        # 获取班级学生列表
         students_res = self.school.getStudents(self.authorization, class_id)['data']['content']
-        if not students_res:
+        if not students_res:    # 如果没有学生，则创建
             student_names = ['baidi', 'huangmin',]
             pl = {"studentNames": student_names}
             self.school.batch(self.authorization, class_id, **pl)
@@ -973,11 +998,12 @@ class TestSchoolApi:
             "studentId": students_id,
             "answers": answers
         }
+        # 测验结果上报
         res = self.school.report(self.authorization, lessonId=lesson_id, quizId=quiz_id, **pl)
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'] == True, f"接口返回data数据异常：{res['data']}"
-
+        # 测验报告列表
         res_reports = self.school.school_quiz_reports(self.authorization, lesson_id)
         assert isinstance(res_reports, dict), f'接口返回类型异常: {type(res_reports)}'
         assert res_reports['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res_reports['code']}】"
@@ -986,7 +1012,6 @@ class TestSchoolApi:
         assert res_reports['data'][0]['lessonResourceId'] == quiz_id
         assert res_reports['data'][0]['name'].startswith('quiz_report')
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1015,7 +1040,6 @@ class TestSchoolApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1043,7 +1067,6 @@ class TestSchoolApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1093,16 +1116,15 @@ class TestSchoolApi:
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.smoke
-    def test_school_positive_getStorybook_byTag_ok(self):
+    def test_school_positive_lessonStorybook_ok(self):
         """故事书资源列表-正向用例"""
         tagId = self.school.getStorybookThemes(self.authorization)['data'][0]['id']
-        res = self.school.getStorybook_byTag(self.authorization, tagId)
+        res = self.school.lessonStorybook(self.authorization, tagId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -1112,9 +1134,9 @@ class TestSchoolApi:
             ('invalid_token', 'invalid_token'),
         ]
     )
-    def test_school_permission_getStorybook_byTag(self, desc, value):
+    def test_school_permission_lessonStorybook(self, desc, value):
         """故事书资源列表-权限测试"""
-        res = self.school.getStorybook_byTag(value, 0, code=401)
+        res = self.school.lessonStorybook(value, 0, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -1179,9 +1201,7 @@ class TestSchoolApi:
         themes_res = self.school.storybookThemes(self.authorization)['data']
         for theme in themes_res:
             tagId = theme['id']
-            pl = {
-                "official": 1,
-            }
+            pl = {"official": 1}
             books_res = self.school.lessonStorybook(self.authorization, tagId=tagId, **pl)['data']['content']
             for book in books_res:
                 # 通过bookId查询书籍详情，获取作者名称
