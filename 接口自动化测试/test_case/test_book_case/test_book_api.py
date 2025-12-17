@@ -23,27 +23,63 @@ class TestBook:
 
     def teardown_class(self):
         '''全局数据清理'''
+        # 查询故事书标签类型列表
         BookTagTypes = self.book.bookTagTypeList(self.authorization)['data']['content']
         for _type in BookTagTypes:
-            if 'createBookTagType' in _type['name']:
+            if 'dibo_test' in _type['name']:
+                tagTypeId = _type['id']
+                # 查询指定类型下的故事书标签列表
+                book_tags = self.book.getBookTagsByType(self.authorization, tagTypeId=tagTypeId)
+                for _book_tag in book_tags:
+                    if 'dibo_test' in _book_tag['name']:
+                        tage_id = _book_tag['id']
+                        # 删除书籍标签
+                        self.book.deleteBookTag(self.authorization, tage_id)
+                # 删除故事书标签
                 self.book.deleteBookTagType(self.authorization, _type['id'])
 
     @pytest.fixture(scope="class")
     def get_bookId(self):
-        '''方法前置 - 创建kidId'''
-        # 创建小孩账户
-        bookName = '前置书籍'+self.now
-        category  = 1
-        seriesId = 1
-        storyType = ''
+        '''方法前置 - 列出当前用户创建的书籍列表'''
+        # 列出当前用户创建的书籍列表
         bookList = self.book.book_list(self.authorization)
         yield bookList
 
+    @pytest.fixture(scope='function')
+    def create_BookTagType(self):
+        '''创建故事书标签类型'''
+        description = '创建书籍标签类型描述'
+        name = 'dibo_test' + self.now + str(random.random())
+        res = self.book.createBookTagType(self.authorization, description=description, name=name)
+        bookTagTypeId = res['data']['id']
+
+        yield bookTagTypeId
+
+        # 删除故事书标签
+        res = self.book.deleteBookTagType(self.authorization, bookTagTypeId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+
+    @pytest.fixture(scope='function')
+    def create_BookTag(self, create_BookTagType):
+        '''创建故事书标签'''
+        # 创建故事书标签
+        tagDescription = '创建书籍标签描述'
+        tagName = 'dibo_test' + self.now
+        tagTypeId = create_BookTagType
+        bookTagId = self.book.createBookTag(self.authorization, tagDescription, tagName, tagTypeId)['data']['id']
+        yield bookTagId
+        # 删除书籍标签
+        res = self.book.deleteBookTag(self.authorization, bookTagId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+
+    @pytest.mark.smoke
     @pytest.mark.parametrize("isTranslatable", [True, False], ids=[True, False])
     def test_book_translationSetting_update_normal(self, isTranslatable, get_bookId):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
+        """更新故事书的翻译设置"""
+        # 列出当前用户创建的书籍列表
         bookId = get_bookId["data"]["content"][0]["id"]
+        # 更新故事书的翻译设置
         event_res = self.book.update_translationSetting(self.authorization, bookId, isTranslatable)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["data"] == "更新成功"
@@ -58,16 +94,6 @@ class TestBook:
         assert event_res["data"] == 'book not found'
         assert event_res["message"] == 'book not found'
 
-    def test_book_translationSetting_update_bookId_not_current_owner(self, get_bookId):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
-        pass
-
-    def test_book_translationSetting_update_bookId_empty(self, get_bookId):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
-        self.book.update_translationSetting(self.authorization, '', code=403)
-
     def test_book_translationSetting_update_isTranslatable_wrong(self, get_bookId):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -76,12 +102,13 @@ class TestBook:
         assert event_res["data"] == "Failed to convert value of type 'java.lang.String' to required type 'boolean'; nested exception is java.lang.IllegalArgumentException: Invalid boolean value [9999]"
         assert event_res["message"] == 'invalid parameter'
 
+    @pytest.mark.smoke
     def test_book_get_translationSetting_bookId_normal(self, get_bookId):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
+        """获取故事书的翻译设置"""
+        # 列出当前用户创建的书籍列表
         bookId = get_bookId["data"]["content"][0]["id"]
+        # 获取故事书的翻译设置
         event_res = self.book.translationSetting(self.authorization, bookId)
-        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["data"]["isTranslatable"] == False
         assert event_res["message"] == "success"
 
@@ -93,11 +120,6 @@ class TestBook:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["data"] == 'book not found'
         assert event_res["message"] == 'book not found'
-
-    def test_book_get_translationSetting_bookId_not_current_owner(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
-        pass
 
     def test_book_get_translationSetting_bookId_empty(self):
         """有效的kidId，返回完整统计数据"""
@@ -112,8 +134,8 @@ class TestBook:
                               ("hello", "zh", "en", 'hello · 你好'),],
                              ids=["en_en", "default", "en_ch", "ch_en"])
     def test_book_getWordDefinition_word_normal(self, word, interfaceLanguage, learningLanguage, header):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
+        """获取故事书内单词释义"""
+        # 获取故事书内单词释义
         event_res = self.book.getWordDefinition(self.authorization, word, interfaceLanguage, learningLanguage)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["data"]["header"] == header
@@ -123,7 +145,7 @@ class TestBook:
         assert self.book.check_str_language(res_learningDefin) == learningLanguage
 
     def test_book_generateVideo_bookId_normal(self, get_bookId):
-        """有效的kidId，返回完整统计数据"""
+        """获取孩子学习统计数据"""
         # 获取孩子学习统计数据
         bookId = get_bookId["data"]["content"][0]["id"]
         event_res = self.book.generateVideo(self.authorization, bookId)
@@ -132,7 +154,7 @@ class TestBook:
         assert event_res["message"] == "success"
 
     def test_book_generateVideo_bookId_not_exist(self, get_bookId):
-        """有效的kidId，返回完整统计数据"""
+        """获取孩子学习统计数据"""
         # 获取孩子学习统计数据
         bookId = -999999
         event_res = self.book.generateVideo(self.authorization, bookId)
@@ -140,13 +162,8 @@ class TestBook:
         assert event_res["data"] == 'book not found'
         assert event_res["message"] == 'book not found'
 
-    def test_book_generateVideo_bookId_not_current_owner(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
-        pass
-
     def test_book_generateVideo_bookId_empty(self):
-        """有效的kidId，返回完整统计数据"""
+        """获取孩子学习统计数据"""
         # 获取孩子学习统计数据
         event_res = self.book.generateVideo(self.authorization, '', code=400)   # TODO
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
@@ -154,45 +171,43 @@ class TestBook:
         assert event_res["message"] == 'invalid parameter'
 
     def test_book_get_generateVideo_bookId_normal(self, get_bookId):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
+        """获取故事书id获取AI视频信息"""
+        # 列出当前用户创建的书籍列表
         bookId = get_bookId["data"]["content"][0]["id"]
+        # 获取故事书id获取AI视频信息
         event_res = self.book.get_generateVideos(self.authorization, bookId)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["data"]
         assert event_res["message"] == "success"
 
     def test_book_get_generateVideo_bookId_not_exist(self, get_bookId):
-        """有效的kidId，返回完整统计数据"""
+        """获取故事书id获取AI视频信息"""
         # 获取孩子学习统计数据
         bookId = -999999
         event_res = self.book.get_generateVideos(self.authorization, bookId)
         assert event_res["message"] == 'book not found'
         assert event_res['data'] == 'book not found'
 
-    def test_book_get_generateVideo_bookId_not_current_owner(self, get_bookId):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
-        pass
-
     def test_book_get_generateVideo_bookId_empty(self, get_bookId):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
+        """获取故事书id获取AI视频信息"""
+        # 获取故事书id获取AI视频信息
         event_res = self.book.get_generateVideos(self.authorization, '', code=400)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == 'invalid parameter'
         assert event_res['data'] == '''Failed to convert value of type 'java.lang.String' to required type 'long'; nested exception is java.lang.NumberFormatException: For input string: ""'''
 
     def test_book_get_generateVideo_bookId_special_character(self, get_bookId):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
+        """获取故事书id获取AI视频信息"""
+        # 获取故事书id获取AI视频信息
         event_res = self.book.get_generateVideos(self.authorization, '@#$%^&*', code=403)
 
+    @pytest.mark.smoke
     @pytest.mark.parametrize("includeBookCover", [True, False], ids=[True, False])
     def test_book_series_list_includeBookCover_normal(self, includeBookCover, get_bookId):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
+        """查询故事书系列列表"""
+        # 列出当前用户创建的书籍列表
         bookId = get_bookId["data"]["content"][0]["id"]
+        # 查询故事书系列列表
         event_res = self.book.series_list(self.authorization, bookId, includeBookCover=includeBookCover)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["data"] == "更新成功"  # TOTEST
@@ -272,10 +287,11 @@ class TestBook:
         assert event_res["data"] == "更新成功"  # TOTEST
         assert event_res["message"] == "success"
 
+    @pytest.mark.smoke
     def test_book_recommend_bookAndCourse_age_normal(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
+        """推荐体验课与故事书"""
         for age in range(20):
+            # 推荐体验课与故事书
             event_res = self.book.recommend_bookAndCourse(self.authorization, age)
             assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
             assert event_res["data"]["courses"]
@@ -323,10 +339,11 @@ class TestBook:
         assert event_res["data"]["courses"]
         assert event_res["data"]["book"]
 
+    @pytest.mark.smoke
     @pytest.mark.parametrize("translateLanguage", ["en", "zh", "fr", "de", "ja", "ko", "ar"], ids=["en", "zh", "fr", "de", "ja", "ko", "ar"])
     def test_book_recommend_bookAndCourse_translateLanguage_iterate(self, translateLanguage):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据v
+        """推荐体验课与故事书"""
+        # 推荐体验课与故事书
         event_res = self.book.recommend_bookAndCourse(self.authorization, translateLanguage=translateLanguage)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["data"]["courses"]
@@ -360,9 +377,10 @@ class TestBook:
         # 获取孩子学习统计数据
         self.book.recommend_newUserBookRules('', code=401)
 
+    @pytest.mark.smoke
     def test_book_recommend_update_newUserBookRules_normal(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
+        """设置新用户推荐书籍规则"""
+        # 设置新用户推荐书籍规则
         event_res = self.book.update_recommend_newUserBookRules(self.authorization, rules="this is new rule")
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["data"] == True
@@ -389,8 +407,7 @@ class TestBook:
         event_res = self.book.update_recommend_newUserBookRules(self.authorization, rules="this is new rule", code=500, **pl)
         assert event_res["message"] == 'internal server error'
 
-
-
+    @pytest.mark.smoke
     def test_book_positive_upload_ok(self):
         """上传故事书语言层包到S3-正向用例"""
         res = self.book.upload(authorization=self.authorization, bookId=0, languageCode='')
@@ -408,7 +425,6 @@ class TestBook:
     )
     def test_book_permission_upload(self, input_param, desc, value):
         """上传故事书语言层包到S3-{desc}"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.book.upload(input_param, bookId=0, languageCode='')
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
@@ -601,23 +617,7 @@ class TestBook:
     )
     def test_book_format_upload_file(self, input_param, desc, value):
         """上传故事书语言层包到S3-数据格式测试-{desc}(file)"""
-        res = self.book.upload(self.authorization, file=value)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert 'data' in res, f'返回结果没有data数据，response->{res}'
-
-    @pytest.mark.parametrize(
-        'input_param, desc, value',
-        [
-            ('empty_file', '空文件', 'test_files/empty.txt'),
-            ('small_file', '小文件', 'test_files/small.txt'),
-            ('large_file', '大文件', 'test_files/large.txt'),
-            ('invalid_format', '无效格式', 'test_files/invalid.exe'),
-            ('max_size', '最大尺寸', 'test_files/max_size.txt'),
-        ]
-    )
-    def test_book_boundary_upload_file(self, input_param, desc, value):
-        """上传故事书语言层包到S3-边界值测试-{desc}(file)"""
-        res = self.book.upload(self.authorization, file=value)
+        res = self.book.languageLayers_upload(self.authorization, file=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
@@ -629,6 +629,7 @@ class TestBook:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -640,7 +641,6 @@ class TestBook:
     )
     def test_book_permission_indexaudio_details(self, desc, value):
         """查询故事书首页语音-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.book.indexaudio_details(value)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -688,7 +688,7 @@ class TestBook:
     @pytest.mark.parametrize(
         'desc, value, code',
         [
-            ('min', -2147483648, 400),  # todo
+            ('min', -2147483648, 400),
             ('zero', 0, 200),
             ('max', 2147483647, 200),
         ]
@@ -711,45 +711,6 @@ class TestBook:
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.parametrize(
-        'desc, value, code, code_res',
-        [
-            ('integer', 123, 200, 404),     # todo
-            ('float', 12.3, 200, 404),     # todo
-            ('boolean', True, 200, 404),     # todo
-            ('array', [1, 2, 3], 200, 404),     # todo
-            ('object', {'key': 'value'}, 200, 404),     # todo
-            ('special_chars', '!@#$%^&*()', 200, 404),     # todo
-            ('email_format', 'test@example.com', 200, 404),     # todo
-            ('phone_format', '13800138000', 200, 404),     # todo
-            ('date_format', '2023-12-25', 200, 404),     # todo
-            ('emoji', '😀🎉🚀', '', ''),
-            ('long_string', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 200, 404),
-            ('unicode', '中文测试', '', ''),
-            ('json_string', '{"key": "value"}', 200, 404),     # todo
-            ('xml_string', '<root><item>test</item></root>', 404, 404),
-            ('url_string', 'https://www.example.com', 403, ''),
-            ('base64_string', 'SGVsbG8gV29ybGQ=', 200, 404),     # todo
-        ]
-    )
-    def test_book_format_indexaudio_details_language(self, desc, value, code, code_res):
-        """查询故事书首页语音-数据格式测试(language)"""
-        try:
-            res = self.book.indexaudio_details(self.authorization, language=value, code=code)
-        except Exception as res:
-            assert not code
-        if code and not code_res:
-            assert not res
-        elif code_res == 500:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
-            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
-        elif code_res == 404:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['status'] == 404, f"接口返回状态码异常: 预期【404】，实际【{res['status']}】"
-            assert res['error'] == 'Not Found', f"接口返回message信息异常: 预期【{'pending'}】，实际【Not Found】"
-
-    @pytest.mark.parametrize(
         'desc, value, code',
         [
             ('min_length', "", 404),
@@ -762,6 +723,7 @@ class TestBook:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['status'] == 404, f"接口返回状态码异常: 预期【404】，实际【{res['status']}】"
         assert res['error'] == 'Not Found', f"接口返回message信息异常: 预期【{'pending'}】，实际【Not Found】"
+
     def test_book_scenario_indexaudio_details_invalid_language(self):
         """查询故事书首页语音-场景异常-无效的language"""
         language = 'INVALID_VALUE'  # todo
@@ -777,7 +739,7 @@ class TestBook:
         file = {
             'audioFile': ('upload_test.txt', open(os.getcwd() + '/test_data/upload_test.txt', 'rb'))
         }
-        res = self.book.indexaudio_details1(self.authorization, bookId, file=file)
+        res = self.book.upload_indexAudio(self.authorization, bookId, file=file)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -798,8 +760,7 @@ class TestBook:
         file = {
             'audioFile': ('upload_test.txt', open(os.getcwd() + '/test_data/upload_test.txt', 'rb'))
         }
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.book.indexaudio_details1(value, bookId, file=file, code=401)
+        res = self.book.upload_indexAudio(value, bookId, file=file, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -843,10 +804,10 @@ class TestBook:
             # assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
 
     @pytest.mark.smoke
-    def test_book_positive_getQuiz_ok(self, get_bookId):
+    def test_book_positive_book_quiz_ok(self, get_bookId):
         """查询故事书的quiz-正向用例"""
         bookId = get_bookId["data"]["content"][0]["id"]
-        res = self.book.getQuiz(self.authorization, bookId)
+        res = self.book.book_quiz(self.authorization, bookId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -914,8 +875,10 @@ class TestBook:
     @pytest.mark.smoke
     def test_book_positive_quiz_ok(self, get_bookId):
         """保存故事书的quiz-正向用例"""
+        # 列出当前用户创建的书籍列表
         bookId = get_bookId["data"]["content"][0]["id"]
-        res = self.book.quiz(self.authorization, bookId)
+        # 保存故事书的quiz
+        res = self.book.save_book_quiz(self.authorization, bookId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -932,8 +895,7 @@ class TestBook:
     )
     def test_book_permission_quiz(self, desc, value):
         """保存故事书的quiz-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.book.quiz(value, code=401)
+        res = self.book.save_book_quiz(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -959,10 +921,12 @@ class TestBook:
         assert res == "call_error"
 
     @pytest.mark.smoke
-    def test_book_positive_generateasync_ok(self, get_bookId):
+    def test_book_positive_generateasync_quiz_ok(self, get_bookId):
         """异步生成故事书的quiz-正向用例"""
+        # 列出当前用户创建的书籍列表
         bookId = get_bookId["data"]["content"][0]["id"]
-        res = self.book.generateasync(self.authorization, bookId)
+        # 异步生成故事书的quiz
+        res = self.book.generateasync_quiz(self.authorization, bookId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -977,10 +941,10 @@ class TestBook:
             ('invalid_token', 'invalid_token'),
         ]
     )
-    def test_book_permission_generateasync(self, desc, value):
+    def test_book_permission_generateasync_quiz(self, desc, value):
         """异步生成故事书的quiz-权限测试"""
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.book.generateasync(value, code=401)
+        res = self.book.generateasync_quiz(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -1002,7 +966,7 @@ class TestBook:
         else:
             pl = {'story': value}
         bookId = get_bookId["data"]["content"][0]["id"]
-        res = self.book.generateasync(self.authorization, bookId, code=code, **pl)
+        res = self.book.generateasync_quiz(self.authorization, bookId, code=code, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         if code == 500:
             assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
@@ -1028,7 +992,7 @@ class TestBook:
         else:
             pl = {'targetAge': value}
         bookId = get_bookId["data"]["content"][0]["id"]
-        res = self.book.generateasync(self.authorization, bookId, code=code, **pl)
+        res = self.book.generateasync_quiz(self.authorization, bookId, code=code, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         if code == 500:
             assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
@@ -1040,11 +1004,14 @@ class TestBook:
             assert res['data'] == {'error': 'Story and targetAge are required'} or res['data'] == {'error': 'Story pages have no text content'}, f"接口返回data数据异常：预期【{'error': 'Story and targetAge are required'}】，实际【{res['data']}】"
 
     @pytest.mark.smoke
-    def test_book_positive_getStatus_ok(self, get_bookId):
+    def test_book_positive_quiz_task_status_ok(self, get_bookId):
         """查询故事quiz生成任务状态-正向用例"""
+        # 列出当前用户创建的书籍列表
         bookId = get_bookId["data"]["content"][0]["id"]
-        task_id = self.book.generateasync(self.authorization, bookId)['data']['task_id']
-        res = self.book.getStatus(self.authorization, bookId=bookId, taskId=task_id)
+        # 异步生成故事书的quiz
+        task_id = self.book.generateasync_quiz(self.authorization, bookId)['data']['task_id']
+        # 查询故事quiz生成任务状态
+        res = self.book.quiz_task_status(self.authorization, bookId=bookId, taskId=task_id)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -1059,10 +1026,10 @@ class TestBook:
             ('invalid_token', 'invalid_token'),
         ]
     )
-    def test_book_permission_getStatus(self, desc, value):
+    def test_book_permission_quiz_task_status(self, desc, value):
         """查询故事quiz生成任务状态-权限测试"""
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.book.getStatus(value, code=401)
+        res = self.book.quiz_task_status(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -1070,11 +1037,14 @@ class TestBook:
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.smoke
-    def test_book_positive_getReadingStatus_ok(self, get_bookId):
+    def test_book_positive_readingStatus_ok(self, get_bookId):
         """检查kid是否读过某本故事书-正向用例"""
+        # 获取孩子数据
         kidId = self.kid.getKids(self.authorization)['data'][0]['id']
+        # 列出当前用户创建的书籍列表
         bookId = get_bookId["data"]["content"][0]["id"]
-        res = self.book.getReadingStatus(self.authorization, bookId, kidId)
+        # 检查kid是否读过某本故事书
+        res = self.book.readingStatus(self.authorization, bookId, kidId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -1091,7 +1061,6 @@ class TestBook:
     )
     def test_book_permission_getReadingStatus(self, desc, value):
         """检查kid是否读过某本故事书-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.book.getReadingStatus(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -1199,11 +1168,14 @@ class TestBook:
             assert res['data']
 
     @pytest.mark.smoke
-    def test_book_positive_rating_ok(self, get_bookId):
+    def test_book_positive_book_rating_ok(self, get_bookId):
         """保存故事书评价-正向用例"""
+        # 获取孩子数据
         kidId = self.kid.getKids(self.authorization)['data'][0]['id']
+        # 列出当前用户创建的书籍列表
         bookId = get_bookId["data"]["content"][0]["id"]
-        res = self.book.rating(self.authorization, bookId, kidId)
+        # 保存故事书评价
+        res = self.book.book_rating(self.authorization, bookId, kidId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -1218,10 +1190,9 @@ class TestBook:
             ('invalid_token', 'invalid_token'),
         ]
     )
-    def test_book_permission_rating(self, desc, value):
+    def test_book_permission_book_rating(self, desc, value):
         """保存故事书评价-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.book.rating(value, code=401)
+        res = self.book.book_rating(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
@@ -1261,6 +1232,7 @@ class TestBook:
     @pytest.mark.smoke
     def test_book_positive_getFeedbackOptions_ok(self):
         """获取评价反馈选项配置-正向用例"""
+        # 获取评价反馈选项配置
         res = self.book.getFeedbackOptions(self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -1306,7 +1278,6 @@ class TestBook:
     )
     def test_book_permission_feedbackOptions(self, desc, value):
         """更新评价反馈选项配置-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.book.feedbackOptions(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -1342,8 +1313,10 @@ class TestBook:
     @pytest.mark.smoke
     def test_book_positive_getRecommend_ok(self, get_bookId):
         """根据用户年龄随机推荐故事书-正向用例"""
+        # 列出当前用户创建的书籍列表
         bookId = get_bookId["data"]["content"][0]["id"]
-        res = self.book.getRecommend(self.authorization, bookId=bookId)
+        # 根据用户年龄随机推荐故事书
+        res = self.book.book_recommend(self.authorization, bookId=bookId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -1360,7 +1333,6 @@ class TestBook:
     )
     def test_book_permission_getRecommend(self, desc, value, get_bookId):
         """根据用户年龄随机推荐故事书-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         bookId = get_bookId["data"]["content"][0]["id"]
         res = self.book.getRecommend(value, bookId=bookId)
         if res:
@@ -1444,17 +1416,18 @@ class TestBook:
             assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
+    @pytest.mark.smoke
     def test_book_recommend_bookAndCourse_abTest_normal(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
+        """推荐体验课与故事书"""
+        # 推荐体验课与故事书
         event_res = self.book.recommend_bookAndCourse(self.authorization)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
         assert event_res["data"]["courses"]
 
     def test_book_recommend_bookAndCourse_abTest_false(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
+        """推荐体验课与故事书"""
+        # 推荐体验课与故事书
         event_res = self.book.recommend_bookAndCourse(self.authorization, abTest=False)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["code"] == 200
@@ -1462,8 +1435,8 @@ class TestBook:
         assert event_res["data"]["book"]
 
     def test_book_recommend_bookAndCourse_abTest_int(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
+        """推荐体验课与故事书"""
+        # 推荐体验课与故事书
         event_res = self.book.recommend_bookAndCourse(self.authorization, abTest="9495345", code=400)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res['code'] == 100006, f"接口返回状态码异常: 预期【100006】，实际【{event_res['code']}】"
@@ -1480,6 +1453,7 @@ class TestBook:
             "navigationType": "NEXT",
             "userId": self.userId
         }
+        # 故事书续播
         res = self.book.continueplaying(self.authorization, **pl)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -1497,7 +1471,6 @@ class TestBook:
     )
     def test_book_permission_continueplaying(self, desc, value, get_bookId):
         """故事书续播（Continue Playing）-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         bookId = get_bookId["data"]["content"][0]["id"]
         pl = {
             "currentBookId": bookId,
@@ -1506,6 +1479,7 @@ class TestBook:
             "navigationType": "NEXT",
             "userId": self.userId
         }
+        # 故事书续播
         res = self.book.continueplaying(value, code=200, **pl)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -1517,7 +1491,7 @@ class TestBook:
     def test_book_positive_createBookTagType_ok(self):
         """创建书籍标签类型-正向用例"""
         description = '创建书籍标签类型描述'
-        name = 'createBookTagType' + self.now + str(random.random())
+        name = 'dibo_test' + self.now + str(random.random())
         res = self.book.createBookTagType(self.authorization, description=description, name=name)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -1535,7 +1509,6 @@ class TestBook:
     )
     def test_book_permission_createBookTagType(self, desc, value):
         """创建书籍标签类型-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.book.createBookTagType(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -1553,30 +1526,18 @@ class TestBook:
     def test_book_boundary_createBookTagType_allowMultipleTags(self, desc, value, code):
         """创建书籍标签类型-边界值测试(allowMultipleTags)"""
         description = '创建书籍标签类型描述'
-        name = 'createBookTagType' + self.now + desc
+        name = 'dibo_test' + self.now + desc
         res = self.book.createBookTagType(self.authorization, allowMultipleTags=value, description=description, name=name)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == code, f"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.fixture(scope='function')
-    def create_BookTagType(self):
-        description = '创建书籍标签类型描述'
-        name = 'createBookTagType' + self.now + str(random.random())
-        res = self.book.createBookTagType(self.authorization, description=description, name=name)
-        bookTagTypeId = res['data']['id']
-
-        yield bookTagTypeId
-
-        res = self.book.deleteBookTagType(self.authorization, bookTagTypeId)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-
     @pytest.mark.smoke
     def test_book_positive_bookTagType_deleteBookTagType_ok(self):
         """获取书籍标签类型详情-正向用例"""
         description = '创建书籍标签类型描述'
-        name = 'createBookTagType' + self.now + str(random.random())
+        name = 'dibo_test' + self.now + str(random.random())
         res = self.book.createBookTagType(self.authorization, description=description, name=name)
         bookTagTypeId = res['data']['id']
         res = self.book.deleteBookTagType(self.authorization, bookTagTypeId)
@@ -1606,7 +1567,7 @@ class TestBook:
 
     @pytest.mark.smoke
     def test_book_positive_getList_ok(self):
-        """获取书籍标签类型列表-正向用例"""
+        """获取书籍标签类型列表"""
         res = self.book.bookTagTypeList(self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -1636,7 +1597,7 @@ class TestBook:
     def test_book_positive_createBookTag_ok(self, create_BookTagType):
         """创建书籍标签-正向用例"""
         tagDescription = '创建书籍标签描述'
-        tagName = 'createBookTag' + self.now
+        tagName = 'dibo_test' + self.now
         tagTypeId = create_BookTagType
         res = self.book.createBookTag(self.authorization, tagDescription, tagName, tagTypeId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -1668,9 +1629,11 @@ class TestBook:
     @pytest.mark.smoke
     def test_book_positive_deleteBookTag_ok(self, create_BookTagType):
         """根据ID获取书籍标签详情-正向用例"""
-        tagDescription = '创建书籍标签描述'
-        tagName = 'createBookTag' + self.now
+        # 创建故事书标签类型
         tagTypeId = create_BookTagType
+        tagDescription = '创建书籍标签描述'
+        tagName = 'dibo_test' + self.now
+        # 创建故事书标签
         bookTagId = self.book.createBookTag(self.authorization, tagDescription, tagName, tagTypeId)['data']['id']
         res = self.book.deleteBookTag(self.authorization, bookTagId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -1709,7 +1672,9 @@ class TestBook:
     @pytest.mark.smoke
     def test_book_positive_getBookTagsByType_ok(self, create_BookTagType):
         """查询指定类型下的故事书标签列表-正向用例"""
+        # 创建故事书标签类型
         tagTypeId = create_BookTagType
+        # 查询指定类型下的故事书标签列表
         res = self.book.getBookTagsByType(self.authorization, tagTypeId=tagTypeId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -1755,23 +1720,14 @@ class TestBook:
             assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【internal server error】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
 
-    @pytest.fixture(scope='function')
-    def create_BookTag(self, create_BookTagType):
-        '''创建故事书标签'''
-        tagDescription = '创建书籍标签描述'
-        tagName = 'createBookTag' + self.now
-        tagTypeId = create_BookTagType
-        bookTagId = self.book.createBookTag(self.authorization, tagDescription, tagName, tagTypeId)['data']['id']
-        yield bookTagId
-        res = self.book.deleteBookTag(self.authorization, bookTagId)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-
     @pytest.mark.smoke
     def test_book_positive_addTagToBook_ok(self, get_bookId, create_BookTag):
         """为故事书添加标签-正向用例"""
+        # 列出当前用户创建的书籍列表
         bookId = get_bookId["data"]["content"][0]["id"]
+        # 创建故事书标签
         tagId = create_BookTag
+        # 为故事书添加标签
         res = self.book.addTagToBook(self.authorization, bookId, tagId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"

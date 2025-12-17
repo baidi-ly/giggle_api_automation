@@ -70,7 +70,7 @@ class BookApi(BaseAPI):
 
     def series_list(self, authorization, DeviceType="web", **kwargs):
         """
-        更新故事书的翻译设置
+        查询故事书系列列表
         :param bookId: 书籍id
         :return:
         """
@@ -94,7 +94,7 @@ class BookApi(BaseAPI):
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
         response = requests.request("GET", url, headers=headers, params=payload)
-        error_msg = "更新故事书的翻译设置"
+        error_msg = "查询故事书系列列表"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
@@ -306,7 +306,7 @@ class BookApi(BaseAPI):
         response = response.json()
         return response
 
-    def upload(self, authorization, bookId=0, languageCode='', file=None, DeviceType="web", code=200, **kwargs):
+    def languageLayers_upload(self, authorization, bookId=0, languageCode='', file=None, DeviceType="web", code=200, **kwargs):
         """
         上传故事书语言层包到S3
         :param bookId: (integer, query, required) bookId
@@ -352,7 +352,7 @@ class BookApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def indexaudio_details1(self, authorization, bookId=0, language='zh', file=None, DeviceType="web", code=200, **kwargs):
+    def upload_indexAudio(self, authorization, bookId=0, language='zh', file=None, DeviceType="web", code=200, **kwargs):
         """
         上传并保存故事书首页语音
         :param bookId: (integer, path, required) 故事书ID
@@ -366,7 +366,7 @@ class BookApi(BaseAPI):
         headers = self.request_header(timestamp, authorization, DeviceType, Content_Type='multipart/form-data')
 
         response = requests.request("POST", url, headers=headers, files=file)
-        error_msg = "上传并保存故事书首页语音"
+        error_msg = "	上传并保存故事书首页语音"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()
@@ -374,7 +374,7 @@ class BookApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def getQuiz(self, authorization, bookId=0, DeviceType="web", code=200, **kwargs):
+    def book_quiz(self, authorization, bookId=0, DeviceType="web", code=200, **kwargs):
         """
         查询故事书的quiz
         :param bookId: (integer, path, required) 故事书ID
@@ -394,7 +394,7 @@ class BookApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def quiz(self, authorization, bookId=0, DeviceType="web", code=200, **kwargs):
+    def save_book_quiz(self, authorization, bookId=0, DeviceType="web", code=200, **kwargs):
         """
         保存故事书的quiz
         :param bookId: (integer, path, required) 故事书ID
@@ -751,7 +751,7 @@ class BookApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def generateasync(self, authorization, bookId=0, DeviceType="web", code=200, **kwargs):
+    def generateasync_quiz(self, authorization, bookId=0, DeviceType="web", code=200, **kwargs):
         """
         异步生成故事书的quiz
         :param bookId: (integer, path, required) 故事书ID
@@ -816,7 +816,7 @@ class BookApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def getStatus(self, authorization, bookId=0, taskId=0, DeviceType="web", code=200, **kwargs):
+    def quiz_task_status(self, authorization, bookId=0, taskId=0, DeviceType="web", code=200, **kwargs):
         """
         查询故事quiz生成任务状态
         :param bookId: (integer, path, required) 故事书ID
@@ -837,7 +837,7 @@ class BookApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def getReadingStatus(self, authorization, bookId=0, kidId=0, DeviceType="web", code=200, **kwargs):
+    def readingStatus(self, authorization, bookId=0, kidId=0, DeviceType="web", code=200, **kwargs):
         """
         检查kid是否读过某本故事书
         :param bookId: (integer, path, required) 故事书ID
@@ -861,7 +861,7 @@ class BookApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def rating(self, authorization, bookId=0, kidId=0, DeviceType="web", code=200, **kwargs):
+    def book_rating(self, authorization, bookId=0, kidId=0, DeviceType="web", code=200, **kwargs):
         """
         保存故事书评价
         :param request: (object, body, required) 评价请求
@@ -890,7 +890,6 @@ class BookApi(BaseAPI):
     def getFeedbackOptions(self, authorization, DeviceType="web", code=200, **kwargs):
         """
         获取评价反馈选项配置
-
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-10-17
@@ -938,7 +937,7 @@ class BookApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def getRecommend(self, authorization, age=0, bookId=0, localTime='', recommendType='', translateLanguage='zh', DeviceType="web", code=200, **kwargs):
+    def book_recommend(self, authorization, age=0, bookId=0, localTime='', recommendType='', translateLanguage='zh', DeviceType="web", code=200, **kwargs):
         """
         根据用户年龄随机推荐故事书
         :param age: (integer, query, optional) age
@@ -1026,8 +1025,7 @@ class BookApi(BaseAPI):
 
     def deleteBookTagType(self, authorization, id=0, DeviceType="web", code=200):
         """
-        /api/book-tag-type/{id}
-
+        删除故事书标签
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-10-23
@@ -1036,7 +1034,7 @@ class BookApi(BaseAPI):
         headers = self.request_header(timestamp, authorization, DeviceType)
 
         response = requests.request("DELETE", url, headers=headers)
-        error_msg = "/api/book-tag-type/{id}"
+        error_msg = "删除故事书标签"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()
@@ -1098,8 +1096,7 @@ class BookApi(BaseAPI):
 
     def deleteBookTag(self, authorization, id=0, DeviceType="web", code=200, **kwargs):
         """
-        根据ID获取书籍标签详情
-
+        删除书籍标签
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-10-23
