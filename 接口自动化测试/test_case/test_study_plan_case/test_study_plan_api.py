@@ -23,15 +23,18 @@ class TestStudyPlanApi:
         self.authorization = self.study_plan.get_authorization()[0]
         self.now = strftime("%Y%m%d%H%M%S")
 
-        name = 'dibo_test_flashcards' + self.now
-        quiz_res = self.admin_flashcard.flashcards_create(self.authorization, name=name)["data"]
+        # 新增闪卡
+        quiz_name = 'dibo_test_flashcards' + self.now
+        quiz_res = self.admin_flashcard.flashcards_create(self.authorization, name=quiz_name)["data"]
         self.contentId = quiz_res["id"]
+        # 创建学习计划
+        study_plan_name = 'dibo_test_study_plan' + self.now
         contents = [
             {
                 "contentId": self.contentId,
                 "contentType": "flash_card",
                 "difficulty": "easy",
-                "name": "基础词汇测验",
+                "name": study_plan_name,
                 "sortOrder": 1,
                 "wordCount": 20,
                 "contentConfig": {
@@ -40,25 +43,30 @@ class TestStudyPlanApi:
             }
         ]
         self.studyPlanId = self.admin_study.study_plan_create(self.authorization, contents)["data"]["id"]
-        res = self.admin_study.putStatus(self.authorization, studyPlanId=self.studyPlanId)
-        assert res
+        # 启用学习计划状态
+        res = self.admin_study.putStatus(self.authorization, studyPlanId=self.studyPlanId, status=1)
+        assert res['message'] == 'success', '启用学习计划状态失败！'
         # 获取kidId
         self.kidId = self.kid.getKids(self.authorization)["data"][0]["id"]
 
     def teardown_class(self):
+        # 获取当前所有禁用的学习计划列表
         studyPlans_res0 = self.admin_study.study_plan_list(self.authorization, category='vocabulary', status=0)['data']['content']
+        # 获取当前所有启用的学习计划列表
         studyPlans_res1 = self.admin_study.study_plan_list(self.authorization, category='vocabulary', status=1)['data']['content']
         for studyPlan in studyPlans_res0:
-            if '基础词汇学习计划' in studyPlan["name"]:
+            if studyPlan["name"].startswith('dibo_test'):
                 try:
+                    # 删除测试学习计划包
                     res = self.admin_study.delete_studyPlan(self.authorization, studyPlanId=studyPlan["id"])
                     assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
                     assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
                 except Exception as e:
                     print(e)
         for studyPlan in studyPlans_res1:
-            if '基础词汇学习计划' in studyPlan["name"]:
+            if studyPlan["name"].startswith('dibo_test'):
                 try:
+                    # 删除测试学习计划包
                     res = self.admin_study.delete_studyPlan(self.authorization, studyPlanId=studyPlan["id"])
                     assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
                     assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -113,7 +121,6 @@ class TestStudyPlanApi:
     )
     def test_study_plan_permission_studyPlan_details(self, desc, value):
         """学习计划包详情-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.study_plan.studyPlan_details(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -286,7 +293,6 @@ class TestStudyPlanApi:
         assert res['message'] == 'Kid id not exist', f"接口返回message信息异常: 预期【'Kid id not exist'】，实际【{res['message']}】"
         assert res['data'] == 'Kid id not exist', f"接口返回data数据异常：{res['data']}"
 
-
     @pytest.mark.smoke
     def test_study_plan_positive_getContents_ok(self):
         """学习计划单元内容列表-正向用例"""
@@ -308,7 +314,6 @@ class TestStudyPlanApi:
     )
     def test_study_plan_permission_getContents(self, desc, value):
         """学习计划单元内容列表-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         unitId = self.study_plan.study_plan_units(self.authorization, self.studyPlanId, self.kidId)['data'][0]['id']
         res = self.study_plan.study_plan_contents(value, unitId, self.kidId, code=401)
         if res:
@@ -326,7 +331,6 @@ class TestStudyPlanApi:
         assert res['code'] == 100105, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'Kid id not exist', f"接口返回message信息异常: 预期【'Kid id not exist'】，实际【{res['message']}】"
         assert res['data'] == 'Kid id not exist', f"接口返回data数据异常：{res['data']}"
-
 
     @pytest.mark.smoke
     def test_study_plan_positive_getProgress_ok(self):
@@ -348,7 +352,6 @@ class TestStudyPlanApi:
     )
     def test_study_plan_permission_getProgress(self, desc, value):
         """获取学习计划进度-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.study_plan.study_plan_progress(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -376,7 +379,6 @@ class TestStudyPlanApi:
     )
     def test_study_plan_permission_complete(self, desc, value):
         """完成学习计划内容-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.study_plan.studyplan_content_complete(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -387,8 +389,11 @@ class TestStudyPlanApi:
     @pytest.mark.smoke
     def test_study_positive_claimReward_ok(self):
         """领取学习计划奖励-正向用例"""
+        # 学习计划单元列表
         unitId = self.study_plan.study_plan_units(self.authorization, self.studyPlanId, self.kidId)['data'][0]['id']
+        # 学习计划单元内容列表
         studyPlanContentId = self.study_plan.study_plan_contents(self.authorization, unitId, self.kidId)['data'][0]['id']
+        # 完成学习计划内容
         pl = {
             "completionTime": "2025-10-21T08:36:11.811Z",
             "kidId": self.kidId,
@@ -398,6 +403,7 @@ class TestStudyPlanApi:
             "studyPlanUnitId": unitId
         }
         self.study_plan.studyplan_content_complete(self.authorization, **pl)
+        # 领取学习计划奖励
         res = self.study_plan.claimReward(self.authorization, int(self.studyPlanId), self.kidId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -415,7 +421,6 @@ class TestStudyPlanApi:
     )
     def test_study_permission_claimReward(self, desc, value):
         """领取学习计划奖励-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.study_plan.claimReward(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'

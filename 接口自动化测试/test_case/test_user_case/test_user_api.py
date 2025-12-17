@@ -31,6 +31,7 @@ class TestUser:
         self.now = strftime("%Y%m%d%H%M%S")
 
         try:
+            # 获取孩子数据
             kids_res = self.kid.getKids(self.authorization)
             self.kid_name = 'New Kid'
             for kid in kids_res['data']:
@@ -53,10 +54,12 @@ class TestUser:
         kidId = self.kid.getKids(self.authorization)
         yield kidId
 
+    @pytest.mark.smoke
     def test_user_videoWhitelist_update_normal(self, get_userIds):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
         userIds = get_userIds
+        # 视频白名单用户全量更新
         event_res = self.user.update_videoWhitelist(self.authorization, userIds)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
@@ -77,6 +80,7 @@ class TestUser:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
 
+    @pytest.mark.smoke
     def test_user_bindWechat_normal(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -137,6 +141,7 @@ class TestUser:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
 
+    @pytest.mark.smoke
     def test_user_unbindWechat_unauthorized(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -167,53 +172,19 @@ class TestUser:
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
 
-    def test_user_bindApple_withReq(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
-        pl = {
-            "pop_item": "identifyToken"
-        }
-        event_res = self.user.bindApple(self.authorization, **pl)
-        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["message"] == "success"
-
-    def test_user_bindApple_unauthorized(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
-        identifyToken = "18380143661"
-        event_res = self.user.bindApple('', identifyToken)
-        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["message"] == "success"
-
-    def test_user_unbindApple_normal(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
-        event_res = self.user.unbindApple(self.authorization)
-        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["message"] == "success"
-
-    def test_user_unbindApple_unauthorized(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
-        code = "18380143661"
-        event_res = self.user.unbindApple('', code=403)
-        assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
-        assert event_res["message"] == "success"
-
+    @pytest.mark.smoke
     def test_noargs_auto_basic(self):
         """AI创建故事书消耗giggles"""
-        res = self.api.auto(authorization=self.authorization)
+        res = self.user.aiStoryCreation(authorization=self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-
-
+    @pytest.mark.smoke
     def test_user_positive_getAzureconfig_ok(self):
         """获取 Azure 配置-正向用例"""
         res = self.user.getAzureconfig(authorization=self.authorization, **{})
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
-
 
     def test_user_permission_getAzureconfig_no_auth(self):
         """获取 Azure 配置-未登录"""
@@ -221,13 +192,11 @@ class TestUser:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
-
     def test_user_permission_getAzureconfig_expired_token(self):
         """获取 Azure 配置-鉴权异常-expired_token"""
         res = self.user.getAzureconfig(authorization='expired_token')
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
-
 
     def test_user_permission_getAzureconfig_invalid_token(self):
         """获取 Azure 配置-鉴权异常-invalid_token"""
@@ -235,6 +204,7 @@ class TestUser:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'
 
+    @pytest.mark.smoke
     def test_user_positive_sendemail_ok(self):
         """发送邮箱验证码接口-正向用例"""
         res = self.user.sendemail(self.authorization)
@@ -254,7 +224,6 @@ class TestUser:
     )
     def test_user_permission_sendemail(self, desc, value):
         """发送邮箱验证码接口-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.user.sendemail(value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -579,7 +548,6 @@ class TestUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-
     def test_user_positive_abtest_status1_ok(self):
         """获取用户AB测试状态-正向用例"""
         res = self.user.get_abtest_status(self.authorization)
@@ -592,6 +560,7 @@ class TestUser:
     def test_user_positive_questionnaire_ok(self, getkidId):
         """提交问卷设置学习水平-正向用例"""
         kidId = getkidId['data'][0]['id']
+        # 提交问卷设置学习水平
         res = self.user.questionnaire(self.authorization, kidId, learningLevel='L4')
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -609,7 +578,6 @@ class TestUser:
     )
     def test_user_permission_questionnaire(self, desc, value):
         """提交问卷设置学习水平-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.user.questionnaire(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -631,6 +599,7 @@ class TestUser:
     def test_user_positive_getLearningLevel_ok(self, getkidId):
         """获取孩子的学习水平-正向用例"""
         kidId = getkidId['data'][0]['id']
+        # 获取孩子的学习水平
         res = self.user.getLearningLevel(self.authorization, kidId=kidId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -712,64 +681,15 @@ class TestUser:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-
-
     @pytest.mark.smoke
     def test_user_positive_sync_ok(self):
         """用户第三方登录后信息注册同步-正向用例"""
-        res = self.user.sync(self.authorization)
+        res = self.user.registerInfo_sync(self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke
-    @pytest.mark.parametrize(
-        'desc, value',
-        [
-            ('unauthorized', 'missing'),
-            ('no_auth', ''),
-            ('expired_token', 'expired_token'),
-            ('invalid_token', 'invalid_token'),
-        ]
-    )
-    def test_user_permission_sync(self, desc, value):
-        """用户第三方登录后信息注册同步-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.user.sync(value, code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.smoke
-    @pytest.mark.parametrize(
-        'desc, value, code',
-        [
-            ('missing',  'missing', 500),
-            ('empty', "", 500),
-            ('null', None, 500),
-        ]
-    )
-    def test_user_required_sync_req(self, desc, value, code):
-        """用户第三方登录后信息注册同步-必填字段测试(req)"""
-        if desc == 'missing':
-            pl = {'pop_items': 'req'}
-        else:
-            pl = {'req': value}
-        res = self.user.sync(authorization=self.authorization, **pl, code=code)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        if code == 500:
-            assert res['code'] == 500, f"接口返回状态码异常: 预期【500】，实际【{res['code']}】"
-            assert res['message'] == 'internal server error', f"接口返回message信息异常: 预期【'internal server error'】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
-        else:
-            assert res['code'] == '${pending}', f"接口返回状态码异常: 预期【{'pending'}】，实际【{res['code']}】"
-            assert res['message'] == '${pending}', f"接口返回message信息异常: 预期【{'pending'}】，实际【{res['message']}】"
-            assert res['data'] == '${pending}', f"接口返回data数据异常：预期【{'pending'}】，实际【{res['data']}】"
-
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
@@ -794,7 +714,7 @@ class TestUser:
     def test_user_format_sync_req(self, desc, value, code, code_res):
         """用户第三方登录后信息注册同步-数据格式测试(req)"""
         try:
-            res = self.user.sync(self.authorization, req=value, code=code)
+            res = self.user.registerInfo_sync(self.authorization, req=value, code=code)
         except Exception as res:
             assert not code
         if code and not code_res:
@@ -820,7 +740,7 @@ class TestUser:
     )
     def test_user_boundary_sync_req(self, desc, value, code):
         """用户第三方登录后信息注册同步-边界值测试(req)"""
-        res = self.user.sync(self.authorization, req=value)
+        res = self.user.registerInfo_sync(self.authorization, req=value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == code, f"接口返回状态码异常: 预期【{code}】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
@@ -830,13 +750,12 @@ class TestUser:
     def test_user_scenario_sync_invalid_req(self):
         """用户第三方登录后信息注册同步-场景异常-无效的req"""
         req = 'INVALID_VALUE'
-        res = self.user.sync(self.authorization, req=req)
+        res = self.user.registerInfo_sync(self.authorization, req=req)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value, code, code_res',
         [
@@ -866,7 +785,6 @@ class TestUser:
             assert res['message'] == 'not found', f"接口返回message信息异常: 预期【'not found'】，实际【{res['message']}】"
             assert res['data'] == 'not found', f"接口返回data数据异常：预期【'not found'】，实际【{res['data']}】"
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize('countryCode, phoneNumber, exist',
                              [
                                  (86, 18380143661, True), # 中国

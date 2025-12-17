@@ -13,6 +13,7 @@ class TestViolationReport:
         self.violationReport = ViolationReportApi()
         self.authorization = self.violationReport.get_authorization()[0]
 
+    @pytest.mark.smoke
     def test_violation_report_positive(self):
         """提交违规举报-正向流程"""
         res = self.violationReport.violation_report(self.authorization)

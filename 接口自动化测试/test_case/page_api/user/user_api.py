@@ -178,7 +178,7 @@ class UserApi(BaseAPI):
         response = response.json()
         return response
 
-    def auto(self, authorization, bookId=0, DeviceType="web", code=200, **kwargs):
+    def aiStoryCreation(self, authorization, bookId=0, DeviceType="web", code=200, **kwargs):
         """
         AI创建故事书消耗giggles
         :param bookId: (integer, path, required) bookId

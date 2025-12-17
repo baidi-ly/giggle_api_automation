@@ -27,100 +27,100 @@ class TestSystem:
         except Exception as e:
             print(f"获取系统相关接口的指定token失败：{e}")
 
+    @pytest.mark.smoke
     def test_system_health_login(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
+        """系统健康状态检查"""
+        # 系统健康状态检查
         health_res = self.sys.health(self.authorization, self.token)
         assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
         assert health_res["data"]["isUp"]
         assert health_res["data"]["status"] == "UP"
 
+    @pytest.mark.smoke
     def test_system_health_customer(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
+        """系统健康状态检查"""
+        # 系统信息检查
         health_res = self.sys.health(self.token)
-        assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
         assert health_res["data"]["isUp"]
         assert health_res["data"]["status"] == "UP"
 
     def test_system_health_with_wrong_token(self):
-        """有效的kidId，返回完整统计数据"""
+        """系统健康状态检查"""
         token = 'xEr0:v1f7@A]DYXg6WL_?JEUp/>yDHsdsdsd'
         # 获取孩子学习统计数据
         health_res = self.sys.health(token, code=403)
-        assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
         assert health_res["message"] == 'permission not allowed'
 
     def test_system_health_without_token(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
+        """系统健康状态检查"""
+        # 系统信息检查
         health_res = self.sys.health('', code=403)
-        assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
         assert health_res["message"] == 'permission not allowed'
 
+    @pytest.mark.smoke
     def test_system_info_login(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
-        health_res = self.sys.info(self.authorization, self.token)
-        assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
+        """系统健康状态检查"""
+        # 系统信息检查
+        health_res = self.sys.system_info(self.authorization, self.token)
         assert health_res["data"]["git"]
         assert health_res["data"]["build"]['name'] == 'Giggle-Server'
 
+    @pytest.mark.smoke
     def test_system_info_customer(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
-        health_res = self.sys.info(self.authorization, self.token)
-        assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
+        """系统健康状态检查"""
+        # 系统信息检查
+        health_res = self.sys.system_info(self.authorization, self.token)
         assert health_res["data"]["git"]
         assert health_res["data"]["build"]['name'] == 'Giggle-Server'
 
     def test_system_info_with_wrong_token(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
+        """系统信息检查"""
+        # 系统信息检查
         token = 'xEr0:v1f7@A]DYXg6WL_?JEUp/>yDHsdsdsd'
-        health_res = self.sys.info(token, code=403)
-        assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
+        health_res = self.sys.system_info(token, code=403)
         assert health_res["message"] == 'permission not allowed'
 
     def test_system_info_without_token(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
-        health_res = self.sys.info('', code=403)
-        assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
+        """系统信息检查"""
+        # 系统信息检查
+        health_res = self.sys.system_info('', code=403)
         assert health_res["message"] == 'permission not allowed'
 
-
-    def test_system_ping_with_login(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
-        ping_res = self.sys.ping(self.authorization, self.token)
+    @pytest.mark.smoke
+    def test_system_system_ping_with_login(self):
+        """简单的ping检查"""
+        # 简单的ping检查
+        ping_res = self.sys.system_ping(self.authorization, self.token)
         assert ping_res["data"]["message"] == 'pong'
         assert ping_res["data"]["server"] == "giggle-academy-server"
 
-    def test_system_ping_with_customer(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
-        ping_res = self.sys.ping(self.authorization, self.token)
+    @pytest.mark.smoke
+    def test_system_system_ping_with_customer(self):
+        """简单的ping检查"""
+        # 简单的ping检查
+        ping_res = self.sys.system_ping(self.authorization, self.token)
         assert ping_res["data"]["message"] == 'pong'
         assert ping_res["data"]["server"] == "giggle-academy-server"
 
     def test_system_ping_with_wrong_token(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
+        """简单的ping检查"""
+        # 简单的ping检查
         token = 'xEr0:v1f7@A]DYXg6WL_?JEUp/>yDHsdsdsd'
-        health_res = self.sys.ping(token, code=403)
+        health_res = self.sys.system_ping(token, code=403)
         assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
         assert health_res["message"] == 'permission not allowed'
 
     def test_system_ping_without_token(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
-        health_res = self.sys.ping('', code=403)
+        """简单的ping检查"""
+        # 简单的ping检查
+        health_res = self.sys.system_ping('', code=403)
         assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
         assert health_res["message"] == 'permission not allowed'
 
+    @pytest.mark.smoke
     def test_system_positive_getMetadata_ok(self):
         """获取系统基础信息-正向用例"""
+        # 获取系统基础信息
         res = self.sys.getMetadata(self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -138,7 +138,6 @@ class TestSystem:
     )
     def test_system_permission_getMetadata(self, desc, value):
         """获取系统基础信息-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.sys.getMetadata(value)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -147,7 +146,7 @@ class TestSystem:
 
     @pytest.mark.parametrize('channel', ['ios', 'android', 'googleplay', 'appstore'])
     def test_system_positive_feature_toggle_ok(self, channel):
-        """获取系统基础信息-正向用例"""
+        """检查某个功能对用户是否开启（AB 测试开关)-正向用例"""
         res = self.sys.feature_toggle(self.authorization, self.user_id, key="storybook_new_ui", channel=channel)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"

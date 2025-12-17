@@ -41,7 +41,7 @@ class SystemApi(BaseAPI):
         response = response.json()
         return response
 
-    def info(self, token, authorization='', DeviceType="web", code=200):
+    def system_info(self, token, authorization='', DeviceType="web", code=200):
         """
         系统信息检查
         :param:
@@ -71,7 +71,7 @@ class SystemApi(BaseAPI):
         response = response.json()
         return response
 
-    def ping(self, token, authorization='', DeviceType="web", code=200):
+    def system_ping(self, token, authorization='', DeviceType="web", code=200):
         """
         简单的ping检查
         :param:
