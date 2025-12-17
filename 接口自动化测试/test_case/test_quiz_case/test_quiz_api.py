@@ -8,9 +8,9 @@ from config import RunConfig
 base_url = RunConfig.baseurl
 expired_token = RunConfig.expired_token
 
-class TestSchoolApi:
+class TestQuizApi:
     """
-    school 接口测试用例
+    quiz 接口测试用例
     """
 
     def setup_class(self):
@@ -27,9 +27,11 @@ class TestSchoolApi:
 
     @pytest.mark.smoke
     def test_quiz_positive_quizId_detail_ok(self):
-        """查询指定quiz的详情-正向用例"""
+        """查询指定quiz的详情"""
+        # 获取quiz列表
         res_quiz = self.admin.quiz_list(self.authorization)['data']['content'][0]
         quizId, quizData = res_quiz['id'], res_quiz['quizData']
+        # 查询指定quiz的详情
         res = self.quiz.quizId_detail(self.authorization, quizId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
@@ -37,17 +39,22 @@ class TestSchoolApi:
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.smoke
-    def test_quiz_positive_promotion_submit_ok(self, getkidId):
+    def test_quiz_positive_promotion_submit_ok(self, kid_data_session):
         """提交晋级Quiz（批量提交并完成）-正向用例"""
-        kidId = getkidId
-        pl = {"kidId": kidId}
+        # 创建测试学生
+        kid_id = kid_data_session[0]
+        pl = {"kidId": kid_id}
+        # 提交晋级Quiz（批量提交并完成）
         res = self.quiz.promotion_submit(self.authorization, **pl)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 100006, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'invalid parameter', f"接口返回message信息异常: 预期【invalid parameter】，实际【{res['message']}】"
-        assert res['data'] == 'invalid parameter', f"接口返回data数据异常：{res['data']}"
+        assert res['message'] == 'success'
+        promotion_data = {
+            "newLevel": "L2",
+            "previousLevel": "L1",
+            "promotionSuccess": True,
+            "targetLevelAccuracy": 1.0
+        }
+        assert res['data'] == promotion_data, f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [
@@ -59,7 +66,6 @@ class TestSchoolApi:
     )
     def test_quiz_permission_promotion_submit(self, desc, value):
         """submitPromotionQuiz-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
         res = self.quiz.promotion_submit(value, code=401)
         if res:
             assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
@@ -98,7 +104,6 @@ class TestSchoolApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert not res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value',
         [

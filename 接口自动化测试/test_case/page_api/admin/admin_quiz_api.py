@@ -44,7 +44,7 @@ class AdminQuizApi(BaseAPI):
 
     def quiz_list(self, authorization, keyword='', page=0, quizType='', size=10, DeviceType="web", code=200, **kwargs):
         """
-        获取测验列表
+        获取quiz列表
         :param keyword: (string, query, optional) keyword
         :param page: (integer, query, optional) page
         :param quizType: (string, query, optional) quizType
@@ -63,7 +63,7 @@ class AdminQuizApi(BaseAPI):
         headers = self.request_header(timestamp, authorization, DeviceType)
 
         response = requests.request("GET", url, headers=headers, params=payload)
-        error_msg = "获取测验列表"
+        error_msg = "获取quiz列表"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()

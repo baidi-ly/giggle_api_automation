@@ -16,14 +16,6 @@ class TestLogin:
     def setup_class(self):
         self.base = BaseAPI()
 
-
-    def teardown_class(self):
-        '''
-        所有用例执行完之后执行，可执行动作，清理所有注册的数据
-        本次测试mock只创建了注册接口，未创建清除注册用户接口，暂无代码
-        '''
-        pass
-
     @pytest.fixture(scope="class", autouse=False)
     def reister_fixtrue(self):
         # 前置条件-账号已注册
@@ -36,6 +28,7 @@ class TestLogin:
         assert sign_up_res["message"] == "注册成功"
         yield email, password
 
+    @pytest.mark.smoke
     def test_AA_user_login_email(self):
         """正常登录"""
         # 1. 注册新账号

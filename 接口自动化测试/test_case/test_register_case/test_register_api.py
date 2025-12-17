@@ -27,10 +27,6 @@ class TestRegister:
         self.tester = RunConfig.filename
         self.now = strftime("%Y%m%d%H%M%S")
 
-
-    def tear_down(self):
-        pass
-
     def init_data(self,num):
         '''初始化数据,N位随机字符串'''
         ran = string.capwords(''.join(random.sample(string.ascii_lowercase, num)))

@@ -771,7 +771,7 @@ class SchoolApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def quiz_reports(self, authorization, lessonId=0, DeviceType="web", code=200):
+    def school_quiz_reports(self, authorization, lessonId=0, DeviceType="web", code=200):
         """
         测验报告列表
         :param lessonId: (integer, path, required) lessonId
