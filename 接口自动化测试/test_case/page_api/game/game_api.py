@@ -203,7 +203,7 @@ class GameApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def getDailyLearning(self, authorization, kidId=0, DeviceType="web", code=200, **kwargs):
+    def getDailyLearning(self, authorization, kidId, DeviceType="web", code=200):
         """
         检查用户今日是否完成学习
         :param kidId: (integer, path, required) kidId
@@ -358,3 +358,28 @@ class GameApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def completelearning(self, authorization, course_id, kid_id, course_name='', completedAt=1704787200000,
+                         reward=True, DeviceType="web"):
+        """
+        记录孩子完成一门课程的学习
+        :param request: (object, body, required) request
+        :param reward: (boolean, query, optional) reward
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.23.0  &  2025-12-17
+        url = f"https://{base_url}/api/game/completeLearning"
+        payload1 = {"reward": reward}
+        payload2 = {
+            "id": course_id,
+            "kidId": kid_id,
+            "completedAt": completedAt,
+            "lessonName": course_name
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload1, json=payload2)
+        error_msg = "记录孩子完成一门课程的学习"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response

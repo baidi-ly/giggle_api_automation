@@ -1161,3 +1161,21 @@ class AdminCourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def getCourseWords(self, authorization, courseId, DeviceType="web"):
+        """
+        搜索课程单词列表
+        :param keyword: (string, query, optional) keyword
+        :param page: (integer, query, optional) page
+        :param size: (integer, query, optional) size
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.23.0  &  2025-12-17
+        url = f"https://{base_url}/admin/course/{courseId}/words"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "搜索课程单词列表"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
