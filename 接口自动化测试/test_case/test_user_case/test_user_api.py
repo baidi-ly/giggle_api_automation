@@ -135,13 +135,12 @@ class TestUser:
         assert event_res["message"] == "success"
 
     def test_user_unbindWechat_normal(self):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
+        """解绑微信账号"""
+        # 解绑微信账号
         event_res = self.user.unbindWechat(self.authorization)
         assert "data" in event_res, f"获取孩子学习统计数据接口没有data数据，response->{event_res}"
         assert event_res["message"] == "success"
 
-    @pytest.mark.smoke
     def test_user_unbindWechat_unauthorized(self):
         """有效的kidId，返回完整统计数据"""
         # 获取孩子学习统计数据
@@ -730,7 +729,6 @@ class TestUser:
             assert res['message'] == 'not found', f"接口返回message信息异常: 预期【{'pending'}】，实际【'not found'】"
             assert res['data'] == 'not found', f"接口返回data数据异常：预期【{'pending'}】，实际【'not found'】"
 
-    @pytest.mark.smoke
     @pytest.mark.parametrize(
         'desc, value, code',
         [
@@ -746,7 +744,6 @@ class TestUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke
     def test_user_scenario_sync_invalid_req(self):
         """用户第三方登录后信息注册同步-场景异常-无效的req"""
         req = 'INVALID_VALUE'

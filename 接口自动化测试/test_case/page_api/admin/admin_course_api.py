@@ -631,7 +631,7 @@ class AdminCourseApi(BaseAPI):
             "strategyId": "default_path_v1",
             "enabled": True,
             "resetOnSegmentChange": False,
-            "pattern": "A-B-C",
+            "pattern": "true,false,ture,false",
             "patternBehavior": "LOOP_PATTERN",
             "description": "默认课程分发策略"
         }

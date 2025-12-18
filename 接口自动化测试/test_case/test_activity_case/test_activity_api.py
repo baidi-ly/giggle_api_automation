@@ -54,15 +54,9 @@ class TestActivity:
         kidId = self.user.getUserKids(self.authorization)
         yield kidId
 
-    @pytest.fixture(scope="class")
-    def create_activity(self):
-        res = self.adminActivity.getList(authorization=self.authorization)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert 'data' in res, f'返回结果没有data数据，response->{res}'
-
     def test_activity_positive_getInfo_ok(self):
         """获取扭蛋当前活动信息-正向用例"""
-        res = self.activity.getInfo(authorization=self.authorization)
+        res = self.activity.activityInfo(authorization=self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200
         assert res['message'] == 'success'
@@ -82,7 +76,7 @@ class TestActivity:
     def test_activity_permission_getInfo(self, desc, value):
         """获取扭蛋当前活动信息-{desc}"""
         # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.activity.getInfo(value, code=401)
+        res = self.activity.activityInfo(value, code=401)
 
     def test_activity_positive_getInfo1_ok(self, getkidId):
         """获取用户抽奖信息-正向用例"""
@@ -94,13 +88,14 @@ class TestActivity:
         assert res['data']
 
     @pytest.mark.smoke
-    def test_activity_positive_activity_gacha_ok(self, getUserKids):
+    def test_activity_positive_activity_gacha_ok(self, getUserKids, create_task):
         """获取用户抽奖信息-正向用例"""
+        # 获取kidId
         kidId = getUserKids['data'][1]['id']
-        activity_res = self.activity.getInfo(authorization=self.authorization)['data']
-        activityId = activity_res['activityId']
-        res = self.activity.userGachaInfo(self.authorization, activityId, kidId=kidId)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        # 创建扭蛋活动与活动任务
+        activity_id, activity_task_id = create_task
+        # 获取用户抽奖信息
+        res = self.activity.userGachaInfo(self.authorization, activity_id, kidId=kidId)
         assert res['code'] == 200
         assert res['message'] == 'success'
         assert res['data']['drawCount'] == 1, "日常抽奖次数不为1！"
@@ -1005,7 +1000,7 @@ class TestActivity:
         assert res['data'] == 'Activity not found', f"接口返回data数据异常：{res['data']}"
 
     @pytest.fixture(scope="class")
-    def create_task(self, create_activity):
+    def create_task(self):
         '''创建完课扭蛋活动'''
         # 创建活动
         activity_name = "Daily Course Complete Gacha" + self.now
@@ -1033,7 +1028,7 @@ class TestActivity:
             "config": None
         }
         activity_task_id = self.adminActivity.create_activity_task(self.admin_auth, **pl1)['data']['id']
-        yield
+        yield activity_id, activity_task_id
         # 删除活动任务定义
         self.adminActivity.delete_activity_task(self.admin_auth, activity_task_id)
         # 更新活动状态为无效
@@ -1064,7 +1059,6 @@ class TestActivity:
         assert check_after['message'] == 'success', f"接口返回message信息异常: 预期【Activity not found】，实际【{res['message']}】"
         assert check_after['data'], f"接口返回data数据异常：{res['data']}"
 
-
     @pytest.mark.smoke
     def test_activity_positive_getCheckByCourses_ok(self, get_course_ids_session, kid_data_session):
         """根据课程id列表,查询是否已经通过每日课程完成增加过抽奖次数"""
@@ -1072,7 +1066,7 @@ class TestActivity:
         courseIds = get_course_ids_session[:2]
         # 创建测试学生
         kid_id, kid_name = kid_data_session
-        # 据课程id列表, 查询是否已经通过每日课程完成增加过抽奖次数
+        # 根据课程id列表, 查询是否已经通过每日课程完成增加过抽奖次数
         res1 = self.activity.getCheckByCourses(self.authorization, courseIds, kid_id)
         for courseId in courseIds:
             assert not res1['data'][courseId]

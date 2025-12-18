@@ -12,7 +12,7 @@ AUTH_KEY = RunConfig.AUTH_KEY
 class ActivityApi(BaseAPI):
     """孩子学习统计接口"""
 
-    def getInfo(self, authorization, DeviceType="web", code=200, **kwargs):
+    def activityInfo(self, authorization, DeviceType="web", code=200):
         """
         获取扭蛋当前活动信息
 

@@ -1000,26 +1000,34 @@ class TestAdminCourse:
 
     @pytest.mark.smoke
     def test_admin_course_positive_course_details_ok(self):
-        """获取课程详情包括版本信息-正向用例"""
+        """获取课程详情包括版本信息"""
+        # 获取顶层课程目录列表
         topcategory_res = self.admin_course.getAlltopcategory(self.admin_auth)
         parentId = topcategory_res['data'][0]['id']
+        # 获取课程子目录列表
         category_res = self.admin_course.getAllsubcategory(self.admin_auth, parentId)
         for subcategory in category_res['data']:
             flag = False
-            if subcategory['level'] == "1":
-                categoryId = subcategory['id']
-                courselistAll = self.admin_course.course_listAll(self.admin_auth, categoryId)
-                for course in courselistAll['data']:
-                    courseId = course['id']
-                    course_details_res = self.admin_course.course_details(self.admin_auth, courseId)['data']['course']
-                    if "Blending CVC words-L6" in course_details_res['skillList']:
-                        print(course['name'])
-                        flag= True
-                        break
+            if subcategory['name'] == 'Kids English':
+                parentId1 = subcategory['id']
+                # 获取课程子目录列表
+                category_res1 = self.admin_course.getAllsubcategory(self.admin_auth, parentId1)
+                for subcategory1 in category_res1['data']:
+                    categoryId = subcategory1['id']
+                    # 获取分类下所有课程
+                    courselistAll = self.admin_course.course_listAll(self.admin_auth, categoryId)
+                    for course in courselistAll['data']:
+                        courseId = course['id']
+                        # 获取课程详情包括版本信息
+                        course_details_res = self.admin_course.course_details(self.admin_auth, courseId)['data']['course']
+                        if "Blending CVC words-L6" in course_details_res['skillList']:
+                            print(course['name'])
+                            flag= True
+                            break
             if flag:
                 break
         else:
-            assert False
+            assert False, "未找到技能为Blending CVC words-L6的课程！"
 
     @pytest.mark.smoke
     def test_admin_course_positive_addCourseStrategy_ok(self):
