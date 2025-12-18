@@ -359,7 +359,7 @@ class CourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def voiceMultilinguals(self, authorization, courseId, key='', language='en', DeviceType="web"):
+    def appVoiceMultilinguals(self, authorization, courseId, DeviceType="web", **kwargs):
         """
         查询课程语音列表
         :param courseId: （必填，Long）：课程ID
@@ -371,14 +371,30 @@ class CourseApi(BaseAPI):
         url = f"https://{base_url}/api/course-voice/multilingual/list"
         payload = {
             "courseId": courseId,
-            "key": key,
-            "language": language,
         }
+        payload.update(kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
         response = requests.request("GET", url, headers=headers, params=payload)
         error_msg = "查询课程语音列表"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def courseDetail(self, authorization, courseId, DeviceType="web"):
+        """
+        根据课程ID获取课程详细信息
+        :param courseId: (integer, path, required) courseId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.23.0  &  2025-12-18
+        url = f"https://{base_url}/api/course/{courseId}/detail"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "根据课程ID获取课程详细信息"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response

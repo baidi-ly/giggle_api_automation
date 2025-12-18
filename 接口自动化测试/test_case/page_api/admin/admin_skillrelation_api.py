@@ -17,7 +17,7 @@ base_url = RunConfig.baseurl
 class AdminSkillrelationApi(BaseAPI):
     """技能关系相关接口类"""
 
-    def importSkillRelation_ById(self, authorization, file=None, DeviceType="web", code=200, **kwargs):
+    def importSkillRelation_ById(self, authorization, file=None, DeviceType="web", code=200):
         """
         根据ID导入技能关系
         :param file: (file, formData, optional) 上传文件

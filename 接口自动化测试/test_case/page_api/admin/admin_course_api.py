@@ -1,6 +1,8 @@
 import json
 import time
 
+from pandas import DataFrame
+
 from test_case.page_api.base_api import BaseAPI
 
 requests = BaseAPI().http_timeout()
@@ -849,7 +851,7 @@ class AdminCourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def deleteStrategylevelRule(self, authorization, id=0, DeviceType="web", code=200, **kwargs):
+    def deleteStrategylevelRule(self, authorization, id, DeviceType="web", code=200, **kwargs):
         """
         删除等级策略
         :param id: (integer, query, required) 策略ID
@@ -922,7 +924,7 @@ class AdminCourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def strategy_preview(self, authorization, DeviceType="web", code=200):
+    def strategy_preview(self, authorization, DeviceType="web", df_key=''):
         """
         预览当前草稿配置
         :return: 接口原始返回（已 json 解析）
@@ -934,12 +936,11 @@ class AdminCourseApi(BaseAPI):
 
         response = requests.request("GET", url, headers=headers)
         error_msg = "预览当前草稿配置"
-        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        try:
-            response = response.json()
-            return response
-        except json.decoder.JSONDecodeError:
-            return False
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        if df_key:
+            return DataFrame(response['data'][df_key])
+        return response
 
     def publish_strategy(self, authorization, DeviceType="web", code=200):
         """
@@ -960,7 +961,7 @@ class AdminCourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def strategy_history_detail(self, authorization, id=0, DeviceType="web", code=200):
+    def strategy_history_detail(self, authorization, id, DeviceType="web", code=200):
         """
         查询发布历史详情
         :param id: (integer, query, required) 历史记录ID
@@ -1083,7 +1084,7 @@ class AdminCourseApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def voiceMultilinguals(self, authorization, courseId, DeviceType="web", code=200, **kwargs):
+    def voiceMultilinguals(self, authorization, courseId, DeviceType="web", return_df=False, code=200, **kwargs):
         """
         分页查询语音文案列表
         :param audioStatus: (integer, query, optional) 音频状态
@@ -1097,25 +1098,21 @@ class AdminCourseApi(BaseAPI):
         # Create Data:  V1.22.0  &  2025-12-03
         url = f"https://{base_url}/admin/course/voice/multilingual/list"
         payload = {
-            "audioStatus": 0,
             "courseId": courseId,
-            "key": '',
             "page": 0,
             "size": 10,
-            "targetLanguage": 'en'
         }
-        payload = self.request_body(payload)
+        payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
         response = requests.request("GET", url, headers=headers, params=payload)
         error_msg = "分页查询语音文案列表"
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        try:
-            response = response.json()
-            return response
-        except json.decoder.JSONDecodeError:
-            return False
+        response = response.json()
+        if return_df:
+            return DataFrame(response['data']['content'], columns=["id", "key", "translatedText"])
+        return response
 
     def batchImportMultilingual(self, authorization, items, DeviceType="web", code=200):
         """
@@ -1125,7 +1122,7 @@ class AdminCourseApi(BaseAPI):
         """
         # Create Data:  V1.22.0  &  2025-12-03
         url = f"https://{base_url}/admin/course/voice/multilingual/batchImport"
-        payload = {"items": items}
+        payload = items
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
@@ -1147,7 +1144,7 @@ class AdminCourseApi(BaseAPI):
         # Create Data:  V1.22.0  &  2025-12-03
         url = f"https://{base_url}/admin/course/voice/multilingual/regenerate"
         payload = {
-            "id": id
+            "id": int(id)
         }
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -1176,6 +1173,24 @@ class AdminCourseApi(BaseAPI):
 
         response = requests.request("GET", url, headers=headers)
         error_msg = "搜索课程单词列表"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def batchDeleteVoiceLan(self, authorization, courseIds, DeviceType="web"):
+        """
+        批量删除课程的语音文案
+        :param courseIds: (array, body, required) 课程ID列表
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-18
+        url = f"https://{base_url}/admin/course/voice/multilingual/batchDelete"
+        payload = courseIds
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "批量删除课程的语音文案"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response

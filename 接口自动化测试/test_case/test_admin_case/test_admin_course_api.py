@@ -14,6 +14,7 @@ from test_case.page_api.admin.admin_course_api import AdminCourseApi
 from test_case.page_api.admin.admin_levelskills_api import AdminLevelskillsApi
 from test_case.page_api.course.course_api import CourseApi
 from test_case.page_api.game.game_api import GameApi
+from test_case.page_api.materials.materials_api import MaterialsApi
 
 sys.path.append(os.getcwd())
 sys.path.append("..")
@@ -28,6 +29,7 @@ class TestAdminCourse:
     def setup_class(self):
         self.game = GameApi()
         self.course = CourseApi()
+        self.materials = MaterialsApi()
         self.admin_course = AdminCourseApi()
         self.admin_levelskills = AdminLevelskillsApi()
         self.authorization = self.admin_course.get_authorization()[0]
@@ -208,6 +210,15 @@ class TestAdminCourse:
         else:
             assert add_res['message'] == 'success', "新增课程规则失败！"
 
+        # 查询课程规则列表
+        rules_res = self.admin_course.strategyRules(self.admin_auth)
+        for rule in rules_res['data']['content']:
+            if rule['strategyId'] == strategyId:
+                rule_id = rule['id']
+                break
+        else:
+            assert False, ""
+
         yield rule_id, courseIds
 
         # 删除课程规则
@@ -259,6 +270,16 @@ class TestAdminCourse:
                         continue
                     courseIds = ','.join(DataFrame(courselistAll)[:3]['id'].tolist())
                     return courseIds
+
+    @pytest.fixture(scope='class', autouse=True)
+    def batchDeleteVoice(self, get_course_ids_session):
+        '''清空测试语音文案'''
+        yield
+        # 获取课程详情包括版本信息
+        course_id = get_course_ids_session
+        # 批量删除课程的语音文案
+        delete_res = self.admin_course.batchDeleteVoiceLan(self.authorization, [course_id])
+        assert delete_res['message'] == 'success'
 
     def test_admin_course_export_by_theme(self):
         """
@@ -1086,7 +1107,7 @@ class TestAdminCourse:
 
     @pytest.mark.smoke
     def test_admin_course_positive_addStrategyRule_ok(self, createCourseStrategy, get_courseIds):
-        """新增课程规则 - 增删改查验证 - 正向用例"""
+        """新增课程规则 - 增删改查验证"""
         # 新增策略定义
         strategyId = createCourseStrategy
         # 获取课程详情包括版本信息
@@ -1217,7 +1238,7 @@ class TestAdminCourse:
 
     @pytest.mark.smoke
     def test_admin_course_positive_strategylevelRule_ok(self, createCourseStrategy, get_courseIds):
-        """新增等级策略 - 增删改查验证 - 正向用例"""
+        """新增等级策略 - 增删改查验证"""
         # 新增策略定义
         strategyId = createCourseStrategy
         # 新增等级策略
@@ -1268,81 +1289,73 @@ class TestAdminCourse:
         assert level_rule_id not in level_rule_ids, "删除等级策略失败！"
 
     @pytest.mark.smoke
-    def test_admin_course_permission_deleteStrategylevelRule(self):
-        """删除等级策略-权限测试"""
-        res = self.admin_course.deleteStrategylevelRule('', code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.smoke
-    def test_admin_course_permission_strategylevelRules(self):
-        """查询等级策略列表-权限测试"""
-        # 鉴权作为位置参数直接传入（示例期望的极简风格）
-        res = self.admin_course.strategylevelRules('', code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.smoke
-    def test_admin_course_strategy_preview_ok(self):
+    def test_admin_course_strategy_preview_strategyDefinitions(self, createCourseStrategy):
         """预览当前草稿配置-正向用例"""
-        res = self.admin_course.strategy_preview(self.authorization)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        version0 = int(self.admin_course.strategy_historys(self.authorization)['data']['content'][0]['version'])
+        # 新增策略定义
+        strategyId = createCourseStrategy
+        # 预览当前草稿配置history_id
+        res = self.admin_course.strategy_preview(self.authorization, df_key='strategyDefinitions')
+        strategyIds2  = res['strategyId'].tolist()
+        assert strategyId in strategyIds2
+
+        exe_version = version0 + 1
+        version1 = self.admin_course.publish_strategy(self.authorization)['data']['version']
+        assert version1 == exe_version
+        history_res = self.admin_course.strategy_historys(self.authorization)['data']['content']
+        history_id = history_res[0]['id']
+        version2 = int(history_res[0]['version'])
+        assert version2 == exe_version
+        detail_res = self.admin_course.strategy_history_detail(self.authorization, history_id)['data']
+        version3 = detail_res['version']
+        assert version3 == exe_version
+        strategy_res = self.admin_course.strategy_preview(self.authorization)['data']
+        detail_config = detail_res['config']
+        assert detail_config == strategy_res
 
     @pytest.mark.smoke
-    def test_admin_course_publish_strategy_ok(self):
-        """发布配置-正向用例"""
-        res = self.admin_course.publish_strategy(self.authorization)
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data']['version'] == 28, f"接口返回data数据异常：{res['data']}"
+    def test_admin_course_strategy_preview_courseForceRules(self, createStrategyRule):
+        """预览当前草稿配置-正向用例"""
+        rule_id, courseIds = createStrategyRule
+        res = self.admin_course.strategy_preview(self.authorization, df_key='courseForceRules')
+        rule_ids  = res['id'].tolist()
+        assert rule_id in rule_ids
 
     @pytest.mark.smoke
-    def test_admin_course_strategy_history_detail_ok(self):
-        """查询发布历史详情-正向用例"""
-        res = self.admin_course.strategy_history_detail(self.authorization)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+    def test_admin_course_strategy_preview_adaptiveLevelStrategy(self, createCourseStrategy):
+        """预览当前草稿配置-正向用例"""
+        strategyId = createCourseStrategy
+        # 新增等级策略
+        levels = 'L21'
+        self.admin_course.addStrategylevelRule(self.admin_auth, strategyId, levels)
+        # 查询等级策略列表，验证新增等级策略成功
+        strategylevelRules = self.admin_course.strategylevelRules(self.admin_auth)
+        for strategyRule in strategylevelRules['data']['content']:
+            if strategyRule['strategyId'] == strategyId:
+                level_rule_id = strategyRule['id']
+                break
+        else:
+            assert False, '查询等级策略列表，新增等级策略不在列表中！'
+        try:
+            # 预览当前草稿配置
+            res = self.admin_course.strategy_preview(self.authorization, df_key='adaptiveLevelStrategy')
+            level_rule_ids  = res['id'].tolist()
+            assert level_rule_id in level_rule_ids
+        finally:
+            # 删除等级策略
+            delete_res = self.admin_course.deleteStrategylevelRule(self.admin_auth, level_rule_id)
+            assert delete_res['message'] == 'success', "删除等级策略失败！"
 
     @pytest.mark.smoke
-    def test_admin_course_strategy_historys_ok(self):
-        """查询发布历史列表-正向用例"""
-        res = self.admin_course.strategy_historys(self.authorization)
-        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.smoke
-    def test_admin_course_permission_strategy_historys(self):
-        """查询发布历史列表-权限测试"""
-        res = self.admin_course.strategy_historys('', code=401)
-        if res:
-            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-            assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
-            assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
-            assert res['data'], f"接口返回data数据异常：{res['data']}"
-
-    @pytest.mark.smoke
-    def test_admin_course_addVoiceMultilingual_ok(self, get_courseIds):
+    def test_admin_course_addVoiceMultilingual_ok(self, get_course_ids_session):
         """新增语音文案-正向用例-courseId + key + targetLanguage 组合不与现有重复"""
         # 获取课程详情包括版本信息
-        course_id = get_courseIds.split(',')[0]
+        course_id = get_course_ids_session[0]
         # 新增语音文案
         key = 'dibo_test' + self.now
         pl = {
             "key": key,           # String，必填：环节标识（比如某一页、某一步骤的key）
-            "targetLanguage": "en"    # String，必填：目标语言代码（如 "en"、"ar"）
+            "targetLanguage": "ch"    # String，必填：目标语言代码（如 "en"、"ar"）
         }
         add_res = self.admin_course.addVoiceMultilingual(self.authorization, course_id, **pl)
         assert add_res['message'] == 'success', "新增语音文案失败！"
@@ -1353,15 +1366,15 @@ class TestAdminCourse:
                 voice_id = item['id']
                 assert item['courseId'] == int(course_id)
                 assert item['englishText'] == 'Hello'
-                assert item['targetLanguage'] == "en"
-                assert item['translatedText'] == 'Hello'
+                assert item['targetLanguage'] == "ch"
+                assert item['translatedText'] == '你好'
                 assert item['audioStatus'] == 0
                 audioUrl = item['audioUrl']
                 break
         else:
             assert False, "新增语音文案失败，列表未查询到！"
         # 更新语音文案
-        translatedTextNew = 'Happy Day'
+        translatedTextNew = '你好呀'
         update_res = self.admin_course.updateVoiceMultilingual(self.authorization, voice_id, translatedTextNew)
         assert update_res['message'] == 'success', "更新语音文案失败！"
         # 分页查询语音文案列表，验证更新语音文案成功
@@ -1370,7 +1383,7 @@ class TestAdminCourse:
             if item['id'] == voice_id:
                 assert item['courseId'] == int(course_id)
                 assert item['englishText'] == 'Hello'
-                assert item['targetLanguage'] == "en"
+                assert item['targetLanguage'] == "ch"
                 assert item['translatedText'] == translatedTextNew
                 assert item['audioStatus'] == 0
                 audioUrlNew = item['audioUrl']
@@ -1385,3 +1398,175 @@ class TestAdminCourse:
         if search_res3['data']['content']:
             voice_ids = DataFrame(search_res3['data']['content'])['id'].tolist()
             assert voice_id in voice_ids, "删除语音文案失败，列表还能查询到！"
+
+    @pytest.mark.smoke
+    def test_admin_course_addVoiceMultilingual_21ok(self, get_course_ids_session):
+        '''查询课程语音列表，在app中检查语音'''
+        course_id = get_course_ids_session[0]
+        # 分页查询语音文案列表，新增语音文案成功
+        search_res = self.admin_course.voiceMultilinguals(self.authorization, course_id, size=100)
+        len_admin = len(search_res['data']['content'])
+        # 查询课程语音列表
+        search_app_res = self.course.appVoiceMultilinguals(self.authorization, course_id)
+        len_app = len(search_app_res['data'])
+        assert len_admin == len_app
+        # 查询课程英语语音列表
+        search_app_res = self.course.appVoiceMultilinguals(self.authorization, course_id, language='en')
+        audioUrl = search_app_res['data'][0]['audioUrl']
+        # 下载语音
+        fileName = '课程语音' + self.now
+        self.materials.download_materials(self.authorization, '', fileName, fileType="mp3", url=audioUrl)
+
+    @pytest.mark.smoke
+    def test_admin_course_addVoiceMultilingual_batchDeleteVoiceLan(self, get_course_ids_session):
+        """批量删除课程的语音文案"""
+        # 获取课程详情包括版本信息
+        course_id = get_course_ids_session[0]
+        # 新增语音文案
+        key = 'dibo_test' + self.now
+        pl = {
+            "key": key,           # String，必填：环节标识（比如某一页、某一步骤的key）
+            "targetLanguage": "en"    # String，必填：目标语言代码（如 "en"、"ar"）
+        }
+        add_res = self.admin_course.addVoiceMultilingual(self.authorization, course_id, **pl)
+        assert add_res['message'] == 'success', "新增语音文案失败！"
+        # 批量删除课程的语音文案
+        batchDelete_res = self.admin_course.batchDeleteVoiceLan(self.authorization, [course_id])
+        assert batchDelete_res['message'] == 'success', "新增语音文案失败！"
+        # 分页查询语音文案列表，验证批量删除课程的语音文案成功
+        search_res1 = self.admin_course.voiceMultilinguals(self.authorization, course_id, size=100)
+        assert not search_res1['data']['content']
+
+    @pytest.mark.smoke
+    def test_admin_course_addVoiceMultilingual_regenerate(self, get_course_ids_session):
+        """重新生成语音"""
+        # 获取课程详情包括版本信息
+        course_id = get_course_ids_session[0]
+        # 新增语音文案
+        key = 'dibo_test' + self.now
+        pl = {
+            "key": key,           # String，必填：环节标识（比如某一页、某一步骤的key）
+            "targetLanguage": "ch"    # String，必填：目标语言代码（如 "en"、"ar"）
+        }
+        add_res = self.admin_course.addVoiceMultilingual(self.authorization, course_id, **pl)
+        assert add_res['message'] == 'success', "新增语音文案失败！"
+        # 分页查询语音文案列表，新增语音文案成功
+        search_df = self.admin_course.voiceMultilinguals(self.authorization, course_id, return_df=True, size=100)
+        multilingual_id = search_df[search_df["key"] == key]["id"].iloc[0]
+        # 重新生成语音
+        regenerate_res = self.admin_course.regenerateMultilingual(self.authorization, multilingual_id)
+        assert regenerate_res['data']['key'] == key
+        # 分页查询语音文案列表，验证重新生成语音成功
+        search_df = self.admin_course.voiceMultilinguals(self.authorization, course_id, return_df=True, size=100)
+        translatedText = search_df[search_df["id"] == multilingual_id]["translatedText"].iloc[0]
+        assert translatedText == '你好'
+
+    @pytest.mark.smoke
+    def test_admin_course_addVoiceMultilingual_batchImport(self, get_course_ids_session):
+        """批量导入语音文案"""
+        # 获取课程详情包括版本信息
+        course_id = get_course_ids_session[0]
+        # 批量导入语音文案
+        items = [
+            {
+                "courseId": int(course_id),
+                "key": "Greeting",
+                "text": "Hello, let's start learning!"
+            }
+        ]
+        import_res = self.admin_course.batchImportMultilingual(self.authorization, items)
+        assert import_res['data']['message'] == 'Batch import task started', "新增语音文案失败！"
+        # 分页查询语音文案列表，验证批量导入语音文案成功
+        search_df = self.admin_course.voiceMultilinguals(self.authorization, course_id, return_df=True, size=100)
+        translatedText = search_df[search_df["key"] == "Greeting"]["translatedText"].iloc[0]
+        assert translatedText == 'مرحباً، لنبدأ التعلم!'
+
+    @pytest.mark.release
+    @pytest.mark.parametrize('course, _level', [(False, False), (True, False), (False, True), (True, True)])
+    def test_admin_course_strategylevelRule_app_LEVEL_STRATEGY(self, createCourseStrategy, get_course_ids_session, course, _level):
+        """新增等级策略 - 增删改查验证 - 正向用例"""
+        # 新增策略定义
+        strategyId = createCourseStrategy
+        course_id = get_course_ids_session[0]
+        levels = self.course.courseDetail(self.admin_auth, course_id)['data']['difficulty']
+        rules_res = self.admin_course.strategylevelRules(self.admin_auth)['data']
+        for rule in rules_res['content']:
+            if levels == rule['level']:
+                level_rule_id = rule['id']
+                add_flag = False
+                break
+        else:
+            add_flag = True
+            # 新增等级策略
+            add_res = self.admin_course.addStrategylevelRule(self.admin_auth, strategyId, levels)
+            assert add_res['message'] == 'success', "新增等级策略失败！"
+            # 查询等级策略列表，验证新增等级策略成功
+            strategylevelRules = self.admin_course.strategylevelRules(self.admin_auth)
+            for strategyRule in strategylevelRules['data']['content']:
+                if strategyRule['strategyId'] == strategyId:
+                    level_rule_id = strategyRule['id']
+                    assert strategyRule['level'] == levels
+                    break
+            else:
+                assert False, '查询等级策略列表，新增等级策略不在列表中！'
+
+        course_id = course_id if course else 0
+        level = levels if _level else 0
+        res1 = self.game.queryCourseStrategy(self.authorization, course_id, level)
+
+        if add_flag:
+            self.admin_course.deleteStrategylevelRule(self.authorization, level_rule_id)
+
+    @pytest.mark.release
+    @pytest.mark.parametrize('course, _level', [(False, False), (True, False), (False, True), (True, True)])
+    def test_admin_course_strategylevelRule_app_COURSE_RULE(self, createCourseStrategy, get_course_ids_session, course, _level):
+        """新增等级策略 - 增删改查验证 - 正向用例"""
+        # 新增策略定义
+        strategyId = createCourseStrategy
+        course_id = get_course_ids_session[0]
+        levels = self.course.courseDetail(self.admin_auth, course_id)['data']['difficulty']
+
+        # 新增课程规则
+        add_res = self.admin_course.addStrategyRule(self.admin_auth, strategyId, course_id)
+        course_id = course_id if course else 0
+        level = levels if _level else 0
+        res1 = self.game.queryCourseStrategy(self.authorization, course_id, level)
+
+
+    @pytest.mark.release
+    @pytest.mark.parametrize('course, _level', [(False, False), (True, False), (False, True), (True, True)])
+    def test_admin_course_strategylevelRule_app_check(self, createCourseStrategy, get_course_ids_session, course, _level):
+        """新增等级策略 - 增删改查验证 - 正向用例"""
+        # 新增策略定义
+        strategyId = createCourseStrategy
+        course_id = get_course_ids_session[0]
+        levels = self.course.courseDetail(self.admin_auth, course_id)['data']['difficulty']
+        rules_res = self.admin_course.strategylevelRules(self.admin_auth)['data']
+        for rule in rules_res['content']:
+            if levels == rule['level']:
+                level_rule_id = rule['id']
+                add_flag = False
+                break
+        else:
+            add_flag = True
+            # 新增等级策略
+            add_res = self.admin_course.addStrategylevelRule(self.admin_auth, strategyId, levels)
+            assert add_res['message'] == 'success', "新增等级策略失败！"
+            # 查询等级策略列表，验证新增等级策略成功
+            strategylevelRules = self.admin_course.strategylevelRules(self.admin_auth)
+            for strategyRule in strategylevelRules['data']['content']:
+                if strategyRule['strategyId'] == strategyId:
+                    level_rule_id = strategyRule['id']
+                    assert strategyRule['level'] == levels
+                    break
+            else:
+                assert False, '查询等级策略列表，新增等级策略不在列表中！'
+
+        # 新增课程规则
+        add_res = self.admin_course.addStrategyRule(self.admin_auth, strategyId, course_id)
+        course_id = course_id if course else 0
+        level = levels if _level else 0
+        res1 = self.game.queryCourseStrategy(self.authorization, course_id, level)
+
+        if add_flag:
+            self.admin_course.deleteStrategylevelRule(self.authorization, level_rule_id)

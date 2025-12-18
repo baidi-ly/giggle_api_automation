@@ -333,7 +333,7 @@ class GameApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def queryCourseStrategy(self, authorization, courseId='', level='', DeviceType="web"):
+    def queryCourseStrategy(self, authorization, courseId, level='', DeviceType="web"):
         """
         查询课程策略配置
         :param courseId: (string, query, optional) 课程ID（非必传）
