@@ -46,7 +46,7 @@ class TestCommon:
     @pytest.mark.smoke
     def test_common_positive_Getfileurl_bookKey_ok(self):
         """根据url获取文件的下载链接-bookKey"""
-        books_res = self.book.book_list(self.authorization)['data']['content']
+        books_res = self.book.book_list(self.authorization, pageSize=10)['data']['content']
         for book in books_res:
             if book['bookName'] == 'The Sock-Eating Bear':
                 bookKey = book['bookKey']

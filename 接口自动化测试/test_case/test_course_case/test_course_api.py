@@ -1122,10 +1122,10 @@ class TestCourse:
 
     @pytest.mark.smoke
     @pytest.mark.parametrize('learningLevel', ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'L10', 'L11', 'L12', 'L13', 'L14', 'L15', 'L16', 'L17', 'L18','L19', 'L20'])
-    def test_course_recommend_list_check(self, learningLevel, kid_data_fixture):
+    def test_course_recommend_list_check(self, learningLevel, kid_data_session):
         '''通过kid.learninglevel匹配课程difficulty,过滤出来的课程按旧level+no正序排序返回'''
         # 创建测试学生
-        kid_id = kid_data_fixture
+        kid_id = kid_data_session
         # 获取课程推荐列表（需要认证）
         recommends_res = self.course.course_recommends(self.authorization, kid_id, learningLevel)
         no = 0  # 校验书籍正序排序返回
@@ -1195,7 +1195,7 @@ class TestCourse:
         # 新增语音文案
         course_id, voice_id = voiceMultilingual_fixture
         # 查询课程语音列表
-        voice_res = self.course.voiceMultilinguals(self.authorization, course_id)
+        voice_res = self.course.appVoiceMultilinguals(self.authorization, course_id)
         for item in voice_res['data']:
             if item['id'] == voice_id:
                 item1 = item

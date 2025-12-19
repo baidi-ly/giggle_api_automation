@@ -31,7 +31,7 @@ class TestSystem:
     def test_system_health_login(self):
         """系统健康状态检查"""
         # 系统健康状态检查
-        health_res = self.sys.health(self.authorization, self.token)
+        health_res = self.sys.health(self.token, self.authorization)
         assert "data" in health_res, f"获取孩子学习统计数据接口没有data数据，response->{health_res}"
         assert health_res["data"]["isUp"]
         assert health_res["data"]["status"] == "UP"
@@ -61,7 +61,7 @@ class TestSystem:
     def test_system_info_login(self):
         """系统健康状态检查"""
         # 系统信息检查
-        health_res = self.sys.system_info(self.authorization, self.token)
+        health_res = self.sys.system_info(self.token, self.authorization)
         assert health_res["data"]["git"]
         assert health_res["data"]["build"]['name'] == 'Giggle-Server'
 
@@ -69,7 +69,7 @@ class TestSystem:
     def test_system_info_customer(self):
         """系统健康状态检查"""
         # 系统信息检查
-        health_res = self.sys.system_info(self.authorization, self.token)
+        health_res = self.sys.system_info(self.token, self.authorization)
         assert health_res["data"]["git"]
         assert health_res["data"]["build"]['name'] == 'Giggle-Server'
 
@@ -90,7 +90,7 @@ class TestSystem:
     def test_system_system_ping_with_login(self):
         """简单的ping检查"""
         # 简单的ping检查
-        ping_res = self.sys.system_ping(self.authorization, self.token)
+        ping_res = self.sys.system_ping(self.token, self.authorization)
         assert ping_res["data"]["message"] == 'pong'
         assert ping_res["data"]["server"] == "giggle-academy-server"
 
@@ -98,7 +98,7 @@ class TestSystem:
     def test_system_system_ping_with_customer(self):
         """简单的ping检查"""
         # 简单的ping检查
-        ping_res = self.sys.system_ping(self.authorization, self.token)
+        ping_res = self.sys.system_ping(self.token, self.authorization)
         assert ping_res["data"]["message"] == 'pong'
         assert ping_res["data"]["server"] == "giggle-academy-server"
 

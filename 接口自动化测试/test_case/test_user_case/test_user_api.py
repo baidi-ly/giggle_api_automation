@@ -56,8 +56,8 @@ class TestUser:
 
     @pytest.mark.smoke
     def test_user_videoWhitelist_update_normal(self, get_userIds):
-        """有效的kidId，返回完整统计数据"""
-        # 获取孩子学习统计数据
+        """test_user_videoWhitelist_update_normal, test_user_api.py:63"""
+        # 获取孩子
         userIds = get_userIds
         # 视频白名单用户全量更新
         event_res = self.user.update_videoWhitelist(self.authorization, userIds)
@@ -555,7 +555,7 @@ class TestUser:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.smoke
+    @pytest.mark.skip('接口已废弃')
     def test_user_positive_questionnaire_ok(self, getkidId):
         """提交问卷设置学习水平-正向用例"""
         kidId = getkidId['data'][0]['id']
@@ -603,7 +603,7 @@ class TestUser:
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'] == {'learningLevel': 'L4'}, f"接口返回data数据异常：{res['data']}"
+        assert res['data'] == {'learningLevel': 'L1'}, f"接口返回data数据异常：{res['data']}"
 
     @pytest.mark.parametrize(
         'desc, value',

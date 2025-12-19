@@ -22,7 +22,7 @@ class SchoolApi(BaseAPI):
         # Create Data:  V1.19.0  &  2025-09-25
         url = f"https://{base_url}/api/school/class"
         payload = {
-            "className": "三年级一班",
+            "className": "dibo_test_calss",
             "description": "三年级英语学习班",
             "grade": 3,
             "subject": "English"

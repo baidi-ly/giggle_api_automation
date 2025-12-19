@@ -53,7 +53,7 @@ class BookApi(BaseAPI):
         url = f"https://{base_url}/api/book/list"
         payload = {
             "page": 0,
-            "pageSize": 10,
+            "pageSize": 100,
             "sortBy": "createTime",
             "sortDirection": "desc",
             "status": "",

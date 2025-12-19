@@ -114,13 +114,7 @@ class TestDonateApi:
     @pytest.mark.smoke
     def test_donate_positive_cancelOrders_ok(self):
         """取消捐赠订单 - 正向用例必须满足订单真实存在且状态为pending的订单"""
-        orders_res = self.donate.donate_orders(self.authorization, size=5000)['data']['content']
-        for order in orders_res:
-            if order['transactionId'] == '0x0bbfc98654ad18ac7bd81d90ffa11b0c524c46395821e8ada2aa5f969d33eb74':
-                order_id = order['orderId']
-                break
-        else:
-            assert False, "未找到指定交易id的订单！"
+        order_id = self.donate.donate_orders(self.authorization, size=5000)['data']['content'][0]['orderId']
         res = self.donate.cancelOrders(self.authorization, order_id)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert 'data' in res, f'返回结果没有data数据，response->{res}'

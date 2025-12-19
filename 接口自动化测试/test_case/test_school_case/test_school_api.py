@@ -24,6 +24,16 @@ class TestSchoolApi:
         self.authorization, self.userId = self.school.get_authorization()
         self.now = strftime("%Y%m%d%H%M%S")
 
+
+    def teardown_class(self):
+        '''删除测试班级'''
+        class_res = self.school.class_list(self.authorization, all=True)
+        for _class in class_res['data']['content']:
+            if _class['className'].startswith('dibo_test'):
+                class_id = _class['id']
+                # 删除班级
+                self.school.delete_class(self.authorization, class_id)
+
     @pytest.fixture(scope='class')
     def create_class(self):
         '''创建班级数据'''
@@ -388,7 +398,8 @@ class TestSchoolApi:
     @pytest.mark.smoke
     def test_school_positive_getList1_ok(self):
         """测验报告列表-正向用例"""
-        class_id = self.school.school_class(self.authorization)['data']['id']
+        # 创建班级
+        class_id = self.school.school_class(self.authorization)
         lessonId = self.school.create_lesson(self.authorization, classId=class_id)['data']['id']
         res = self.school.school_quiz_reports(self.authorization, lessonId)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'

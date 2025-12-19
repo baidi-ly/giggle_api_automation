@@ -50,7 +50,7 @@ class TestGame:
         key = "和平"
         game_res = self.game.search_game(self.authorization, key)
         assert "message" in game_res.keys(), f'根据关键词搜索游戏内容-未返回message字段'
-        assert game_res['message'] == "搜索成功"
+        assert game_res['message'] == "success"
         assert "data" in game_res.keys(), f'根据关键词搜索游戏内容-未返回data字段'
         gameNames = DataFrame(game_res['data']).loc[:, "gameName"].tolist()
         for game in gameNames:

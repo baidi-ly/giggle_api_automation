@@ -763,7 +763,7 @@ class TestBook:
     def test_book_positive_ai_narration_ok(self):
         """重新生成故事书的领读数据-正向用例"""
         # 列出当前用户创建的书籍列表中，找到书名称hq_test的故事书做测试
-        books_res = self.book.book_list(self.authorization)['data']['content']
+        books_res = self.book.book_list(self.authorization, pageSize=100)['data']['content']
         for book in books_res:
             if book['bookName'] == 'hq_test':
                 bookId = book['id']
