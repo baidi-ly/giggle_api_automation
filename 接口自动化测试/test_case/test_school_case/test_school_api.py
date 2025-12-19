@@ -840,7 +840,7 @@ class TestSchoolApi:
 
     @pytest.mark.smoke
     def test_school_positive_deleteFavorite_quiz_ok(self):
-        """取消收藏资源-quiz-正向用例"""
+        """取消收藏资源"""
         try:
             # 测验列表
             resourceRefId = self.school.getQuiz(self.authorization)["data"]['content'][0]['id']
@@ -895,7 +895,7 @@ class TestSchoolApi:
 
     @pytest.mark.smoke
     def test_school_positive_report_ok(self):
-        """测验结果上报-正向用例"""
+        """测验结果上报"""
         # 获取用户的班级列表
         class_res = self.school.class_list(self.authorization, size=100)['data']['content']
         for class_info in class_res:
