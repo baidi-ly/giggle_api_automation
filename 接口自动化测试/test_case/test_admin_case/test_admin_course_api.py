@@ -1482,13 +1482,20 @@ class TestAdminCourse:
         assert translatedText == 'مرحباً، لنبدأ التعلم!'
 
     @pytest.mark.release
-    @pytest.mark.parametrize('course, _level', [(False, False), (True, False), (False, True), (True, True)])
-    def test_admin_course_strategylevelRule_app_LEVEL_STRATEGY(self, createCourseStrategy, get_course_ids_session, course, _level):
-        """新增等级策略 - 增删改查验证 - 正向用例"""
+    @pytest.mark.parametrize('course, _level, matchType', [(False, False, None),
+                                                           (True, False, None),
+                                                           (False, True, 'LEVEL_STRATEGY'),
+                                                           (True, True, 'LEVEL_STRATEGY')])
+    def test_admin_course_strategylevelRule_app_LEVEL_STRATEGY(self, createCourseStrategy, get_course_ids_session,
+                                                               course, _level, matchType):
+        """新增等级策略 - 等级策略"""
         # 新增策略定义
         strategyId = createCourseStrategy
+        # 获取课程详情包括版本信息
         course_id = get_course_ids_session[0]
+        # 获取课程level
         levels = self.course.courseDetail(self.admin_auth, course_id)['data']['difficulty']
+        # 查询等级策略列表
         rules_res = self.admin_course.strategylevelRules(self.admin_auth)['data']
         for rule in rules_res['content']:
             if levels == rule['level']:
@@ -1509,18 +1516,26 @@ class TestAdminCourse:
                     break
             else:
                 assert False, '查询等级策略列表，新增等级策略不在列表中！'
-
-        course_id = course_id if course else 0
-        level = levels if _level else 0
-        res1 = self.game.queryCourseStrategy(self.authorization, course_id, level)
+        # 发布配置
+        self.admin_course.publish_strategy(self.authorization)
+        pl = {}
+        if course: pl['"courseId"'] = course_id
+        if _level: pl['"level"'] = levels
+        # 查询课程策略配置
+        query_res = self.game.queryCourseStrategy(self.authorization, **pl)
+        assert query_res['data']['matchType'] == matchType
 
         if add_flag:
             self.admin_course.deleteStrategylevelRule(self.authorization, level_rule_id)
 
     @pytest.mark.release
-    @pytest.mark.parametrize('course, _level', [(False, False), (True, False), (False, True), (True, True)])
-    def test_admin_course_strategylevelRule_app_COURSE_RULE(self, createCourseStrategy, get_course_ids_session, course, _level):
-        """新增等级策略 - 增删改查验证 - 正向用例"""
+    @pytest.mark.parametrize('course, _level, matchType', [(False, False, None),
+                                                           (True, False, 'COURSE_RULE'),
+                                                           (False, True, None),
+                                                           (True, True, 'COURSE_RULE')])
+    def test_admin_course_strategylevelRule_app_COURSE_RULE(self, createCourseStrategy, get_course_ids_session,
+                                                            course, _level, matchType):
+        """新增等级策略 - 课程强制策略"""
         # 新增策略定义
         strategyId = createCourseStrategy
         course_id = get_course_ids_session[0]
@@ -1528,15 +1543,23 @@ class TestAdminCourse:
 
         # 新增课程规则
         add_res = self.admin_course.addStrategyRule(self.admin_auth, strategyId, course_id)
-        course_id = course_id if course else 0
-        level = levels if _level else 0
-        res1 = self.game.queryCourseStrategy(self.authorization, course_id, level)
+        assert add_res['message'] == 'success'
+        pl = {}
+        if course: pl['"courseId"'] = course_id
+        if _level: pl['"level"'] = levels
+        # 查询课程策略配置
+        query_res = self.game.queryCourseStrategy(self.authorization, **pl)
+        assert query_res['data']['matchType'] == matchType
 
 
     @pytest.mark.release
-    @pytest.mark.parametrize('course, _level', [(False, False), (True, False), (False, True), (True, True)])
-    def test_admin_course_strategylevelRule_app_check(self, createCourseStrategy, get_course_ids_session, course, _level):
-        """新增等级策略 - 增删改查验证 - 正向用例"""
+    @pytest.mark.parametrize('course, _level, matchType', [(False, False, None),
+                                                           (True, False, 'COURSE_RULE'),
+                                                           (False, True, 'LEVEL_STRATEGY'),
+                                                           (True, True, 'COURSE_RULE')])
+    def test_admin_course_strategylevelRule_app_check(self, createCourseStrategy, get_course_ids_session,
+                                                      course, _level, matchType):
+        """新增等级策略 - 等级策略和课程强制策略同时存在 - 验证优先按照课程强制策略执行"""
         # 新增策略定义
         strategyId = createCourseStrategy
         course_id = get_course_ids_session[0]
@@ -1564,9 +1587,13 @@ class TestAdminCourse:
 
         # 新增课程规则
         add_res = self.admin_course.addStrategyRule(self.admin_auth, strategyId, course_id)
-        course_id = course_id if course else 0
-        level = levels if _level else 0
-        res1 = self.game.queryCourseStrategy(self.authorization, course_id, level)
+        assert add_res['message'] == 'success'
+        pl = {}
+        if course: pl['"courseId"'] = course_id
+        if _level: pl['"level"'] = levels
+        # 查询课程策略配置
+        query_res = self.game.queryCourseStrategy(self.authorization, **pl)
+        assert query_res['data']['matchType'] == matchType
 
         if add_flag:
             self.admin_course.deleteStrategylevelRule(self.authorization, level_rule_id)

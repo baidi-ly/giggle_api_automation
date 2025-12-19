@@ -333,7 +333,7 @@ class GameApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def queryCourseStrategy(self, authorization, courseId, level='', DeviceType="web"):
+    def queryCourseStrategy(self, authorization, DeviceType="web", **kwargs):
         """
         查询课程策略配置
         :param courseId: (string, query, optional) 课程ID（非必传）
@@ -343,9 +343,10 @@ class GameApi(BaseAPI):
         # Create Data:  V1.22.0  &  2025-12-10
         url = f"https://{base_url}/api/game/courseStrategy/query"
         payload = {
-            "courseId": courseId,
-            "level": level
+            # "courseId": courseId,
+            # "level": level
         }
+        payload.update(kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
