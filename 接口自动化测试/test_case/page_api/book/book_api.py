@@ -2058,7 +2058,7 @@ class BookApi(BaseAPI):
         response = response.json()
         return response
 
-    def getBookMultilingual(self, authorization, bookId=0, DeviceType="web", code=200, **kwargs):
+    def getBookMultilingual(self, authorization, bookId=0, DeviceType="web"):
         """
         查询故事书的所有多语言翻译
         :param bookId: (integer, path, required) 故事书ID
@@ -2071,14 +2071,14 @@ class BookApi(BaseAPI):
 
         response = requests.request("GET", url, headers=headers)
         error_msg = "查询故事书的所有多语言翻译"
-        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()
             return response
         except json.decoder.JSONDecodeError:
             return False
 
-    def saveBookMultilingual(self, authorization, bookId, title, description='', DeviceType="web", code=200, **kwargs):
+    def saveBookMultilingual(self, authorization, bookId, title, description='', DeviceType="web"):
         """
         保存故事书的多语言翻译
         :param bookId: (integer, path, required) 故事书ID
@@ -2091,18 +2091,16 @@ class BookApi(BaseAPI):
             "translations": {
                 "es": {
                     "title": title,
-                    "description": ""
+                    "description": description
                 }
             }
         }
-
-        payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
         response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "保存故事书的多语言翻译"
-        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         try:
             response = response.json()
             return response
