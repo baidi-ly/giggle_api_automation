@@ -1118,3 +1118,53 @@ class TestBook:
         }
         res = self.book.book_upload(self.authorization, self.book_id, file)
         assert res['data']['bookKey'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_book_positive_multilingual_saveAndGET(self):
+        '''保存故事书的多语言翻译'''
+        # 保存故事书的多语言翻译
+        title = 'dibo_test_title' + self.now
+        description = 'dibo_test_description' + self.now
+        title_original = '''Lily's socks always mysteriously disappear, leading her on a humorous journey to find them. She suspects everything from a sock-eating monster to a clanging dryer, only to ultimately discover that the surprising culprit is her own teddy bear.'''
+        res1 = self.book.saveBookMultilingual(self.authorization, self.book_id, title, description=description)
+        assert res1['data'] == '保存成功'
+        # 查询故事书的所有多语言翻译
+        res = self.book.getBookMultilingual(self.authorization, self.book_id)
+        for k, v in res['data']['translations'].items():
+            if k == 'en':
+                assert v['title'] == title
+                assert v['description'] == description
+                break
+        else:
+            assert False
+        # 还原故事书的多语言翻译
+        res1 = self.book.saveBookMultilingual(self.authorization, self.book_id, self.book_name,  description=title_original)
+
+    @pytest.mark.release
+    @pytest.mark.parametrize('k', ['bn', 'my', 'zh', 'zh-Hant', 'en', 'fr', 'de', 'hi', 'id', 'ja', 'pt', 'ru', 'es', 'tr', 'vi', 'ar', 'nl', 'fil', 'it', 'ko', 'ms', 'pl', 'pt-BR', 'ro', 'sw', 'th', 'uk', 'ur'])
+    def test_book_positive_multilingual_getBookMultilingual(self, k):
+        '''查询故事书的所有多语言翻译'''
+        # 查询故事书的所有多语言翻译
+        res = self.book.getBookMultilingual(self.authorization, self.book_id)
+        assert res['data']['translations'][k]['title']
+        assert res['data']['translations'][k]['description']
+
+    @pytest.mark.release
+    def test_book_voicePack_upload_and_addProcessTask(self):
+        '''保存故事书的多语言翻译后，添加语言包处理任务到队列'''
+        book_name = 'Lily and the Little Sprout'
+        bookList = self.book.book_list(self.authorization)['data']['content']
+        for book in bookList:
+            if book['bookName'] == book_name:
+                book_id = book['id']
+                break
+        else:
+            assert False, "未找到故事书《Lily and the Little Sprout》"
+        # 上传首页故事书音频
+        file = {
+            'file': ('story_language.mp3', open(os.getcwd() + f'/test_data/story_language.mp3', 'rb'))
+        }
+        # 上传并保存故事书语言包
+        res = self.book.uploadVoicePack(self.authorization, book_id, languageCode, file=file)
+        # 还原故事书的多语言翻译
+        res1 = self.book.addProcesstaskVoicePack(self.authorization, self.book_id, self.book_name,  description=title_original)

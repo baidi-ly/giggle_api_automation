@@ -2058,7 +2058,7 @@ class BookApi(BaseAPI):
         response = response.json()
         return response
 
-    def getBookMultilingual(self, authorization, bookId=0, DeviceType="web"):
+    def getBookMultilingual(self, authorization, bookId, DeviceType="web"):
         """
         查询故事书的所有多语言翻译
         :param bookId: (integer, path, required) 故事书ID
@@ -2072,13 +2072,10 @@ class BookApi(BaseAPI):
         response = requests.request("GET", url, headers=headers)
         error_msg = "查询故事书的所有多语言翻译"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        try:
-            response = response.json()
-            return response
-        except json.decoder.JSONDecodeError:
-            return False
+        response = response.json()
+        return response
 
-    def saveBookMultilingual(self, authorization, bookId, title, description='', DeviceType="web"):
+    def saveBookMultilingual(self, authorization, bookId, title, key='en', description='', DeviceType="web"):
         """
         保存故事书的多语言翻译
         :param bookId: (integer, path, required) 故事书ID
@@ -2089,7 +2086,7 @@ class BookApi(BaseAPI):
         url = f"https://{base_url}/api/book/{bookId}/multilingual"
         payload = {
             "translations": {
-                "es": {
+                key: {
                     "title": title,
                     "description": description
                 }
@@ -2101,9 +2098,51 @@ class BookApi(BaseAPI):
         response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "保存故事书的多语言翻译"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        try:
-            response = response.json()
-            return response
-        except json.decoder.JSONDecodeError:
-            return False
+        response = response.json()
+        return response
+
+    def addProcesstaskVoicePack(self, authorization, bookId=0, languageCode='', DeviceType="web"):
+        """
+        添加语言包处理任务到队列
+        :param bookId: (integer, query, required) bookId
+        :param languageCode: (string, query, required) languageCode
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-22
+        url = f"https://{base_url}/api/book/voicePack/addProcessTask"
+        payload = {
+            "bookId": bookId,
+            "languageCode": languageCode
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "添加语言包处理任务到队列"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def uploadVoicePack(self, authorization, bookId, languageCode, file=None, DeviceType="web"):
+        """
+        上传并保存故事书语言包
+        :param bookId: (integer, query, required) bookId
+        :param languageCode: (string, query, required) languageCode
+        :param file: (file, formData, optional) 上传文件
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-22
+        url = f"https://{base_url}/api/book/voicePack/upload"
+        payload = {
+            "bookId": bookId,
+            "languageCode": languageCode
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType, Content_Type='multipart/form-data')
+
+        response = requests.request("POST", url, headers=headers, data=payload, files=file)
+        error_msg = "上传并保存故事书语言包"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
 
