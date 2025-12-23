@@ -87,7 +87,7 @@ class BookApi(BaseAPI):
             "page": 0,
             "size": 10,
             "total": False,
-            "translateLanguage": "en",
+            "translateLanguage": "",
             "visibleOnly": True
         }
         payload.update(kwargs)
@@ -2145,4 +2145,202 @@ class BookApi(BaseAPI):
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
+
+    def pinSeries(self, authorization, seriesId, age, isPinned=False, DeviceType="web", code=200):
+        """
+        更新故事书系列pin状态
+        :param seriesId: (integer, path, required) 系列ID
+        :param age: (integer, query, required) 年龄段
+        :param isPinned: (boolean, query, required) 是否pin：true-pin，false-取消pin
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-23
+        url = f"https://{base_url}/api/book/series/{seriesId}/pin"
+        payload = {
+            "age": age,
+            "isPinned": isPinned
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "更新故事书系列pin状态"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def pinnedSeriesByAge(self, authorization, age, DeviceType="web", code=200):
+        """
+        按年龄查询被pin的系列列表
+        :param age: (integer, query, required) 年龄
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-23
+        url = f"https://{base_url}/api/book/series/pinned/byAge"
+        payload = {
+            "age": age
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "按年龄查询被pin的系列列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def bookSeries(self, authorization, DeviceType="web", code=200, **kwargs):
+        """
+        查询故事书系列列表
+        :param bookCoverSize: (integer, query, optional) 展示书籍封面数量，默认3
+        :param includeBookCount: (boolean, query, optional) 是否包含书籍数量，默认false
+        :param includeBookCover: (boolean, query, optional) 是否展示书籍封面数组，默认false
+        :param kidId: (integer, query, optional) 孩子ID，用于年龄过滤和pin优先排序
+        :param page: (integer, query, optional) 页码
+        :param size: (integer, query, optional) 每页数量
+        :param total: (boolean, query, optional) 是否查询所有数据，默认false进行分页
+        :param translateLanguage: (string, query, optional) 目标翻译语言，用于翻译系列标题和描述
+        :param visibleOnly: (boolean, query, optional) 是否只查询可见的系列，默认true只查询可见的
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-23
+        url = f"https://{base_url}/api/book/series"
+        payload = {
+            "bookCoverSize": 3,
+            "includeBookCount": False,
+            "includeBookCover": False,
+            "kidId": 0,
+            "page": 0,
+            "size": 20,
+            "total": False,
+            "translateLanguage": '',
+            "visibleOnly": True
+        }
+        payload.update(kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "查询故事书系列列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def seriesByAge(self, authorization, DeviceType="web", code=200, **kwargs):
+        """
+        按年龄查询系列列表
+        :param age: (integer, query, required) 年龄
+        :param includeBookCount: (boolean, query, optional) 是否包含书籍数量，默认false
+        :param page: (integer, query, optional) 页码
+        :param size: (integer, query, optional) 每页数量
+        :param translateLanguage: (string, query, optional) 目标翻译语言，用于翻译系列标题和描述
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-23
+        url = f"https://{base_url}/api/book/series/byAge"
+        payload = {
+            "age": 5,
+            "includeBookCount": False,
+            "page": 0,
+            "size": 20,
+            "translateLanguage": ''
+        }
+        payload.update(kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "按年龄查询系列列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def getPinnedbooks(self, authorization, seriesId, DeviceType="web", code=200):
+        """
+        查询系列下所有被pin的故事书
+        :param seriesId: (integer, path, required) 系列ID
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-23
+        url = f"https://{base_url}/api/book/series/{seriesId}/pinnedBooks"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "查询系列下所有被pin的故事书"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def getBooksBySeriesId(self, authorization, seriesId, DeviceType="web", code=200, **kwargs):
+        """
+        根据系列ID查询故事书列表
+        :param seriesId: (integer, path, required) 系列ID
+        :param page: (integer, query, optional) 页码
+        :param searchKey: (string, query, optional) 搜索关键词，用于模糊搜索故事书标题
+        :param size: (integer, query, optional) 每页数量
+        :param status: (integer, query, optional) 故事书状态：0-私有，1-公开，2-待审核，3-被拒绝，4-已删除
+        :param translateLanguage: (string, query, optional) 目标翻译语言，用于翻译书籍标题和描述
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-23
+        url = f"https://{base_url}/api/book/series/{seriesId}/books"
+        payload = {
+            "page": 0,
+            "searchKey": '',
+            "size": 20,
+            "status": 1,
+            "translateLanguage": ''
+        }
+        payload.update(kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "根据系列ID查询故事书列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def pinBook(self, authorization, bookId, isPinned=False, DeviceType="web", code=200):
+        """
+        更新故事书pin状态
+        :param bookId: (integer, path, required) 故事书ID
+        :param isPinned: (boolean, query, required) 是否pin：true-pin，false-取消pin
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-23
+        url = f"https://{base_url}/api/book/{bookId}/pin"
+        payload = {
+            "isPinned": isPinned
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "更新故事书pin状态"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
 

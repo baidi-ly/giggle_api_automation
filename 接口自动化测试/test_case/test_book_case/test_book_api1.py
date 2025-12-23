@@ -1175,3 +1175,91 @@ class TestBook:
         # 添加语言包处理任务到队列
         res3 = self.book.addProcesstaskVoicePack(self.authorization, book_id, 'en')
         assert res3['data']['message'] == '任务已添加到队列'
+
+    @pytest.mark.release
+    @pytest.mark.parametrize('age', [0,1,2,3,4,5,6,7,8,9,10])
+    def test_book_series_pined_by_age(self, age):
+        '''故事书排序优化，每个年龄段有自己的系列推荐，相互之间不干扰'''
+        # 按年龄查询被pin的系列列表
+        pinnedSeries_res = self.book.pinnedSeriesByAge(self.authorization, age)['data']
+        pined_ids = DataFrame(pinnedSeries_res)['id'].tolist() if pinnedSeries_res else []
+        # 按年龄查询系列列表
+        seriesList = self.book.seriesByAge(self.authorization, age=age)['data']['content']
+        series_ids0 = DataFrame(pinnedSeries_res)['id'].tolist() if pinnedSeries_res else []
+        for series in seriesList:
+            assert series['ageMax'] >= age and series['ageMin'] <= age
+            seriesId = series['id']
+            if seriesId not in pined_ids:
+                flag = True
+                break
+        else:
+            # 更新故事书系列pin状态
+            seriesId = seriesList[0]['id']
+            res = self.book.pinSeries(self.authorization, seriesId, age, isPinned=False)
+            assert res['data'] == '系列pin状态更新成功'
+        # 更新故事书系列pin状态
+        res1 = self.book.pinSeries(self.authorization, seriesId, age, isPinned=True)
+        assert res1['data'] == '系列pin状态更新成功'
+        # 按年龄查询被pin的系列列表
+        pinnedSeries_res = self.book.pinnedSeriesByAge(self.authorization, age)['data']
+        pined_ids1 = DataFrame(pinnedSeries_res)['id'].tolist()
+        assert seriesId == pined_ids1[0]
+        if flag:
+            pined_ids1.remove(seriesId)
+            assert pined_ids1 == pined_ids
+        else:
+            pined_ids.remove(seriesId)
+            pined_ids1.remove(seriesId)
+            assert pined_ids1 == pined_ids
+        # 在app中检查系列推荐情况
+        series_res = self.book.series_list(self.authorization)
+        assert series_res['data']['content']
+        series_ids1 = DataFrame(series_res)['id'].tolist() if pinnedSeries_res else []
+        assert series_ids0 == series_ids1
+
+    @pytest.mark.release
+    def test_book_pined_stroy_order(self):
+        '''系列下pin故事书默认第一位'''
+        for i in range(12):
+            # 按年龄查询系列列表
+            seriesId = self.book.seriesByAge(self.authorization, age=i)['data']['content'][0]['id']
+            # 根据系列ID查询故事书列表
+            book_res = self.book.getBooksBySeriesId(self.authorization, seriesId)['data']['content']
+            if book_res:
+                break
+        # 查询系列下所有被pin的故事书
+        pinnedBooks_res = self.book.getPinnedbooks(self.authorization, seriesId)['data']
+        pined_ids = DataFrame(pinnedBooks_res)['id'].tolist() if pinnedBooks_res else []
+        # 根据系列ID查询故事书列表
+        book_res = self.book.getBooksBySeriesId(self.authorization, seriesId)['data']['content']
+        for book in book_res:
+            if int(book['id']) not in pined_ids:
+                bookId = book['id']
+                flag = True
+                break
+        else:
+            # 更新故事书pin状态
+            bookId = book_res[0]['id']
+            res1 = self.book.pinBook(self.authorization, bookId, isPinned=False)['data']
+            assert res1 == '故事书pin状态更新成功'
+        # 更新故事书pin状态
+        res2 = self.book.pinBook(self.authorization, bookId, isPinned=True)['data']
+        assert res2 == '故事书pin状态更新成功'
+        # 查询系列下所有被pin的故事书
+        pinnedBooks_res1 = self.book.getPinnedbooks(self.authorization, seriesId)['data']
+        pined_ids1 = DataFrame(pinnedBooks_res1)['id'].tolist() if pinnedBooks_res1 else []
+        assert int(bookId) == pined_ids1[0]
+        if flag:
+            pined_ids1.remove(int(bookId))
+            assert pined_ids1 == pined_ids
+        else:
+            pined_ids.remove(int(bookId))
+            pined_ids1.remove(int(bookId))
+            assert pined_ids1 == pined_ids
+        # 在app中检查系列推荐情况
+        series_res = self.book.series_list(self.authorization)
+        assert series_res['data']['content']
+        series_ids1 = DataFrame(series_res)['id'].tolist() if pinnedSeries_res else []
+        assert series_ids0 == series_ids1
+
+

@@ -636,7 +636,7 @@ class UserApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def create(self, authorization, req='', DeviceType="web", code=200, **kwargs):
+    def creategGuestUser(self, authorization, language='ch', timezone='+8:00', DeviceType="web"):
         """
         创建游客账户
         :param req: (object, body, required) req
@@ -645,18 +645,31 @@ class UserApi(BaseAPI):
         # Create Data:  V1.19.0  &  2025-12-23
         url = f"https://{base_url}/api/user/guest/create"
         payload = {
-            "req": req
+            "language": language,
+            "timezone": timezone
         }
-        payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
         response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "创建游客账户"
-        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        try:
-            response = response.json()
-            return response
-        except json.decoder.JSONDecodeError:
-            return False
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
 
+    def userDevice(self, authorization, DeviceType="web"):
+        """
+        通过deviceId获取用户信息
+
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-23
+        url = f"https://{base_url}/api/user/info/device"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "通过deviceId获取用户信息"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response

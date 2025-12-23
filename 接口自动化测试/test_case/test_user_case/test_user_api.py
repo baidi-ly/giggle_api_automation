@@ -865,10 +865,17 @@ class TestUser:
         assert init_res1['data']['updated'] == False
 
     @pytest.mark.release
-    def test_user_positive_create_ok(self):
+    def test_user_positive_creategGuestUser_ok(self):
         """创建游客账户-正向用例"""
-        res = self.user.create(self.authorization)
+        # 创建游客账户
+        res = self.user.creategGuestUser(self.authorization)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
-        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
-        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
-        assert res['data'], f"接口返回data数据异常：{res['data']}"
+        assert res['message'] == 'success'
+        assert res['data']['userInfo']['accountType'] == 'GUEST'
+        assert res['data']['userInfo']['deviceId'] == '123456'
+        # 通过deviceId获取用户信息
+        res1 = self.user.userDevice(self.authorization)
+        assert not res1['data']['isUser']
+        assert res1['data']['isGuest']
+        assert res1['data']['userInfo'] == res['data']['userInfo']
+
