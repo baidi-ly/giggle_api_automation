@@ -1,3 +1,4 @@
+from datetime import time
 from time import strftime
 
 import pytest
@@ -81,6 +82,32 @@ class TestStudyPlanApi:
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+
+    @pytest.fixture(scope='function')
+    def two_study_plans(self):
+        """创建两条学习计划用于优先级上下验证，测试结束删除"""
+        base_name = "autotest_studyplan_" + self.now
+        common = dict(imageKey="qa-uploads/test-image-key", category="autotest", ageGroup="4-6", goal="自动化测试目标")
+
+        resp1 = self.study_plan.create_study_plan(self.authorization, name=base_name + "_1", units=[], **common)
+        assert isinstance(resp1, dict), f"create_study_plan 返回类型异常: {type(resp1)}"
+        assert 'data' in resp1, f"create_study_plan 返回没有 data: {resp1}"
+        id1 = resp1['data'].get('id')
+        assert id1 is not None, f"创建学习计划1失败, resp={resp1}"
+
+        resp2 = self.study_plan.create_study_plan(self.authorization, name=base_name + "_2", units=[], **common)
+        assert isinstance(resp2, dict) and 'data' in resp2
+        id2 = resp2['data'].get('id')
+        assert id2 is not None, f"创建学习计划2失败, resp={resp2}"
+
+        yield id1, id2
+
+        # cleanup
+        d1 = self.study_plan.delete_study_plan(self.authorization, id1)
+        d2 = self.study_plan.delete_study_plan(self.authorization, id2)
+        assert isinstance(d1, dict) and 'code' in d1
+        assert isinstance(d2, dict) and 'code' in d2
 
     @pytest.mark.parametrize(
         'desc, value',
@@ -456,3 +483,60 @@ class TestStudyPlanApi:
         assert res['code'] == 100105, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'Kid id not exist', f"接口返回message信息异常: 预期【Kid id not exist】，实际【{res['message']}】"
         assert res['data'] == 'Kid id not exist', f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_study_plan_move_down_then_up_detaile(self, two_study_plans):
+        plan1_id, plan2_id = two_study_plans
+
+        # 记录操作时间窗口，用于校验 dbModifyTime
+        before_op_ts = int(time() * 1000)
+
+        # 1) 对第二条执行下移：应返回该记录的 id、priority（int 且 >=0）、dbModifyTime（>= before_op_ts）
+        down_resp = self.study_plan.move_priority_down(self.authorization, plan2_id)
+        assert isinstance(down_resp, dict), f"move_priority_down 返回类型异常: {type(down_resp)}"
+        assert 'data' in down_resp, f"move_priority_down 应包含 data: {down_resp}"
+        down_data = down_resp['data']
+
+        # 基本字段校验
+        assert down_data.get('id') is not None, f"返回缺少 id: {down_data}"
+        assert str(down_data.get('id')) == str(
+            plan2_id), f"返回 id 应与请求 id 匹配: expect {plan2_id}, got {down_data.get('id')}"
+        assert isinstance(down_data.get('priority'), int), f"priority 类型应为 int: {down_data}"
+        assert down_data.get('priority') >= 0, f"priority 不应为负数: {down_data}"
+        assert isinstance(down_data.get('dbModifyTime'), int), f"dbModifyTime 类型应为 int: {down_data}"
+        assert down_data.get(
+            'dbModifyTime') >= before_op_ts, f"dbModifyTime ({down_data.get('dbModifyTime')}) 应在操作时间之后 ({before_op_ts})"
+
+        priority_after_down = down_data['priority']
+
+        # 2) 再对第二条执行上移：返回字段校验，并且 priority 应小于下移后的值（优先级回升）
+        before_up_ts = int(time() * 1000)
+        up_resp = self.study_plan.move_priority_up(self.authorization, plan2_id)
+        assert isinstance(up_resp, dict), f"move_priority_up 返回类型异常: {type(up_resp)}"
+        assert 'data' in up_resp, f"move_priority_up 应包含 data: {up_resp}"
+        up_data = up_resp['data']
+
+        assert up_data.get('id') is not None, f"返回缺少 id: {up_data}"
+        assert str(up_data.get('id')) == str(
+            plan2_id), f"返回 id 应与请求 id 匹配: expect {plan2_id}, got {up_data.get('id')}"
+        assert isinstance(up_data.get('priority'), int), f"priority 类型应为 int: {up_data}"
+        assert isinstance(up_data.get('dbModifyTime'), int), f"dbModifyTime 类型应为 int: {up_data}"
+        assert up_data.get(
+            'dbModifyTime') >= before_up_ts, f"dbModifyTime ({up_data.get('dbModifyTime')}) 应在上移操作时间之后 ({before_up_ts})"
+
+        priority_after_up = up_data['priority']
+
+        # 核心数值关系断言：上移后应比下移后优先（数值更小）
+        assert priority_after_up < priority_after_down, (
+            f"上移后 priority ({priority_after_up}) 应小于下移后 ({priority_after_down})"
+        )
+
+        # 额外一致性断言：检查 plan1 在两个操作后仍然存在且未被误改（调用详情接口验证名称/id）
+        detail1 = self.study_plan.get_study_plan_detail(self.authorization, plan1_id)
+        assert isinstance(detail1, dict) and 'data' in detail1, f"getStudyPlanDetail 返回异常: {detail1}"
+        detail1_data = detail1['data']
+        assert detail1_data.get('id') == plan1_id or str(detail1_data.get('id')) == str(plan1_id)
+        assert detail1_data.get('name').startswith("autotest_studyplan_"), "plan1 名称异常或被修改"
+
+        # 最后保证两个操作都有返回有效的 dbModifyTime 且它们不相等（表明确实有两次写操作）
+        assert up_data['dbModifyTime'] != down_data['dbModifyTime'], "上移/下移的 dbModifyTime 不应相同"

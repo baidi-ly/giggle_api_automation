@@ -198,3 +198,66 @@ class AdminQuizApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def create_question(self, authorization, courseId, questionType, questionDescription,
+                              skill, difficulty, questionContent, index=0, status=1, DeviceType="web"):
+        '''添加题目'''
+        url = f"https://{base_url}/admin/quiz/question/create"
+        payload = {
+            "courseId": courseId,
+            "questionType": questionType,
+            "questionDescription": questionDescription,
+            "skill": skill,
+            "difficulty": difficulty,
+            "questionContent": questionContent,
+            "index": index,
+            "status": status
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "添加题目"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        return response.json()
+
+    def delete_question(self, authorization, questionId, DeviceType="web"):
+        """
+        删除题目
+        """
+        url = f"https://{base_url}/admin/quiz/question/{questionId}/delete"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("DELETE", url, headers=headers)
+        error_msg = "删除题目"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        return response.json()
+
+    def generate_tts(self, authorization, question_ids, DeviceType="web"):
+        """
+        批量生成题目TTS：POST /quiz/question/tts/generate
+        body: {"questionIds": [1,2,3]}
+        """
+        url = f"https://{base_url}/admin/quiz/question/tts/generate"
+        payload = {"questionIds": question_ids}
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "批量生成题目TTS"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        return response.json()
+
+    def get_tts_status(self, authorization, DeviceType="web"):
+        """
+        获取TTS队列状态：GET /quiz/question/tts/status
+        返回示例 data: { "queueSize": 3 }
+        """
+        url = f"https://{base_url}/admin/quiz/question/tts/status"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "获取TTS队列状态"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        return response.json()

@@ -1125,7 +1125,7 @@ class TestBook:
         # 保存故事书的多语言翻译
         title = 'dibo_test_title' + self.now
         description = 'dibo_test_description' + self.now
-        title_original = '''Lily's socks always mysteriously disappear, leading her on a humorous journey to find them. She suspects everything from a sock-eating monster to a clanging dryer, only to ultimately discover that the surprising culprit is her own teddy bear.'''
+        title_description = '''Lily's socks always mysteriously disappear, leading her on a humorous journey to find them. She suspects everything from a sock-eating monster to a clanging dryer, only to ultimately discover that the surprising culprit is her own teddy bear.'''
         res1 = self.book.saveBookMultilingual(self.authorization, self.book_id, title, description=description)
         assert res1['data'] == '保存成功'
         # 查询故事书的所有多语言翻译
@@ -1138,7 +1138,7 @@ class TestBook:
         else:
             assert False
         # 还原故事书的多语言翻译
-        res1 = self.book.saveBookMultilingual(self.authorization, self.book_id, self.book_name,  description=title_original)
+        self.book.saveBookMultilingual(self.authorization, self.book_id, self.book_name,  description=title_description)
 
     @pytest.mark.release
     @pytest.mark.parametrize('k', ['bn', 'my', 'zh', 'zh-Hant', 'en', 'fr', 'de', 'hi', 'id', 'ja', 'pt', 'ru', 'es', 'tr', 'vi', 'ar', 'nl', 'fil', 'it', 'ko', 'ms', 'pl', 'pt-BR', 'ro', 'sw', 'th', 'uk', 'ur'])
@@ -1152,6 +1152,7 @@ class TestBook:
     @pytest.mark.release
     def test_book_voicePack_upload_and_addProcessTask(self):
         '''保存故事书的多语言翻译后，添加语言包处理任务到队列'''
+        # 获取Lily and the Little Sprout的信息
         book_name = 'Lily and the Little Sprout'
         bookList = self.book.book_list(self.authorization)['data']['content']
         for book in bookList:
@@ -1160,11 +1161,17 @@ class TestBook:
                 break
         else:
             assert False, "未找到故事书《Lily and the Little Sprout》"
+        # 保存故事书的多语言翻译
+        description = '''Lily's socks always mysteriously disappear, leading her on a humorous journey to find them. She suspects everything from a sock-eating monster to a clanging dryer, only to ultimately discover that the surprising culprit is her own teddy bear.'''
+        res1 = self.book.saveBookMultilingual(self.authorization, book_id, book_name, description=description)
+        assert res1['data'] == '保存成功'
         # 上传首页故事书音频
         file = {
             'file': ('story_language.mp3', open(os.getcwd() + f'/test_data/story_language.mp3', 'rb'))
         }
         # 上传并保存故事书语言包
-        res = self.book.uploadVoicePack(self.authorization, book_id, languageCode, file=file)
-        # 还原故事书的多语言翻译
-        res1 = self.book.addProcesstaskVoicePack(self.authorization, self.book_id, self.book_name,  description=title_original)
+        res2 = self.book.uploadVoicePack(self.authorization, book_id, 'en', file=file)
+        s3Key = res2['data']['s3Key']
+        # 添加语言包处理任务到队列
+        res3 = self.book.addProcesstaskVoicePack(self.authorization, book_id, 'en')
+        assert res3['data']['message'] == '任务已添加到队列'

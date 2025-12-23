@@ -63,3 +63,28 @@ class AdminUserApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def deleteByDeviceId(self, authorization, deviceId, dryRun=True, DeviceType="web", code=200, **kwargs):
+        """
+        根据设备ID删除所有关联的用户及其kids
+        :param deviceId: (string, query, required) 设备ID
+        :param dryRun: (boolean, query, optional) 是否只预览不执行删除
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-23
+        url = f"https://{base_url}/admin/user/delete-by-device-id"
+        payload = {
+            "deviceId": deviceId,
+            "dryRun": dryRun
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "根据设备ID删除所有关联的用户及其kids"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+

@@ -2101,7 +2101,7 @@ class BookApi(BaseAPI):
         response = response.json()
         return response
 
-    def addProcesstaskVoicePack(self, authorization, bookId=0, languageCode='', DeviceType="web"):
+    def addProcesstaskVoicePack(self, authorization, bookId, languageCode, DeviceType="web"):
         """
         添加语言包处理任务到队列
         :param bookId: (integer, query, required) bookId

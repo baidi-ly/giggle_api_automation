@@ -452,3 +452,16 @@ class TestAdminUser:
             assert res['code'] == 401, f"接口返回状态码异常: 预期【401】，实际【{res['code']}】"
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.release
+    def test_admin_user_positive_deleteByDeviceId_ok(self):
+        """根据设备ID删除所有关联的用户及其kids-正向用例"""
+        # 根据设备ID查看所有关联的用户及其kids
+        deviceId = 'c9fcf06cff99a44258cdf95b42603fa3'
+        res = self.admin_user.deleteByDeviceId(self.authorization, deviceId)
+        assert res['message'] == 'success'
+        assert res['data']['deviceId'] == deviceId
+        if res['data']['kidsCount']:
+            # 根据设备ID删除所有关联的用户及其kids
+            res1 = self.admin_user.deleteByDeviceId(self.authorization, deviceId, False)
+            assert res1['data']['message'] == 'Successfully deleted 1 users and 1 kids'

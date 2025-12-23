@@ -863,3 +863,12 @@ class TestUser:
         init_res1 = self.user.existingKidLevelInit(self.authorization, kid_id)
         assert init_res1['data']['learningLevel'] == 'L1'
         assert init_res1['data']['updated'] == False
+
+    @pytest.mark.release
+    def test_user_positive_create_ok(self):
+        """创建游客账户-正向用例"""
+        res = self.user.create(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
