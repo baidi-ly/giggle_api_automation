@@ -16,7 +16,7 @@ class AdminCurriculumApi(BaseAPI):
         :param req: (object, body, required) req
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-12-23
+        # Create Data:  V1.23.0  &  2025-12-23
         url = f"https://{base_url}/admin/curriculum/path/create"
         payload = {
             "pathName": "pathName",
@@ -42,7 +42,7 @@ class AdminCurriculumApi(BaseAPI):
 
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-12-23
+        # Create Data:  V1.23.0  &  2025-12-23
         url = f"https://{base_url}/admin/curriculum/path/list"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -62,7 +62,7 @@ class AdminCurriculumApi(BaseAPI):
         :param req: (object, body, required) req
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-12-23
+        # Create Data:  V1.23.0  &  2025-12-23
         url = f"https://{base_url}/admin/curriculum/path/update"
         payload = {
             "id": 0,
@@ -89,7 +89,7 @@ class AdminCurriculumApi(BaseAPI):
         :param id: (integer, path, required) 路径ID
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-12-23
+        # Create Data:  V1.23.0  &  2025-12-23
         url = f"https://{base_url}/admin/curriculum/path/{id}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -109,7 +109,7 @@ class AdminCurriculumApi(BaseAPI):
         :param req: (object, body, required) req
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-12-23
+        # Create Data:  V1.23.0  &  2025-12-23
         url = f"https://{base_url}/admin/curriculum/level/create"
         payload = {
             "pathId": pathId,
@@ -134,7 +134,7 @@ class AdminCurriculumApi(BaseAPI):
         :param pathId: (integer, query, required) 路径ID
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-12-23
+        # Create Data:  V1.23.0  &  2025-12-23
         url = f"https://{base_url}/admin/curriculum/level/list"
         payload = {
             "pathId": pathId
@@ -157,7 +157,7 @@ class AdminCurriculumApi(BaseAPI):
         :param req: (object, body, required) req
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-12-23
+        # Create Data:  V1.23.0  &  2025-12-23
         url = f"https://{base_url}/admin/curriculum/level/update"
         payload = {
             "id": level_id,
@@ -181,7 +181,7 @@ class AdminCurriculumApi(BaseAPI):
         :param id: (integer, path, required) 等级ID
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-12-23
+        # Create Data:  V1.23.0  &  2025-12-23
         url = f"https://{base_url}/admin/curriculum/level/{id}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -192,14 +192,13 @@ class AdminCurriculumApi(BaseAPI):
         response = response.json()
         return response
 
-
-    def level_details(self, authorization, levelId=0, DeviceType="web", code=200, **kwargs):
+    def level_details(self, authorization, levelId=0, DeviceType="web", code=200):
         """
         删除课程等级
         :param id: (integer, path, required) 等级ID
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-12-23
+        # Create Data:  V1.23.0  &  2025-12-23
         url = f"https://{base_url}/api/curriculum/levels/{levelId}/contents"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -213,18 +212,35 @@ class AdminCurriculumApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def create_curriculum_unit(self, authorization, req='', DeviceType="web", **kwargs):
+    def create_curriculum_unit(self, authorization, levelId, unitNum=1, unitName='Unit 1', PhonicsContent='',
+                               VocabularyContent='', GrammarContent='', status=1, DeviceType="web"):
         """
         创建课程单元
         :param req: (object, body, required) req
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-12-23
+        # Create Data:  V1.23.0  &  2025-12-23
         url = f"https://{base_url}/admin/curriculum/unit/create"
         payload = {
-            "req": req
+            "levelId": levelId,
+            "unitNum": unitNum,
+            "unitName": unitName,
+            "unitGoals": [
+                {
+                    "goalTitle": "Phonics",
+                    "goalContent": PhonicsContent
+                },
+                {
+                    "goalTitle": "Vocabulary",
+                    "goalContent": VocabularyContent
+                },
+                {
+                    "goalTitle": "Grammar",
+                    "goalContent": GrammarContent
+                }
+            ],
+            "status": status
         }
-        payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
@@ -234,13 +250,13 @@ class AdminCurriculumApi(BaseAPI):
         response = response.json()
         return response
 
-    def curriculum_unit_list(self, authorization, levelId=0, DeviceType="web"):
+    def curriculum_unit_list(self, authorization, levelId, DeviceType="web"):
         """
         获取等级下Unit列表
         :param levelId: (integer, query, required) 等级ID
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-12-23
+        # Create Data:  V1.23.0  &  2025-12-23
         url = f"https://{base_url}/admin/curriculum/unit/list"
         payload = {
             "levelId": levelId
@@ -254,18 +270,35 @@ class AdminCurriculumApi(BaseAPI):
         response = response.json()
         return response
 
-    def update_curriculum_unit(self, authorization, req='', DeviceType="web", **kwargs):
+    def update_curriculum_unit(self, authorization, unitId, unitNum=1, unitName='Unit 1', PhonicsContent='',
+                               VocabularyContent='', GrammarContent='', status=1, DeviceType="web"):
         """
         更新课程单元
         :param req: (object, body, required) req
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-12-23
+        # Create Data:  V1.23.0  &  2025-12-23
         url = f"https://{base_url}/admin/curriculum/unit/update"
         payload = {
-            "req": req
+            "id": unitId,
+            "unitNum": unitNum,
+            "unitName": unitName,
+            "unitGoals": [
+                {
+                    "goalTitle": "Phonics",
+                    "goalContent": PhonicsContent
+                },
+                {
+                    "goalTitle": "Vocabulary",
+                    "goalContent": VocabularyContent
+                },
+                {
+                    "goalTitle": "Grammar",
+                    "goalContent": GrammarContent
+                }
+            ],
+            "status": status
         }
-        payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
@@ -275,14 +308,14 @@ class AdminCurriculumApi(BaseAPI):
         response = response.json()
         return response
 
-    def delete_curriculum_unit(self, authorization, id=0, DeviceType="web"):
+    def delete_curriculum_unit(self, authorization, unitId, DeviceType="web"):
         """
         删除课程单元
         :param id: (integer, path, required) 单元ID
         :return: 接口原始返回（已 json 解析）
         """
-        # Create Data:  V1.19.0  &  2025-12-23
-        url = f"https://{base_url}/admin/curriculum/unit/{id}"
+        # Create Data:  V1.23.0  &  2025-12-23
+        url = f"https://{base_url}/admin/curriculum/unit/{unitId}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 

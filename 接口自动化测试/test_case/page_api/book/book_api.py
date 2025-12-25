@@ -2344,3 +2344,94 @@ class BookApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def search_book(self, authorization, DeviceType="web", **kwargs):
+        """
+        app端根据书名/作者名/标签搜索书籍
+        :param key: (string, query, optional) key
+        :param levels: (string, query, optional) levels
+        :param official: (integer, query, optional) official
+        :param page: (integer, query, optional) 页码
+        :param selected: (integer, query, optional) selected
+        :param size: (integer, query, optional) 每页数量
+        :param tags: (array, query, optional) tags
+        :param type: (string, query, required) PUBLIC, FAVORITE, MINE
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-24
+        url = f"https://{base_url}/api/book/search"
+        payload = {
+            "key": '',
+            "levels": '',
+            "selected": 1,
+            "official": 1,
+            "page": 0,
+            "size": 20,
+            "tags": '',
+            "type": 'PUBLIC'
+        }
+        payload.update(kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "根据书名/作者名/标签搜索书籍"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def userFavoriteItems(self, authorization, DeviceType="web"):
+        """
+        获取当前用户的所有收藏记录(仅id)
+
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-24
+        url = f"https://{base_url}/api/book/favoriteItems"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "获取当前用户的所有收藏记录(仅id)"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def favorite(self, authorization, bookId, DeviceType="web"):
+        """
+        添加收藏
+        :param bookId: (integer, query, required) bookId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-24
+        url = f"https://{base_url}/api/book/favorite"
+        payload = {
+            "bookId": bookId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "添加收藏"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def deleteFavorite(self, authorization, bookId, DeviceType="web"):
+        """
+        移除收藏
+        :param bookId: (integer, query, required) bookId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-24
+        url = f"https://{base_url}/api/book/favorite"
+        payload = {
+            "bookId": bookId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("DELETE", url, headers=headers, params=payload)
+        error_msg = "移除收藏"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response

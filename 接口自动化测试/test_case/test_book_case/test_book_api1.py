@@ -1207,13 +1207,16 @@ class TestBook:
         if flag:
             pined_ids1.remove(seriesId)
             assert pined_ids1 == pined_ids
+            # 更新故事书系列pin状态
+            res2 = self.book.pinSeries(self.authorization, seriesId, age, isPinned=False)
+            assert res2['data'] == '系列pin状态更新成功'
         else:
             pined_ids.remove(seriesId)
             pined_ids1.remove(seriesId)
             assert pined_ids1 == pined_ids
         # 在app中检查系列推荐情况
         series_res = self.book.series_list(self.authorization)
-        assert series_res['data']['content']
+        series_res = series_res['data']['content']
         series_ids1 = DataFrame(series_res)['id'].tolist() if pinnedSeries_res else []
         assert series_ids0 == series_ids1
 
@@ -1262,4 +1265,191 @@ class TestBook:
         series_ids1 = DataFrame(series_res)['id'].tolist() if pinnedSeries_res else []
         assert series_ids0 == series_ids1
 
+    @pytest.mark.release
+    @pytest.mark.parametrize('auth', [True, False])
+    def test_book_search_type_public(self, auth):
+        '''系列下pin故事书默认第一位'''
+        '''
+        校验点	说明
+        用户登录	PUBLIC 场景无需登录
+        中国IP	强制 official=1, selected=1
+        书籍状态	只返回 status=1 (PUBLIC) 的书籍
+        向量搜索	有 key/levels/tags 时触发
+        ID查询	≥15位纯数字视为书籍ID，需验证状态
+        official/selected	控制官方/精选过滤
+        levels	只接受 A/B/C/D/E
+        '''
+        # app端根据书名/作者名/标签搜索书籍
+        authorization = self.authorization if auth else ''
+        book_res = self.book.search_book(authorization)
+        for book in book_res['data']['content']:
+            assert book['status'] == 1
 
+    @pytest.mark.release
+    def test_book_search_type_FAVORITE(self):
+        '''系列下pin故事书默认第一位'''
+        '''
+        校验点	说明
+        用户登录	PUBLIC 场景无需登录
+        中国IP	强制 official=1, selected=1
+        书籍状态	只返回 status=1 (PUBLIC) 的书籍
+        向量搜索	有 key/levels/tags 时触发
+        ID查询	≥15位纯数字视为书籍ID，需验证状态
+        official/selected	控制官方/精选过滤
+        levels	只接受 A/B/C/D/E
+        '''
+        # app端根据书名/作者名/标签搜索书籍
+        res = self.book.userFavoriteItems(self.authorization)['data']['content']
+        favorite_book_ids = DataFrame(res)['id'].tolist() if res else []
+        books_res = self.book.search_book(self.authorization, type='FAVORITE')
+        # 校验：每本返回的书籍都在收藏列表中
+        for book in books_res:
+            assert book["id"] in favorite_book_ids, \
+                f"书籍 {book['id']} 不在用户收藏列表中"
+
+    def test_book_search_type_FAVORITE_in():
+        """收藏一本书后，应能在FAVORITE搜索中查到"""
+        headers = {"Authorization": f"Bearer {user_token}"}
+        book_id = "已知的PUBLIC书籍ID"
+
+        # 1. 添加收藏
+        res = self.book.favorite(self.authorization)['data']['content']
+        # 2. 搜索FAVORITE
+        books_res = self.book.search_book(self.authorization, type='FAVORITE')
+        # 3. 校验
+        assert book_id in book_ids, "刚收藏的书籍应出现在FAVORITE搜索结果中"
+
+        # 4. 清理：取消收藏
+        res = self.book.deleteFavorite(self.authorization)['data']['content']
+        # 2. 搜索FAVORITE
+        books_res = self.book.search_book(self.authorization, type='FAVORITE')
+        # 3. 校验
+        assert book_id in book_ids, "刚收藏的书籍应出现在FAVORITE搜索结果中"
+
+    def test_book_search_type_FAVORITE_isolation():
+        """用户只能看到自己的收藏，看不到其他用户的"""
+        # 用户A收藏一本书
+        headers_a = {"Authorization": f"Bearer {user_a_token}"}
+        book_id = "测试书籍ID"
+        requests.post("/api/book/favorite", params={"bookId": book_id}, headers=headers_a)
+
+        # 用户B搜索FAVORITE
+        headers_b = {"Authorization": f"Bearer {user_b_token}"}
+        response = requests.get(
+            "/api/book/search",
+            params={"type": "FAVORITE", "page": 0, "size": 50},
+            headers=headers_b
+        )
+        books = response.json()["data"]["content"]
+        book_ids = [b["id"] for b in books]
+
+        # 校验：用户B看不到用户A收藏的书（除非B也收藏了）
+        # 需要确保用户B没有收藏这本书
+        assert book_id not in book_ids, "用户不应看到其他用户的收藏"
+
+    @pytest.mark.release
+    def test_book_search_type_MINE(self):
+        '''系列下pin故事书默认第一位'''
+        # app端根据书名/作者名/标签搜索书籍
+        book_res = self.book.search_book(self.authorization)
+        for book in book_res['data']['content']:
+            assert book["status"] == 1
+            assert book["official"] == 1 or book["selected"] == 1
+
+    def test_mine_books_belong_to_current_user():
+        """MINE返回的所有书籍的userId必须是当前用户"""
+        headers = {"Authorization": f"Bearer {user_token}"}
+        current_user_id = get_current_user_id(user_token)  # 从token解析或调接口获取
+
+        response = requests.get(
+            "/api/book/search",
+            params={"type": "MINE", "page": 0, "size": 50},
+            headers=headers
+        )
+        books = response.json()["data"]["content"]
+
+        for book in books:
+            assert book["userId"] == str(current_user_id), \
+                f"书籍 {book['id']} 的userId={book['userId']}，期望={current_user_id}"
+
+    def test_mine_returns_all_status():
+        """MINE可以返回任意状态的书籍"""
+        headers = {"Authorization": f"Bearer {user_token}"}
+
+        response = requests.get(
+            "/api/book/search",
+            params={"type": "MINE", "page": 0, "size": 100},
+            headers=headers
+        )
+        books = response.json()["data"]["content"]
+
+        # 统计各状态书籍数量
+        status_mapping = {
+            0: "PRIVATE",
+            1: "PUBLIC",
+            2: "WAITING_VERIFY",
+            3: "REFUSED",
+            4: "DELETED",
+            5: "MERGED"
+        }
+        status_counts = {}
+        for book in books:
+            status = book["status"]
+            status_name = status_mapping.get(status, f"UNKNOWN({status})")
+            status_counts[status_name] = status_counts.get(status_name, 0) + 1
+
+        print(f"MINE返回的书籍状态分布: {status_counts}")
+        # 可能: {"PRIVATE": 5, "PUBLIC": 3, "WAITING_VERIFY": 2, "REFUSED": 1}
+
+        # 校验：每本书的userId都是当前用户
+        current_user_id = get_current_user_id(user_token)
+        for book in books:
+            assert book["userId"] == str(current_user_id)
+
+    def test_mine_user_isolation():
+        """用户只能看到自己创建的书籍，看不到其他用户的"""
+        # 用户A创建一本书
+        headers_a = {"Authorization": f"Bearer {user_a_token}"}
+        create_response = requests.post(
+            "/api/book/create",
+            json={"bookName": "Test Book", ...},
+            headers=headers_a
+        )
+        book_id = create_response.json()["data"]["id"]
+
+        # 用户B搜索MINE
+        headers_b = {"Authorization": f"Bearer {user_b_token}"}
+        response = requests.get(
+            "/api/book/search",
+            params={"type": "MINE", "page": 0, "size": 100},
+            headers=headers_b
+        )
+        books = response.json()["data"]["content"]
+        book_ids = [b["id"] for b in books]
+
+        # 校验：用户B看不到用户A创建的书
+        assert book_id not in book_ids, "用户不应看到其他用户创建的书籍"
+
+    def test_level_filter():
+        """等级筛选应返回对应lexileScore范围的书籍"""
+        level_ranges = {
+            "A": (0, 200),
+            "B": (201, 400),
+            "C": (401, 600),
+            "D": (601, 800),
+            "E": (801, float('inf'))
+        }
+
+        for level, (min_score, max_score) in level_ranges.items():
+            response = requests.get(
+                "/api/book/search",
+                params={"type": "PUBLIC", "levels": level, "page": 0, "size": 20}
+            )
+            books = response.json()["data"]["content"]
+
+            for book in books:
+                assert book["status"] == 1
+                score = book.get("lexileScore")
+                if score is not None:
+                    assert min_score <= score <= max_score, \
+                        f"书籍 {book['id']} lexileScore={score} 不在等级{level}范围内"

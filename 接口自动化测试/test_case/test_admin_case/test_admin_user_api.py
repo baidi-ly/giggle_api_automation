@@ -465,3 +465,9 @@ class TestAdminUser:
             # 根据设备ID删除所有关联的用户及其kids
             res1 = self.admin_user.deleteByDeviceId(self.authorization, deviceId, False)
             assert res1['data']['message'] == 'Successfully deleted 1 users and 1 kids'
+
+    def test_admin_user_positive_trigger_email(self):
+        """手动触发非活跃用户通知-正向用例"""
+        # 手动触发非活跃用户通知
+        res = self.admin_user.trigger_email(self.authorization)
+        assert res['data'] == '时区 +08:00 非活跃用户通知已触发'
