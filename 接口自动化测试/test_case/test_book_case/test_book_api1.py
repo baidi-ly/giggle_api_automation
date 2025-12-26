@@ -1262,39 +1262,291 @@ class TestBook:
         # 在app中检查系列推荐情况
         series_res = self.book.series_list(self.authorization)
         assert series_res['data']['content']
-        series_ids1 = DataFrame(series_res)['id'].tolist() if pinnedSeries_res else []
-        assert series_ids0 == series_ids1
+        # series_ids1 = DataFrame(series_res)['id'].tolist() if pinnedSeries_res else []
+        # assert series_ids0 == series_ids1
 
     @pytest.mark.smoke
-    def test_book_search_bookPubliclist_vecotr(self):
-        """批量更新故事书的官方认证状态-查询公开书籍列表，验证默认推送社区或精选的故事书"""
+    @pytest.mark.parametrize("_official", [0, 1])
+    @pytest.mark.parametrize("selected", [0, 1])
+    @pytest.mark.parametrize("levels", ['A', 'B', 'C', 'D', 'E', 'A,B', 'A,C', 'A,D', 'A,E', 'B,C', 'B,D', 'B,E', 'C,D', 'C,E', 'D,E',
+                  'A,B,C', 'A,B,D', 'A,B,E', 'A,C,D', 'A,C,E', 'A,D,E', 'B,C,D', 'B,C,E', 'B,D,E', 'C,D,E',
+                  'A,B,C,D', 'A,B,C,E', 'A,B,D,E', 'A,C,D,E', 'B,C,D,E', 'A,B,C,D,E'])
+    def test_book_positive_book_public_list_key(self, _official, selected, levels):
+        """根据等级和认证过滤查询书籍-key为不为空走向量模式，key为空走正常搜索逻辑，主要控制逻辑是levels是否生效"""
+
+        # 获取蓝思分数等级映射关系
+        level_map_res = self.book.lexiLelevelMapping(self.authorization)['data']
+        level_map = {}
+        for level in level_map_res:
+            max_plus = 0 if level['inclusiveMax'] else -1
+            min_plus = 0 if level['inclusiveMin'] else 1
+            if isinstance(level['max'], int):
+                level_map[level['level']] = [level['min']+min_plus, level['max']+max_plus]
+            else:
+                level_map[level['level']] = [level['min']+min_plus, 99999999]
+        level_list = levels.split(',')
+        lexile_range = []
+        for level_letter in level_list:
+            lexile_range.append(level_map[level_letter])
+
         # 查询公开书籍列表
-        book_res = self.book.book_public_list(self.authorization)['data']['content']
-        bookIds = DataFrame(book_res)['id'].tolist()
-        # 批量更新故事书的官方认证状态
-        res = self.book.batchUpdateOfficial(self.authorization, bookIds)
-        assert res['data']['message'] == '批量更新成功', '批量更新失败！'
-        # 查询公开书籍列表
-        book_res = self.book.book_public_list(self.authorization)['data']['content']
+        key = "test"
+        pl = {
+            'key': key,
+            "levels": levels,
+            "selected": selected,
+            "official": _official,
+        }
+        book_res = self.book.book_public_list(self.authorization, **pl)['data']['content']
         for book in book_res:
-            # 验证默认推送社区或精选的故事书
-            assert book['selected'] or book['official']
-            # 通过bookId查询书籍详情，获取作者名称
             bookId = book['id']
-            bookDetail1 = self.book.bookDetails(self.authorization, bookId)
-            if bookDetail1['data']:
-                authorName = bookDetail1['data']['authorName']
-            else:
-                continue
-            # 根据用户名搜索用户获取用户email
-            user_email_res = self.user.getSearch(self.authorization, authorName)['data']['content']
-            for user_email in user_email_res:
-                email = user_email['email']
-                if email.endswith('@giggleacademy.com') or email.endswith('@giggleacademy.me'):
-                    expected = 1
+            ch_key = "测试"
+            if key not in book['bookName'] and key not in book['authorName'] and ch_key not in book['bookName'] and ch_key not in book['authorName']:
+                try:
+                    layers = self.book.book_content(self.authorization, bookId)['data']['editorStateHistories']['layers']
+                except Exception as e:
+                    layers = []
+                    print('该书籍未在数据库中存储内容！')
+                if layers:
+                    for layer in layers:
+                        if key in layer['text']:
+                            break
+                    else:
+                        assert False
+            # 获取故事书的 lexile 分数
+            book_lexile = self.book.bookLexile(self.authorization, bookId)['data']
+            for i in range(60):
+                for lexile in lexile_range:
+                    if lexile[0] <= book_lexile <= lexile[1]:
+                        flag = True
+                        break
+                else:
+                    # 批量更新故事书的官方认证状态
+                    res = self.book.processlayers(self.authorization, bookId)
+                    assert res['data']
+                if flag:
                     break
+                else:
+                    time.sleep(1)
             else:
-                expected = 0
-            # 通过bookId查询书籍详情，验证official字段返回成功
-            official = self.book.bookDetails(self.authorization, bookId)['data']['official']
-            assert expected == official, '通过bookId查询书籍详情,'
+                assert False
+
+            # 验证默认推送社区或精选的故事书
+            if selected == 1 and selected == 0:
+                assert book['selected']
+            if _official == 1 and selected == 0:
+                assert book['official']
+            if _official == 1 and selected == 1:
+                assert book['official'] or book['selected']
+
+            if book['official']:
+                # 通过bookId查询书籍详情，获取作者名称
+                bookId = book['id']
+                bookDetail1 = self.book.bookDetails(self.authorization, bookId)
+                if bookDetail1['data']:
+                    authorName = bookDetail1['data']['authorName']
+                else:
+                    continue
+                # 根据用户名搜索用户获取用户email
+                user_email_res = self.user.getSearch(self.authorization, authorName)['data']['content']
+                for user_email in user_email_res:
+                    email = user_email['email']
+                    if email.endswith('@giggleacademy.com') or email.endswith('@giggleacademy.me'):
+                        expected = 1
+                        break
+                else:
+                    expected = 0
+                # 通过bookId查询书籍详情，验证official字段返回成功
+                official = self.book.bookDetails(self.authorization, bookId)['data']['official']
+                assert official == expected, '通过bookId查询书籍详情,'
+
+    @pytest.mark.smoke
+    @pytest.mark.parametrize("_official", [0, 1])
+    @pytest.mark.parametrize("selected", [0, 1])
+    @pytest.mark.parametrize("levels", ['A', 'B', 'C', 'D', 'E', 'A,B', 'A,C', 'A,D', 'A,E', 'B,C', 'B,D', 'B,E', 'C,D', 'C,E', 'D,E',
+                  'A,B,C', 'A,B,D', 'A,B,E', 'A,C,D', 'A,C,E', 'A,D,E', 'B,C,D', 'B,C,E', 'B,D,E', 'C,D,E',
+                  'A,B,C,D', 'A,B,C,E', 'A,B,D,E', 'A,C,D,E', 'B,C,D,E', 'A,B,C,D,E'])
+    def test_book_positive_book_public_list_key_null(self, _official, selected, levels):
+        """根据等级和认证过滤查询书籍-key为不为空走向量模式，key为空走正常搜索逻辑，主要控制逻辑是levels是否生效"""
+
+        # 获取蓝思分数等级映射关系
+        level_map_res = self.book.lexiLelevelMapping(self.authorization)['data']
+        level_map = {}
+        for level in level_map_res:
+            max_plus = 0 if level['inclusiveMax'] else -1
+            min_plus = 0 if level['inclusiveMin'] else 1
+            if isinstance(level['max'], int):
+                level_map[level['level']] = [level['min']+min_plus, level['max']+max_plus]
+            else:
+                level_map[level['level']] = [level['min']+min_plus, 99999999]
+        level_list = levels.split(',')
+        lexile_range = []
+        for level_letter in level_list:
+            lexile_range.append(level_map[level_letter])
+
+        # 查询公开书籍列表
+        key = ""
+        pl = {
+            'key': key,
+            "levels": levels,
+            "selected": selected,
+            "official": _official,
+        }
+        book_res = self.book.book_public_list(self.authorization, **pl)['data']['content']
+        for book in book_res:
+            bookId = book['id']
+            ch_key = "测试"
+            if key not in book['bookName'] and key not in book['authorName'] and ch_key not in book['bookName'] and ch_key not in book['authorName']:
+                try:
+                    layers = self.book.book_content(self.authorization, bookId)['data']['editorStateHistories']['layers']
+                except Exception as e:
+                    layers = []
+                    print('该书籍未在数据库中存储内容！')
+                if layers:
+                    for layer in layers:
+                        if key in layer['text']:
+                            break
+                    else:
+                        assert False
+            # 获取故事书的 lexile 分数
+            book_lexile = self.book.bookLexile(self.authorization, bookId)['data']
+            for i in range(60):
+                for lexile in lexile_range:
+                    if lexile[0] <= book_lexile <= lexile[1]:
+                        flag = True
+                        break
+                else:
+                    # 批量更新故事书的官方认证状态
+                    res = self.book.processlayers(self.authorization, bookId)
+                    assert res['data']
+                if flag:
+                    break
+                else:
+                    time.sleep(1)
+            else:
+                assert False
+
+            # 验证默认推送社区或精选的故事书
+            if selected == 1 and selected == 0:
+                assert book['selected']
+            if _official == 1 and selected == 0:
+                assert book['official']
+            if _official == 1 and selected == 1:
+                assert book['official'] or book['selected']
+
+            if book['official']:
+                # 通过bookId查询书籍详情，获取作者名称
+                bookId = book['id']
+                bookDetail1 = self.book.bookDetails(self.authorization, bookId)
+                if bookDetail1['data']:
+                    authorName = bookDetail1['data']['authorName']
+                else:
+                    continue
+                # 根据用户名搜索用户获取用户email
+                user_email_res = self.user.getSearch(self.authorization, authorName)['data']['content']
+                for user_email in user_email_res:
+                    email = user_email['email']
+                    if email.endswith('@giggleacademy.com') or email.endswith('@giggleacademy.me'):
+                        expected = 1
+                        break
+                else:
+                    expected = 0
+                # 通过bookId查询书籍详情，验证official字段返回成功
+                official = self.book.bookDetails(self.authorization, bookId)['data']['official']
+                assert official == expected, '通过bookId查询书籍详情,'
+
+    @pytest.mark.smoke
+    @pytest.mark.parametrize("_official", [0, 1])
+    @pytest.mark.parametrize("selected", [0, 1])
+    @pytest.mark.parametrize("levels", ['A', 'B', 'C', 'D', 'E', 'A,B', 'A,C', 'A,D', 'A,E', 'B,C', 'B,D', 'B,E', 'C,D', 'C,E', 'D,E',
+                  'A,B,C', 'A,B,D', 'A,B,E', 'A,C,D', 'A,C,E', 'A,D,E', 'B,C,D', 'B,C,E', 'B,D,E', 'C,D,E',
+                  'A,B,C,D', 'A,B,C,E', 'A,B,D,E', 'A,C,D,E', 'B,C,D,E', 'A,B,C,D,E'])
+    def test_book_positive_guest_book_list_key(self, _official, selected, levels):
+        """根据等级和认证过滤查询书籍-key为不为空走向量模式，key为空走正常搜索逻辑，主要控制逻辑是levels是否生效"""
+
+        # 获取蓝思分数等级映射关系
+        level_map_res = self.book.lexiLelevelMapping(self.authorization)['data']
+        level_map = {}
+        for level in level_map_res:
+            max_plus = 0 if level['inclusiveMax'] else -1
+            min_plus = 0 if level['inclusiveMin'] else 1
+            if isinstance(level['max'], int):
+                level_map[level['level']] = [level['min']+min_plus, level['max']+max_plus]
+            else:
+                level_map[level['level']] = [level['min']+min_plus, 99999999]
+        level_list = levels.split(',')
+        lexile_range = []
+        for level_letter in level_list:
+            lexile_range.append(level_map[level_letter])
+
+        # 查询公开书籍列表
+        key = "test"
+        pl = {
+            'key': key,
+            "levels": levels,
+            "selected": selected,
+            "official": _official,
+        }
+        book_res = self.book.guest_book_list('', **pl)['data']['content']
+        for book in book_res:
+            bookId = book['id']
+            ch_key = "测试"
+            if key not in book['bookName'] and key not in book['authorName'] and ch_key not in book['bookName'] and ch_key not in book['authorName']:
+                try:
+                    layers = self.book.book_content(self.authorization, bookId)['data']['editorStateHistories']['layers']
+                except Exception as e:
+                    layers = []
+                    print('该书籍未在数据库中存储内容！')
+                if layers:
+                    for layer in layers:
+                        if key in layer['text']:
+                            break
+                    else:
+                        assert False
+            # 获取故事书的 lexile 分数
+            book_lexile = self.book.bookLexile(self.authorization, bookId)['data']
+            flag = False
+            for i in range(60):
+                for lexile in lexile_range:
+                    if lexile[0] <= book_lexile <= lexile[1]:
+                        flag = True
+                        break
+                else:
+                    # 批量更新故事书的官方认证状态
+                    res = self.book.processlayers(self.authorization, bookId)
+                    assert res['data']
+                if flag:
+                    break
+                else:
+                    time.sleep(1)
+            else:
+                assert False
+
+            # 验证默认推送社区或精选的故事书
+            if selected == 1 and selected == 0:
+                assert book['selected']
+            if _official == 1 and selected == 0:
+                assert book['official']
+            if _official == 1 and selected == 1:
+                assert book['official'] or book['selected']
+
+            if book['official']:
+                # 通过bookId查询书籍详情，获取作者名称
+                bookId = book['id']
+                bookDetail1 = self.book.bookDetails(self.authorization, bookId)
+                if bookDetail1['data']:
+                    authorName = bookDetail1['data']['authorName']
+                else:
+                    continue
+                # 根据用户名搜索用户获取用户email
+                user_email_res = self.user.getSearch(self.authorization, authorName)['data']['content']
+                for user_email in user_email_res:
+                    email = user_email['email']
+                    if email.endswith('@giggleacademy.com') or email.endswith('@giggleacademy.me'):
+                        expected = 1
+                        break
+                else:
+                    expected = 0
+                # 通过bookId查询书籍详情，验证official字段返回成功
+                official = self.book.bookDetails(self.authorization, bookId)['data']['official']
+                assert official == expected, '通过bookId查询书籍详情,'

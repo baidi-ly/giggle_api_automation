@@ -1758,9 +1758,9 @@ class BookApi(BaseAPI):
             # "key": '',
             # "language": '',
             "maxAge": 10000,
-            # "minAge": 0,
+            "minAge": 0,
             "page": 0,
-            # "size": 10000,
+            "size": 100000,
             # "translateLanguage": '',
         }
         payload.update(kwargs)
@@ -2435,3 +2435,44 @@ class BookApi(BaseAPI):
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
+
+    def book_content(self, authorization, bookId, DeviceType="web"):
+        """
+        查询故事书的content
+        :param bookId: (integer, path, required) 故事书ID
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-25
+        url = f"https://{base_url}/api/book/{bookId}/content"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "查询故事书的content"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def processlayers(self, authorization, bookIds, DeviceType="web", code=200, **kwargs):
+        """
+        processBookLayers
+        :param bookIds: (string, query, required) bookIds
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-25
+        url = f"https://{base_url}/api/book/processLayers"
+        payload = {
+            "bookIds": bookIds
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "processBookLayers"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
