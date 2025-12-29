@@ -453,7 +453,7 @@ class TestAdminUser:
             assert res['message'] == 'unauthorized', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
             assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.skip(reason="慎用")
     def test_admin_user_positive_deleteByDeviceId_ok(self):
         """根据设备ID删除所有关联的用户及其kids-正向用例"""
         # 根据设备ID查看所有关联的用户及其kids
