@@ -83,20 +83,19 @@ class TestStudyPlanApi:
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
         assert res['data'], f"接口返回data数据异常：{res['data']}"
 
-
     @pytest.fixture(scope='function')
     def two_study_plans(self):
         """创建两条学习计划用于优先级上下验证，测试结束删除"""
         base_name = "autotest_studyplan_" + self.now
         common = dict(imageKey="qa-uploads/test-image-key", category="autotest", ageGroup="4-6", goal="自动化测试目标")
 
-        resp1 = self.study_plan.create_study_plan(self.authorization, name=base_name + "_1", units=[], **common)
+        resp1 = self.admin_study.create_study_plan(self.authorization, name=base_name + "_1", units=[], **common)
         assert isinstance(resp1, dict), f"create_study_plan 返回类型异常: {type(resp1)}"
         assert 'data' in resp1, f"create_study_plan 返回没有 data: {resp1}"
         id1 = resp1['data'].get('id')
         assert id1 is not None, f"创建学习计划1失败, resp={resp1}"
 
-        resp2 = self.study_plan.create_study_plan(self.authorization, name=base_name + "_2", units=[], **common)
+        resp2 = self.admin_study.create_study_plan(self.authorization, name=base_name + "_2", units=[], **common)
         assert isinstance(resp2, dict) and 'data' in resp2
         id2 = resp2['data'].get('id')
         assert id2 is not None, f"创建学习计划2失败, resp={resp2}"

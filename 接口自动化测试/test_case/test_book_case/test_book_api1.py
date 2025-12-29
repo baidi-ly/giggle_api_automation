@@ -1186,6 +1186,7 @@ class TestBook:
         # 按年龄查询系列列表
         seriesList = self.book.seriesByAge(self.authorization, age=age)['data']['content']
         series_ids0 = DataFrame(pinnedSeries_res)['id'].tolist() if pinnedSeries_res else []
+        flag = False
         for series in seriesList:
             assert series['ageMax'] >= age and series['ageMin'] <= age
             seriesId = series['id']
@@ -1234,6 +1235,7 @@ class TestBook:
         pinnedBooks_res = self.book.getPinnedbooks(self.authorization, seriesId)['data']
         pined_ids = DataFrame(pinnedBooks_res)['id'].tolist() if pinnedBooks_res else []
         # 根据系列ID查询故事书列表
+        flag = False
         book_res = self.book.getBooksBySeriesId(self.authorization, seriesId)['data']['content']
         for book in book_res:
             if int(book['id']) not in pined_ids:
