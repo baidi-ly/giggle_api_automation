@@ -1215,11 +1215,24 @@ class TestBook:
             pined_ids.remove(seriesId)
             pined_ids1.remove(seriesId)
             assert pined_ids1 == pined_ids
-        # 在app中检查系列推荐情况
-        series_res = self.book.series_list(self.authorization)
-        series_res = series_res['data']['content']
-        series_ids1 = DataFrame(series_res)['id'].tolist() if pinnedSeries_res else []
-        assert series_ids0 == series_ids1
+
+        # 创建测试学生
+        kid_name = 'dibo_test_kid' + time.strftime("%Y%m%d%H%M%S")
+        import datetime
+        # 获取当前日期和时间
+        now = datetime.datetime.now()
+        current_year = int(now.year)
+        yearOfBirth = current_year - age
+        kid_id = self.user.createkid(self.authorization, kid_name, yearOfBirth=yearOfBirth)['data']['id']
+        try:
+            # 在app中检查系列推荐情况
+            series_res = self.book.series_list(self.authorization, kidId=kid_id)
+            series_res = series_res['data']['content']
+            series_ids1 = DataFrame(series_res)['id'].tolist()[:len(series_ids0)] if pinnedSeries_res else []
+            assert series_ids0 == series_ids1
+        finally:
+            self.user.deletekid(self.authorization, kid_id)
+
 
     @pytest.mark.release
     def test_book_pined_stroy_order(self):
@@ -1264,8 +1277,8 @@ class TestBook:
         # 在app中检查系列推荐情况
         series_res = self.book.series_list(self.authorization)
         assert series_res['data']['content']
-        # series_ids1 = DataFrame(series_res)['id'].tolist() if pinnedSeries_res else []
-        # assert series_ids0 == series_ids1
+        series_ids1 = DataFrame(series_res)['id'].tolist() if pinnedSeries_res else []
+        assert series_ids0 == series_ids1
 
     @pytest.mark.smoke
     @pytest.mark.parametrize("_official", [0, 1])

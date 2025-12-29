@@ -81,11 +81,12 @@ class BookApi(BaseAPI):
         # Update Details:  1. 新增参数: `includeBookCover`, `bookCoverSize`
         url = f"https://{base_url}/api/book/series"
         payload = {
+            "kidId": '',
             "includeBookCover": False,
             "includeBookCount": False,
             "bookCoverSize": 3,
             "page": 0,
-            "size": 10,
+            "size": 100,
             "total": False,
             "translateLanguage": "",
             "visibleOnly": True
