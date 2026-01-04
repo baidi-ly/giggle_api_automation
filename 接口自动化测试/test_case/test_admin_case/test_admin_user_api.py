@@ -457,7 +457,7 @@ class TestAdminUser:
     def test_admin_user_positive_deleteByDeviceId_ok(self):
         """根据设备ID删除所有关联的用户及其kids-正向用例"""
         # 根据设备ID查看所有关联的用户及其kids
-        deviceId = 'c9fcf06cff99a44258cdf95b42603fa3'
+        deviceId = 'c7f94717431a66fd6ae4aaad9b08db96'
         res = self.admin_user.deleteByDeviceId(self.authorization, deviceId)
         assert res['message'] == 'success'
         assert res['data']['deviceId'] == deviceId
