@@ -188,3 +188,38 @@ class AdminStudyplanApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def move_priority_down(self, authorization, studyPlanId, DeviceType="web"):
+        """
+        下移学习计划优先级
+        :param studyPlanId: (integer, path, required) studyPlanId
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.23.0  &  2026-01-04
+        url = f"https://{base_url}/admin/study-plan/{studyPlanId}/priority/down"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("PUT", url, headers=headers)
+        error_msg = "下移学习计划优先级"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def move_priority_up(self, authorization, studyPlanId, DeviceType="web"):
+        """
+        上移学习计划优先级
+        :param studyPlanId: (integer, path, required) studyPlanId
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.23.0  &  2026-01-04
+        url = f"https://{base_url}/admin/study-plan/{studyPlanId}/priority/up"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("PUT", url, headers=headers)
+        error_msg = "上移学习计划优先级"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response

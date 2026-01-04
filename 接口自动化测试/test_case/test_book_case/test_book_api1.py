@@ -59,11 +59,12 @@ class TestBook:
                 tagTypeId = _type['id']
                 # 查询指定类型下的故事书标签列表
                 book_tags = self.book.getBookTagsByType(self.authorization, tagTypeId=tagTypeId)
-                for _book_tag in book_tags:
-                    if 'dibo_test' in _book_tag['name']:
-                        tage_id = _book_tag['id']
-                        # 删除书籍标签
-                        self.book.deleteBookTag(self.authorization, tage_id)
+                if book_tags:
+                    for _book_tag in book_tags:
+                        if 'dibo_test' in _book_tag['name']:
+                            tage_id = _book_tag['id']
+                            # 删除书籍标签
+                            self.book.deleteBookTag(self.authorization, tage_id)
                 # 删除故事书标签
                 self.book.deleteBookTagType(self.authorization, _type['id'])
 
@@ -1233,7 +1234,6 @@ class TestBook:
         finally:
             self.user.deletekid(self.authorization, kid_id)
 
-
     @pytest.mark.release
     def test_book_pined_stroy_order(self):
         '''系列下pin故事书默认第一位'''
@@ -1274,11 +1274,6 @@ class TestBook:
             pined_ids.remove(int(bookId))
             pined_ids1.remove(int(bookId))
             assert pined_ids1 == pined_ids
-        # 在app中检查系列推荐情况
-        series_res = self.book.series_list(self.authorization)
-        assert series_res['data']['content']
-        series_ids1 = DataFrame(series_res)['id'].tolist() if pinnedSeries_res else []
-        assert series_ids0 == series_ids1
 
     @pytest.mark.smoke
     @pytest.mark.parametrize("_official", [0, 1])

@@ -23,13 +23,28 @@ class TestAdminCurriculum:
 
         self.now = strftime("%Y%m%d%H%M%S")
 
+    def teardown_class(self):
+
+        # 更新课程路径后，查询路径列表，验证更新成功
+        list_res3 = self.admin_curriculum.curriculum_path_list(self.admin_auth)['data']
+        for item in list_res3:
+            if item['pathName'].startswith('dibo_test'):
+                path_id = item['id']
+                # 删除课程路径
+                delete_res = self.admin_curriculum.delete_curriculum_path(self.admin_auth, path_id)
+                assert delete_res['message'] == 'success'
+
     @pytest.fixture(scope="class")
     def create_curriculum_path_fixtures(self):
         '''创建课程路径'''
         # 创建课程路径
         pathName = 'dibo_test_curriculum_path' + self.now
         create_res = self.admin_curriculum.create_curriculum_path(self.admin_auth, pathName=pathName)
-        path_id = create_res['data']['id']
+        if create_res['code'] == 100186:
+            create_res = self.admin_curriculum.create_curriculum_path(self.admin_auth, pathName=pathName, regionPolicy="KR")
+            path_id = create_res['data']['id']
+        else:
+            path_id = create_res['data']['id']
 
         yield path_id
 
@@ -59,14 +74,17 @@ class TestAdminCurriculum:
         delete_res = self.admin_curriculum.delete_curriculum_level(self.admin_auth, level_id)
         assert delete_res['message'] == 'success'
 
-
     @pytest.mark.release
     def test_admin_curriculum_positive_create_curriculum_path(self):
         """课程路径 - 增删改查校验"""
         # 创建课程路径
         pathName = 'dibo_test_curriculum_path' + self.now
         create_res = self.admin_curriculum.create_curriculum_path(self.admin_auth, pathName=pathName)
-        path_id = create_res['data']['id']
+        if create_res['code'] == 100186:
+            create_res = self.admin_curriculum.create_curriculum_path(self.admin_auth, pathName=pathName, regionPolicy="KR")
+            path_id = create_res['data']['id']
+        else:
+            path_id = create_res['data']['id']
         # 创建课程路径后，查询路径列表，验证新增成功
         list_res2 = self.admin_curriculum.curriculum_path_list(self.admin_auth)['data']
         path_ids = DataFrame(list_res2)['id'].tolist()
@@ -76,20 +94,20 @@ class TestAdminCurriculum:
         pl = {
             "id": path_id,
             "pathName": pathNameNew,
-            "regionPolicy": "JP",
+            "regionPolicy": "TW",
             "status": 0
         }
         update_res = self.admin_curriculum.update_curriculum_path(self.admin_auth, **pl)
         assert update_res['data']['id'] == path_id
         assert update_res['data']['pathName'] == pathNameNew
-        assert update_res['data']['regionPolicy'] == "JP"
+        assert update_res['data']['regionPolicy'] == "TW"
         assert update_res['data']['status'] == 0
         # 更新课程路径后，查询路径列表，验证更新成功
         list_res3 = self.admin_curriculum.curriculum_path_list(self.admin_auth)['data']
         for item in list_res3:
             if item['id'] == path_id:
                 assert item['pathName'] == pathNameNew
-                assert item['regionPolicy'] == "JP"
+                assert item['regionPolicy'] == "TW"
                 assert item['status'] == 0
                 break
         else:

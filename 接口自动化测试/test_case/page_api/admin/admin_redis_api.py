@@ -94,7 +94,7 @@ class AdminRedisApi(BaseAPI):
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
-        response = requests.request("POST", url, headers=headers, json=payload)
+        response = requests.request("POST", url, headers=headers, params=payload)
         error_msg = "设置灰度配置百分比"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()

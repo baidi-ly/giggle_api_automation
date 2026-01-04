@@ -1,5 +1,6 @@
 from datetime import time
 from time import strftime
+import time
 
 import pytest
 
@@ -86,16 +87,42 @@ class TestStudyPlanApi:
     @pytest.fixture(scope='function')
     def two_study_plans(self):
         """创建两条学习计划用于优先级上下验证，测试结束删除"""
-        base_name = "autotest_studyplan_" + self.now
-        common = dict(imageKey="qa-uploads/test-image-key", category="autotest", ageGroup="4-6", goal="自动化测试目标")
-
-        resp1 = self.admin_study.create_study_plan(self.authorization, name=base_name + "_1", units=[], **common)
+        # 创建学习计划
+        study_plan_name = 'dibo_test_study_plan' + self.now
+        contents = [
+            {
+                "contentId": self.contentId,
+                "contentType": "flash_card",
+                "difficulty": "easy",
+                "name": study_plan_name,
+                "sortOrder": 1,
+                "wordCount": 20,
+                "contentConfig": {
+                    "words": ["apple", "banana", "cat", "dog"]
+                }
+            }
+        ]
+        resp1 = self.admin_study.study_plan_create(self.authorization, contents)
         assert isinstance(resp1, dict), f"create_study_plan 返回类型异常: {type(resp1)}"
         assert 'data' in resp1, f"create_study_plan 返回没有 data: {resp1}"
         id1 = resp1['data'].get('id')
         assert id1 is not None, f"创建学习计划1失败, resp={resp1}"
 
-        resp2 = self.admin_study.create_study_plan(self.authorization, name=base_name + "_2", units=[], **common)
+        study_plan_name = 'dibo_test_study_plan1' + self.now
+        contents = [
+            {
+                "contentId": self.contentId,
+                "contentType": "flash_card",
+                "difficulty": "easy",
+                "name": study_plan_name,
+                "sortOrder": 1,
+                "wordCount": 20,
+                "contentConfig": {
+                    "words": ["apple", "banana", "cat", "dog"]
+                }
+            }
+        ]
+        resp2 = self.admin_study.study_plan_create(self.authorization, contents)
         assert isinstance(resp2, dict) and 'data' in resp2
         id2 = resp2['data'].get('id')
         assert id2 is not None, f"创建学习计划2失败, resp={resp2}"
@@ -103,8 +130,8 @@ class TestStudyPlanApi:
         yield id1, id2
 
         # cleanup
-        d1 = self.study_plan.delete_study_plan(self.authorization, id1)
-        d2 = self.study_plan.delete_study_plan(self.authorization, id2)
+        d1 = self.admin_study.delete_studyPlan(self.authorization, id1)
+        d2 = self.admin_study.delete_studyPlan(self.authorization, id2)
         assert isinstance(d1, dict) and 'code' in d1
         assert isinstance(d2, dict) and 'code' in d2
 
@@ -485,13 +512,14 @@ class TestStudyPlanApi:
 
     @pytest.mark.release
     def test_study_plan_move_down_then_up_detaile(self, two_study_plans):
+        # 创建两条学习计划用于优先级上下验证
         plan1_id, plan2_id = two_study_plans
 
         # 记录操作时间窗口，用于校验 dbModifyTime
-        before_op_ts = int(time() * 1000)
+        before_op_ts = int(time.time() * 1000)
 
         # 1) 对第二条执行下移：应返回该记录的 id、priority（int 且 >=0）、dbModifyTime（>= before_op_ts）
-        down_resp = self.study_plan.move_priority_down(self.authorization, plan2_id)
+        down_resp = self.admin_study.move_priority_down(self.authorization, plan2_id)
         assert isinstance(down_resp, dict), f"move_priority_down 返回类型异常: {type(down_resp)}"
         assert 'data' in down_resp, f"move_priority_down 应包含 data: {down_resp}"
         down_data = down_resp['data']
@@ -509,8 +537,8 @@ class TestStudyPlanApi:
         priority_after_down = down_data['priority']
 
         # 2) 再对第二条执行上移：返回字段校验，并且 priority 应小于下移后的值（优先级回升）
-        before_up_ts = int(time() * 1000)
-        up_resp = self.study_plan.move_priority_up(self.authorization, plan2_id)
+        before_up_ts = int(time.time() * 1000)
+        up_resp = self.admin_study.move_priority_up(self.authorization, plan2_id)
         assert isinstance(up_resp, dict), f"move_priority_up 返回类型异常: {type(up_resp)}"
         assert 'data' in up_resp, f"move_priority_up 应包含 data: {up_resp}"
         up_data = up_resp['data']
@@ -531,11 +559,11 @@ class TestStudyPlanApi:
         )
 
         # 额外一致性断言：检查 plan1 在两个操作后仍然存在且未被误改（调用详情接口验证名称/id）
-        detail1 = self.study_plan.get_study_plan_detail(self.authorization, plan1_id)
+        detail1 = self.study_plan.studyPlan_details(self.authorization, plan1_id)
         assert isinstance(detail1, dict) and 'data' in detail1, f"getStudyPlanDetail 返回异常: {detail1}"
         detail1_data = detail1['data']
         assert detail1_data.get('id') == plan1_id or str(detail1_data.get('id')) == str(plan1_id)
-        assert detail1_data.get('name').startswith("autotest_studyplan_"), "plan1 名称异常或被修改"
+        assert detail1_data.get('name') == '基础词汇学习计划', "plan1 名称异常或被修改"
 
         # 最后保证两个操作都有返回有效的 dbModifyTime 且它们不相等（表明确实有两次写操作）
         assert up_data['dbModifyTime'] != down_data['dbModifyTime'], "上移/下移的 dbModifyTime 不应相同"
