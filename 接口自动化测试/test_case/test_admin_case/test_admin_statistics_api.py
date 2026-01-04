@@ -21,7 +21,7 @@ class TestAdminStatistics:
 
         self.now = strftime("%Y%m%d%H%M%S")
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_statistics_positive_getGuestRetention_ok(self):
         """获取游客留存统计数据-正向用例"""
         res = self.admin_statistics.getGuestRetention(self.auth_admin)

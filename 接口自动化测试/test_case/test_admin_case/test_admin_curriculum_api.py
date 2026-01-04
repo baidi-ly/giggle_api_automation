@@ -74,7 +74,7 @@ class TestAdminCurriculum:
         delete_res = self.admin_curriculum.delete_curriculum_level(self.admin_auth, level_id)
         assert delete_res['message'] == 'success'
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_curriculum_positive_create_curriculum_path(self):
         """课程路径 - 增删改查校验"""
         # 创建课程路径
@@ -121,7 +121,7 @@ class TestAdminCurriculum:
             path_ids = DataFrame(list_res4)['id'].tolist()
             assert path_id not in path_ids
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_curriculum_positive_curriculum_level(self, create_curriculum_path_fixtures):
         """课程等级 - 增删改查校验"""
 
@@ -171,7 +171,7 @@ class TestAdminCurriculum:
             level_ids = DataFrame(list_res4)['id'].tolist()
             assert level_id not in level_ids
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_curriculum_positive_curriculum_unit(self, create_curriculum_level_fixtures):
         """课程单元 - 增删改查校验"""
 

@@ -1481,7 +1481,7 @@ class TestAdminCourse:
         translatedText = search_df[search_df["key"] == "Greeting"]["translatedText"].iloc[0]
         assert translatedText == 'مرحباً، لنبدأ التعلم!'
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('course, _level, matchType', [(True, False, None),
                                                            (False, True, 'LEVEL_STRATEGY'),
                                                            (True, True, 'LEVEL_STRATEGY')])
@@ -1527,7 +1527,7 @@ class TestAdminCourse:
         if add_flag:
             self.admin_course.deleteStrategylevelRule(self.authorization, level_rule_id)
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('course, _level, matchType', [(True, False, 'COURSE_RULE'),
                                                            (False, True, None),
                                                            (True, True, 'COURSE_RULE')])
@@ -1562,7 +1562,7 @@ class TestAdminCourse:
             assert delete_res['message'] == 'success'
 
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('course, _level, matchType', [(True, False, 'COURSE_RULE'),
                                                            (False, True, 'LEVEL_STRATEGY'),
                                                            (True, True, 'COURSE_RULE')])

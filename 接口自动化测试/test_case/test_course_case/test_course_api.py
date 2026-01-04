@@ -1214,7 +1214,7 @@ class TestCourse:
         # 验证课程语音文案添加成功
         assert item1 == item2, "课程语音文案添加失败！"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_game_positive_fetchQuestions_result_check(self, kid_data_session, get_course_ids_session):
         '''课程抽题改为根据课程id从题库中抽''' # todo
         kid_id, kid_name = kid_data_session

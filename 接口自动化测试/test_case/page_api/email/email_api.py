@@ -11,11 +11,10 @@ AUTH_KEY = RunConfig.AUTH_KEY
 
 class EmailApi(BaseAPI):
 
-    def triggerEmail(self, authorization, bookId, languageCode, DeviceType="web"):
-        url = f"{self.base}/admin/inactive-user/trigger-email"
+    def triggerEmail(self, authorization, timezone, DeviceType="web"):
+        url = f"https://{base_url}/admin/inactive-user/trigger-email"
         payload = {
-            "bookId": bookId,
-            "languageCode": languageCode
+            "timezone": timezone
         }
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
@@ -27,7 +26,7 @@ class EmailApi(BaseAPI):
         return response
 
     def queryEmailPushList(self, authorization, page=0, pageSize=20, DeviceType="web"):
-        url = f"{self.base}/admin/email/queryEmailPushList"
+        url = f"https://{base_url}/admin/email/queryEmailPushList"
         payload = {
             "page": page,
             "pageSize": pageSize
@@ -42,7 +41,7 @@ class EmailApi(BaseAPI):
         return response
 
     def getEmailContent(self, authorization, emailId, DeviceType="web"):
-        url = f"{self.base}/admin/email/getEmailContent/{emailId}"
+        url = f"https://{base_url}/admin/email/getEmailContent/{emailId}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
@@ -53,7 +52,7 @@ class EmailApi(BaseAPI):
         return response
 
     def queryUnsubscribeEmails(self, authorization, page=0, pageSize=20, DeviceType="web"):
-        url = f"{self.base}/admin/email/queryUnsubscribeEmails"
+        url = f"https://{base_url}/admin/email/queryUnsubscribeEmails"
         payload = {
             "page": page,
             "pageSize": pageSize

@@ -864,7 +864,7 @@ class TestUser:
         assert init_res1['data']['learningLevel'] == 'L1'
         assert init_res1['data']['updated'] == False
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_user_positive_creategGuestUser_ok(self):
         """创建游客账户-正向用例"""
         # 创建游客账户

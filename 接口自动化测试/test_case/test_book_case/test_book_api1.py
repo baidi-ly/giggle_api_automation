@@ -59,7 +59,7 @@ class TestBook:
                 if 'dibo_test' in _type['name']:
                     tagTypeId = _type['id']
                     # 查询指定类型下的故事书标签列表
-                    book_tags = self.book.getBookTagsByType(self.authorization, tagTypeId=tagTypeId)
+                    book_tags = self.book.getBookTagsByType(self.authorization, tagTypeId=tagTypeId)['data']['content']
                     if book_tags:
                         for _book_tag in book_tags:
                             if 'dibo_test' in _book_tag['name']:
@@ -1121,7 +1121,7 @@ class TestBook:
         res = self.book.book_upload(self.authorization, self.book_id, file)
         assert res['data']['bookKey'], f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_book_positive_multilingual_saveAndGET(self):
         '''保存故事书的多语言翻译'''
         # 保存故事书的多语言翻译
@@ -1142,7 +1142,7 @@ class TestBook:
         # 还原故事书的多语言翻译
         self.book.saveBookMultilingual(self.authorization, self.book_id, self.book_name,  description=title_description)
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('k', ['bn', 'my', 'zh', 'zh-Hant', 'en', 'fr', 'de', 'hi', 'id', 'ja', 'pt', 'ru', 'es', 'tr', 'vi', 'ar', 'nl', 'fil', 'it', 'ko', 'ms', 'pl', 'pt-BR', 'ro', 'sw', 'th', 'uk', 'ur'])
     def test_book_positive_multilingual_getBookMultilingual(self, k):
         '''查询故事书的所有多语言翻译'''
@@ -1151,7 +1151,7 @@ class TestBook:
         assert res['data']['translations'][k]['title']
         assert res['data']['translations'][k]['description']
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_book_voicePack_upload_and_addProcessTask(self):
         '''保存故事书的多语言翻译后，添加语言包处理任务到队列'''
         # 获取Lily and the Little Sprout的信息
@@ -1178,7 +1178,7 @@ class TestBook:
         res3 = self.book.addProcesstaskVoicePack(self.authorization, book_id, 'en')
         assert res3['data']['message'] == '任务已添加到队列'
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     @pytest.mark.parametrize('age', [0,1,2,3,4,5,6,7,8,9,10])
     def test_book_series_pined_by_age(self, age):
         '''故事书排序优化，每个年龄段有自己的系列推荐，相互之间不干扰'''
@@ -1235,7 +1235,7 @@ class TestBook:
         finally:
             self.user.deletekid(self.authorization, kid_id)
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_book_pined_stroy_order(self):
         '''系列下pin故事书默认第一位'''
         for i in range(12):

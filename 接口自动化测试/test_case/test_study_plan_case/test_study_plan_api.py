@@ -510,7 +510,7 @@ class TestStudyPlanApi:
         assert res['message'] == 'Kid id not exist', f"接口返回message信息异常: 预期【Kid id not exist】，实际【{res['message']}】"
         assert res['data'] == 'Kid id not exist', f"接口返回data数据异常：{res['data']}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_study_plan_move_down_then_up_detaile(self, two_study_plans):
         # 创建两条学习计划用于优先级上下验证
         plan1_id, plan2_id = two_study_plans

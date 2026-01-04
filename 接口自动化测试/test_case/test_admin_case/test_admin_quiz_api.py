@@ -54,7 +54,7 @@ class TestAdminQuiz:
         del_resp = self.admin_quiz.delete_question(self.authorization, question_id)
         assert isinstance(del_resp, dict), f"delete_question 返回类型异常: {type(del_resp)}"
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_quiz_generate_tts_and_check_status(self, create_question):
         """场景：创建题目 -> 提交到TTS队列 -> 检查队列状态"""
         question_id = create_question

@@ -22,7 +22,7 @@ class TestAdminRedis:
 
         self.now = strftime("%Y%m%d%H%M%S")
 
-    @pytest.mark.release
+    @pytest.mark.smoke
     def test_admin_redis_positive_setUserGrayscale_ok(self):
         """获取Redis Hash的所有数据"""
         # 设置灰度配置百分比
