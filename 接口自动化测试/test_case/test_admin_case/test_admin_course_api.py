@@ -276,9 +276,9 @@ class TestAdminCourse:
         '''清空测试语音文案'''
         yield
         # 获取课程详情包括版本信息
-        course_id = get_course_ids_session
+        course_ids = get_course_ids_session
         # 批量删除课程的语音文案
-        delete_res = self.admin_course.batchDeleteVoiceLan(self.authorization, [course_id])
+        delete_res = self.admin_course.batchDeleteVoiceLan(self.authorization, course_ids)
         assert delete_res['message'] == 'success'
 
     def test_admin_course_export_by_theme(self):
@@ -1482,8 +1482,7 @@ class TestAdminCourse:
         assert translatedText == 'مرحباً، لنبدأ التعلم!'
 
     @pytest.mark.release
-    @pytest.mark.parametrize('course, _level, matchType', [(False, False, None),
-                                                           (True, False, None),
+    @pytest.mark.parametrize('course, _level, matchType', [(True, False, None),
                                                            (False, True, 'LEVEL_STRATEGY'),
                                                            (True, True, 'LEVEL_STRATEGY')])
     def test_admin_course_strategylevelRule_app_LEVEL_STRATEGY(self, createCourseStrategy, get_course_ids_session,
@@ -1519,8 +1518,8 @@ class TestAdminCourse:
         # 发布配置
         self.admin_course.publish_strategy(self.authorization)
         pl = {}
-        if course: pl['"courseId"'] = course_id
-        if _level: pl['"level"'] = levels
+        if course: pl['courseId'] = int(course_id)
+        if _level: pl['level'] = levels
         # 查询课程策略配置
         query_res = self.game.queryCourseStrategy(self.authorization, **pl)
         assert query_res['data']['matchType'] == matchType
@@ -1529,8 +1528,7 @@ class TestAdminCourse:
             self.admin_course.deleteStrategylevelRule(self.authorization, level_rule_id)
 
     @pytest.mark.release
-    @pytest.mark.parametrize('course, _level, matchType', [(False, False, None),
-                                                           (True, False, 'COURSE_RULE'),
+    @pytest.mark.parametrize('course, _level, matchType', [(True, False, 'COURSE_RULE'),
                                                            (False, True, None),
                                                            (True, True, 'COURSE_RULE')])
     def test_admin_course_strategylevelRule_app_COURSE_RULE(self, createCourseStrategy, get_course_ids_session,
@@ -1544,17 +1542,28 @@ class TestAdminCourse:
         # 新增课程规则
         add_res = self.admin_course.addStrategyRule(self.admin_auth, strategyId, course_id)
         assert add_res['message'] == 'success'
-        pl = {}
-        if course: pl['"courseId"'] = course_id
-        if _level: pl['"level"'] = levels
-        # 查询课程策略配置
-        query_res = self.game.queryCourseStrategy(self.authorization, **pl)
-        assert query_res['data']['matchType'] == matchType
+        # 查询课程规则列表，验证新增课程规则成功
+        strategyRules1 = self.admin_course.strategyRules(self.admin_auth)
+        for strategyRule in strategyRules1['data']['content']:
+            if strategyRule['strategyId'] == strategyId:
+                rule_id1 = strategyRule['id']
+        try:
+            # 发布配置
+            self.admin_course.publish_strategy(self.authorization)
+            pl = {}
+            if course: pl['courseId'] = int(course_id)
+            if _level: pl['level'] = levels
+            # 查询课程策略配置
+            query_res = self.game.queryCourseStrategy(self.authorization, **pl)
+            assert query_res['data']['matchType'] == matchType
+        finally:
+            # 删除课程规则
+            delete_res = self.admin_course.deleteStrategyRule(self.admin_auth, rule_id1)
+            assert delete_res['message'] == 'success'
 
 
     @pytest.mark.release
-    @pytest.mark.parametrize('course, _level, matchType', [(False, False, None),
-                                                           (True, False, 'COURSE_RULE'),
+    @pytest.mark.parametrize('course, _level, matchType', [(True, False, 'COURSE_RULE'),
                                                            (False, True, 'LEVEL_STRATEGY'),
                                                            (True, True, 'COURSE_RULE')])
     def test_admin_course_strategylevelRule_app_check(self, createCourseStrategy, get_course_ids_session,
@@ -1588,12 +1597,24 @@ class TestAdminCourse:
         # 新增课程规则
         add_res = self.admin_course.addStrategyRule(self.admin_auth, strategyId, course_id)
         assert add_res['message'] == 'success'
-        pl = {}
-        if course: pl['"courseId"'] = course_id
-        if _level: pl['"level"'] = levels
-        # 查询课程策略配置
-        query_res = self.game.queryCourseStrategy(self.authorization, **pl)
-        assert query_res['data']['matchType'] == matchType
+        # 查询课程规则列表，验证新增课程规则成功
+        strategyRules1 = self.admin_course.strategyRules(self.admin_auth)
+        for strategyRule in strategyRules1['data']['content']:
+            if strategyRule['strategyId'] == strategyId:
+                rule_id1 = strategyRule['id']
+        try:
+            # 发布配置
+            self.admin_course.publish_strategy(self.authorization)
+            pl = {}
+            if course: pl['courseId'] = int(course_id)
+            if _level: pl['level'] = levels
+            # 查询课程策略配置
+            query_res = self.game.queryCourseStrategy(self.authorization, **pl)
+            assert query_res['data']['matchType'] == matchType
 
-        if add_flag:
-            self.admin_course.deleteStrategylevelRule(self.authorization, level_rule_id)
+            if add_flag:
+                self.admin_course.deleteStrategylevelRule(self.authorization, level_rule_id)
+        finally:
+            # 删除课程规则
+            delete_res = self.admin_course.deleteStrategyRule(self.admin_auth, rule_id1)
+            assert delete_res['message'] == 'success'

@@ -191,19 +191,17 @@ class TestAdminCurriculum:
         PhonicsContentNew = "dibo_test_PhonicsContent" + self.now
         VocabularyContentNew = "dibo_test_VocabularyContent" + self.now
         GrammarContentNew = "dibo_test_GrammarContent" + self.now
-        update_res = self.admin_curriculum.update_curriculum_unit(self.admin_auth, level_id, PhonicsContent=PhonicsContentNew,
+        update_res = self.admin_curriculum.update_curriculum_unit(self.admin_auth, unit_id, PhonicsContent=PhonicsContentNew,
                                                                   VocabularyContent=VocabularyContentNew, GrammarContent=GrammarContentNew)
         assert update_res['data']['id'] == unit_id
-        assert update_res['data']['levelName'] == "Level 1"
-        assert update_res['data']['goalTitle'] == goalTitleNew
-        assert update_res['data']['goalContent'] == ""
+        assert update_res['data']['unitName'] == 'Unit 1'
+        assert GrammarContentNew in update_res['data']['unitGoals']
         # 更新课程单元后，查询路径列表，验证更新成功
         list_res3 = self.admin_curriculum.curriculum_unit_list(self.admin_auth, level_id)['data']
         for item in list_res3:
             if item['id'] == unit_id:
-                assert item['goalTitle'] == goalTitleNew
-                assert item['levelName'] == "Level 1"
-                assert item['goalContent'] == ""
+                assert item['unitName'] == 'Unit 1'
+                assert GrammarContentNew in item['unitGoals']
                 break
         else:
             assert False

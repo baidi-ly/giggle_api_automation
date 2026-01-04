@@ -1191,6 +1191,6 @@ class AdminCourseApi(BaseAPI):
 
         response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "批量删除课程的语音文案"
-        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        # assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response

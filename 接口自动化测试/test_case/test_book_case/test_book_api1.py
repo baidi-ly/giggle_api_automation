@@ -54,19 +54,20 @@ class TestBook:
         '''全局数据清理'''
         # 查询故事书标签类型列表
         BookTagTypes = self.book.bookTagTypeList(self.authorization)['data']['content']
-        for _type in BookTagTypes:
-            if 'dibo_test' in _type['name']:
-                tagTypeId = _type['id']
-                # 查询指定类型下的故事书标签列表
-                book_tags = self.book.getBookTagsByType(self.authorization, tagTypeId=tagTypeId)
-                if book_tags:
-                    for _book_tag in book_tags:
-                        if 'dibo_test' in _book_tag['name']:
-                            tage_id = _book_tag['id']
-                            # 删除书籍标签
-                            self.book.deleteBookTag(self.authorization, tage_id)
-                # 删除故事书标签
-                self.book.deleteBookTagType(self.authorization, _type['id'])
+        if BookTagTypes:
+            for _type in BookTagTypes:
+                if 'dibo_test' in _type['name']:
+                    tagTypeId = _type['id']
+                    # 查询指定类型下的故事书标签列表
+                    book_tags = self.book.getBookTagsByType(self.authorization, tagTypeId=tagTypeId)
+                    if book_tags:
+                        for _book_tag in book_tags:
+                            if 'dibo_test' in _book_tag['name']:
+                                tage_id = _book_tag['id']
+                                # 删除书籍标签
+                                self.book.deleteBookTag(self.authorization, tage_id)
+                    # 删除故事书标签
+                    self.book.deleteBookTagType(self.authorization, _type['id'])
 
     @pytest.fixture(scope='function')
     def create_BookTagTypes(self):
