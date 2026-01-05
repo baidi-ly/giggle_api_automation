@@ -2477,3 +2477,41 @@ class BookApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
+    def getSupportedlanguages(self, authorization, bookId, DeviceType="web"):
+        """
+        查询故事书支持的多语言
+        :param bookId: (integer, path, required) 故事书ID
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2026-01-05
+        url = f"https://{base_url}/api/book/{bookId}/supportedLanguages"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "查询故事书支持的多语言"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def public_book_details(self, authorization, bookId, translateLanguage='en', DeviceType="web"):
+        """
+        通过bookId查询书籍详情
+        :param bookId: (integer, path, required) bookId
+        :param translateLanguage: (string, query, optional) 目标翻译语言，用于翻译书籍名称和描述
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2026-01-05
+        url = f"https://{base_url}/api/book/public/{bookId}"
+        payload = {
+            "translateLanguage": translateLanguage
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "通过bookId查询书籍详情"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+

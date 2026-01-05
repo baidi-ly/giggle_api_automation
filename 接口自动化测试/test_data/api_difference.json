@@ -1,6 +1,6 @@
 {
   "apis": [
-    "/admin/learning-stats/trigger-daily-reports"
+    "/api/book/{bookId}/language-pack/{code}"
   ],
   "update_apis": [],
   "scan_time": "2025-10-17 10:54:39.746089",

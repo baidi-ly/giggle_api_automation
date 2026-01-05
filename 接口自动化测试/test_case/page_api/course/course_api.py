@@ -398,3 +398,25 @@ class CourseApi(BaseAPI):
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
+
+    def courseDetail(self, authorization, kidId, curriculumContentId, DeviceType="web", **kwargs):
+        """
+        根据课程ID获取课程详细信息
+        :param courseId: (integer, path, required) courseId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.24.0  &  2026-01-05
+        url = f"https://{base_url}/api/curriculum/content/complete"
+        payload = {
+            "kidId": kidId,
+            "curriculumContentId": curriculumContentId
+        }
+        payload.update(kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "根据课程ID获取课程详细信息"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
