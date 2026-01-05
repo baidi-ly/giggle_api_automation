@@ -1,5 +1,6 @@
 import datetime
 import json
+import random
 import sys
 import os
 import threading
@@ -1576,11 +1577,14 @@ class TestBook:
                 assert official == expected, '通过bookId查询书籍详情,'
 
     @pytest.mark.release
-    def test_storybook_entry_flow(self):
+    def test_book_storybook_entry_flow(self):
         """
         故事书入口阶段完整流程测试
         按时间顺序调用各接口，验证业务数据的正确性和一致性
         """
+
+        bookIds = [self.public_book_id]
+        res = self.book.translation_trigger(self.authorization, bookIds)
 
         # ==================== 1. 获取书籍公开详情 ====================
         book_detail_resp = self.book.public_book_details('', self.public_book_id)
@@ -1617,7 +1621,7 @@ class TestBook:
             f"原始语言 {original_language} 不在支持列表中: {language_codes}"
 
         # 选择一个语言用于后续测试
-        test_language = language_codes[0] if language_codes else 'en'
+        test_language = random.sample(language_codes) if language_codes else 'en'
 
         # ==================== 3. 获取用户孩子列表 ====================
         kids_resp = self.user.getUserKids(self.authorization)
@@ -1632,12 +1636,13 @@ class TestBook:
 
         # ==================== 4. 获取语言包 ====================
         language_pack_resp = self.book.languagePack(self.authorization, self.public_book_id, test_language)
-        if language_pack_resp['code'] == 200:  # 如果code不是200，说明字幕还未生成成功，校验code是100051
+        if language_pack_resp['code'] == 200:  # 如果code不是200，说明语音包还未生成成功，校验code是100051
             assert language_pack_resp['data']['bookId'] == int(self.book_id)
             url = language_pack_resp['data']['url']
             fileName = '语音包' + 'en' + self.now
             self.materials.download_materials(self.authorization, '', fileName, url=url)
         else:
+            # 因为原始语言不需要语言包文件，S3 上没有对应文件
             assert language_pack_resp['code'] == 100051
             assert language_pack_resp['data'] == 'The specified key does not exist'
 
@@ -1646,18 +1651,30 @@ class TestBook:
         # 下载链接校验
         url = book_url_resp['data']['url']
         fileName = '书籍内容' + 'en' + self.now
-        # self.materials.download_materials(self.authorization, '', fileName, url=url)
+        self.materials.download_materials(self.authorization, '', fileName, url=url)
 
         # ==================== 6. 获取首页语音 ====================
         index_audio_resp = self.book.indexaudio_details(self.authorization, self.public_book_id, test_language)
+        if index_audio_resp['data']:
+            file = {
+                'audioFile': ('story_language.mp3', open(os.getcwd() + '/test_data/story_language.mp3', 'rb'))
+            }
+            res = self.book.upload_indexAudio(self.authorization, self.public_book_id, test_language, file=file)
+            assert res['message'] == 'success'
+            index_audio_resp = self.book.indexaudio_details(self.authorization, self.public_book_id, test_language)
         # 下载链接校验
-        # url = index_audio_resp['data']['url']
-        # fileName = '首页语音' + 'en' + self.now
-        # self.materials.download_materials(self.authorization, '', fileName, url=url)
+        url = index_audio_resp['data']['url']
+        fileName = '首页语音' + 'en' + self.now
+        self.materials.download_materials(self.authorization, '', fileName, url=url)
 
         # ==================== 7. 获取领读数据 ====================
         narration_resp = self.book.getNarrationData(self.authorization, self.public_book_id, test_language)
         narration_data = narration_resp['data']
+        if not narration_data:
+            # 重新生成故事书的领读数据
+            regenerate_res = self.book.regenerate_narration(self.authorization, self.public_book_id)
+            assert regenerate_res['data']['message'] == '领读数据重新生成任务已启动'
+            narration_resp = self.book.getNarrationData(self.authorization, self.public_book_id, test_language)
 
         # # 领读数据校验（可选功能）
         # if narration_data:
@@ -1678,7 +1695,14 @@ class TestBook:
 
         # ==================== 8. 获取书籍 Quiz ====================
         quiz_resp = self.book.book_quiz(self.authorization, self.public_book_id)
-        # quiz_data = quiz_resp['data']
+        quiz_data = quiz_resp['data']
+        if not quiz_data:
+            # 异步生成故事书的quiz
+            task_id = self.book.generateasync_quiz(self.authorization, self.public_book_id)['data']['task_id']
+            # 查询故事quiz生成任务状态
+            res = self.book.quiz_task_status(self.authorization, bookId=self.public_book_id, taskId=task_id)
+            res = self.book.save_book_quiz(self.authorization, self.public_book_id)
+            quiz_resp = self.book.book_quiz(self.authorization, self.public_book_id)
 
         # Quiz 数据校验（可选功能）
         # if quiz_data:
