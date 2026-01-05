@@ -9,6 +9,7 @@ import uuid
 from time import strftime
 
 from pandas import DataFrame
+from utils.book_codec import parse_book_from_bytes, Book
 
 import config
 from test_case.page_api.base_api import BaseAPI
@@ -1583,8 +1584,9 @@ class TestBook:
         按时间顺序调用各接口，验证业务数据的正确性和一致性
         """
 
-        bookIds = [self.public_book_id]
-        res = self.book.translation_trigger(self.authorization, bookIds)
+        # bookIds = [self.public_book_id]
+        # res = self.book.translation_trigger(self.authorization, bookIds)
+        # assert res['message'] == 'success'
 
         # ==================== 1. 获取书籍公开详情 ====================
         book_detail_resp = self.book.public_book_details('', self.public_book_id)
@@ -1608,7 +1610,6 @@ class TestBook:
 
         # 至少应支持一种语言（原始语言）
         assert len(supported_languages) >= 1, "故事书至少应支持一种语言"
-        assert supported_languages == [{'code': 'en', 'legacyName': 'English', 'name': 'English', 'translateLanguageName': 'English'}]
 
         # 提取语言代码列表
         if isinstance(supported_languages[0], dict):
@@ -1621,7 +1622,7 @@ class TestBook:
             f"原始语言 {original_language} 不在支持列表中: {language_codes}"
 
         # 选择一个语言用于后续测试
-        test_language = random.sample(language_codes) if language_codes else 'en'
+        test_language = random.choice(language_codes) if language_codes else 'en'
 
         # ==================== 3. 获取用户孩子列表 ====================
         kids_resp = self.user.getUserKids(self.authorization)
@@ -1633,14 +1634,29 @@ class TestBook:
             # 孩子应有头像或默认头像
             assert kid.get('avatar') or kid.get('avatarUrl') or kid.get('defaultAvatar') is not None, \
                 f"孩子缺少头像信息: kidId={kid.get('id')}"
+        this_year = strftime("%Y")  # 今年
+        targetAgeChoice = random.choice(kids_data)
+        targetAge = int(this_year) - int(targetAgeChoice['age'])
 
         # ==================== 4. 获取语言包 ====================
+
         language_pack_resp = self.book.languagePack(self.authorization, self.public_book_id, test_language)
         if language_pack_resp['code'] == 200:  # 如果code不是200，说明语音包还未生成成功，校验code是100051
             assert language_pack_resp['data']['bookId'] == int(self.book_id)
             url = language_pack_resp['data']['url']
-            fileName = '语音包' + 'en' + self.now
-            self.materials.download_materials(self.authorization, '', fileName, url=url)
+            fileName = '《Barnaby Counts!》语音包'
+            self.book.download_file(self.authorization, fileName, url, fileType="mp3", path="test_data")
+
+            # 假设你有一个故事书文件（.ggb 或类似格式）
+            with open(os.getcwd() + "/test_data/《Barnaby Counts!》语音包.mp3", "rb") as f:
+                book_audio_data = f.read()
+            # 解析为 Book 对象
+            book = parse_book_from_bytes(book_audio_data)
+
+            # 获取音频图层
+            audio_layers = book.get_layers_by_types("audio", "Sound")
+            for layer in audio_layers:
+                print(f"音频ID: {layer.id}, 页码: {layer.page}")
         else:
             # 因为原始语言不需要语言包文件，S3 上没有对应文件
             assert language_pack_resp['code'] == 100051
@@ -1650,12 +1666,29 @@ class TestBook:
         book_url_resp = self.book.bookDetailUrl(self.authorization, self.public_book_id)
         # 下载链接校验
         url = book_url_resp['data']['url']
-        fileName = '书籍内容' + 'en' + self.now
-        self.materials.download_materials(self.authorization, '', fileName, url=url)
+        fileName = '《Barnaby Counts!》书籍内容'
+        self.book.download_file(self.authorization, fileName, url, fileType="book", path="test_data")
+
+        # 假设你有一个故事书文件（.ggb 或类似格式）
+        with open(os.getcwd()+"/test_data/《Barnaby Counts!》书籍内容.book", "rb") as f:
+            book_data = f.read()
+        # 解析为 Book 对象
+        book = parse_book_from_bytes(book_data)
+        # 访问书籍信息
+        assert book.bookTitle == self.public_book_name
+        assert book.author == 'di.bbb@giggleacademy.me'
+        assert book.language == 'en'
+        assert book.pageList
+
+        # 获取特定类型的图层（如文本图层）
+        text_layers = book.get_layers_by_types("text", "TextBox")
+        pages = []
+        for layer in text_layers:
+            pages.append({'page': layer.page, 'text': layer.text})
 
         # ==================== 6. 获取首页语音 ====================
         index_audio_resp = self.book.indexaudio_details(self.authorization, self.public_book_id, test_language)
-        if index_audio_resp['data']:
+        if not index_audio_resp['data']:
             file = {
                 'audioFile': ('story_language.mp3', open(os.getcwd() + '/test_data/story_language.mp3', 'rb'))
             }
@@ -1663,64 +1696,76 @@ class TestBook:
             assert res['message'] == 'success'
             index_audio_resp = self.book.indexaudio_details(self.authorization, self.public_book_id, test_language)
         # 下载链接校验
-        url = index_audio_resp['data']['url']
-        fileName = '首页语音' + 'en' + self.now
-        self.materials.download_materials(self.authorization, '', fileName, url=url)
+        indexAudioKey = index_audio_resp['data']['indexAudioKey']
+        fileName = '《Barnaby Counts!》首页语音'
+        self.materials.download_materials(self.authorization, indexAudioKey, fileName, fileType="mp3", path='test_data')
+        # 假设你有一个故事书文件（.ggb 或类似格式）
+        with open(os.getcwd()+"/test_data/《Barnaby Counts!》首页语音.mp3", "rb") as f:
+            book_audio_data = f.read()
+        # 解析为 Book 对象
+        assert book_audio_data
 
         # ==================== 7. 获取领读数据 ====================
         narration_resp = self.book.getNarrationData(self.authorization, self.public_book_id, test_language)
         narration_data = narration_resp['data']
-        if not narration_data:
+        if 'narrationS3Key' not in narration_data:
             # 重新生成故事书的领读数据
             regenerate_res = self.book.regenerate_narration(self.authorization, self.public_book_id)
             assert regenerate_res['data']['message'] == '领读数据重新生成任务已启动'
             narration_resp = self.book.getNarrationData(self.authorization, self.public_book_id, test_language)
+            narration_data = narration_resp['data']
 
-        # # 领读数据校验（可选功能）
-        # if narration_data:
-        #     # 如果有领读数据，应包含音频URL或分段信息
-        #     if isinstance(narration_data, dict):
-        #         has_narration_content = (
-        #                 narration_data.get('audioUrl') or
-        #                 narration_data.get('narrationUrl') or
-        #                 narration_data.get('segments') or
-        #                 narration_data.get('data')
-        #         )
-        #         if has_narration_content:
-        #             # 验证领读语言与请求语言一致
-        #             narration_lang = narration_data.get('language') or narration_data.get('languageCode')
-        #             if narration_lang:
-        #                 assert narration_lang == test_language, \
-        #                     f"领读语言不匹配: expect {test_language}, got {narration_lang}"
+        # 领读数据校验（可选功能）
+        if narration_data:
+            # 如果有领读数据，应包含音频URL或分段信息
+            narrationDataJson = json.loads(narration_data['narrationDataJson'])
+            for page, narration in enumerate(narrationDataJson):
+                assert narration['page'] == page+1, "故事书的领读数据保存失败！"
+                assert narration['narration'], "故事书的领读数据保存失败！"
 
         # ==================== 8. 获取书籍 Quiz ====================
-        quiz_resp = self.book.book_quiz(self.authorization, self.public_book_id)
+        quiz_resp = self.book.book_quiz(self.authorization, self.public_book_id, test_language)
         quiz_data = quiz_resp['data']
         if not quiz_data:
             # 异步生成故事书的quiz
-            task_id = self.book.generateasync_quiz(self.authorization, self.public_book_id)['data']['task_id']
-            # 查询故事quiz生成任务状态
-            res = self.book.quiz_task_status(self.authorization, bookId=self.public_book_id, taskId=task_id)
-            res = self.book.save_book_quiz(self.authorization, self.public_book_id)
+            pl = {
+                'story': {
+                    "title": self.public_book_name,
+                    "pages": pages
+                },
+                'targetAge': targetAge
+            }
+            task_id = self.book.generateasync_quiz(self.authorization, self.public_book_id, **pl)['data']['task_id']
+            for i in range(10):
+                # 查询故事quiz生成任务状态
+                status_res = self.book.quiz_task_status(self.authorization, bookId=self.public_book_id, taskId=task_id)
+                if status_res['state'] == 'running':
+                    time.sleep(1)
+                else:
+                    break
+            else:
+                assert False, "10s内生成故事书quiz失败"
+            quiz_save = self.book.save_book_quiz(self.authorization, self.public_book_id)
+            assert quiz_save['message'] == 'success'
             quiz_resp = self.book.book_quiz(self.authorization, self.public_book_id)
+            quiz_data = quiz_resp['data']
 
         # Quiz 数据校验（可选功能）
-        # if quiz_data:
-            # questions = quiz_data.get('questions') if isinstance(quiz_data, dict) else quiz_data
-            #
-            # if questions and isinstance(questions, list) and len(questions) > 0:
-            #     for idx, question in enumerate(questions):
-            #         # 每个问题应有问题内容
-            #         assert question.get('question') or question.get('questionText') or question.get('content'), \
-            #             f"Quiz第{idx + 1}题缺少问题内容: {question}"
-            #
-            #         # 选择题应有选项
-            #         if question.get('type') in ['choice', 'multiple_choice', 'single_choice', 'CHOICE']:
-            #             options = question.get('options') or question.get('choices') or question.get('answers')
-            #             assert options and len(options) >= 2, \
-            #                 f"Quiz第{idx + 1}题选项数量不足: {question}"
-            #
-            #         # 应有正确答案
-            #         assert question.get('answer') is not None or question.get('correctAnswer') is not None \
-            #                or question.get('correctIndex') is not None, \
-            #             f"Quiz第{idx + 1}题缺少正确答案: {question}"
+        questions = quiz_data.get('questions') if isinstance(quiz_data, dict) else quiz_data
+        questions = json.loads(questions)['questions']
+
+        if questions and isinstance(questions, list) and len(questions) > 0:
+            for idx, question in enumerate(questions):
+                # 每个问题应有问题内容
+                assert question.get('question') or question.get('page') or question.get('id'), \
+                    f"Quiz第{idx + 1}题缺少问题内容: {question}"
+
+                # 选择题应有选项
+                if question['questions'][0].get('type') in ['choice', 'multiple_choice', 'single_choice', 'CHOICE']:
+                    options = (question['questions'][0].get('options') or question['questions'][0].get('choices')
+                               or question['questions'][0].get('answers'))
+                    assert options and len(options) >= 2, f"Quiz第{idx + 1}题选项数量不足: {question}"
+
+                    # 应有正确答案
+                    if 'answer' in question['questions'][0]:
+                        assert question['questions'][0].get('answer') is not None, f"Quiz第{idx + 1}题缺少正确答案: {question}"

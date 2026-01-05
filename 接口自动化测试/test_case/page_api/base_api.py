@@ -438,7 +438,7 @@ class BaseAPI:
         elif bool(re.search('[a-zA-Z]', _string)):
             return "en"
 
-    def download_file(self, authorization, fileName, url, DeviceType="web", fileType="png"):
+    def download_file(self, authorization, fileName, url, DeviceType="web", fileType="png", path="report"):
         """
         下载材料
         :param key: (string, query, required) key
@@ -453,6 +453,6 @@ class BaseAPI:
             response = requests.get(redirect_url, headers=headers)
         error_msg = "下载材料"
         assert response.status_code == 200, f"{error_msg}失败，失败信息->{response.reason}{response.content}"
-        file_path = os.getcwd() + fr'/report/{fileName}.{fileType}'
+        file_path = os.getcwd() + fr'/{path}/{fileName}.{fileType}'
         with open(file_path, 'wb') as file:
             file.write(response.content)

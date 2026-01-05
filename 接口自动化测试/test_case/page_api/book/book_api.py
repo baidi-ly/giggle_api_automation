@@ -752,7 +752,7 @@ class BookApi(BaseAPI):
         except json.decoder.JSONDecodeError:
             return False
 
-    def generateasync_quiz(self, authorization, bookId=0, DeviceType="web", code=200, **kwargs):
+    def generateasync_quiz(self, authorization, bookId, DeviceType="web", code=200, **kwargs):
         """
         异步生成故事书的quiz
         :param bookId: (integer, path, required) 故事书ID
@@ -762,47 +762,8 @@ class BookApi(BaseAPI):
         # Create Data:  V1.19.0  &  2025-10-16
         url = f"https://{base_url}/api/book/{bookId}/quiz/generateAsync"
         payload = {
-            "story": {
-                "title": "hq_test",
-                "brief": "uu",
-                "pages": [
-                    {
-                        "page": 1,
-                        "text": "",
-                        "image": "https://static.qakjukl.net/book/quiz/images/723894162968645/08ff63f1d8be9ad9738f17453e82ee63.png"
-                    },
-                    {
-                        "page": 2,
-                        "text": "",
-                        "image": "https://static.qakjukl.net/book/quiz/images/723894162968645/17a21a4cfe1565f4919965925fea08c5.png"
-                    },
-                    {
-                        "page": 3,
-                        "text": "",
-                        "image": "https://static.qakjukl.net/book/quiz/images/723894162968645/5fac12438ef1850fea876c10471e5c2a.png"
-                    },
-                    {
-                        "page": 4,
-                        "text": "",
-                        "image": "https://static.qakjukl.net/book/quiz/images/723894162968645/be95d2e312128168a68e95a114d0d973.png"
-                    },
-                    {
-                        "page": 5,
-                        "text": "",
-                        "image": "https://static.qakjukl.net/book/quiz/images/723894162968645/56853ad0e3052ddf2dc8de66454555e2.png"
-                    },
-                    {
-                        "page": 6,
-                        "text": "",
-                        "image": "https://static.qakjukl.net/book/quiz/images/723894162968645/be95d2e312128168a68e95a114d0d973.png"
-                    }
-                ]
-            },
-            "targetAge": 3,
-            "difficulty": 1,
-            "language": "en",
-            "version": "v2",
-            "aspectRatio": "16:9"
+            "story": '',
+            'targetAge': 5
         }
         payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))

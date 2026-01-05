@@ -30,7 +30,8 @@ class MaterialsApi(BaseAPI):
         response = response.json()
         return response
 
-    def download_materials(self, authorization, key, fileName, DeviceType="web", fileType="msgpack", real_time=False, **kwargs):
+    def download_materials(self, authorization, key, fileName, DeviceType="web", fileType="msgpack",
+                           real_time=False, allow_redirects=False, path='report', **kwargs):
         """
         下载材料
         :param key: (string, query, required) key
@@ -44,16 +45,17 @@ class MaterialsApi(BaseAPI):
             payload = {
                 "key": key
             }
-            response = requests.request("GET", url, headers=headers, params=payload, allow_redirects=False)
+            response = requests.request("GET", url, headers=headers, params=payload, allow_redirects=allow_redirects)
         else:
-            response = requests.request("GET", kwargs.get('url'), headers=headers, allow_redirects=False)
+            # response = requests.request("GET", url=kwargs.get('url'), headers=headers, allow_redirects=allow_redirects)
+            response = requests.get(kwargs.get('url'), headers=headers)
         if response.status_code == 302:
             redirect_url = response.headers.get('Location')
             # redirect_url = "https://" + self.baseurl() + redirect_url
             response = requests.get(redirect_url, headers=headers)
         error_msg = "下载材料"
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        file_path = os.getcwd() + fr'/report/{fileName}.{fileType}'
+        file_path = os.getcwd() + fr'/{path}/{fileName}.{fileType}'
         if not real_time:
             with open(file_path, 'wb') as file:
                 file.write(response.content)
