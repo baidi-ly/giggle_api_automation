@@ -879,3 +879,95 @@ class TestUser:
         assert res1['data']['isGuest']
         assert res1['data']['userInfo'] == res['data']['userInfo']
 
+    def test_user_follow_flow(self):
+        """
+        用户关注完整流程测试
+        步骤:
+        1. 获取目标用户信息总览
+        2. 检查是否已关注
+        3. 关注用户
+        4. 验证关注状态
+        5. 取消关注
+        6. 验证取消关注状态
+        """
+        # ========== Step 1: 获取目标用户信息总览 ==========
+        profile_result = self.user.profileSummary(self.authorization, self.userId)
+
+        assert profile_result.get('code') == 0, f"profileSummary 请求失败: {profile_result}"
+        profile_data = profile_result.get('data')
+        assert profile_data is not None, "用户信息总览 data 为空"
+
+        # 校验返回字段
+        assert 'userInfo' in profile_data, "缺少 userInfo 字段"
+        assert 'joinAt' in profile_data, "缺少 joinAt 字段"
+        assert 'storiesCount' in profile_data, "缺少 storiesCount 字段"
+        assert 'favroured' in profile_data, "缺少 favroured 字段"
+        assert 'beLiked' in profile_data, "缺少 beLiked 字段"
+
+        # 校验 userInfo 结构
+        user_info = profile_data['userInfo']
+        assert user_info is not None, "userInfo 为空"
+        assert 'userId' in user_info, "userInfo 缺少 userId"
+        assert 'username' in user_info, "userInfo 缺少 username"
+
+        # 校验 userId 匹配
+        returned_user_id = user_info.get('userId')
+        # userId 可能是字符串或数字
+        assert str(returned_user_id) == str(self.target_user_id), \
+            f"返回的 userId 不匹配: 期望 {self.target_user_id}, 实际 {returned_user_id}"
+
+        # 校验统计数据类型
+        assert isinstance(profile_data['storiesCount'], int), "storiesCount 应为整数"
+        assert isinstance(profile_data['favroured'], int), "favroured 应为整数"
+        assert isinstance(profile_data['beLiked'], int), "beLiked 应为整数"
+        assert profile_data['storiesCount'] >= 0, "storiesCount 应 >= 0"
+        assert profile_data['favroured'] >= 0, "favroured 应 >= 0"
+        assert profile_data['beLiked'] >= 0, "beLiked 应 >= 0"
+
+        # 校验 popularBooks (可能为空列表)
+        if 'popularBooks' in profile_data:
+            assert isinstance(profile_data['popularBooks'], list), "popularBooks 应为列表"
+
+        # ========== Step 2: 检查是否已关注（初始状态）==========
+        is_follow_result = self.user.isFollowUser(self.authorization, followed_id)
+
+        assert is_follow_result.get('code') == 0, f"isFollowUser 请求失败: {is_follow_result}"
+        is_followed_before = is_follow_result.get('data')
+        assert isinstance(is_followed_before, bool), f"isFollow 返回值应为布尔类型: {type(is_followed_before)}"
+
+        # ========== Step 3: 确保先取消关注（清理状态）==========
+        if is_followed_before:
+            self.user.deleteFollowUser(self.authorization, followed_id)
+
+        # ========== Step 4: 关注用户 ==========
+        follow_result = self.user.followUser(self.authorization, followed_id)
+
+        assert follow_result.get('code') == 0, f"followUser 关注失败: {follow_result}"
+        follow_data = follow_result.get('data')
+        assert follow_data is not None, "关注返回 data 为空"
+
+        # 返回被关注用户的信息
+        assert 'id' in follow_data or 'userId' in follow_data, "返回数据缺少用户ID字段"
+        # 验证返回的是目标用户
+        followed_user_id = follow_data.get('id') or follow_data.get('userId')
+        assert str(followed_user_id) == str(self.target_user_id), \
+            f"返回的用户ID不匹配: 期望 {self.target_user_id}, 实际 {followed_user_id}"
+
+        # ========== Step 5: 验证关注状态变为 True ==========
+        is_follow_after = self.user.isFollowUser(self.authorization, followed_id)
+
+        assert is_follow_after.get('code') == 0
+        assert is_follow_after.get('data') is True, \
+            f"关注后 isFollow 应为 True: {is_follow_after.get('data')}"
+
+        # ========== Step 6: 取消关注 ==========
+        unfollow_result = self.user.deleteFollowUser(self.authorization, followed_id)
+
+        assert unfollow_result.get('code') == 0, f"deleteFollowUser 取消关注失败: {unfollow_result}"
+
+        # ========== Step 7: 验证取消关注状态变为 False ==========
+        is_follow_final = self.user.isFollowUser(self.authorization, followed_id)
+
+        assert is_follow_final.get('code') == 0
+        assert is_follow_final.get('data') is False, \
+            f"取消关注后 isFollow 应为 False: {is_follow_final.get('data')}"

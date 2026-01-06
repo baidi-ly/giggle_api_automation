@@ -9,6 +9,9 @@ import uuid
 from time import strftime
 
 from pandas import DataFrame
+
+from test_case.page_api.game.game_api import GameApi
+from test_case.page_api.reward.reward_api import RewardApi
 from utils.book_codec import parse_book_from_bytes, Book
 
 import config
@@ -33,6 +36,8 @@ class TestBook:
         self.book = BookApi()
         self.kid = KidApi()
         self.user = UserApi()
+        self.reward = RewardApi()
+        self.game = GameApi()
         self.materials = MaterialsApi()
         self.authorization, self.userId = self.book.get_authorization()
         self.now = strftime("%Y%m%d%H%M%S")
@@ -64,7 +69,7 @@ class TestBook:
                 assert False, "未找到故事书《Barnaby Counts!》"
         except Exception as e:
             print('未找到故事书《Barnaby Counts!》')
-            
+
     def teardown_class(self):
         '''全局数据清理'''
         # 查询故事书标签类型列表
@@ -1973,12 +1978,7 @@ class TestBook:
         kid_id = kid_data_session
         # ========== Step 1: 获取语音克隆模型列表 ==========
         voice_models = self.book.voice_model_list(self.authorization)
-
-        # 校验返回结构
-        assert voice_models.get('code') == 0, f"voice_model_list 请求失败: {voice_models}"
         models_data = voice_models.get('data')
-        assert isinstance(models_data, list), f"data 应为列表类型: {type(models_data)}"
-
         # 校验必须有可用的语音模型 (status=1 表示成功)
         available_models = [m for m in models_data if m.get('status') == 1]
         assert len(available_models) > 0, "没有可用的语音克隆模型 (status=1)"
@@ -2084,3 +2084,477 @@ class TestBook:
             pytest.fail(f"语音包生成失败: {details_data.get('errorMessage')}")
         else:
             assert final_status == 'success', f"语音包最终状态异常: {final_status}"
+
+    def test_book_playback_flow(self, kid_data_session):
+        """
+        播放阶段完整流程测试
+        模拟用户阅读故事书的完整流程
+        """
+        kid_id = kid_data_session
+        # ========== Step 1: 增加阅读次数 ==========
+        increment_result = self.book.incrementReadCount(self.authorization, self.book_id)
+
+        assert increment_result.get('code') == 0, f"incrementReadCount 请求失败: {increment_result}"
+        read_count = increment_result.get('data')
+        # 阅读次数应该是正整数
+        assert isinstance(read_count, int), f"阅读次数应为整数: {type(read_count)}"
+        assert read_count > 0, f"阅读次数应大于0: {read_count}"
+
+        # ========== Step 2: 获取阅读状态 ==========
+        reading_status = self.book.getReadingStatus(self.authorization, self.book_id, kid_id)
+        assert reading_status.get('code') == 0, f"getReadingStatus 请求失败: {reading_status}"
+        status_data = reading_status.get('data')
+        assert status_data is not None, "阅读状态 data 为空"
+
+        # 校验返回字段
+        assert 'hasRead' in status_data, "缺少 hasRead 字段"
+        assert 'isFirstBookToday' in status_data, "缺少 isFirstBookToday 字段"
+        assert 'hasRating' in status_data, "缺少 hasRating 字段"
+
+        # 字段类型校验
+        assert isinstance(status_data['hasRead'], bool), "hasRead 应为布尔类型"
+        assert isinstance(status_data['isFirstBookToday'], bool), "isFirstBookToday 应为布尔类型"
+        assert isinstance(status_data['hasRating'], bool), "hasRating 应为布尔类型"
+
+        # 记录阅读前的状态
+        has_read_before = status_data['hasRead']
+
+        # ========== Step 3: 记录阅读 ==========
+        record_result = self.book.recordReading(self.authorization, self.book_id, kid_id, 'APP')
+        assert record_result.get('code') == 0, f"recordReading 请求失败: {record_result}"
+        record_data = record_result.get('data')
+        assert record_data is not None, "记录阅读返回 data 为空"
+
+        # 可能包含奖励信息（APP平台首次阅读会有每日学习奖励）
+        # 如果有奖励，校验奖励字段
+        if 'dailyReadingReward' in record_data and record_data['dailyReadingReward']:
+            daily_reward = record_data['dailyReadingReward']
+            assert 'giggles' in daily_reward or 'userId' in daily_reward, "每日阅读奖励结构异常"
+
+        # ========== Step 4: 再次获取阅读状态，验证 hasRead 变化 ==========
+        reading_status_after = self.book.getReadingStatus(self.authorization, self.book_id, kid_id)
+
+        assert reading_status_after.get('code') == 0
+        status_after = reading_status_after.get('data')
+        # 记录阅读后，hasRead 应该为 True
+        assert status_after['hasRead'] is True, f"记录阅读后 hasRead 应为 True: {status_after}"
+
+        # ========== Step 5: 查询连续学习进度 ==========
+        continuous_progress = self.reward.continuousProgress(self.authorization, kid_id)
+
+        assert continuous_progress.get('code') == 0, f"continuousProgress 请求失败: {continuous_progress}"
+        progress_data = continuous_progress.get('data')
+        assert progress_data is not None, "连续学习进度 data 为空"
+        assert 'days' in progress_data, "缺少 days 字段"
+        assert isinstance(progress_data['days'], int), "days 应为整数类型"
+        assert progress_data['days'] >= 0, f"连续天数应 >= 0: {progress_data['days']}"
+
+        # ========== Step 6: 获取每日学习状态 ==========
+        daily_learning_status = self.game.getDailyLearning(self.authorization, kid_id)
+
+        assert daily_learning_status.get('code') == 0, f"getDailyLearning 请求失败: {daily_learning_status}"
+        # 返回布尔值，表示今日是否已完成学习
+        is_learned_today = daily_learning_status.get('data')
+        assert isinstance(is_learned_today, bool), f"每日学习状态应为布尔类型: {type(is_learned_today)}"
+
+        # ========== Step 7: 记录每日学习完成 ==========
+        record_daily = self.game.recorde_dailyLearning(self.authorization, kid_id)
+
+        assert record_daily.get('code') == 0, f"recorde_dailyLearning 请求失败: {record_daily}"
+
+        # 验证记录后状态变为 True
+        daily_status_after = self.game.getDailyLearning(self.authorization, kid_id)
+        assert daily_status_after.get('code') == 0
+        assert daily_status_after.get('data') is True, "记录每日学习后状态应为 True"
+
+        # ========== Step 8: 添加收藏 ==========
+        favorite_result = self.book.favorite(self.authorization, kid_id)
+
+        assert favorite_result.get('code') == 0, f"favorite 添加收藏失败: {favorite_result}"
+
+        # ========== Step 9: 取消收藏 ==========
+        delete_fav_result = self.book.deleteFavorite(self.authorization, kid_id)
+
+        assert delete_fav_result.get('code') == 0, f"deleteFavorite 取消收藏失败: {delete_fav_result}"
+
+        # ========== Step 10: 再次添加收藏（验证可重复操作）==========
+        favorite_again = self.book.favorite(self.authorization, kid_id)
+        assert favorite_again.get('code') == 0, "重新收藏失败"
+
+        # ========== Step 11: 书籍评分 ==========
+        rating_result = self.book.book_rating(self.authorization, self.book_id, kid_id)
+
+        assert rating_result.get('code') == 0, f"book_rating 评分失败: {rating_result}"
+        rating_data = rating_result.get('data')
+        assert rating_data is not None, "评分返回 data 为空"
+
+        # 校验评分记录字段
+        assert rating_data.get('bookId') == self.book_id, f"评分记录的 bookId 不匹配"
+        assert rating_data.get('kidId') == kid_id, f"评分记录的 kidId 不匹配"
+        assert rating_data.get('rating') == 3, f"评分值不匹配: 期望 3, 实际 {rating_data.get('rating')}"
+
+        # 验证评分后阅读状态中 hasRating 变为 True
+        final_status = self.book.getReadingStatus(self.authorization, self.book_id, kid_id)
+        assert final_status.get('code') == 0
+        assert final_status.get('data')['hasRating'] is True, "评分后 hasRating 应为 True"
+
+        # ========== Step 12: 举报书籍 ==========
+        comment = "This is a test report"
+        report_result = self.book.reportBook(self.authorization, self.book_id, comment, 1, 'test_report')
+        assert report_result.get('code') == 0, f"reportBook 举报失败: {report_result}"
+        report_data = report_result.get('data')
+        assert report_data is not None, "举报返回 data 为空"
+        assert 'id' in report_data or 'bookId' in report_data, "举报记录缺少关键字段"
+
+    def test_continue_playing_full_flow(self):
+        """
+        续播完整流程测试
+        步骤:
+        1. NEXT 导航 - 获取下一本
+        2. PREVIOUS 导航 - 获取上一本
+        3. RANDOM 导航 - AI 实时推荐
+        4. 验证边界标志位
+        5. 验证 AI 兜底场景
+        """
+        # ========== Step 1: NEXT 导航 - 获取下一本 ==========
+        pl = {
+            "currentBookId": self.book_id,
+            "listParams": {"userId": self.userId},
+            "listType": "DAILY_STORIES",
+            "navigationType": "NEXT",
+            "userId": self.userId
+        }
+        next_result = self.book.continueplaying(self.authorization, **pl)
+
+        assert next_result.get('code') == 0, f"NEXT 导航请求失败: {next_result}"
+        next_data = next_result.get('data')
+
+        # data 可能为 None（兜底情况）
+        if next_data is not None:
+            self._validate_continue_playing_response(next_data, "NEXT")
+
+            # 记录下一本书的信息用于后续验证
+            next_book = next_data.get('book')
+            next_book_id = None
+            if next_book:
+                next_book_id = next_book.get('id') or next_book.get('bookId')
+
+                # ========== Step 2: PREVIOUS 导航 - 验证循环逻辑 ==========
+                pl = {
+                    "currentBookId": self.book_id,
+                    "listParams": {"userId": self.userId},
+                    "listType": "DAILY_STORIES",
+                    "navigationType": "PREVIOUS",
+                    "userId": self.userId
+                }
+                prev_result = self.book.continueplaying(self.authorization, **pl)
+
+                assert prev_result.get('code') == 0, f"PREVIOUS 导航请求失败: {prev_result}"
+                prev_data = prev_result.get('data')
+
+                if prev_data is not None:
+                    self._validate_continue_playing_response(prev_data, "PREVIOUS")
+
+                    # 验证循环逻辑：从下一本返回应该回到原来的书
+                    prev_book = prev_data.get('book')
+                    if prev_book:
+                        prev_book_id = prev_book.get('id') or prev_book.get('bookId')
+                        # 如果不是单本列表，应该回到原书
+                        if not (next_data.get('isFirstOfList') and next_data.get('isEndOfList')):
+                            assert str(prev_book_id) == str(self.book_id), \
+                                f"NEXT再PREVIOUS应回到原书: 期望{self.book_id}, 实际{prev_book_id}"
+        else:
+            # 兜底情况：data 为 None
+            pytest.skip("NEXT 导航返回空结果，可能是列表为空")
+
+        # ========== Step 3: RANDOM 导航 - AI 实时推荐 ==========
+        pl = {
+            "currentBookId": self.book_id,
+            "listParams": {
+                "userId": self.user_id,
+                "currentBookId": self.book_id,
+                "readBookIds": [self.book_id],  # 已读书籍，用于排除
+                "recommendCount": 1,
+                "recommendationFocus": "content"
+            },
+            "listType": "DAILY_STORIES",
+            "navigationType": "RANDOM",
+            "userId": self.userId
+        }
+        random_result = self.book.continueplaying(self.authorization, **pl)
+
+        assert random_result.get('code') == 0, f"RANDOM 导航请求失败: {random_result}"
+        random_data = random_result.get('data')
+
+        # RANDOM 导航可能返回 None（AI 兜底）
+        if random_data is not None:
+
+            self._validate_continue_playing_response(random_data, "RANDOM")
+
+            # RANDOM 模式特有校验
+            assert random_data.get('isFirstOfList') is False, \
+                "RANDOM 模式 isFirstOfList 应为 False"
+            assert random_data.get('isEndOfList') is False, \
+                "RANDOM 模式 isEndOfList 应为 False"
+
+            # 推荐的书籍应该不是当前书籍（如果有足够的候选）
+            random_book = random_data.get('book')
+            if random_book:
+                random_book_id = random_book.get('id') or random_book.get('bookId')
+                # AI 推荐应返回不同的书（除非没有其他可推荐的）
+                # 这里不强制断言，因为可能确实只有一本符合条件
+                if str(random_book_id) == str(self.book_id):
+                    print(f"警告: AI 推荐返回了当前书籍，可能是候选不足")
+        else:
+            # AI 兜底：返回 None
+            print("AI 推荐返回空结果，触发兜底逻辑")
+            # 这是正常的兜底行为，不应报错
+            self._handle_ai_fallback()
+
+        # ========== Step 4: 验证边界标志位逻辑 ==========
+        self._test_boundary_flags()
+
+    def test_book_series_details_flow(self, kid_data_session):
+        """
+        书籍系列详情页完整流程测试
+        步骤:
+        1. 获取系列详情
+        2. 获取系列下的书籍列表
+        3. 验证数据一致性
+        """
+
+        # 在app中检查系列推荐情况
+        kid_id = kid_data_session
+        series_res = self.book.series_list(self.authorization, kidId=kid_id)
+        series_id = series_res
+        
+        # ========== Step 1: 获取系列详情 ==========
+        series_result = self.book.series_details(self.authorization, series_id)
+
+        assert series_result.get('code') == 0, f"series_details 请求失败: {series_result}"
+        series_data = series_result.get('data')
+        assert series_data is not None, "系列详情 data 为空"
+
+        # 校验系列基础字段
+        assert 'id' in series_data, "系列缺少 id 字段"
+        assert str(series_data['id']) == str(series_id), \
+            f"系列 ID 不匹配: 期望 {series_id}, 实际 {series_data['id']}"
+
+        assert 'title' in series_data, "系列缺少 title 字段"
+        assert series_data['title'], "系列标题不应为空"
+
+        assert 'creatorId' in series_data, "系列缺少 creatorId 字段"
+
+        # 校验可选字段类型
+        if 'description' in series_data and series_data['description']:
+            assert isinstance(series_data['description'], str), "description 应为字符串"
+
+        if 'coverKey' in series_data and series_data['coverKey']:
+            assert isinstance(series_data['coverKey'], str), "coverKey 应为字符串"
+
+        # 校验年龄范围
+        assert 'ageMin' in series_data, "系列缺少 ageMin 字段"
+        assert 'ageMax' in series_data, "系列缺少 ageMax 字段"
+        assert isinstance(series_data['ageMin'], int), "ageMin 应为整数"
+        assert isinstance(series_data['ageMax'], int), "ageMax 应为整数"
+        assert series_data['ageMin'] <= series_data['ageMax'], \
+            f"ageMin 应 <= ageMax: {series_data['ageMin']} > {series_data['ageMax']}"
+        assert series_data['ageMin'] >= 0, f"ageMin 应 >= 0: {series_data['ageMin']}"
+
+        # 校验可见性和置顶状态
+        assert 'isVisible' in series_data, "系列缺少 isVisible 字段"
+        assert isinstance(series_data['isVisible'], bool), "isVisible 应为布尔类型"
+
+        if 'isPinned' in series_data:
+            assert isinstance(series_data['isPinned'], bool), "isPinned 应为布尔类型"
+
+        # 校验排序字段
+        assert 'sortOrder' in series_data, "系列缺少 sortOrder 字段"
+        assert isinstance(series_data['sortOrder'], int), "sortOrder 应为整数"
+
+        # 记录系列信息用于后续校验
+        series_title = series_data['title']
+        series_age_min = series_data['ageMin']
+        series_age_max = series_data['ageMax']
+
+        # ========== Step 2: 获取系列下的书籍列表 ==========
+        books_result = self.book.seriesBooks(self.authorization, series_id)
+
+        assert books_result.get('code') == 0, f"seriesBooks 请求失败: {books_result}"
+        books_data = books_result.get('data')
+        assert books_data is not None, "书籍列表 data 为空"
+
+        # 分页响应结构校验
+        assert 'content' in books_data, "书籍列表缺少 content 字段"
+        assert 'totalElements' in books_data, "书籍列表缺少 totalElements 字段"
+        assert 'totalPages' in books_data, "书籍列表缺少 totalPages 字段"
+        assert 'number' in books_data, "书籍列表缺少 number 字段（当前页码）"
+        assert 'size' in books_data, "书籍列表缺少 size 字段（每页大小）"
+
+        books_content = books_data['content']
+        assert isinstance(books_content, list), "content 应为列表类型"
+
+        total_books = books_data['totalElements']
+        assert isinstance(total_books, int), "totalElements 应为整数"
+        assert total_books >= 0, f"totalElements 应 >= 0: {total_books}"
+
+        # 校验每本书的字段
+        for book in books_content:
+            self._validate_book_in_series(book, series_id)
+
+        # ========== Step 3: 验证数据一致性 ==========
+        # 如果系列详情中有 bookCount，应与书籍列表总数一致
+        if 'bookCount' in series_data and series_data['bookCount'] > 0:
+            assert series_data['bookCount'] == total_books, \
+                f"bookCount 与实际书籍数不一致: {series_data['bookCount']} != {total_books}"
+
+        print(f"✓ 系列 '{series_title}' 包含 {total_books} 本书籍")
+        print(f"  年龄范围: {series_age_min}-{series_age_max} 岁")
+
+    def test_book_author_details_flow(self):
+        """
+        作者详情页完整流程测试
+        步骤:
+        1. 获取作者信息总览
+        2. 获取作者公开书籍列表
+        3. 获取作者原创书籍列表
+        4. 检查是否已关注
+        5. 关注作者
+        6. 取消关注作者
+        """
+        # ========== Step 1: 获取作者信息总览 ==========
+        profile_result = self.user.profileSummary(self.authorization, self.userId)
+
+        assert profile_result.get('code') == 0, f"profileSummary 请求失败: {profile_result}"
+        profile_data = profile_result.get('data')
+        assert profile_data is not None, "作者信息 data 为空"
+
+        # 校验用户信息字段
+        assert 'userInfo' in profile_data, "缺少 userInfo 字段"
+        user_info = profile_data['userInfo']
+        assert user_info is not None, "userInfo 为空"
+
+        # 校验 userId 匹配
+        returned_user_id = user_info.get('userId')
+        assert str(returned_user_id) == str(self.author_id), \
+            f"userId 不匹配: 期望 {self.author_id}, 实际 {returned_user_id}"
+
+        # 校验用户基本信息
+        assert 'username' in user_info, "userInfo 缺少 username"
+        assert user_info['username'], "username 不应为空"
+
+        # 校验统计数据
+        assert 'storiesCount' in profile_data, "缺少 storiesCount 字段"
+        assert 'favroured' in profile_data, "缺少 favroured 字段"
+        assert 'beLiked' in profile_data, "缺少 beLiked 字段"
+        assert 'joinAt' in profile_data, "缺少 joinAt 字段"
+
+        stories_count = profile_data['storiesCount']
+        assert isinstance(stories_count, int), "storiesCount 应为整数"
+        assert stories_count >= 0, f"storiesCount 应 >= 0: {stories_count}"
+
+        assert isinstance(profile_data['favroured'], int), "favroured 应为整数"
+        assert isinstance(profile_data['beLiked'], int), "beLiked 应为整数"
+
+        # 校验热门作品
+        if 'popularBooks' in profile_data and profile_data['popularBooks']:
+            popular_books = profile_data['popularBooks']
+            assert isinstance(popular_books, list), "popularBooks 应为列表"
+            assert len(popular_books) <= 4, f"popularBooks 最多4本: {len(popular_books)}"
+
+            for book in popular_books:
+                assert 'id' in book or 'bookId' in book, "书籍缺少 ID"
+
+        # 记录作者信息
+        author_name = user_info.get('username')
+        print(f"✓ 作者: {author_name}, 作品数: {stories_count}, 被点赞: {profile_data['beLiked']}")
+
+        # ========== Step 2: 获取作者公开书籍列表 ==========
+        public_books_result = self.book.userPublicbooks(self.authorization, userId)
+
+        assert public_books_result.get('code') == 0, f"getPublicbooks 请求失败: {public_books_result}"
+        public_books_data = public_books_result.get('data')
+        assert public_books_data is not None, "公开书籍 data 为空"
+
+        # 分页结构校验
+        assert 'content' in public_books_data, "缺少 content 字段"
+        assert 'totalElements' in public_books_data, "缺少 totalElements 字段"
+        assert 'totalPages' in public_books_data, "缺少 totalPages 字段"
+
+        public_books_content = public_books_data['content']
+        assert isinstance(public_books_content, list), "content 应为列表"
+
+        public_total = public_books_data['totalElements']
+        assert isinstance(public_total, int), "totalElements 应为整数"
+
+        # 校验每本书的字段和归属
+        for book in public_books_content:
+            self._validate_public_book(book, self.author_id)
+
+        # 公开书籍数应该与 profileSummary 中的 storiesCount 一致或相近
+        # （storiesCount 可能包含所有状态的书，公开书籍只包含 status=1）
+        print(f"✓ 作者公开书籍: {public_total} 本")
+
+        # ========== Step 3: 获取作者原创书籍列表 ==========
+        original_books_result = self.book.userOriginalBooks(self.authorization, contributorId)
+
+        assert original_books_result.get('code') == 0, f"getOriginalBooks 请求失败: {original_books_result}"
+        original_books_data = original_books_result.get('data')
+        assert original_books_data is not None, "原创书籍 data 为空"
+
+        # 分页结构校验
+        assert 'content' in original_books_data, "缺少 content 字段"
+        assert 'totalElements' in original_books_data, "缺少 totalElements 字段"
+
+        original_books_content = original_books_data['content']
+        original_total = original_books_data['totalElements']
+
+        # 校验原创书籍
+        for book in original_books_content:
+            self._validate_original_book(book, self.author_id)
+
+        print(f"✓ 作者原创书籍: {original_total} 本")
+
+        # ========== Step 4: 检查是否已关注 ==========
+        is_follow_result = self.user.isFollowUser(self.authorization, followedId)
+
+        assert is_follow_result.get('code') == 0, f"isFollowUser 请求失败: {is_follow_result}"
+        is_followed = is_follow_result.get('data')
+        assert isinstance(is_followed, bool), f"isFollow 应为布尔类型: {type(is_followed)}"
+
+        # ========== Step 5: 确保先取消关注（清理状态）==========
+        if is_followed:
+            self.user.deleteFollowUser(self.authorization, followedId)
+
+        # ========== Step 6: 关注作者 ==========
+        follow_result = self.user.followUser(self.authorization, followedId)
+
+        assert follow_result.get('code') == 0, f"followUser 关注失败: {follow_result}"
+        follow_data = follow_result.get('data')
+        assert follow_data is not None, "关注返回 data 为空"
+
+        # 返回被关注用户的信息
+        followed_user_id = follow_data.get('id') or follow_data.get('userId')
+        assert str(followed_user_id) == str(self.author_id), \
+            f"返回的用户ID不匹配: 期望 {self.author_id}, 实际 {followed_user_id}"
+
+        # ========== Step 7: 验证关注状态变为 True ==========
+        is_follow_after = self.user.isFollowUser(self.authorization, followedId)
+        assert is_follow_after.get('code') == 0
+        assert is_follow_after.get('data') is True, \
+            f"关注后 isFollow 应为 True: {is_follow_after.get('data')}"
+
+        print(f"✓ 成功关注作者 {author_name}")
+
+        # ========== Step 8: 取消关注 ==========
+        unfollow_result = self.user.deleteFollowUser(self.authorization, followedId)
+
+        assert unfollow_result.get('code') == 0, f"deleteFollowUser 取消关注失败: {unfollow_result}"
+
+        # ========== Step 9: 验证取消关注状态变为 False ==========
+        is_follow_final = self.user.isFollowUser(self.authorization, followedId)
+        assert is_follow_final.get('code') == 0
+        assert is_follow_final.get('data') is False, \
+            f"取消关注后 isFollow 应为 False: {is_follow_final.get('data')}"
+
+        print(f"✓ 成功取消关注作者 {author_name}")

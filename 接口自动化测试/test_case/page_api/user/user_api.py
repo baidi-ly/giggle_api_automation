@@ -673,3 +673,84 @@ class UserApi(BaseAPI):
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
+
+    def profileSummary(self, authorization, userId, DeviceType="web"):
+        """
+        用户信息总览
+        :param userId: (integer, query, optional) userId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2026-01-06
+        url = f"https://{base_url}/api/user/profileSummary"
+        payload = {
+            "userId": userId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "用户信息总览"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def isFollowUser(self, authorization, followedId, DeviceType="web"):
+        """
+        判断是否关注
+        :param followedId: (integer, query, required) followedId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2026-01-06
+        url = f"https://{base_url}/api/user/isFollow"
+        payload = {
+            "followedId": followedId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "判断是否关注"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def followUser(self, authorization, followedId, DeviceType="web"):
+        """
+        新增关注
+        :param followedId: (integer, query, required) followedId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2026-01-06
+        url = f"https://{base_url}/api/user/follow"
+        payload = {
+            "followedId": followedId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "新增关注"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def deleteFollowUser(self, authorization, followedId, DeviceType="web"):
+        """
+        取消关注
+        :param followedId: (integer, query, required) followedId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2026-01-06
+        url = f"https://{base_url}/api/user/follow"
+        payload = {
+            "followedId": followedId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("DELETE", url, headers=headers, params=payload)
+        error_msg = "取消关注"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+

@@ -2623,4 +2623,212 @@ class BookApi(BaseAPI):
         response = response.json()
         return response
 
+    def incrementReadCount(self, authorization, bookId, DeviceType="web"):
+        """
+        增加一次阅读
+        :param bookId: (integer, query, required) bookId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.24.0  &  2026-01-06
+        url = f"https://{base_url}/api/book/incrementReadCount"
+        payload = {
+            "bookId": bookId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
 
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "增加一次阅读"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def getReadingStatus(self, authorization, bookId, kidId, DeviceType="web"):
+        """
+        检查kid是否读过某本故事书
+        :param bookId: (integer, path, required) 故事书ID
+        :param kidId: (integer, query, required) 孩子ID
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.24.0  &  2026-01-06
+        url = f"https://{base_url}/api/book/{bookId}/reading-status"
+        payload = {
+            "kidId": kidId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "检查kid是否读过某本故事书"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def recordReading(self, authorization, bookId, kidId, platform, DeviceType="web"):
+        """
+        记录书籍阅读，故事书阅读完上报
+        :param bookId: (integer, query, required) bookId
+        :param kidId: (integer, query, optional) kidId
+        :param platform: (string, query, optional) 平台信息，APP、WEB
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.24.0  &  2026-01-06
+        url = f"https://{base_url}/api/book/recordReading"
+        payload = {
+            "bookId": bookId,
+            "kidId": kidId,
+            "platform": platform
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "记录书籍阅读，故事书阅读完上报"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def reportBook(self, authorization, bookId, comment, pageNumber, reason, DeviceType="web"):
+        """
+        举报书籍
+        :param bookId: (integer, path, required) bookId
+        :param comment: (string, query, optional) comment
+        :param pageNumber: (integer, query, optional) pageNumber
+        :param reason: (string, query, required) reason
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.24.0  &  2026-01-06
+        url = f"https://{base_url}/api/book/{bookId}/report"
+        payload = {
+            "comment": comment,
+            "pageNumber": pageNumber,
+            "reason": reason
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "举报书籍"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def series_details(self, authorization, seriesId, includeBookCount=False, translateLanguage='', DeviceType="web"):
+        """
+        查询单个故事书系列
+        :param seriesId: (integer, path, required) 系列ID
+        :param includeBookCount: (boolean, query, optional) 是否包含书籍数量，默认false
+        :param translateLanguage: (string, query, optional) 目标翻译语言，用于翻译系列标题和描述
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.24.0  &  2026-01-06
+        url = f"https://{base_url}/api/book/series/{seriesId}"
+        payload = {
+            "includeBookCount": includeBookCount,
+            "translateLanguage": translateLanguage
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "查询单个故事书系列"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def delete_series(self, authorization, seriesId, DeviceType="web"):
+        """
+        删除故事书系列
+        :param seriesId: (integer, path, required) 系列ID
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.24.0  &  2026-01-06
+        url = f"https://{base_url}/api/book/series/{seriesId}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("DELETE", url, headers=headers)
+        error_msg = "删除故事书系列"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def seriesBooks(self, authorization, seriesId, page=0, searchKey='', size=10, status=0,
+                    translateLanguage='en', DeviceType="web"):
+        """
+        根据系列ID查询故事书列表
+        :param seriesId: (integer, path, required) 系列ID
+        :param page: (integer, query, optional) 页码
+        :param searchKey: (string, query, optional) 搜索关键词，用于模糊搜索故事书标题
+        :param size: (integer, query, optional) 每页数量
+        :param status: (integer, query, optional) 故事书状态：0-私有，1-公开，2-待审核，3-被拒绝，4-已删除
+        :param translateLanguage: (string, query, optional) 目标翻译语言，用于翻译书籍标题和描述
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.24.0  &  2026-01-06
+        url = f"https://{base_url}/api/book/series/{seriesId}/books"
+        payload = {
+            "page": page,
+            "searchKey": searchKey,
+            "size": size,
+            "status": status,
+            "translateLanguage": translateLanguage
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "根据系列ID查询故事书列表"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def userPublicbooks(self, authorization, userId, DeviceType="web", **kwargs):
+        """
+        查询指定用户的公开故事书列表
+        :param userId: (integer, path, required) 用户ID
+        :param page: (integer, query, optional) 页码
+        :param size: (integer, query, optional) 每页数量
+        :param translateLanguage: (string, query, optional) 目标翻译语言，用于翻译书籍标题和描述
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.24.0  &  2026-01-06
+        url = f"https://{base_url}/api/book/user/{userId}/publicBooks"
+        payload = {
+            "page": 0,
+            "size": 20,
+            "translateLanguage": ''
+        }
+        payload.update(kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "查询指定用户的公开故事书列表"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def userOriginalBooks(self, authorization, contributorId, DeviceType="web", **kwargs):
+        """
+        查询某个用户贡献过的原始故事书
+        :param contributorId: (integer, path, required) contributorId
+        :param page: (integer, query, optional) 页码
+        :param size: (integer, query, optional) 每页数量
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.24.0  &  2026-01-06
+        url = f"https://{base_url}/api/book/{contributorId}/original-books"
+        payload = {
+            "page": 0,
+            "size": 20
+        }
+        payload.update(kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "查询某个用户贡献过的原始故事书"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
