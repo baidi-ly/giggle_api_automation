@@ -2498,6 +2498,45 @@ class BookApi(BaseAPI):
         response = response.json()
         return response
 
+    def bookShare(self, authorization, token, translateLanguage, DeviceType="web"):
+        """
+        通过分享令牌获取书籍
+        :param token: (string, query, required) token
+        :param translateLanguage: (string, query, optional) translateLanguage
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2026-01-05
+        url = f"https://{base_url}/api/book/share"
+        payload = {
+            "token": token,
+            "translateLanguage": translateLanguage
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "通过分享令牌获取书籍"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def shareBook(self, authorization, bookId, DeviceType="web"):
+        """
+        创建私有书籍分享链接
+        :param bookId: (integer, path, required) bookId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2026-01-05
+        url = f"https://{base_url}/api/book/{bookId}/share"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers)
+        error_msg = "创建私有书籍分享链接"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
     def voice_model_list(self, authorization, DeviceType="web"):
         """
         获取用户语音模型列表
