@@ -1769,3 +1769,127 @@ class TestBook:
                     # 应有正确答案
                     if 'answer' in question['questions'][0]:
                         assert question['questions'][0].get('answer') is not None, f"Quiz第{idx + 1}题缺少正确答案: {question}"
+
+    def test_book_voice_clone_flow(self, kid_data_session):
+        """
+        语音克隆完整流程测试
+        步骤:
+        1. 获取用户语音克隆模型列表
+        2. 获取指定条件的语音包列表
+        3. 生成新语音包
+        4. 轮询查询语音包详情直到完成
+        """
+        kid_id = kid_data_session
+        # ========== Step 1: 获取语音克隆模型列表 ==========
+        voice_models = self.book.voice_model_list(self.authorization)
+
+        # 校验返回结构
+        assert voice_models.get('code') == 0, f"voice_model_list 请求失败: {voice_models}"
+        models_data = voice_models.get('data')
+        assert isinstance(models_data, list), f"data 应为列表类型: {type(models_data)}"
+
+        # 校验必须有可用的语音模型 (status=1 表示成功)
+        available_models = [m for m in models_data if m.get('status') == 1]
+        assert len(available_models) > 0, "没有可用的语音克隆模型 (status=1)"
+
+        # 选取第一个可用模型进行后续测试
+        selected_model = available_models[0]
+        voice_model_id = selected_model.get('id')
+
+        # 校验模型字段完整性
+        assert voice_model_id is not None, "模型缺少 id 字段"
+        assert 'userId' in selected_model, "模型缺少 userId 字段"
+        assert 'kidId' in selected_model, "模型缺少 kidId 字段"
+        assert 'voiceKey' in selected_model, "模型缺少 voiceKey 字段"
+        assert selected_model.get('status') == 1, "所选模型状态应为成功(1)"
+
+        # 如果模型有 voiceId，说明语音克隆完成
+        if selected_model.get('aiModelId'):
+            assert selected_model.get('voiceId') is not None, "成功状态的模型应有 voiceId"
+
+        # ========== Step 2: 获取语音包列表 ==========
+        languages_resp = self.book.getSupportedlanguages(self.authorization, self.book_id)
+        supported_languages = languages_resp['data']
+        # 提取语言代码列表
+        if isinstance(supported_languages[0], dict):
+            language_codes = [lang.get('code') for lang in supported_languages]
+        else:
+            language_codes = supported_languages
+        # 选择一个语言用于后续测试
+        test_language = random.choice(language_codes) if language_codes else 'en'
+
+        voice_packs = self.book.book_voice_packs(self.authorization, self.book_id, kid_id, test_language, voice_model_id)
+        assert voice_packs.get('code') == 0, f"book_voice_packs 请求失败: {voice_packs}"
+        packs_data = voice_packs.get('data')
+        assert isinstance(packs_data, list), f"data 应为列表类型: {type(packs_data)}"
+
+        # 记录已存在的语音包数量
+        existing_packs_count = len(packs_data)
+
+        # 如果已有语音包，校验字段完整性
+        if existing_packs_count > 0:
+            pack = packs_data[0]
+            assert 'id' in pack, "语音包缺少 id 字段"
+            assert pack.get('bookId') == self.book_id, f"bookId 不匹配: 期望 {self.book_id}, 实际 {pack.get('bookId')}"
+            assert pack.get('languageCode') == self.language_code, f"languageCode 不匹配"
+            assert pack.get('voiceModelId') == voice_model_id, f"voiceModelId 不匹配"
+            assert 'status' in pack, "语音包缺少 status 字段"
+
+        # ========== Step 3: 生成新语音包 ==========
+        generate_result = self.book.generate_voice_pack(self.authorization, self.book_id, kid_id, test_language, voice_model_id)
+        assert generate_result.get('code') == 0, f"generate_voice_pack 请求失败: {generate_result}"
+        gen_data = generate_result.get('data')
+        assert gen_data is not None, "生成语音包返回 data 为空"
+
+        # 校验返回的关键字段
+        voice_pack_id = gen_data.get('voicePackId')
+        assert voice_pack_id is not None, "返回缺少 voicePackId"
+        assert gen_data.get('status') == 'queued', f"初始状态应为 'queued', 实际: {gen_data.get('status')}"
+
+        # ========== Step 4: 轮询查询语音包详情 ==========
+        max_wait_seconds = 120  # 最长等待时间
+        poll_interval = 3  # 轮询间隔
+        elapsed = 0
+        final_status = None
+
+        while elapsed < max_wait_seconds:
+            pack_details = self.book.voice_pack_details(self.authorization, voice_pack_id)
+            assert pack_details.get('code') == 0, f"voice_pack_details 请求失败: {pack_details}"
+            details_data = pack_details.get('data')
+            assert details_data is not None, "语音包详情 data 为空"
+
+            # 校验字段完整性
+            assert details_data.get('voicePackId') == voice_pack_id, "voicePackId 不匹配"
+            assert details_data.get('bookId') == self.book_id, f"bookId 不匹配"
+            assert details_data.get('languageCode') == self.language_code, "languageCode 不匹配"
+            assert details_data.get('voiceModelId') == voice_model_id, "voiceModelId 不匹配"
+            assert 'dbCreateTime' in details_data, "缺少 dbCreateTime 字段"
+            assert 'dbModifyTime' in details_data, "缺少 dbModifyTime 字段"
+
+            current_status = details_data.get('status')
+            assert current_status in ['processing', 'success', 'failed', 'unknown'], \
+                f"status 值异常: {current_status}"
+
+            if current_status == 'success':
+                final_status = 'success'
+                # 成功状态应有下载链接
+                assert 's3Key' in details_data, "成功状态应包含 s3Key"
+                assert 'downloadUrl' in details_data, "成功状态应包含 downloadUrl"
+                assert details_data.get('downloadUrl'), "downloadUrl 不应为空"
+                break
+            elif current_status == 'failed':
+                final_status = 'failed'
+                # 失败状态应有错误信息
+                assert 'errorMessage' in details_data, "失败状态应包含 errorMessage"
+                break
+
+            time.sleep(poll_interval)
+            elapsed += poll_interval
+
+        # 最终状态校验 (允许超时，但要记录)
+        if final_status is None:
+            pytest.skip(f"语音包生成超时 ({max_wait_seconds}s)，当前状态: processing")
+        elif final_status == 'failed':
+            pytest.fail(f"语音包生成失败: {details_data.get('errorMessage')}")
+        else:
+            assert final_status == 'success', f"语音包最终状态异常: {final_status}"

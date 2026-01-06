@@ -2497,3 +2497,91 @@ class BookApi(BaseAPI):
         assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
+
+    def voice_model_list(self, authorization, DeviceType="web"):
+        """
+        获取用户语音模型列表
+        :param voicePackId: (integer, path, required) voicePackId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.24.0  &  2026-01-06
+        url = f"https://{base_url}/api/voice-clone/model/list"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "获取语音包信息"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def book_voice_packs(self, authorization, bookId, kidId, languageCode, voiceModelId, DeviceType="web"):
+        """
+        根据指定条件获取语音包
+        :param bookId: (integer, query, required) bookId
+        :param kidId: (integer, query, optional) kidId
+        :param languageCode: (string, query, required) languageCode
+        :param voiceModelId: (string, query, required) voiceModelId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.24.0  &  2026-01-06
+        url = f"https://{base_url}/api/book/voice-packs"
+        payload = {
+            "bookId": bookId,
+            "kidId": kidId,
+            "languageCode": languageCode,
+            "voiceModelId": voiceModelId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "根据指定条件获取语音包"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def generate_voice_pack(self, authorization, bookId, kidId, languageCode, voiceModelId, DeviceType="web"):
+        """
+        生成故事书语音包
+        :param bookId: (integer, query, required) bookId
+        :param kidId: (integer, query, required) kidId
+        :param languageCode: (string, query, required) languageCode
+        :param voiceModelId: (string, query, required) voiceModelId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.24.0  &  2026-01-06
+        url = f"https://{base_url}/api/book/voice-pack/generate"
+        payload = {
+            "bookId": bookId,
+            "kidId": kidId,
+            "languageCode": languageCode,
+            "voiceModelId": voiceModelId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "生成故事书语音包"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def voice_pack_details(self, authorization, voicePackId=0, DeviceType="web"):
+        """
+        获取语音包信息
+        :param voicePackId: (integer, path, required) voicePackId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.24.0  &  2026-01-06
+        url = f"https://{base_url}/api/book/voice-pack/{voicePackId}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "获取语音包信息"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+
