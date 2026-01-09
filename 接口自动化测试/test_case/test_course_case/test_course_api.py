@@ -1252,3 +1252,11 @@ class TestCourse:
                             assert question['difficulty'] == course_difficulty
                             assert question['skill'] in skills or any(question['skill'].startswith(kill) for kill in skills)
                             assert question['id'] in quiz_ids
+
+
+    @pytest.mark.release
+    def test_course_positive_curriculum_search(self):
+        """搜索课程路径资源"""
+        curriculum_res = self.course.search_curriculum(self.authorization)
+        assert curriculum_res['message'] == 'success'
+        assert curriculum_res['data']

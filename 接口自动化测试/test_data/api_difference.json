@@ -1,6 +1,6 @@
 {
   "apis": [
-    "/api/book/{contributorId}/original-books"
+    "/api/curriculum/app-push/trigger"
   ],
   "update_apis": [],
   "scan_time": "2025-10-17 10:54:39.746089",

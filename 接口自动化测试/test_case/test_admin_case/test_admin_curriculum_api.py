@@ -6,6 +6,7 @@ from pandas import DataFrame
 
 from test_case.page_api.admin.admin_course_api import AdminCourseApi
 from test_case.page_api.admin.admin_curriculum_api import AdminCurriculumApi
+from test_case.page_api.kid.kid_api import KidApi
 
 sys.path.append(os.getcwd())
 sys.path.append("..")
@@ -18,6 +19,7 @@ class TestAdminCurriculum:
 
     def setup_class(self):
         self.admin_curriculum = AdminCurriculumApi()
+        self.kid = KidApi()
         self.authorization = self.admin_curriculum.get_authorization()[0]
         self.admin_auth = self.admin_curriculum.get_admin_authorization()[0]
 
@@ -213,3 +215,16 @@ class TestAdminCurriculum:
         if list_res4:
             level_ids = DataFrame(list_res4)['id'].tolist()
             assert level_id not in level_ids
+
+    @pytest.mark.release
+    def test_course_admin_app_push_trigger(self, kid_data_session):
+        '''课程抽题改为根据课程id从题库中抽'''
+        kid_res = self.kid.getKids(self.authorization)['data']
+        for kid in kid_res:
+            if kid['name'] == "妮姐":
+                kid_id = kid['id']
+                break
+        pushType = "LEVEL_UNLOCK"
+        customMessage = pushType + self.now + "首页三期app推送测试内容"
+        push_res = self.admin_curriculum.app_push_trigger(self.admin_auth, kid_id, pushType, customMessage)
+        assert push_res['message'] == 'success'
