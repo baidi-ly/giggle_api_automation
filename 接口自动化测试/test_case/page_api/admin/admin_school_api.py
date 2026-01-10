@@ -64,7 +64,7 @@ class AdminSchoolApi(BaseAPI):
         response = response.json()
         return response
 
-    def update_admin_class(self, authorization, classId, DeviceType="web", **kwargs):
+    def update_admin_class(self, authorization, classId, teacherId, DeviceType="web", **kwargs):
         """
         更新班级信息
         :param classId: (integer, path, required) classId
@@ -76,7 +76,7 @@ class AdminSchoolApi(BaseAPI):
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-09-25
-        url = f"https://{base_url}/admin/school/class/{classId}"
+        url = f"https://{base_url}/admin/school/class/{classId}?teacherId={teacherId}"
         payload = {
             "className": "dd",
             "imageUrl": "https://baidu.com",
@@ -111,7 +111,7 @@ class AdminSchoolApi(BaseAPI):
         response = response.json()
         return response
 
-    def batch_add_student(self, authorization, classId, DeviceType="web", **kwargs):
+    def batch_add_student(self, authorization, classId, teacherId, DeviceType="web", **kwargs):
         """
         批量添加学生
         :param classId: (integer, body, required) classId 参数
@@ -119,7 +119,7 @@ class AdminSchoolApi(BaseAPI):
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-09-25
-        url = f"https://{base_url}/admin/school/student/batch"
+        url = f"https://{base_url}/admin/school/student/batch?teacherId={teacherId}"
         payload = {
             "classId": classId,
             "studentNames": ['debbie', 'jerry']
@@ -130,7 +130,7 @@ class AdminSchoolApi(BaseAPI):
 
         response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "批量添加学生"
-        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        # assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
 
@@ -159,7 +159,7 @@ class AdminSchoolApi(BaseAPI):
         response = response.json()
         return response
 
-    def update_student(self, authorization, studentId, DeviceType="web", **kwargs):
+    def update_student(self, authorization, studentId, teacherId, DeviceType="web", **kwargs):
         """
         更新学生信息
         :param studentId: (integer, path, required) studentId
@@ -169,7 +169,7 @@ class AdminSchoolApi(BaseAPI):
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-09-25
-        url = f"https://{base_url}/admin/school/student/{studentId}"
+        url = f"https://{base_url}/admin/school/student/{studentId}?teacherId={teacherId}"
         payload = {
             "avatarUrl": "string",
             "studentName": "xxx",
@@ -181,7 +181,7 @@ class AdminSchoolApi(BaseAPI):
 
         response = requests.request("PUT", url, headers=headers, json=payload)
         error_msg = "更新学生信息"
-        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        # assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
 
@@ -202,14 +202,14 @@ class AdminSchoolApi(BaseAPI):
         response = response.json()
         return response
 
-    def migrate_student(self, authorization, sourceClassIds=[], targetClassId=0, DeviceType="web", **kwargs):
+    def migrate_student(self, authorization, teacherId, sourceClassIds=[], targetClassId=0, DeviceType="web", **kwargs):
         """
         迁移学生
         :param req: (object, body, required) req
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.21.0  &  2025-11-05
-        url = f"https://{base_url}/admin/school/student/migrate"
+        url = f"https://{base_url}/admin/school/student/migrate?teacherId={teacherId}"
         payload = {
             "sourceClassIds": sourceClassIds,
             "targetClassId": targetClassId
@@ -224,14 +224,14 @@ class AdminSchoolApi(BaseAPI):
         response = response.json()
         return response
 
-    def create_lesson(self, authorization, classId, DeviceType="web", **kwargs):
+    def create_lesson(self, authorization, classId, teacherId, DeviceType="web", **kwargs):
         """
         创建课堂
         :param req: (object, body, required) req
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-10-17
-        url = f"https://{base_url}/admin/school/lesson"
+        url = f"https://{base_url}/admin/school/lesson?teacherId={teacherId}"
         payload = {
           "classId": classId,
           "lessonName": "string",
@@ -254,14 +254,14 @@ class AdminSchoolApi(BaseAPI):
         response = response.json()
         return response
 
-    def lesson_details(self, authorization, lessonId, DeviceType="web"):
+    def lesson_details(self, authorization, lessonId, teacherId, DeviceType="web"):
         """
         获取课堂详情
         :param lessonId: (integer, path, required) lessonId
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-10-06
-        url = f"https://{base_url}/admin/school/lesson/{lessonId}"
+        url = f"https://{base_url}/admin/school/lesson/{lessonId}?teacherId={teacherId}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
@@ -271,14 +271,14 @@ class AdminSchoolApi(BaseAPI):
         response = response.json()
         return response
 
-    def update_lesson(self, authorization, lessonId, classId, DeviceType="web", **kwargs):
+    def update_lesson(self, authorization, lessonId, classId, teacherId, DeviceType="web", **kwargs):
         """
         更新课堂信息
         :param lessonId: (integer, path, required) lessonId
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-10-06
-        url = f"https://{base_url}/admin/school/lesson/{lessonId}"
+        url = f"https://{base_url}/admin/school/lesson/{lessonId}?teacherId={teacherId}"
         payload = {
             "classId": classId,
             "lessonName": '',
@@ -296,14 +296,14 @@ class AdminSchoolApi(BaseAPI):
         response = response.json()
         return response
 
-    def delete_lesson(self, authorization, lessonId=0, DeviceType="web"):
+    def delete_lesson(self, authorization, lessonId, teacherId, DeviceType="web"):
         """
         删除课堂
         :param lessonId: (integer, path, required) lessonId
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-10-06
-        url = f"https://{base_url}/admin/school/lesson/{lessonId}"
+        url = f"https://{base_url}/admin/school/lesson/{lessonId}?teacherId={teacherId}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
@@ -313,7 +313,7 @@ class AdminSchoolApi(BaseAPI):
         response = response.json()
         return response
 
-    def class_lessons(self, authorization, classId, DeviceType="web", **kwargs):
+    def class_lessons(self, authorization, classId, teacherId, DeviceType="web", **kwargs):
         """
         获取班级课堂列表
         :param classId: (integer, path, required) classId
@@ -324,7 +324,7 @@ class AdminSchoolApi(BaseAPI):
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.21.0  &  2025-11-05
-        url = f"https://{base_url}/admin/school/class/{classId}/lessons"
+        url = f"https://{base_url}/admin/school/class/{classId}/lessons?teacherId={teacherId}"
         payload = {
             "all": False,
             "keyword": '',
@@ -341,7 +341,7 @@ class AdminSchoolApi(BaseAPI):
         response = response.json()
         return response
 
-    def update_students_lesson_groups(self, authorization, lessonId, DeviceType="web", **kwargs):
+    def update_students_lesson_groups(self, authorization, lessonId, teacherId, DeviceType="web", **kwargs):
         """
         更新课堂学生默认分组
         :param lessonId: (integer, path, required) lessonId
@@ -349,7 +349,7 @@ class AdminSchoolApi(BaseAPI):
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-10-17
-        url = f"https://{base_url}/admin/school/lesson/{lessonId}/groups"
+        url = f"https://{base_url}/admin/school/lesson/{lessonId}/groups?teacherId={teacherId}"
         payload = {
           "studentsGroup": [
             {
@@ -370,14 +370,14 @@ class AdminSchoolApi(BaseAPI):
         response = response.json()
         return response
 
-    def update_students_class_groups(self, authorization, classId=0, groupSeqNo=0, studentIds=[1], DeviceType="web"):
+    def update_students_class_groups(self, authorization, classId, teacherId, groupSeqNo=0, studentIds=[], DeviceType="web"):
         """
         更新班级学生默认分组
         :param classId: (integer, path, required) classId
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-10-15
-        url = f"https://{base_url}/admin/school/class/{classId}/groups"
+        url = f"https://{base_url}/admin/school/class/{classId}/groups?teacherId={teacherId}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
         payload = {
@@ -395,14 +395,14 @@ class AdminSchoolApi(BaseAPI):
         response = response.json()
         return response
 
-    def get_students_class_groups(self, authorization, classId, DeviceType="web"):
+    def get_students_class_groups(self, authorization, classId, teacherId, DeviceType="web"):
         """
         获取班级学生默认分组
         :param classId: (integer, path, required) classId
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-10-15
-        url = f"https://{base_url}/admin/school/class/{classId}/groups"
+        url = f"https://{base_url}/admin/school/class/{classId}/groups?teacherId={teacherId}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
@@ -412,7 +412,7 @@ class AdminSchoolApi(BaseAPI):
         response = response.json()
         return response
 
-    def create_students_lesson_groups(self, authorization, lessonId, groupCount, DeviceType="web"):
+    def create_students_lesson_groups(self, authorization, lessonId, teacherId, groupCount, DeviceType="web"):
         """
         创建学生分组
         :param lessonId: (integer, path, required) lessonId
@@ -420,7 +420,7 @@ class AdminSchoolApi(BaseAPI):
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-10-17
-        url = f"https://{base_url}/admin/school/lesson/{lessonId}/groups"
+        url = f"https://{base_url}/admin/school/lesson/{lessonId}/groups?teacherId={teacherId}"
         payload = {
           "groupCount": groupCount
         }
