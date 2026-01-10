@@ -10,7 +10,7 @@ base_url = BaseAPI().admin_baseurl()
 class AdminSchoolApi(BaseAPI):
     """admin学校系统接口"""
 
-    def admin_create_class(self, authorization, DeviceType="web", **kwargs):
+    def admin_create_class(self, authorization, teacherId, DeviceType="web", **kwargs):
         """
         创建班级
         :param className: (string, body, required) className 参数
@@ -20,7 +20,7 @@ class AdminSchoolApi(BaseAPI):
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-09-25
-        url = f"https://{base_url}/admin/school/class"
+        url = f"https://{base_url}/admin/school/class?teacherId={teacherId}"
         payload = {
             "className": "dibo_test_calss",
             "imageUrl": "",
@@ -38,7 +38,7 @@ class AdminSchoolApi(BaseAPI):
         response = response.json()
         return response
 
-    def admin_class_list(self, authorization, DeviceType="web", **kwargs):
+    def admin_class_list(self, authorization, teacherId, DeviceType="web", **kwargs):
         """
         获取用户的班级列表
         :param all: (boolean, query, optional) all
@@ -49,7 +49,8 @@ class AdminSchoolApi(BaseAPI):
         # Create Data:  V1.19.0  &  2025-09-25
         url = f"https://{base_url}/admin/school/class/list"
         payload = {
-            "all": False,
+            'teacherId': teacherId,
+            "all": True,
             "page": 0,
             "size": 20
         }
@@ -93,14 +94,14 @@ class AdminSchoolApi(BaseAPI):
         response = response.json()
         return response
 
-    def delete_admin_class(self, authorization, classId, DeviceType="web"):
+    def delete_admin_class(self, authorization, classId, teacherId, DeviceType="web"):
         """
         删除班级
         :param classId: (integer, path, required) classId
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-09-25
-        url = f"https://{base_url}/admin/school/class/{classId}"
+        url = f"https://{base_url}/admin/school/class/{classId}?teacherId={teacherId}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 
@@ -133,7 +134,7 @@ class AdminSchoolApi(BaseAPI):
         response = response.json()
         return response
 
-    def class_students(self, authorization, classId, DeviceType="web", **kwargs):
+    def class_students(self, authorization, classId, teacherId, DeviceType="web", **kwargs):
         """
         获取班级学生列表
         :param classId: (integer, path, required) classId
@@ -145,7 +146,8 @@ class AdminSchoolApi(BaseAPI):
         url = f"https://{base_url}/admin/school/class/{classId}/students"
         payload = {
             "page": 0,
-            "size": 20
+            "size": 20,
+            'teacherId': teacherId
         }
         payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))
@@ -183,14 +185,14 @@ class AdminSchoolApi(BaseAPI):
         response = response.json()
         return response
 
-    def delete_student(self, authorization, studentId, DeviceType="web"):
+    def delete_student(self, authorization, studentId, teacherId, DeviceType="web"):
         """
         删除学生
         :param studentId: (integer, path, required) studentId
         :return: 接口原始返回（已 json 解析）
         """
         # Create Data:  V1.19.0  &  2025-09-25
-        url = f"https://{base_url}/admin/school/student/{studentId}"
+        url = f"https://{base_url}/admin/school/student/{studentId}?teacherId={teacherId}"
         timestamp = str(int(time.time() * 1000))
         headers = self.request_header(timestamp, authorization, DeviceType)
 

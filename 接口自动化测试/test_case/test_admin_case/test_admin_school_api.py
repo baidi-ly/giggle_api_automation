@@ -27,12 +27,12 @@ class TestSchoolApi:
 
     def teardown_class(self):
         '''删除测试班级'''
-        class_res = self.admin_school.admin_class_list(self.authorization, all=True)
+        class_res = self.admin_school.admin_class_list(self.authorization, self.userId, all=True)
         for _class in class_res['data']['content']:
             if _class['className'].startswith('dibo_test'):
                 class_id = _class['id']
                 # 删除班级
-                self.admin_school.delete_admin_class(self.authorization, class_id)
+                self.admin_school.delete_admin_class(self.authorization, class_id, self.userId)
 
     @pytest.fixture(scope='class')
     def create_class(self):
@@ -45,12 +45,12 @@ class TestSchoolApi:
             "subject": "History",
             "teacherUserId": self.userId
         }
-        class_id = self.admin_school.admin_create_class(self.authorization, **pl)['data']['id']
+        class_id = self.admin_school.admin_create_class(self.authorization, self.userId, **pl)['data']['id']
 
         yield class_id
 
         # 删除班级
-        self.admin_school.delete_admin_class(self.authorization, class_id)
+        self.admin_school.delete_admin_class(self.authorization, class_id, self.userId)
 
     @pytest.fixture(scope='function')
     def school_fixture(self):
@@ -62,7 +62,7 @@ class TestSchoolApi:
             "subject": "History",
             "teacherUserId": self.userId
         }
-        class_a_id = self.admin_school.admin_create_class(self.authorization, **pl)['data']['id']
+        class_a_id = self.admin_school.admin_create_class(self.authorization, self.userId, **pl)['data']['id']
         # 批量添加学生
         student_names = ['class_a1', 'class_a2']
         pl1 = {"studentNames": student_names}
@@ -77,7 +77,7 @@ class TestSchoolApi:
             "subject": "History",
             "teacherUserId": self.userId
         }
-        class_b_id = self.admin_school.admin_create_class(self.authorization, **pl)['data']['id']
+        class_b_id = self.admin_school.admin_create_class(self.authorization, self.userId, **pl)['data']['id']
         student_names = ['class_b1', 'class_b2']
         # 批量添加学生
         pl1 = {"studentNames": student_names}
@@ -92,7 +92,7 @@ class TestSchoolApi:
             "subject": "History",
             "teacherUserId": self.userId
         }
-        class_c_id = self.admin_school.admin_create_class(self.authorization, **pl)['data']['id']
+        class_c_id = self.admin_school.admin_create_class(self.authorization, self.userId, **pl)['data']['id']
         student_names = ['class_c1', 'class_c2']
         # 批量添加学生
         pl1 = {"studentNames": student_names}
@@ -103,11 +103,21 @@ class TestSchoolApi:
 
         for class_id in [class_a_id, class_b_id, class_c_id]:
             # 删除班级
-            self.admin_school.delete_admin_class(self.authorization, class_id)
+            self.admin_school.delete_admin_class(self.authorization, class_id, self.userId)
             
     @pytest.mark.release
     def test_admin_school_positive_admin_create_class(self):
         '''admin班级 - 增删改查验证'''
+        class_list = self.admin_school.admin_class_list(self.authorization, self.userId)['data']['content']
+        for _class in class_list:
+            # 删除班级
+            class_id = _class['id']
+            students = self.admin_school.class_students(self.authorization, class_id, self.userId)['data']['content']
+            for student in students:
+                student_id = student['id']
+                delete_res = self.admin_school.delete_student(self.authorization, student_id, self.userId)
+                assert delete_res['code'] == 200
+            self.admin_school.delete_admin_class(self.authorization, class_id, self.userId)
         # 创建班级
         className = "baidi_test" + self.now
         pl = {
@@ -117,10 +127,10 @@ class TestSchoolApi:
             "subject": "History",
             "teacherUserId": self.userId
         }
-        class_id = self.admin_school.admin_create_class(self.authorization, **pl)['data']['id']
+        class_id = self.admin_school.admin_create_class(self.authorization, self.userId, **pl)
         # 创建班级后，获取班级列表，验证添加成功
-        add_list = self.admin_school.admin_class_list(self.authorization)['data']
-        for _class in add_list:
+        add_list = self.admin_school.admin_class_list(self.authorization, self.userId)['data']
+        for _class in add_list['content']:
             if _class['className'] == className:
                 assert  _class['className'] == className
                 assert  _class['imageUrl'] == pl.get('imageUrl')
@@ -138,13 +148,13 @@ class TestSchoolApi:
             "imageUrl": "https://baidu.com",
             "room": "102",
             "subject": "English",
-            "teacherUserId": self.userId
+            "teacherId": self.userId
         }
         update_res = self.admin_school.update_admin_class(self.authorization, class_id, **update_pl)
         assert update_res['message'] == "success"
         # 更新班级信息后，获取班级列表，验证更新成功
-        update_list = self.admin_school.admin_class_list(self.authorization)['data']
-        for _class in update_list:
+        update_list = self.admin_school.admin_class_list(self.authorization, self.userId)['data']
+        for _class in update_list['content']:
             if _class['id'] == class_id:
                 assert  _class['className'] == classNameNew
                 assert  _class['imageUrl'] == update_pl.get('imageUrl')
@@ -156,9 +166,9 @@ class TestSchoolApi:
             assert False, "新增班级后，未在返回的班级列表中找到新增得班级！"
 
         # 删除班级
-        self.admin_school.delete_admin_class(self.authorization, class_id)
+        self.admin_school.delete_admin_class(self.authorization, class_id, self.userId)
         # 删除班级后，获取班级列表，验证删除班级成功
-        delete_list = self.admin_school.admin_class_list(self.authorization)['data']
+        delete_list = self.admin_school.admin_class_list(self.authorization, self.userId)['data']
         if delete_list:
             class_ids = DataFrame(delete_list).loc[:, "id"].tolist()
             assert class_id not in class_ids
@@ -204,7 +214,7 @@ class TestSchoolApi:
             assert False, "新增班级后，未在返回的班级列表中找到新增得班级！"
 
         # 删除班级
-        self.admin_school.delete_admin_class(self.authorization, class_id)
+        self.admin_school.delete_admin_class(self.authorization, class_id, self.userId)
         # 删除班级后，获取班级列表，验证删除班级成功
         delete_list = self.admin_school.class_students(self.authorization, class_id)
         if delete_list:
@@ -309,7 +319,7 @@ class TestSchoolApi:
         """admin后台班级-增删改查验证"""
         # 创建班级
         className = 'dibo_test_class' + self.now
-        class_id = self.admin_school.admin_create_class(self.authorization, className=className, teacherUserId=self.userId)['data']['id']
+        class_id = self.admin_school.admin_create_class(self.authorization, self.userId, className=className, teacherUserId=self.userId)['data']['id']
         # 批量添加学生
         students_res = self.admin_school.batch_add_student(self.authorization, class_id)['data']
         studentIds = DataFrame(students_res).loc[:, "id"].tolist()
