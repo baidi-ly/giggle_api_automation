@@ -99,3 +99,27 @@ class AdminRedisApi(BaseAPI):
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
+
+    def deleteKey(self, authorization, key, DeviceType="web", code=200, **kwargs):
+        """
+        删除Redis指定key
+        :param key: (string, query, required) Redis key
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2026-01-13
+        url = f"https://{base_url}/admin/redis/key"
+        payload = {
+            "key": key
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("DELETE", url, headers=headers, params=payload)
+        error_msg = "删除Redis指定key"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+

@@ -6,7 +6,9 @@ import sys
 import os
 
 from config import RunConfig
+from test_case.page_api.admin.admin_curriculum_api import AdminCurriculumApi
 from test_case.page_api.course.course_api import CourseApi
+from test_case.page_api.curriculum.curriculum_api import CurriculumApi
 from test_case.page_api.kid.kid_api import KidApi
 from test_case.page_api.learning.learning_api import LearningApi
 from test_case.page_api.school.school_api import SchoolApi
@@ -25,6 +27,7 @@ class TestUser:
         self.kid = KidApi()
         self.learning = LearningApi()
         self.school = SchoolApi()
+        self.curriculum = CurriculumApi()
         self.authorization, self.userId = self.user.get_authorization()
         self.course = CourseApi()
 
@@ -971,3 +974,45 @@ class TestUser:
         assert is_follow_final.get('code') == 0
         assert is_follow_final.get('data') is False, \
             f"取消关注后 isFollow 应为 False: {is_follow_final.get('data')}"
+
+    def test_user_follow_flow11(self):
+        """
+        用户关注完整流程测试
+        步骤:
+        1. 获取目标用户信息总览
+        2. 检查是否已关注
+        3. 关注用户
+        4. 验证关注状态
+        5. 取消关注
+        6. 验证取消关注状态
+        """
+        # ========== Step 1: 获取目标用户信息总览 ==========
+        kid_res = self.kid.getKids(self.authorization)['data']
+        for kid in kid_res:
+            if kid['name'] == "Ss":
+                kid_id = kid['id']
+                break
+
+        # 步骤1: 获取课程路径
+        curriculum_paths = self.curriculum.get_curriculum_by_country(self.authorization, countryCode='JP')
+        assert curriculum_paths["code"] == 200, f"获取课程路径失败: {curriculum_paths}"
+        assert curriculum_paths["data"], "没有找到课程路径"
+
+        # 选择第一个路径
+        path_id = curriculum_paths["data"]["id"]
+
+        # 步骤2: 获取该路径下的所有学习等级
+        levels = self.curriculum.get_level_list(self.authorization, path_id)['data']
+        for level in levels:
+            if level['levelName'] == 'Level 2':
+                level_id = level['id']
+                key = 'NEW_MAP_S3_FIRST_ENTER_LEVEL_TIME'
+                value = f'{level_id},1768708800000'
+                profile_result = self.user.clientInteraction(self.authorization, key, kid_id, value=value)
+                profile_data = profile_result.get('data')
+                assert profile_data is not None, "用户信息总览 data 为空"
+                break
+
+        level_contents = self.curriculum.curriculum_level_contents(self.authorization, level_id, kid_id)['data'][0]
+        part_len = len(level_contents['parts'])
+        print(part_len)

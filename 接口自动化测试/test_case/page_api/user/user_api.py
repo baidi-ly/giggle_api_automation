@@ -754,3 +754,50 @@ class UserApi(BaseAPI):
         response = response.json()
         return response
 
+    def getClientinteraction(self, authorization, key='', kidId=0, DeviceType="web", code=200, **kwargs):
+        """
+        获取用户客户端交互状态
+        :param key: (string, query, optional) 交互键名（可选），如果提供则只返回该key的值，否则返回所有交互状态
+        :param kidId: (integer, query, optional) 孩子ID（可选），如果提供则为kid级别，否则为user级别
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2026-01-12
+        url = f"https://{base_url}/api/user/clientInteraction"
+        payload = {
+            "key": key,
+            "kidId": kidId
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers, params=payload)
+        error_msg = "获取用户客户端交互状态"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def clientInteraction(self, authorization, key, kidId, value=True, DeviceType="web"):
+        """
+        记录用户客户端交互状态
+        :param req: (object, body, required) req
+        :param kidId: (integer, query, optional) 孩子ID（可选），如果提供则为kid级别，否则为user级别
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2026-01-12
+        url = f"https://{base_url}/api/user/clientInteraction?kidId={kidId}"
+        payload2 = {
+            "key": key,
+            "value": value
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload2)
+        error_msg = "记录用户客户端交互状态"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+

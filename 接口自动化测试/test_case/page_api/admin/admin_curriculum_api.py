@@ -325,29 +325,7 @@ class AdminCurriculumApi(BaseAPI):
         response = response.json()
         return response
 
-    def reminder_trigger(self, authorization, kidId, curriculumContentId, DeviceType="web", **kwargs):
-        """
-        根据课程ID获取课程详细信息
-        :param courseId: (integer, path, required) courseId
-        :return: 接口原始返回（已 json 解析）
-        """
-        # Create Data:  V1.24.0  &  2026-01-08
-        url = f"https://{base_url}/admin/curriculum/reminder/trigger"
-        payload = {
-            "kidId": kidId,
-            "curriculumContentId": curriculumContentId
-        }
-        payload.update(kwargs)
-        timestamp = str(int(time.time() * 1000))
-        headers = self.request_header(timestamp, authorization, DeviceType)
-
-        response = requests.request("GET", url, headers=headers)
-        error_msg = "根据课程ID获取课程详细信息"
-        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
-        response = response.json()
-        return response
-
-    def app_push_trigger(self, authorization, kidId, pushType, customMessage, timezone='+08:00', DeviceType="web"):
+    def app_push_trigger(self, authorization, kidId, customMessage, timezone='+08:00', DeviceType="web"):
         """
         触发课程推送通知接口
         :param courseId: (integer, path, required) courseId
@@ -357,7 +335,6 @@ class AdminCurriculumApi(BaseAPI):
         url = f"https://{base_url}/admin/curriculum/app-push/trigger"
         payload = {
             "kidId": kidId,
-            "pushType": pushType,
             "timezone": timezone,
             "customMessage": customMessage,
         }
@@ -369,3 +346,24 @@ class AdminCurriculumApi(BaseAPI):
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
+
+    def reminder_trigger(self, authorization, timezone='+08:00', DeviceType="web"):
+        """
+        手动触发Curriculum用户流失提醒推送任务
+        :param timezone: (string, query, required) 指定时区，如：+08:00
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2026-01-14
+        url = f"https://{base_url}/admin/curriculum/reminder/trigger"
+        payload = {
+            "timezone": timezone
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "手动触发Curriculum用户流失提醒推送任务"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+

@@ -391,7 +391,8 @@ class TestBook:
         """获取故事书推荐-正常流程测试"""
         # 获取bookid
         res = get_bookId['data']['content']
-        readBookIds = DataFrame(res)["id"].tolist()
+        readBookIds = DataFrame(res)["id"].tolist()[:5]
+        readBookIds = ['698069685456965', '676176957374533', '693936769511493', '692201254637637', '692095630258246']
         pl = {
             "readBookIds": readBookIds,
             "currentBookId": readBookIds[0],

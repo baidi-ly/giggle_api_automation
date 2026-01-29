@@ -221,10 +221,15 @@ class TestAdminCurriculum:
         '''课程抽题改为根据课程id从题库中抽'''
         kid_res = self.kid.getKids(self.authorization)['data']
         for kid in kid_res:
-            if kid['name'] == "妮姐":
+            if kid['name'] == "Ss":
                 kid_id = kid['id']
                 break
-        pushType = "LEVEL_UNLOCK"
-        customMessage = pushType + self.now + "首页三期app推送测试内容"
-        push_res = self.admin_curriculum.app_push_trigger(self.admin_auth, kid_id, pushType, customMessage)
+        customMessage =  self.now + "_首页三期app推送测试内容"
+        push_res = self.admin_curriculum.app_push_trigger(self.admin_auth, kid_id, customMessage)
+        assert push_res['message'] == 'success'
+
+    @pytest.mark.release
+    def test_course_admin_reminder_trigger(self, kid_data_session):
+        '''手动触发Curriculum用户流失提醒推送任务'''
+        push_res = self.admin_curriculum.reminder_trigger(self.admin_auth)
         assert push_res['message'] == 'success'
