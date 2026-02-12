@@ -801,3 +801,83 @@ class UserApi(BaseAPI):
         response = response.json()
         return response
 
+    def saveextinfo(self, authorization, DeviceType="web", code=200, **kwargs):
+        """
+        保存用户扩展信息
+        :param request: (object, body, required) request
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2026-02-04
+        url = f"https://{base_url}/api/user/saveExtInfo"
+        payload = {
+            "deviceId": "123456",
+            "extInfo": "hello world!!!",
+            "fcmToken": "yoJXYSzZhAOpbEFJklGtqd74X2ChTKOL",
+            "language": "en",
+            "regId": "dsfsd",
+            "timezone": "utf-8"
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "保存用户扩展信息"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def engagelab_save(self, authorization, userId, DeviceType="web", code=200, **kwargs):
+        """
+        保存极光推送Registration ID
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2026-02-04
+        url = f"https://{base_url}/api/user/engagelab/save"
+        payload = {
+          "deviceId": "22222",
+          "regid": "1111",
+          "userId": userId
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "保存极光推送Registration ID"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+
+    def loginByAppleWeb(self, authorization, id_token, state, user, code, DeviceType="web", **kwargs):
+        """
+        保存极光推送Registration ID
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2026-02-04
+        url = f"https://{base_url}/api/user/loginByAppleWeb"
+        payload = {
+            "id_token": id_token,
+            "state": state,
+            "user": user,
+            'code': code
+        }
+        payload = 'state=2WEX0s...Oa34&code=c09760a5410fa423dac764f62736dc3ce.0.srwws.UfAinrOc3CvJ2mzqBQ6m4A&id_token=eyJraWQiOiJiRnd6bGVSOHRmIiwiYWxnIjoiUlMyNTYifQ.eyJpc3MiOiJodHRwczovL2FwcGxlaWQuYXBwbGUuY29tIiwiYXVkIjoiY29tLmdpZ2dsZWFjYWRlbXkubG9naW5ieWFwcGxlc2VydmljZSIsImV4cCI6MTc3MDgxMTMxMywiaWF0IjoxNzcwNzI0OTEzLCJzdWIiOiIwMDE2NjIuNDUzYzBkOWEwZTVjNDY0ZDg2MjE2OGUwN2NjZWIyZDQuMTIzOSIsIm5vbmNlIjoiekJ5SUI3Li4uRjg0ZyIsImNfaGFzaCI6ImVLbmFPTUhrQUwzekxnVDR2U0lHR3ciLCJlbWFpbCI6ImdtenBjaGJjNjRAcHJpdmF0ZXJlbGF5LmFwcGxlaWQuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlzX3ByaXZhdGVfZW1haWwiOnRydWUsImF1dGhfdGltZSI6MTc3MDcyNDkxMywibm9uY2Vfc3VwcG9ydGVkIjp0cnVlfQ.EQaM33dMQOHfex3iMeZ0aRUW0ianlZRY-OSMs0VNqkgeQnahqkO7DbRsl4O9CpySuFtwbHoK_bkq6nCVdvEnSGDE7b6-dez8GKJHjvZG03J0NGCoEAgwOycxYaqpzzFvXgWMEnBJ8Ifnp6K_vgZNgPd5jrrGsRj0NbGqHD4832ebQ55TXBIQmx77BkyZ-shnEKDc4INH2mf_tBb7XyVU6-oKOtcGvcEJCoafnUo4ujGJGb_WT5GjDjJNt2zPAe0Be_oPRkmZQDG5D4vEYc3Ecqzo-NEMNDPj1AyREAF79pqLQHm1ZjQktJjUYQBUzWJ8G1nMKttfveTc9Ckf7GSYgw'
+        # payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, data=payload, allow_redirects=False)
+        error_msg = "保存极光推送Registration ID"
+        assert response.status_code == 302, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response

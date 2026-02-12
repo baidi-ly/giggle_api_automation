@@ -78,7 +78,7 @@ class ActivityApi(BaseAPI):
             response = response.json()
             return response
 
-    def draw(self, authorization, activityId=720712510713925, kidId=0, DeviceType="web", code=200, **kwargs):
+    def draw(self, authorization, activityId=720712510713925, kidId=0, DeviceType="web", code=200, Appversion='', **kwargs):
         """
         抽奖
         :param activityId: (integer, query, required) activityId
@@ -93,7 +93,10 @@ class ActivityApi(BaseAPI):
         }
         payload = self.request_body(payload, **kwargs)
         timestamp = str(int(time.time() * 1000))
-        headers = self.request_header(timestamp, authorization, DeviceType)
+        if Appversion:
+            headers = self.request_header(timestamp, authorization, DeviceType, Appversion=Appversion)
+        else:
+            headers = self.request_header(timestamp, authorization, DeviceType)
 
         response = requests.request("POST", url, headers=headers, params=payload)
         error_msg = "抽奖"
@@ -125,7 +128,7 @@ class ActivityApi(BaseAPI):
         response = response.json()
         return response
 
-    def getList(self, authorization, language='en', DeviceType="web", code=200, **kwargs):
+    def getList(self, authorization, language='', DeviceType="web", code=200, **kwargs):
         """
         获取当前正在进行的扭蛋活动
         :param language: (string, query, optional) language
@@ -261,4 +264,29 @@ class ActivityApi(BaseAPI):
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
+
+    def gacha_redeem(self, authorization, kidId, redemptionCode, DeviceType="web", code=200, **kwargs):
+        """
+        兑换
+        :param kidId: (integer, query, required) kidId
+        :param redemptionCode: (string, query, required) redemptionCode
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2026-02-04
+        url = f"https://{base_url}/api/activity/gacha/redeem"
+        payload = {
+            "kidId": kidId,
+            "redemptionCode": redemptionCode
+        }
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, params=payload)
+        error_msg = "兑换"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
 

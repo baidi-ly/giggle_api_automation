@@ -1016,3 +1016,33 @@ class TestUser:
         level_contents = self.curriculum.curriculum_level_contents(self.authorization, level_id, kid_id)['data'][0]
         part_len = len(level_contents['parts'])
         print(part_len)
+
+    @pytest.mark.smoke
+    def test_user_positive_saveextinfo_ok(self):
+        """保存用户扩展信息-正向用例"""
+        res = self.user.saveextinfo(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.smoke
+    def test_user_positive_save_ok(self):
+        """保存极光推送Registration ID-正向用例"""
+        res = self.user.engagelab_save(self.authorization, self.userId)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.smoke
+    def test_user_positive_loginByAppleWeb(self):
+        """保存极光推送Registration ID-正向用例"""
+        state = '2WEX0s...Oa34'
+        code = 'c09760a5410fa423dac764f62736dc3ce.0.srwws.UfAinrOc3CvJ2mzqBQ6m4A'
+        id_token = 'eyJraWQiOiJiRnd6bGVSOHRmIiwiYWxnIjoiUlMyNTYifQ.eyJpc3MiOiJodHRwczovL2FwcGxlaWQuYXBwbGUuY29tIiwiYXVkIjoiY29tLmdpZ2dsZWFjYWRlbXkubG9naW5ieWFwcGxlc2VydmljZSIsImV4cCI6MTc3MDgxMTMxMywiaWF0IjoxNzcwNzI0OTEzLCJzdWIiOiIwMDE2NjIuNDUzYzBkOWEwZTVjNDY0ZDg2MjE2OGUwN2NjZWIyZDQuMTIzOSIsIm5vbmNlIjoiekJ5SUI3Li4uRjg0ZyIsImNfaGFzaCI6ImVLbmFPTUhrQUwzekxnVDR2U0lHR3ciLCJlbWFpbCI6ImdtenBjaGJjNjRAcHJpdmF0ZXJlbGF5LmFwcGxlaWQuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlzX3ByaXZhdGVfZW1haWwiOnRydWUsImF1dGhfdGltZSI6MTc3MDcyNDkxMywibm9uY2Vfc3VwcG9ydGVkIjp0cnVlfQ.EQaM33dMQOHfex3iMeZ0aRUW0ianlZRY-OSMs0VNqkgeQnahqkO7DbRsl4O9CpySuFtwbHoK_bkq6nCVdvEnSGDE7b6-dez8GKJHjvZG03J0NGCoEAgwOycxYaqpzzFvXgWMEnBJ8Ifnp6K_vgZNgPd5jrrGsRj0NbGqHD4832ebQ55TXBIQmx77BkyZ-shnEKDc4INH2mf_tBb7XyVU6-oKOtcGvcEJCoafnUo4ujGJGb_WT5GjDjJNt2zPAe0Be_oPRkmZQDG5D4vEYc3Ecqzo-NEMNDPj1AyREAF79pqLQHm1ZjQktJjUYQBUzWJ8G1nMKttfveTc9Ckf7GSYgw'
+        res = self.user.loginByAppleWeb(self.authorization, id_token, state, '', code)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"

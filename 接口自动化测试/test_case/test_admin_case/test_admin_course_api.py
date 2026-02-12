@@ -1572,7 +1572,7 @@ class TestAdminCourse:
         # 新增策略定义
         strategyId = createCourseStrategy
         course_id = get_course_ids_session[0]
-        levels = self.course.courseDetail(self.admin_auth, course_id)['data']['difficulty']
+        levels = self.course.courseDetail(self.admin_auth, course_id)
         rules_res = self.admin_course.strategylevelRules(self.admin_auth)['data']
         for rule in rules_res['content']:
             if levels == rule['level']:
@@ -1618,3 +1618,31 @@ class TestAdminCourse:
             # 删除课程规则
             delete_res = self.admin_course.deleteStrategyRule(self.admin_auth, rule_id1)
             assert delete_res['message'] == 'success'
+
+    @pytest.mark.smoke
+    def test_admin_course_streak_protect_draw_count_trigger(self):
+        """新增等级策略 - 等级策略和课程强制策略同时存在 - 验证优先按照课程强制策略执行"""
+        resp = self.admin_course.streak_protect_draw_count_trigger(self.authorization, 770592106354949)
+        assert isinstance(resp, dict), f'接口返回类型异常: {type(resp)}'
+        assert resp['code'] == 200, f"接口返回状态码异常: 预期【401】，实际【{resp['code']}】"
+        assert resp['message'] == 'success', f"接口返回message信息异常: 预期【unauthorized】，实际【{res['message']}】"
+        assert resp['data'], f"接口返回data数据异常：{resp['data']}"
+
+    @pytest.mark.smoke
+    def test_admin_course_positive_newbie_task_list(self):
+        """获取新手任务课程列表-正向用例"""
+        res = self.admin_course.newbie_task_list(self.authorization)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"
+
+    @pytest.mark.smoke
+    def test_admin_course_positive_newbie_task_set(self):
+        """配置新手任务课程列表-正向用例"""
+        courseIds = []
+        res = self.admin_course.newbie_task_set(self.authorization, courseIds)
+        assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+        assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
+        assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"
+        assert res['data'], f"接口返回data数据异常：{res['data']}"

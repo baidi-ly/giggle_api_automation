@@ -1191,6 +1191,68 @@ class AdminCourseApi(BaseAPI):
 
         response = requests.request("POST", url, headers=headers, json=payload)
         error_msg = "批量删除课程的语音文案"
-        # assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
+
+    def streak_protect_draw_count_trigger(self, authorization, kidId, DeviceType="web"):
+        """
+        批量删除课程的语音文案
+        :param courseIds: (array, body, required) 课程ID列表
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2025-12-18
+        url = f"https://{base_url}/admin/streak-protect-draw-count/trigger?kidId={kidId}"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers)
+        error_msg = "批量删除课程的语音文案"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response
+
+    def newbie_task_list(self, authorization, DeviceType="web", code=200, **kwargs):
+        """
+        获取新手任务课程列表
+
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2026-02-11
+        url = f"https://{base_url}/admin/course/newbie-task/list"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "获取新手任务课程列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+
+    def newbie_task_set(self, authorization, courseIds, DeviceType="web", code=200, **kwargs):
+        """
+        配置新手任务课程列表
+        :param req: (object, body, required) req
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.19.0  &  2026-02-11
+        url = f"https://{base_url}/admin/course/newbie-task/set"
+        payload = {
+          "courseIds": courseIds
+        }
+        payload = self.request_body(payload, **kwargs)
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("POST", url, headers=headers, json=payload)
+        error_msg = "配置新手任务课程列表"
+        assert response.status_code == code, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        try:
+            response = response.json()
+            return response
+        except json.decoder.JSONDecodeError:
+            return False
+

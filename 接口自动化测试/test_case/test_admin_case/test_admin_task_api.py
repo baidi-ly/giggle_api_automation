@@ -47,8 +47,8 @@ class TestAdminUserPreference:
 
     @pytest.mark.smoke
     def test_admin_task_positive_aggregateDailyBehavior_ok(self):
-        """手动触发指定日期的互动行为数据聚合任务-正向用例"""
-        date = '2025-12-10'
+        """手动触发指6日期的互动行为数据聚合任务-正向用例"""
+        date = '2026-02-05'
         res = self.admin_task.aggregateDailyBehavior(self.authorization, date)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"

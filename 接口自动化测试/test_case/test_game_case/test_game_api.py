@@ -88,7 +88,7 @@ class TestGame:
     def test_game_positive_drawing_word(self):
         """画词"""
         word = "cat"
-        res = self.game.drawing_word(self.authorization, word)
+        res = self.game.drawing_word('', word)
         assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
         assert res['code'] == 200, f"接口返回状态码异常: 预期【200】，实际【{res['code']}】"
         assert res['message'] == 'success', f"接口返回message信息异常: 预期【success】，实际【{res['message']}】"

@@ -119,7 +119,7 @@ class AdminQuizApi(BaseAPI):
         payload = {
             "courseName": '',
             "page": 0,
-            "size": 200,
+            "size": 1000,
         }
         payload.update(kwargs)
         timestamp = str(int(time.time() * 1000))

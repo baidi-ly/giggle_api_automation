@@ -7,6 +7,7 @@ import os
 
 from pandas import DataFrame
 
+from conftest import kid_data_session
 from test_case.page_api.admin.admin_course_api import AdminCourseApi
 from test_case.page_api.book.book_api import BookApi
 from test_case.page_api.course.course_api import CourseApi
@@ -189,13 +190,14 @@ class TestLearning:
 
     @pytest.mark.smoke
     @pytest.mark.parametrize('date', [today, tomorrow, yesterday])
-    def test_learning_daily_learning_report_ok(self, date):
+    def test_learning_daily_learning_report_ok(self, date, kid_data_session):
         """生成指定孩子的学习情况报表数据，生成置顶日期的报表"""
         # 生成指定孩子的学习情况报表数据
-        report_res = self.learning.daily_learning_report(self.authorization, self.kid_id, date)
+        kid_id = kid_data_session[0]
+        report_res = self.learning.daily_learning_report(self.authorization, kid_id, date)
         assert "data" in report_res, f"获取孩子学习统计数据接口没有data数据，response->{report_res}"
         assert report_res["data"]["date"] == date
-        assert report_res["data"]['childInfo']['childId'] == str(self.kid_id)
+        assert report_res["data"]['childInfo']['childId'] == str(kid_id)
         assert report_res["data"]['childInfo']['name'] == 'New Kid'
         assert report_res["data"]['childInfo'][
                    'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
@@ -219,12 +221,13 @@ class TestLearning:
 
     @pytest.mark.smoke
     @pytest.mark.parametrize('date', [today, tomorrow, yesterday, "2025-01-20"])
-    def test_learning_daily_storybook_report_today(self, date):
+    def test_learning_daily_storybook_report_today(self, date, kid_data_session):
         """生成指定日期的故事书报告"""
+        kid_id = kid_data_session[0]
         # 生成指定日期的故事书报告
-        torybook_report = self.learning.daily_storybook_report(self.authorization, self.kid_id, date)
+        torybook_report = self.learning.daily_storybook_report(self.authorization, kid_id, date)
         assert torybook_report["data"]["date"] == date
-        assert torybook_report["data"]['childInfo']['childId'] == str(self.kid_id)
+        assert torybook_report["data"]['childInfo']['childId'] == str(kid_id)
         assert torybook_report["data"]['childInfo']['name'] == 'New Kid'
         assert torybook_report["data"]['childInfo'][
                    'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'
@@ -236,12 +239,13 @@ class TestLearning:
 
     @pytest.mark.smoke
     @pytest.mark.parametrize('date', [today, tomorrow, yesterday, "2025-01-20"])
-    def test_learning_daily_challenge_report_today(self, date):
+    def test_learning_daily_challenge_report_today(self, date, kid_data_session):
         """生成指定日期的挑战课报告"""
+        kid_id = kid_data_session[0]
         # 生成指定日期的挑战课报告
-        challenge_res = self.learning.daily_challenge_report(self.authorization, self.kid_id, date)
+        challenge_res = self.learning.daily_challenge_report(self.authorization, kid_id, date)
         assert challenge_res["data"]["date"] == date
-        assert challenge_res["data"]['childInfo']['childId'] == str(self.kid_id)
+        assert challenge_res["data"]['childInfo']['childId'] == str(kid_id)
         assert challenge_res["data"]['childInfo']['name'] == 'New Kid'
         assert challenge_res["data"]['childInfo'][
                    'avatar'] == 'http://static.giggleacademy.com/admin/materials/653454754111557/17e678e7-08f8-4089-be25-975ca5d02e60.png'

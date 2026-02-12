@@ -2832,3 +2832,20 @@ class BookApi(BaseAPI):
         assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
         response = response.json()
         return response
+
+    def voice_clone_model(self, authorization, DeviceType="web"):
+        """
+        获取用户语音模型列表
+        :param voicePackId: (integer, path, required) voicePackId
+        :return: 接口原始返回（已 json 解析）
+        """
+        # Create Data:  V1.24.0  &  2026-01-06
+        url = f"https://{base_url}/api/voice-clone/model"
+        timestamp = str(int(time.time() * 1000))
+        headers = self.request_header(timestamp, authorization, DeviceType)
+
+        response = requests.request("GET", url, headers=headers)
+        error_msg = "获取语音包信息"
+        assert response.status_code == 200, f"{error_msg}失败，url->{url}，失败信息->{response.reason}{response.content}"
+        response = response.json()
+        return response

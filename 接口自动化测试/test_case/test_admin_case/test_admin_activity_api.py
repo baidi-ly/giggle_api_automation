@@ -3,6 +3,7 @@ import json
 import random
 import sys
 import os
+import time
 from time import strftime
 
 from pandas import DataFrame
@@ -665,3 +666,29 @@ class TestAdminActivity:
             "previousCount": previousCount,
             "userId": int(self.user_admin_id)
         }
+
+    @pytest.mark.smoke
+    def test_admin_activity_positive_addDrawCount(self):
+        """给指定用户增加抽奖次数-验证添加效果"""
+        # 创建测试学生
+        kid_id = 770683513533829
+        activity_id = '769714092328197'
+        # 给指定用户增加抽奖次数前，获取用户抽奖信息
+        # 给指定用户增加抽奖次数
+        # res = self.admin_activity.addDrawCount(self.auth_admin, activity_id, 10000, kid_id, self.user_admin_id)
+        # assert res['code'] == 200
+        """抽奖-正向用例"""
+        for j in range(10):
+            time.sleep(.2)
+            res = self.activity.draw(self.authorization, activity_id, kid_id, Appversion="1.25.0")
+            assert isinstance(res, dict), f'接口返回类型异常: {type(res)}'
+            assert res['data']['type'] in ['sticker', 'costume', 'giggles', 'streakProtect']
+        for i in range(1, 25):
+            for j in range(5):
+                Appversion = f"1.{i}.{j}"
+                time.sleep(.2)
+                for j in range(2):
+                    res = self.activity.draw(self.authorization, activity_id, kid_id, Appversion=Appversion)
+                    print(Appversion)
+                    print(res['data'])
+                    assert res['data']['type'] in ['sticker', 'giggles']

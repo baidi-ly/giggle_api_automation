@@ -1,6 +1,6 @@
 {
   "apis": [
-    "/admin/learning-stats/trigger-shining-moment"
+    "/admin/course/newbie-task/set"
   ],
   "update_apis": [],
   "scan_time": "2025-10-17 10:54:39.746089",

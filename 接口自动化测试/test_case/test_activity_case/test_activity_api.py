@@ -6,6 +6,7 @@ from time import strftime
 
 from pandas import DataFrame
 
+from conftest import kid_data_session
 from test_case.page_api.activity.activity_api import ActivityApi
 from test_case.page_api.admin.admin_activity_api import AdminActivityApi
 from test_case.page_api.admin.admin_banner_api import AdminBannerApi
